@@ -1,12 +1,12 @@
 export const meta = {
   name: 'optimize-codebase',
-  description: 'Unified, staged codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). Built on the mature decompose-repo engine. A single Setup pass prepares a clean committed baseline + CI-faithful uv env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subpackages instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> AST codemod leaving re-export shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
+  description: 'Unified, staged, LANGUAGE-AGNOSTIC codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). An ECOSYSTEM PROFILE (python | node | go | rust | generic — explicit arg or auto-detected from the repo manifests at Setup) supplies every language-specific piece: source extensions, env/test/smoke/lint commands, the module-identity scheme, the compat-shim mechanism (python re-export shims, node barrel re-exports, go same-package splits / alias shims, rust pub use, generic full-reference rewrites), the test-seam census, and the codemod guidance — everything else is neutral machinery. A single Setup pass prepares a clean committed baseline + CI-faithful env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subdirectories instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> scripted/codemod extraction leaving compat shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
   phases: [
-    { title: 'Setup', detail: 'assert git tree, clean committed baseline on the working branch, set up uv env, capture a baseline test oracle + protected-untracked set + structure-verifier baseline (once for the whole run)' },
+    { title: 'Setup', detail: 'assert git tree, clean committed baseline on the working branch, detect the ecosystem + toolchain, set up the project env, capture a baseline test oracle + protected-untracked set + structure-verifier baseline (once for the whole run)' },
     { title: 'Conventions', detail: 'derive the repo organization conventions (codebase-organizer philosophy + language layouts + live repo_scan/verifier output) into a CONVENTIONS block injected into every decompose/deepen find/panel/chair/implement prompt (once)' },
     { title: 'Org[{p}] · Iter {r}', detail: 'ORGANIZE stage repo-level rounds (when selected): codebase-organizer plan -> persist -> apply (git mv + ref rewrite) -> CI verify -> commit -> re-scan until converged; phases unique per (pass, round)' },
     { title: 'Discover[{stage}] {p}', detail: 'DECOMPOSE worklist scan (files > discoverLines) / DEEPEN anchor scan (files > deepAnchorLines), unique per pass' },
-    { title: '{STAGE} F{n} {file} · Iter {r}', detail: 'per-file engine rounds, created DYNAMICALLY and uniquely per (stage, file, round) — e.g. "DEC F2 main · Iter 1": compute the file shim module + contract census, then iterate rounds (find -> panel -> apply+shims -> validate -> commit) until convergence; no phase name is reused across stages, files, or rounds' },
+    { title: '{STAGE} F{n} {file} · Iter {r}', detail: 'per-file engine rounds, created DYNAMICALLY and uniquely per (stage, file, round) — e.g. "DEC F2 main · Iter 1": compute the file public import path + contract census, then iterate rounds (find -> panel -> apply+shims -> validate -> commit) until convergence; no phase name is reused across stages, files, or rounds' },
     { title: 'Report', detail: 'per-stage rollup: organize moves landed, per-file before/after line counts + extractions, deepenings landed, org-audit findings, and convergence reasons' },
   ],
 }
@@ -25,10 +25,12 @@ const MAX_ITERS = Number.isFinite(A.maxIterations) ? A.maxIterations : 20
 // OUTER cap: how many distinct god-files the sweep will process before stopping.
 const MAX_FILES = Number.isFinite(A.maxFiles) ? A.maxFiles : 25
 // MULTI-FILE CONCURRENCY (DECOMPOSE stage only): how many oversized files decompose AT ONCE, each in
-// its own git worktree with its OWN .venv. (The root .venv's editable .pth hardcodes <ROOT>/src, so a
-// worktree sharing it would validate ROOT's source, not its own edits — every worktree must `uv sync`
-// its own env.) Converged files merge back to BRANCH one at a time. 1 = the legacy serial sweep on the
-// main checkout (no worktree, no extra venv) — identical to the pre-concurrency behavior.
+// its own git worktree. Ecosystems whose profile sets perWorktreeEnv get their OWN per-worktree env:
+// python needs its own .venv (the root .venv's editable .pth hardcodes <ROOT>/src, so a worktree
+// sharing it would validate ROOT's source, not its own edits) and node needs its own node_modules;
+// go/rust/generic share the toolchain caches and skip the env-sync step. Converged files merge back
+// to BRANCH one at a time. 1 = the legacy serial sweep on the main checkout (no worktree, no extra
+// env) — identical to the pre-concurrency behavior.
 const FILE_CONCURRENCY = Number.isFinite(A.fileConcurrency) ? A.fileConcurrency : 3
 // On a merge-back conflict (rare — a shared file two files' extractions both touched, e.g. a concern
 // subpackage __init__.py), abort the merge and re-run the file FRESH on the now-updated base, up to
@@ -44,13 +46,14 @@ const BUDGET_FLOOR = Number.isFinite(A.budgetFloor) ? A.budgetFloor : 150_000
 const TARGET_LINES = Number.isFinite(A.targetLines) ? A.targetLines : 1000
 // DISCOVERY threshold: only files with MORE than this many lines enter the worklist.
 const DISCOVER_LINES = Number.isFinite(A.discoverLines) ? A.discoverLines : 1500
-// Where to hunt for god-files, and what to never touch. The shim/patch-seam/AST machinery only fits
-// importable Python source modules — the TS ui-tui workspace and dev/tests are excluded by default.
-// NOTE: SCAN_ROOTS / TEST_DIRS_FOR / ENV_SETUP / BASE_IMPORTS / LINT / KEEP_SET are `let` (not const)
-// because the Setup-phase DETECT step (below) fills repo-appropriate defaults when the caller did not
-// pass an explicit arg. Explicit args always win (tracked via HAS()).
+// Where to hunt for god-files, and what to never touch. Defaults are NEUTRAL (build/cache/vendor
+// trees only); the Setup-phase DETECT step narrows SCAN_ROOTS to the repo's real source root.
+// NOTE: SCAN_ROOTS / TEST_DIRS_FOR / ENV_SETUP / BASE_IMPORTS / LINT / KEEP_SET / TEST_PREFIX /
+// SRC_EXTS etc. are `let` (not const) because the Setup-phase DETECT step (below) fills
+// repo-appropriate defaults when the caller did not pass an explicit arg. Explicit args always win
+// (tracked via HAS()).
 let SCAN_ROOTS = (Array.isArray(A.scanRoots) && A.scanRoots.length) ? A.scanRoots : ['src']
-const EXCLUDE_GLOBS = (Array.isArray(A.excludeGlobs) && A.excludeGlobs.length) ? A.excludeGlobs : ['src/ui-tui/**', '**/__pycache__/**']
+const EXCLUDE_GLOBS = (Array.isArray(A.excludeGlobs) && A.excludeGlobs.length) ? A.excludeGlobs : ['**/__pycache__/**', '**/node_modules/**', '**/target/**', '**/dist/**', '**/build/**', '**/.venv/**', '**/vendor/**']
 // PER-ROUND BATCHING: land up to BATCH_MAX line-DISJOINT extractions per find+panel cycle. A "giant"
 // cluster (>= GIANT_LINES) is too central to batch — it lands SOLO with the round to itself. Raised
 // to 5 so each (expensive) plan+find pass yields more committed extractions before the pool is rebuilt.
@@ -115,7 +118,8 @@ const SINGLE_TARGET = (typeof A.target === 'string' && A.target.trim()) ? A.targ
 const ISOLATE = FILE_CONCURRENCY > 1 && !SINGLE_TARGET
 
 // FAST SETUP: when prior runs already synced the env + captured the oracle, pass skipSetup:true to
-// skip the two SLOW setup steps (`uv sync` ~minutes, baseline pytest oracle ~3-4min). It still does
+// skip the two SLOW setup steps (the env setup — e.g. `uv sync` / `npm ci` — ~minutes, and the
+// baseline test oracle ~3-4min). It still does
 // the CHEAP but load-bearing safety work: verify the branch, ensure a clean committed tree, and
 // re-capture the PROTECTED UNTRACKED set (without it, revert-on-red could delete .venv/node_modules/
 // archive/build). env is assumed ready; the baseline keep-set oracle is left empty (each round's own
@@ -169,12 +173,10 @@ const ORG_MAX_ROUNDS = stageNum('organize', 'maxRounds', Number.isFinite(A.orgMa
 // /path/repo -> /path/repo.optimize-codebase-plans . Override with orgPlanDir for a custom location.
 const ORG_PLAN_DIR = A.orgPlanDir || (ROOT.replace(/\/+$/, '') + '.optimize-codebase-plans')
 // ORG_EXCLUDE: repo-relative path prefixes the organizer must NOT move/restructure/quarantine. Defaults
-// to the test trees — their path-depth math + dynamic discovery make reorg moves unsafe (the headless
-// critic vetoed a whole plan over exactly this). Forwarded to organize-plan's `exclude` arg.
-// src/ui-tui is a self-contained TypeScript workspace (its own package layout + 100+ .test.ts files);
-// the decompose stage already treats it as off-limits via EXCLUDE_GLOBS, so the Python-oriented
-// organizer must skip it too — otherwise the scan drowns in TS test files.
-const ORG_EXCLUDE = (Array.isArray(A.orgExclude) ? A.orgExclude : (A.orgExclude ? [A.orgExclude] : ['dev/tests', 'tests', 'archive', 'src/ui-tui']))
+// to the common test trees + archive — test trees' path-depth math + dynamic discovery make reorg
+// moves unsafe (a headless critic once vetoed a whole plan over exactly this). Forwarded to
+// organize-plan's `exclude` arg.
+const ORG_EXCLUDE = (Array.isArray(A.orgExclude) ? A.orgExclude : (A.orgExclude ? [A.orgExclude] : ['tests', 'test', 'dev/tests', 'archive']))
 
 // ---- DEEPEN stage (improve-architecture find criteria, sequential apply on the shared engine) ----
 // Anchors: files large enough to host a deepening. A LOWER bar than decompose's discoverLines, since
@@ -183,17 +185,8 @@ const DEEP_ANCHOR_LINES = Number.isFinite(A.deepAnchorLines) ? A.deepAnchorLines
 const DEEP_MAX_FILES = stageNum('deepen', 'maxFiles', Number.isFinite(A.deepMaxFiles) ? A.deepMaxFiles : 15)
 // Subsystem -> full test dirs that must stay green when that subsystem is touched (from improve-arch).
 // `let` so DETECT can synthesize it from the real src<->tests mirror when not passed. Explicit wins.
-let TEST_DIRS_FOR = (A.testDirsFor && typeof A.testDirsFor === 'object') ? A.testDirsFor : {
-  agent: ['dev/tests/agent', 'dev/tests/run_agent'],
-  gateway: ['dev/tests/gateway'],
-  tui_gateway: ['dev/tests/tui_gateway'],
-  hermes_cli: ['dev/tests/hermes_cli', 'dev/tests/cli'],
-  hermes_core: ['dev/tests/hermes_state'],
-  cron: ['dev/tests/cron'],
-  providers: ['dev/tests/providers'],
-  tools: ['dev/tests/tools'],
-  plugins: ['dev/tests/plugins'],
-}
+// Default is EMPTY — VAL_DIRS then falls back to TEST_ROOT, which is always a safe superset.
+let TEST_DIRS_FOR = (A.testDirsFor && typeof A.testDirsFor === 'object') ? A.testDirsFor : {}
 
 // ---- ORG-AWARE PLACEMENT (so new modules land in convention-correct subpackages, not loose siblings) ----
 const ORG_AWARE_PLACEMENT = A.orgAwarePlacement !== false
@@ -231,51 +224,244 @@ const HAS = (k) => {
   return true
 }
 
-// CI-faithful verification surface. Everything runs through the project's env command (uv by default);
-// the loop never trusts a bare python/pytest on PATH. These are `let` so the Setup-phase DETECT step
-// can fill repo-appropriate values (test root, packages, extras) when the caller did not pass them.
-// The defaults below are the ORIGINAL repo's values, kept only as a last-resort fallback.
-// TEST_ROOT: where the suite lives (pyproject testpaths). Detected as dev/tests | tests | test.
-let TEST_ROOT = (typeof A.testRoot === 'string' && A.testRoot.trim()) ? A.testRoot.trim().replace(/\/+$/, '') : 'dev/tests'
-let ENV_SETUP = A.envSetup || 'uv sync --locked --python 3.11 --extra all --extra dev'
-// Repo-wide import smoke base: a fast set of top-level imports that catches package-wide breakage.
-// Each file's smoke ALSO imports that file's own shim module (see importSmokeFor) so the moved names
-// stay importable from the original path. Detected from the src package layout when not passed.
-let BASE_IMPORTS = A.baseImports || 'hermes_cli.main, hermes_core.cli, hermes_core.run_agent, gateway.run, tui_gateway.server, tui_gateway.entry, hermes_cli.auth, hermes_cli.runtime_provider, agent.transports, hermes_cli.cron'
-// Reads BASE_IMPORTS at CALL time (always after DETECT has run in Setup), so the detected set is used.
-const importSmokeFor = (shimMod) => 'uv run python -c "import ' + BASE_IMPORTS + (shimMod ? ', ' + shimMod : '') + '"'
-let LINT = A.lintCmd || 'uvx ruff check .'
-// Per-round lint runs on just the touched files. Prefix is repo-specific; '' means "no linter
-// configured" -> the per-round lint becomes a shell no-op so a non-ruff repo is never RED'd by lint.
-// DETECT sets this from the repo (ruff -> "uvx ruff check"; none found -> ""). Explicit lintPerFile wins.
-let LINT_PER_FILE_PREFIX = (typeof A.lintPerFile === 'string') ? A.lintPerFile.trim() : 'uvx ruff check'
+// ======================= ECOSYSTEM PROFILES =======================
+// The engine's language-specific knowledge lives HERE (plus the Setup-phase DETECT prompt): source
+// extensions, env/test/smoke/lint command shapes, the module-identity scheme, and the prose guides
+// (compat-shim mechanism, test-seam census, codemod mechanism, classic traps) that get injected into
+// every find/panel/implement/validate/repair prompt. Everything else in the file is language-neutral
+// machinery. The 'python' profile preserves the original engine's behavior exactly (re-export shims,
+// patch("mod.X") seam census, __init__.py scaffolding, ast/libcst codemods, uv-first commands).
+const ALL_ECOSYSTEMS = ['python', 'node', 'go', 'rust', 'generic']
+let ECOSYSTEM = (typeof A.ecosystem === 'string' && ALL_ECOSYSTEMS.includes(A.ecosystem.trim().toLowerCase()))
+  ? A.ecosystem.trim().toLowerCase() : ''
+if (typeof A.ecosystem === 'string' && A.ecosystem.trim() && !ECOSYSTEM) {
+  return { error: "unknown ecosystem '" + A.ecosystem + "' — expected one of " + ALL_ECOSYSTEMS.join(' | ') }
+}
+// Broad default for the 'generic' profile when the caller passes no srcExts.
+const GENERIC_EXTS = ['.py', '.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs', '.go', '.rs', '.java', '.kt', '.rb', '.php', '.cs', '.c', '.h', '.cc', '.cpp', '.hpp', '.swift', '.scala', '.ex', '.exs', '.lua', '.zig']
+// SRC_EXTS: resolved source extensions (srcExts arg > profile exts). Filled properly after DETECT;
+// helpers below read it at CALL time.
+let SRC_EXTS = (Array.isArray(A.srcExts) && A.srcExts.length) ? A.srcExts.map(e => (e[0] === '.' ? e : '.' + e)) : ['.py']
+const stripExt = (p) => { const s = String(p); for (const e of SRC_EXTS) { if (s.endsWith(e)) return s.slice(0, -e.length) } return s }
+const isSourceFile = (p) => SRC_EXTS.some(e => String(p).endsWith(e))
+// Where the tests live, for prompt text (TEST_ROOT is resolved after DETECT; read at call time).
+const TDIRX = () => TEST_ROOT || 'the test tree'
+
+// Each guide function takes m = { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED } (per-file identities).
+const PROFILES = {
+  python: {
+    exts: ['.py'],
+    perWorktreeEnv: true,                       // each worktree needs its own .venv (editable .pth pins src)
+    smokeNoun: 'Import smoke',
+    idNoun: 'dotted module path',
+    defaultTestPrefix: 'python -m pytest',      // 'uv run python -m pytest' when uv detected (resolved post-DETECT)
+    defaultSmoke: '',                           // python smoke is built per-file from BASE_IMPORTS (importSmokeFor)
+    defaultLintPerFile: '',
+    moduleIdFor: (p) => stripExt(String(p)).replace(/^src\//, '').replace(/\//g, '.'),
+    scaffoldNote: 'Python: a NEW subpackage directory is only importable once it has an __init__.py — list every needed __init__.py (repo-relative) in scaffold_files. Most extractions into an existing package need none.',
+    siteKinds: (m) => '\`from ' + m.MODULE_ID + ' import <sym>\` sites, \`patch("' + m.MODULE_ID + '.<sym>")\` / monkeypatch sites',
+    shimGuide: (m) => 'COMPAT MECHANISM (python re-export shim): every extraction leaves a RE-EXPORT SHIM block (\`from <dest module> import X\`) at the old module, so every name currently importable from ' + m.MODULE_ID + ' (the file\'s public import path) STAYS importable from it, and every \`patch("' + m.MODULE_ID + '.X")\` test seam keeps resolving to the SAME object the live code calls (the seam must keep biting). ALSO audit for SOURCE-TEXT GUARD tests — a failure class a shim CANNOT fix: tests that read ' + m.TARGET + ' as a STRING (read_text / ast.parse / inspect.getsource) and assert a moved symbol\'s def/call appears in its literal contents; moving the symbol makes that assertion FALSE no matter what shim is added, so each such guard test must be REPOINTED at the new module.',
+    seamGuide: (m) => 'TEST-SEAM CENSUS (python): count \`patch("' + m.MODULE_ID + '.X")\` / \`patch.object\` / monkeypatch sites — these pin the file\'s public import path and every one must keep biting after a move.',
+    codemodGuide: 'a throwaway Python ast/libcst codemod (write it under /tmp, run it through the project\'s env, DELETE it before finishing)',
+    censusBody: (m) => 'Count, across BOTH the test tree and the source tree:\n  - total_patch_sites: occurrences of \`patch("' + m.MODULE_ID + '.\` / \`patch(\'' + m.MODULE_ID + '.\` / \`patch.object(' + m.MODULE_ID + '\` / monkeypatch of names from this module.\n  - total_import_sites: occurrences of \`from ' + m.MODULE_ID + ' import \` plus bare \`' + m.MODULE_ID + '.\` attribute references.\n  - src_importers: rough count of DISTINCT source files that import ' + m.MODULE_ID + '.\n  - top_symbols: the ~6 individual symbols of this module that appear most often across those sites, each with its count (e.g. {name:"_cprint", count:74}).',
+    contractTraps: (m) => 'Determine whether the extraction can preserve EVERY externally observable contract: every name currently importable from ' + m.MODULE_ID + ' must STAY importable from ' + m.MODULE_ID + ' (via a re-export shim), every `patch("' + m.MODULE_ID + '.X")` must keep resolving to the SAME object the live code uses (so test seams still bite), CLI surface, wire formats, persisted schemas, and error contracts unchanged. A decomposition reshapes file layout BEHIND those unchanged import paths. Cast a HARD VETO ONLY if the extraction INHERENTLY cannot preserve a contract by any path (extremely rare for a pure move — almost always a shim fixes it). If a naive move would break `patch("' + m.MODULE_ID + '.X")` resolution (the classic trap: code moves but the patch target must still point at the object the moved code actually calls), do NOT veto — instead enumerate the exact shim re-exports AND the patch-target invariants required, and vote concerns. Difficulty of preserving the seam is a plan input, not a veto.\nSECOND, audit for SOURCE-TEXT GUARD tests — a distinct failure class a re-export shim CANNOT fix. Some tests read ' + m.TARGET + ' as a STRING and assert on its literal contents (e.g. `source = Path(".../' + (m.TARGET.split('/').pop()) + '").read_text(); assert "def some_symbol" in source`). grep ' + TDIRX() + ' for tests that open/read the target path or parametrize on it (search: the file\'s basename, `read_text`, `.py").read`, `ast.parse`, the bare symbol names as quoted strings). For EVERY moved symbol, check whether any test asserts that symbol\'s def/call appears in ' + m.TARGET + '\'s text — moving it makes that assertion FALSE no matter what shim you add. This is NOT an inherent contract break (do not hard-veto): the fix is to UPDATE the guard test to point at the new module (or assert the shim line is present). List each such guard in required_safeguards as "source-text-guard: <test node id> — repoint to <new module>" and vote concerns. A missed source-text guard is the #1 silent red for this loop.',
+    testNetTrap: (m) => 'The classic trap: a name moves, its `patch("' + m.MODULE_ID + '.X")` test seam silently stops biting (now patches a dead shim, not the object the live code calls), and tests pass GREEN while behaviour drifted. Require, in required_safeguards: (a) for every heavily-patched symbol in the cluster, a CHARACTERIZATION assertion that `patch("' + m.MODULE_ID + '.<sym>")` STILL intercepts the live call path after the move (the import-binding-rename regression class from package-reorg-traps.md), and',
+    scopeGreps: (m, dest) => '  - patch("' + m.MODULE_ID + '.<sym>") / patch.object(...,"<sym>") / monkeypatch <sym>\n  - `from ' + m.MODULE_ID + ' import <sym>` or reference `' + m.MODULE_ID + '.<sym>`\n  - use <sym> bare in a test body, or import the destination module ' + dest + '\n  - SOURCE-TEXT GUARDS: read ' + m.TARGET + ' as text / ast.parse it / assert a symbol name string appears in it (search: ' + (m.TARGET.split('/').pop()) + ', read_text, ast.parse, each symbol as a quoted string)',
+    repairHints: (m, newModule) => '- SOURCE-TEXT / SOURCE-INTROSPECTION GUARD (a test reads ' + m.TARGET + ' as text, `ast.parse`s it, or uses inspect/getsource and asserts a moved symbol appears in ' + m.TARGET + '): a shim CANNOT satisfy this. REPOINT the test to inspect ' + newModule + ' (or both). Most common red.\n- PATCH-SEAM BREAK (a `patch("' + m.MODULE_ID + '.X")` test stopped biting): ensure the moved code resolves X through a path the patch still intercepts (re-export at ' + m.MODULE_ID + '.X AND make the live call go through the patched module attribute, not a bare local rebind).\n- IMPORT / NAME ERROR in the new module or shim: add the missing imports, fix the shim re-export so `from ' + m.MODULE_ID + ' import <name>` and the dotted path both resolve.\n- A genuine behavior regression: fix the moved code so behavior is identical to before the move.',
+    implSeamWatch: (m) => '- WATCH THE patch() SEAM (the import-binding-rename trap): if the moved code calls a sibling that was also moved, callers inside the new module must reference it so that patching `' + m.MODULE_ID + '.<name>` still affects the call — verify by reasoning about WHERE the name is looked up. If a symbol is called via the module global, the shim alone preserves the seam; if it was called bare within the moved cluster, the cluster now resolves it locally and the OLD patch target would go dead — in that case re-export AND keep the call going through a path the test patches (note any such case in detail).',
+    implGuardAudit: (m, destModule) => '- UPDATE SOURCE-TEXT GUARD TESTS (a failure class a shim CANNOT fix). BEFORE finishing, grep ' + TDIRX() + ' for any test that reads ' + m.TARGET + ' as TEXT and asserts a moved symbol\'s def/call appears in it (search: `' + (m.TARGET.split('/').pop()) + '`, `read_text`, `ast.parse`, and each moved symbol name as a quoted string). Such a test asserts `"def <sym>" in source_of_target` or parametrizes on the target path; moving the symbol makes it FALSE. For each one (the mandate lists them as "source-text-guard: ..."), REPOINT the assertion to the new module ' + destModule + ' (or assert the new shim line is present in ' + m.TARGET + ') so the guard still verifies the real intent. Add these files to files_touched. A missed guard is the most common silent red for this loop.',
+    valSeamNote: (m) => 'PAY SPECIAL ATTENTION to any `patch("' + m.MODULE_ID + '.X")`-based test: if it now fails, the move likely broke the patch seam — flag that explicitly.',
+  },
+  node: {
+    exts: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'],
+    perWorktreeEnv: true,                       // each worktree needs its own node_modules
+    smokeNoun: 'Type check',
+    idNoun: 'import path',
+    defaultTestPrefix: '',                      // DETECT resolves: npm test -- | npx vitest run | npx jest
+    defaultSmoke: '',                           // DETECT resolves: 'npx tsc --noEmit' when a tsconfig exists
+    defaultLintPerFile: '',
+    moduleIdFor: (p) => stripExt(String(p)),
+    scaffoldNote: 'node: no scaffold files are normally needed — leave scaffold_files empty (an index/barrel file, when wanted, is part of the extraction itself).',
+    siteKinds: (m) => '\`import ... from \'' + m.MODULE_ID + '\'\` / \`require(\'' + m.MODULE_ID + '\')\` sites and \`jest.mock(\'' + m.MODULE_ID + '\')\` / \`vi.mock(\'' + m.MODULE_ID + '\')\` sites',
+    shimGuide: (m) => 'COMPAT MECHANISM (node barrel re-export): the old file ' + m.TARGET + ' becomes (or gains) a BARREL that re-exports everything that moved — \`export { X } from \'./<new>\'\` / \`export * from \'./<new>\'\` — so every \`import ... from \'<old path>\'\`, \`require(\'<old path>\')\`, and \`jest.mock(\'<old path>\')\` / \`vi.mock(\'<old path>\')\` site keeps resolving through the barrel. WATCH the two classic traps: DEFAULT exports must be re-exported explicitly (\`export { default } from \'./<new>\'\`), and type-only exports need \`export type { T } from \'./<new>\'\` so isolatedModules/verbatimModuleSyntax builds keep passing.',
+    seamGuide: (m) => 'TEST-SEAM CENSUS (node): count \`jest.mock(\'' + m.MODULE_ID + '\')\` / \`vi.mock(\'' + m.MODULE_ID + '\')\` and \`require(\'' + m.MODULE_ID + '\')\` sites — module doubles registered at the OLD path must keep intercepting after a move (the barrel keeps the path alive, but the moved code must still import through a path the mock covers).',
+    codemodGuide: 'a ts-morph / jscodeshift codemod or a scripted transform, verified with the TypeScript compiler (\`npx tsc --noEmit\`) when a tsconfig exists',
+    censusBody: (m) => 'Count, across BOTH the test tree and the source tree:\n  - total_patch_sites: occurrences of \`jest.mock(\'' + m.MODULE_ID + '\'\` / \`vi.mock(\'' + m.MODULE_ID + '\'\` / \`vi.doMock\`/\`jest.doMock\` of this path (module doubles pinned to the old path).\n  - total_import_sites: occurrences of \`from \'' + m.MODULE_ID + '\'\` / \`require(\'' + m.MODULE_ID + '\')\` (match with and without the extension and with relative-path variants).\n  - src_importers: rough count of DISTINCT source files that import this file.\n  - top_symbols: the ~6 exported symbols of this file that appear most often across those sites, each with its count.',
+    contractTraps: (m) => 'Determine whether the extraction can preserve EVERY externally observable contract: every symbol currently importable from the old path must STAY importable from it (the old file becomes a BARREL: `export { X } from \'./<new>\'` / `export * from \'./<new>\'`), every `jest.mock(\'<old path>\')` / `vi.mock(\'<old path>\')` module double must keep intercepting the live call path, and every `require(\'<old path>\')` site must keep resolving; public API, CLI surface, wire formats, persisted schemas, and error contracts unchanged. Cast a HARD VETO ONLY if the extraction INHERENTLY cannot preserve a contract by any path (extremely rare — the barrel almost always fixes it). Turn the classic traps into required_safeguards + a concerns vote, NOT a veto: (a) DEFAULT exports — `export *` does NOT forward `default`; require an explicit `export { default } from \'./<new>\'` when the old file has one; (b) TYPE-ONLY exports — require `export type { T } from \'./<new>\'` so isolatedModules/verbatimModuleSyntax builds keep passing; (c) MOCK-PATH STALENESS — a double registered at the old path stops biting if the moved code now imports its sibling directly from the new file; require that intercepted calls keep flowing through a path the mock covers. Difficulty of preserving the surface is a plan input, not a veto.',
+    testNetTrap: (m) => 'The classic trap: a symbol moves, a `jest.mock(\'' + m.MODULE_ID + '\')` / `vi.mock(\'' + m.MODULE_ID + '\')` double registered at the OLD path silently stops biting (the moved code now imports its sibling directly from the new file, bypassing the mocked path), and tests pass GREEN while behaviour drifted; a `default` export lost by an `export *` barrel fails the same silent way. Require, in required_safeguards: (a) for every mocked symbol in the cluster, a CHARACTERIZATION assertion that doubles registered at the old path STILL intercept the live call path after the move (and an explicit `default` re-export where one existed), and',
+    scopeGreps: (m, dest) => '  - `jest.mock(\'' + m.MODULE_ID + '\')` / `vi.mock(\'' + m.MODULE_ID + '\')` / `jest.doMock`/`vi.doMock` of the old path\n  - `import ... from \'' + m.MODULE_ID + '\'` / `require(\'' + m.MODULE_ID + '\')` (with/without extension, relative variants) or imports of the destination ' + dest + '\n  - use <sym> bare in a test body\n  - SOURCE-TEXT GUARDS (rare): tests that read ' + m.TARGET + ' as text and assert on its literal contents',
+    repairHints: (m, newModule) => '- STALE MOCK PATH (a `jest.mock`/`vi.mock` double at the old path stopped biting): re-export the symbol through the barrel AND make the live call flow through the mocked path (import via the old path inside the moved code when tests rely on interception).\n- MISSING DEFAULT / TYPE-ONLY RE-EXPORT: add `export { default } from \'./<new>\'` / `export type { T } from \'./<new>\'` to the barrel at ' + m.TARGET + '.\n- RESOLUTION / COMPILE ERROR (tsc or the test runner names the path/symbol): fix the import path or the barrel re-export in ' + newModule + ' / ' + m.TARGET + '.\n- A genuine behavior regression: fix the moved code so behavior is identical to before the move.',
+    implSeamWatch: (m) => '- WATCH THE MOCK SEAM: if a test registers a double at the old path (`jest.mock`/`vi.mock`), the moved code must keep resolving that dependency through a path the double covers — re-export it through the barrel AND, when tests rely on interception, import it in the new file via the mocked path. Re-export `default` explicitly (`export *` does not forward it); use `export type` for type-only names.',
+    implGuardAudit: (m, destModule) => '- SOURCE-TEXT GUARDS (rare but possible): grep ' + TDIRX() + ' for any test that reads ' + m.TARGET + ' as text and asserts on its literal contents; repoint any such assertion at ' + destModule + '. Add those test files to files_touched.',
+    valSeamNote: (m) => 'PAY SPECIAL ATTENTION to tests that `jest.mock`/`vi.mock` the old path \'' + m.MODULE_ID + '\': if one now fails (or suspiciously passes while asserting nothing), the barrel/mock seam likely broke — flag it explicitly.',
+  },
+  go: {
+    exts: ['.go'],
+    perWorktreeEnv: false,                      // module cache is shared; worktrees need no env sync
+    smokeNoun: 'Compile smoke',
+    idNoun: 'package path',
+    defaultTestPrefix: 'go test',
+    defaultSmoke: 'go build ./...',
+    defaultLintPerFile: 'go vet',
+    moduleIdFor: (p) => stripExt(String(p)),
+    scaffoldNote: 'go: no scaffold files are needed — leave scaffold_files empty (a new file simply declares its package).',
+    siteKinds: (m) => 'importers of the owning package and references to the moved identifiers (Go has no patch-by-import-path test seam)',
+    shimGuide: (m) => 'COMPAT MECHANISM (go): PREFER SAME-PACKAGE FILE SPLITS — moving declarations between files of ONE package changes NOTHING for importers and needs NO shims at all (the new file just declares the same \`package\` clause), which makes Go decomposition the safest kind. A CROSS-PACKAGE move is a real API change: either leave alias shims at the old package (type aliases \`type X = newpkg.X\`, \`var Fn = newpkg.Fn\`, re-declared consts) or enumerate and rewrite EVERY call site. A move into a new package MUST NOT create an import cycle — \`go build\` refuses cycles, so plan the dependency direction before moving.',
+    seamGuide: (m) => 'TEST-SEAM CENSUS (go): Go has no patch-by-import-path mechanism, so total_patch_sites is reported as 0 by design; the census counts import/reference sites only. Same-package \`_test.go\` files keep compiling untouched across a same-package split.',
+    codemodGuide: 'gopls-assisted rename / \`gofmt -r\` / scripted edits, verified with \`go build ./...\`',
+    censusBody: (m) => 'This ecosystem has NO patch-by-import-path test seam: report total_patch_sites as 0 and note that in detail. Count:\n  - total_import_sites: files importing the package that owns ' + m.TARGET + ' plus references to identifiers declared in ' + m.TARGET + ' (grep the declared top-level names).\n  - src_importers: rough count of DISTINCT packages importing the owning package.\n  - top_symbols: the ~6 identifiers declared in this file that are referenced most often, each with its count.',
+    contractTraps: (m) => 'Determine whether the move preserves every importer. STRONGLY PREFER a SAME-PACKAGE FILE SPLIT: moving declarations between files of ONE package changes NOTHING for importers and needs NO shims — verify the candidate can be done that way first (it almost always can for god-file splitting) and require it in required_safeguards when so. If the candidate is a CROSS-PACKAGE move, it is a real API change: it must either leave alias shims at the old package (type aliases `type X = newpkg.X`, `var Fn = newpkg.Fn`, re-declared consts — note methods do NOT alias, so types with methods must be aliased at the TYPE level) or enumerate and rewrite EVERY call site. Cast a HARD VETO only if the move INHERENTLY cannot preserve the contract by any path — e.g. a cross-package move that unavoidably creates an IMPORT CYCLE in both candidate directions (`go build` refuses cycles). Otherwise enumerate the shims/rewrites and vote concerns. Difficulty is a plan input, not a veto.',
+    testNetTrap: (m) => 'Go has no patch-by-path seam, so the net is the compiler + the owning package\'s tests: a same-package split keeps `_test.go` files compiling untouched, while a cross-package move can orphan tests or hit an import cycle. Require, in required_safeguards: (a) `go build ./...` green plus characterization tests at the EXISTING exported surface for each behaviour the cluster owns, and',
+    scopeGreps: (m, dest) => '  - files importing the package that owns ' + m.TARGET + '\n  - references to each moved identifier (grep the exact names)\n  - `_test.go` files in the same package as ' + m.TARGET + ' (they compile against the split directly)\n  - any test referencing the destination ' + dest,
+    repairHints: (m, newModule) => '- IMPORT CYCLE (go build refuses): restructure the dependency direction — move the shared piece further down, or keep the split SAME-PACKAGE (which needs no import at all).\n- UNDEFINED / UNEXPORTED identifier: the moved code lost sight of a package-private name — keep the split same-package, move the helper along, or export it deliberately.\n- ORPHANED TEST: keep each `_test.go` in the package that declares what it tests.\n- A genuine behavior regression: fix the moved code so behavior is identical to before the move.',
+    implSeamWatch: (m) => '- KEEP IT SAME-PACKAGE when the mandate allows: the new file simply declares the SAME `package` clause and NOTHING changes for importers (no shims, no import rewrites). For a mandated cross-package move, add the alias shims the mandate lists (`type X = newpkg.X`, `var Fn = newpkg.Fn`, re-declared consts) and verify no import cycle appears (`go build ./...`).',
+    implGuardAudit: (m, destModule) => '- SOURCE-TEXT GUARDS (rare but possible): grep ' + TDIRX() + ' for any test that reads ' + m.TARGET + ' as text and asserts on its literal contents; repoint any such assertion at ' + destModule + '. Add those test files to files_touched.',
+    valSeamNote: (m) => 'PAY SPECIAL ATTENTION to compile failures naming import cycles or unexported identifiers — those are the classic split regressions in Go.',
+  },
+  rust: {
+    exts: ['.rs'],
+    perWorktreeEnv: false,                      // cargo target/ cache is fine to rebuild; no env sync step
+    smokeNoun: 'Compile smoke',
+    idNoun: 'module path',
+    defaultTestPrefix: 'cargo test',
+    defaultSmoke: 'cargo check --all-targets',
+    defaultLintPerFile: '',                     // clippy only when DETECT finds it plausible
+    moduleIdFor: (p) => stripExt(String(p)),
+    scaffoldNote: 'rust: no scaffold files are needed — leave scaffold_files empty (a \`mod <new>;\` declaration in the parent module is part of the extraction itself).',
+    siteKinds: (m) => '\`use\` sites of the module\'s items and references to the moved items (Rust has no patch-by-path test seam)',
+    shimGuide: (m) => 'COMPAT MECHANISM (rust): \`pub use\` re-exports at the old module path keep the crate\'s public API identical — split a large module into submodules with \`mod <new>;\` + \`pub use <new>::{X, Y};\` at the old path, so every \`use\` of the old path keeps resolving. WATCH visibility: items that were reachable crate-wide may need \`pub(crate)\` in their new home, and the split must not accidentally WIDEN the public API (only \`pub use\` what was public before).',
+    seamGuide: (m) => 'TEST-SEAM CENSUS (rust): Rust has no patch-by-path mechanism, so total_patch_sites is reported as 0 by design; the census counts \`use\`/reference sites only.',
+    codemodGuide: 'scripted edits driven by a \`cargo check\` loop (the compiler names every broken use-path/visibility to fix)',
+    censusBody: (m) => 'This ecosystem has NO patch-by-path test seam: report total_patch_sites as 0 and note that in detail. Count:\n  - total_import_sites: \`use\` sites of this module\'s path plus references to items it declares (grep the declared item names).\n  - src_importers: rough count of DISTINCT source files that \`use\` this module.\n  - top_symbols: the ~6 items declared in this file that are referenced most often, each with its count.',
+    contractTraps: (m) => 'Determine whether the split preserves the crate\'s API: `pub use` re-exports at the old module path (`mod <new>; pub use <new>::{X, Y};`) keep every external `use` resolving and the public API byte-identical. Cast a HARD VETO only if no re-export path can preserve the surface (extremely rare). Turn the classic traps into required_safeguards + a concerns vote, NOT a veto: (a) VISIBILITY — items that were module-private but used crate-wide need `pub(crate)` in their new home; (b) API WIDENING — only `pub use` what was public before, or the split silently grows the public API; (c) macro_rules!/attribute items and trait impls follow different scoping rules — call each out explicitly if the cluster contains any. Difficulty is a plan input, not a veto.',
+    testNetTrap: (m) => 'Rust has no patch-by-path seam, so the net is `cargo check`/`cargo test`: the silent risks are visibility changes and public-API widening rather than dead seams. Require, in required_safeguards: (a) characterization tests at the EXISTING public surface for each behaviour the cluster owns (committed BEFORE the split), and',
+    scopeGreps: (m, dest) => '  - `use` sites of ' + m.MODULE_ID + '\'s path and references to each moved item (grep the exact names)\n  - `#[cfg(test)]` modules inside ' + m.TARGET + ' (they move with the code — flag them)\n  - integration tests under tests/ referencing the crate paths involved\n  - any test referencing the destination ' + dest,
+    repairHints: (m, newModule) => '- VISIBILITY ERROR (E0603 / private item): add `pub(crate)` (or adjust the `pub use`) so the item is reachable from its users WITHOUT widening the public API.\n- UNRESOLVED PATH: fix the `mod <new>;` declaration and the `pub use` re-exports at ' + m.TARGET + ' so old paths keep resolving.\n- A genuine behavior regression: fix the moved code so behavior is identical to before the move.',
+    implSeamWatch: (m) => '- PRESERVE THE MODULE SURFACE: add `mod <new>;` + `pub use <new>::{...};` at the old path so external `use` paths keep resolving; give moved items the NARROWEST visibility that keeps their users compiling (`pub(crate)` before `pub`), and do not `pub use` anything that was not public before.',
+    implGuardAudit: (m, destModule) => '- SOURCE-TEXT GUARDS (rare but possible): grep ' + TDIRX() + ' for any test that reads ' + m.TARGET + ' as text and asserts on its literal contents; repoint any such assertion at ' + destModule + '. Add those test files to files_touched.',
+    valSeamNote: (m) => 'PAY SPECIAL ATTENTION to visibility (E0603 / private-item) and unresolved-path errors — those are the classic split regressions in Rust.',
+  },
+  generic: {
+    exts: GENERIC_EXTS,                          // caller should pass srcExts; this broad list is the fallback
+    perWorktreeEnv: false,
+    smokeNoun: 'Smoke check',
+    idNoun: 'file path',
+    defaultTestPrefix: '',                       // caller must pass testCmdPrefix (or oracleCmd) to enable the engine
+    defaultSmoke: '',
+    defaultLintPerFile: '',
+    moduleIdFor: (p) => stripExt(String(p)),
+    scaffoldNote: 'generic: no scaffold mechanism is assumed — leave scaffold_files empty unless this ecosystem demonstrably needs a marker file.',
+    siteKinds: (m) => 'every reference to the moved symbols across the repo (no compat-shim mechanism is assumed)',
+    shimGuide: (m) => 'COMPAT MECHANISM (generic): NONE is assumed — there is no known re-export/shim idiom for this ecosystem, so every extraction must ENUMERATE and REWRITE ALL references to the moved symbols across the whole repo. The validation gate (tests + smoke) is the only net, so keep batches SMALL and prefer the most self-contained clusters.',
+    seamGuide: (m) => 'TEST-SEAM CENSUS (generic): no patch-equivalent mechanism is assumed, so total_patch_sites is reported as 0 by design; the census counts reference sites only.',
+    codemodGuide: 'scripted edits (one-off transform scripts), with the repo\'s own build/test commands as the check loop',
+    censusBody: (m) => 'No patch-by-path test seam is assumed for this ecosystem: report total_patch_sites as 0 and note that in detail. Count:\n  - total_import_sites: references to ' + m.TARGET + ' and to the symbols it declares (grep the file path and the top-level symbol names).\n  - src_importers: rough count of DISTINCT source files referencing it.\n  - top_symbols: the ~6 symbols declared in this file that are referenced most often, each with its count.',
+    contractTraps: (m) => 'No compat-shim mechanism is assumed for this ecosystem: the extraction is only sound if EVERY reference to the moved symbols is enumerated and rewritten (grep the whole repo, including tests and config). Cast a HARD VETO only if the reference surface cannot even be ENUMERATED (e.g. reflective/string-built references grep cannot find and the candidate does not account for). Otherwise put the exact reference-rewrite plan in required_safeguards and vote concerns; require the batch stay SMALL because the validation gate is the only net. Difficulty is a plan input, not a veto.',
+    testNetTrap: (m) => 'No patch-equivalent seam is assumed, so the configured test command is the ONLY net. Require, in required_safeguards: (a) characterization tests at the existing interface for each behaviour the cluster owns, committed BEFORE the move, and',
+    scopeGreps: (m, dest) => '  - references to each moved symbol (grep the exact names)\n  - references to the target path ' + m.TARGET + ' itself\n  - any test referencing the destination ' + dest,
+    repairHints: (m, newModule) => '- A MISSED REFERENCE to a moved symbol or to the old file path: grep the whole repo again and rewrite it.\n- A genuine behavior regression: fix the moved code so behavior is identical to before the move.',
+    implSeamWatch: (m) => '- REWRITE EVERY REFERENCE: there is no shim mechanism — grep the whole repo for each moved symbol and for the old file path, and rewrite ALL of them within this same change.',
+    implGuardAudit: (m, destModule) => '- SOURCE-TEXT GUARDS (rare but possible): grep ' + TDIRX() + ' for any test that reads ' + m.TARGET + ' as text and asserts on its literal contents; repoint any such assertion at ' + destModule + '. Add those test files to files_touched.',
+    valSeamNote: (m) => 'PAY SPECIAL ATTENTION to failures that name the moved symbols or the old file path — a missed reference rewrite is the classic regression here.',
+  },
+}
+// The resolved profile. Placeholder until DETECT settles ECOSYSTEM; every use is post-DETECT.
+let P = PROFILES[ECOSYSTEM || 'python']
+
+// CI-faithful verification surface. Everything runs through the project's own toolchain (uv for a
+// uv-managed python repo, the detected package manager for node, go/cargo natively); the loop never
+// trusts a bare interpreter on PATH when the project declares an env. These are `let` so the
+// Setup-phase DETECT step can fill repo-appropriate values when the caller did not pass them.
+// All defaults are NEUTRAL/empty — DETECT (or explicit args) supplies the real values.
+// TEST_ROOT: where the suite lives. '' until detected (tests | test | dev/tests | spec | __tests__).
+let TEST_ROOT = (typeof A.testRoot === 'string' && A.testRoot.trim()) ? A.testRoot.trim().replace(/\/+$/, '') : ''
+let ENV_SETUP = A.envSetup || ''
+// RUN_PREFIX: how project commands run ('uv run ' for a uv-managed python repo, else '').
+let RUN_PREFIX = ''
+// TEST_PREFIX: the command that runs tests on given paths (testCmdPrefix arg > DETECT > profile default).
+let TEST_PREFIX = (typeof A.testCmdPrefix === 'string' && A.testCmdPrefix.trim()) ? A.testCmdPrefix.trim() : ''
+// SMOKE: smokeCmd arg is a FULL override ('' explicitly disables — distinguished from "not passed").
+const SMOKE_OVERRIDE = (typeof A.smokeCmd === 'string') ? A.smokeCmd.trim() : null
+let SMOKE_BASE = ''      // non-python file-independent smoke (tsc --noEmit / go build / cargo check); DETECT fills
+// BASE_IMPORTS (python-only concept): a fast set of top-level imports catching package-wide breakage.
+// Each file's smoke ALSO imports that file's own public import path (see importSmokeFor). '' until
+// the python DETECT derives it from the src package layout; ignored (with a log note) elsewhere.
+let BASE_IMPORTS = A.baseImports || ''
+// Build the smoke command for one file. Reads the resolved state at CALL time (always post-DETECT).
+// python appends the file's own module to the import list; other profiles' smoke is file-independent.
+// Returns '' when no smoke is configured (the validation prompt then skips that step).
+const importSmokeFor = (shimMod) => {
+  if (SMOKE_OVERRIDE !== null) return SMOKE_OVERRIDE
+  if (ECOSYSTEM === 'python') {
+    if (!BASE_IMPORTS.trim() && !shimMod) return ''
+    const mods = BASE_IMPORTS.trim() ? BASE_IMPORTS + (shimMod ? ', ' + shimMod : '') : shimMod
+    return RUN_PREFIX + 'python -c "import ' + mods + '"'
+  }
+  return SMOKE_BASE
+}
+let LINT = (typeof A.lintCmd === 'string' && A.lintCmd.trim()) ? A.lintCmd.trim() : ''
+// Per-round lint runs on just the touched files. '' means "no linter configured" -> the per-round
+// lint becomes a shell no-op so a linter-less repo is never RED'd by lint. DETECT sets this from the
+// repo (python: ruff; node: eslint; go: go vet; rust: clippy when plausible). Explicit lintPerFile wins.
+let LINT_PER_FILE_PREFIX = (typeof A.lintPerFile === 'string') ? A.lintPerFile.trim() : ''
 // Baseline oracle: a fast keep-set the whole sweep is measured against for pre-existing redness.
-let KEEP_SET = (Array.isArray(A.keepSet) && A.keepSet.length) ? A.keepSet : ['dev/tests/agent', 'dev/tests/cron', 'dev/tests/gateway']
-let PYTEST_FAST = A.oracleCmd || ('uv run python -m pytest ' + KEEP_SET.join(' ') + ' -q')
+// Empty default = the oracle runs over TEST_ROOT once detected.
+let KEEP_SET = (Array.isArray(A.keepSet) && A.keepSet.length) ? A.keepSet : []
+// Build the test command for a set of paths through the profile's runner. go paths become package
+// patterns (./dir/...); rust ignores paths entirely (cargo test is whole-crate — a judgment call:
+// path-scoped cargo test selection is by test NAME, not path, so every round runs the full crate
+// suite); pytest keeps its quiet/no-cache flags only when the prefix still looks like pytest.
+const TEST_CMD = (paths) => {
+  const ps = (paths || []).filter(Boolean)
+  if (!TEST_PREFIX) return (typeof A.oracleCmd === 'string' ? A.oracleCmd.trim() : '')
+  if (ECOSYSTEM === 'rust') return TEST_PREFIX
+  if (ECOSYSTEM === 'go') {
+    const pk = Array.from(new Set(ps.map(p => {
+      const d = isSourceFile(p) ? p.replace(/\/[^/]+$/, '') : p
+      return './' + String(d).replace(/^\.\//, '').replace(/\/+$/, '') + '/...'
+    })))
+    return TEST_PREFIX + ' ' + (pk.length ? pk.join(' ') : './...')
+  }
+  const tail = /pytest/.test(TEST_PREFIX) ? ' -q -p no:cacheprovider' : ''
+  return TEST_PREFIX + (ps.length ? ' ' + ps.join(' ') : '') + tail
+}
+// ORACLE_CMD: the baseline keep-set oracle command (oracleCmd arg wins; else keep-set/TEST_ROOT).
+let ORACLE_CMD = (typeof A.oracleCmd === 'string' && A.oracleCmd.trim()) ? A.oracleCmd.trim() : ''
 // Full-sweep validation fallback when a moved symbol is too pervasive to scope safely. The per-round
 // `scope` agent narrows to a minimal subset per extraction; this is only the safety net. Defaults to
 // the whole test tree (∪ keep-set) so nothing is missed; override valDirs to narrow it. Recomputed
 // after DETECT (see recomputeDerived) since it depends on KEEP_SET + TEST_ROOT.
-let VAL_DIRS = Array.from(new Set([...KEEP_SET, ...((Array.isArray(A.valDirs) && A.valDirs.length) ? A.valDirs : [TEST_ROOT])]))
-// Recompute the KEEP_SET-derived commands/sets. Called after DETECT reconciles KEEP_SET/TEST_ROOT.
+let VAL_DIRS = Array.from(new Set([...KEEP_SET, ...((Array.isArray(A.valDirs) && A.valDirs.length) ? A.valDirs : [TEST_ROOT])])).filter(Boolean)
+// Recompute the KEEP_SET/TEST_ROOT-derived commands/sets. Called after DETECT reconciles them.
 const recomputeDerived = () => {
-  if (!HAS('oracleCmd')) PYTEST_FAST = 'uv run python -m pytest ' + KEEP_SET.join(' ') + ' -q'
-  VAL_DIRS = Array.from(new Set([...KEEP_SET, ...((Array.isArray(A.valDirs) && A.valDirs.length) ? A.valDirs : [TEST_ROOT])]))
+  if (!HAS('oracleCmd')) {
+    const oraclePaths = KEEP_SET.length ? KEEP_SET : (TEST_ROOT ? [TEST_ROOT] : [])
+    ORACLE_CMD = TEST_PREFIX ? TEST_CMD(oraclePaths) : ''
+  }
+  VAL_DIRS = Array.from(new Set([...KEEP_SET, ...((Array.isArray(A.valDirs) && A.valDirs.length) ? A.valDirs : [TEST_ROOT])])).filter(Boolean)
 }
+// python3 availability (for the bundled stdlib-only recon scripts repo_scan.py + structure verifier —
+// they run on ANY repo, not just Python ones). DETECT sets it; when false the ORGANIZE stage is
+// skipped and the org-audit/verifier steps become no-ops (decompose/deepen still run).
+let PY3 = true
+let py3NoteLogged = false
+// Run notes surfaced in the final report (degraded modes, skipped stages, ignored args).
+const RUN_NOTES = []
 
 // ---------- Per-file derivation ----------
-// From a repo-relative path src/<pkg>/.../<name>.py derive: the dotted shim module that callers and
-// test patch() sites pin to (<pkg>...<name>), a commit scope tag (<name>), and the destination
-// package new modules land in (the file's OWN directory by default, so extracted modules are
-// siblings — mirrors how cli.py carved into the hermes_cli package; a subpackage named after the
-// file would collide with <name>.py, so flat siblings is the safe default). destPkgFor overrides.
+// From a repo-relative source path derive: the file's public import path (MODULE_ID — the identity
+// callers and test seams pin to: python = dotted module, everything else = repo-relative path without
+// extension), a commit scope tag (<name>), and the destination package/directory new modules land in
+// (the file's OWN directory by default, so extracted modules are flat siblings — a subdirectory named
+// after the file would collide with the file itself, so flat siblings is the safe default).
+// destPkgFor overrides per file.
 const deriveFile = (rawPath) => {
   const target = String(rawPath).replace(/^\.\//, '').replace(/^\/+/, '')
-  const shimModule = target.replace(/^src\//, '').replace(/\.py$/, '').replace(/\//g, '.')
-  const scopeTag = (target.split('/').pop() || target).replace(/\.py$/, '')
-  const destPkg = DEST_PKG_FOR[target] || target.replace(/\/[^/]+\.py$/, '')
-  const destPkgDotted = destPkg.replace(/^src\//, '').replace(/\//g, '.')
-  return { target, shimModule, scopeTag, destPkg, destPkgDotted }
+  const moduleId = P.moduleIdFor(target)
+  const scopeTag = stripExt(target.split('/').pop() || target)
+  const destPkg = DEST_PKG_FOR[target] || (target.includes('/') ? target.replace(/\/[^/]+$/, '') : '.')
+  const destPkgDotted = P.moduleIdFor(destPkg)
+  return { target, moduleId, scopeTag, destPkg, destPkgDotted }
 }
 
 // ---------- Per-file worktree path/branch helpers (used by the concurrent DECOMPOSE stage) ----------
@@ -297,7 +483,7 @@ const genericFallbackLanes = (fileLines, n) => {
   if (!lines) {
     return Array.from({ length: n }, (_, i) => ({
       key: 'region-' + (i + 1),
-      hint: 'Read the live file and find the largest cohesive cluster of related defs/methods that can move to a focused sibling module behind a re-export shim. Confirm exact symbols + ranges against the real file.',
+      hint: 'Read the live file and find the largest cohesive cluster of related definitions that can move to a focused sibling module behind the ecosystem\'s compat mechanism (see the shim guide in your brief). Confirm exact symbols + ranges against the real file.',
     }))
   }
   const lanes = []
@@ -308,7 +494,7 @@ const genericFallbackLanes = (fileLines, n) => {
     const hi = Math.min(lines, (i + 1) * size)
     lanes.push({
       key: 'region-' + (i + 1),
-      hint: 'Find the largest cohesive cluster of related defs/methods within lines ' + lo + '-' + hi + ' of the file that can move to a focused sibling module behind a re-export shim. Confirm the exact symbols + current ranges against the live file (the line anchors are hints from the current file shape).',
+      hint: 'Find the largest cohesive cluster of related definitions within lines ' + lo + '-' + hi + ' of the file that can move to a focused sibling module behind the ecosystem\'s compat mechanism (see the shim guide in your brief). Confirm the exact symbols + current ranges against the live file (the line anchors are hints from the current file shape).',
     })
   }
   return lanes
@@ -324,11 +510,13 @@ const genericFallbackLanes = (fileLines, n) => {
 // or that fabricates a speculative port/seam with only one adapter. Two CORRECTNESS hard-vetoes
 // remain: (1) FALSE PREMISE (the named cluster isn't actually cohesive/self-contained, or the
 // line/site counts are wrong by an order of magnitude), and (2) a change that CANNOT preserve the
-// file's external surface by ANY path — every importable name + patch("<shim>.X") site means EVERY
-// extraction MUST leave a re-export shim at the old <shim>.* path. The validation gate (revert-on-red)
-// + per-round oracle + git-clean ban remain the backstop.
+// file's external surface by ANY path — every externally reachable name (and, where the ecosystem
+// has one, every test seam pinned to the file's public import path) means EVERY extraction MUST
+// keep that surface alive via the profile's compat mechanism (P.shimGuide). The validation gate
+// (revert-on-red) + per-round oracle + git-clean ban remain the backstop.
 const buildPanel = (ctx, stage) => {
-  const { TARGET, SHIM_MODULE, DEST_PKG, CONTRACT_CENSUS, FILE_LINES, VAL_DIRS_STR } = ctx
+  const { TARGET, MODULE_ID, DEST_PKG, CONTRACT_CENSUS, FILE_LINES, VAL_DIRS_STR } = ctx
+  const m = { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED: ctx.DEST_PKG_DOTTED || '' }
   const CONV = ctx.CONVENTIONS ? ('\n\nREPO ORGANIZATION CONVENTIONS (any NEW module must land in a convention-correct home, not a loose sibling):\n' + ctx.CONVENTIONS) : ''
   if (stage === 'deepen') {
     // DEEPEN panel — ported from recursive-improve-architecture (cross-file deepenings).
@@ -341,17 +529,17 @@ const buildPanel = (ctx, stage) => {
       {
         role: 'Contract Guardian',
         hardVeto: true,
-        brief: `Determine whether the change can be done while preserving EVERY externally observable contract: public/plugin APIs (check src/plugins/**/README.md and docstrings for documented extension points), CLI surface, wire formats / outbound request JSON, persisted schemas (sessions.json, config YAML, DB), error contracts callers depend on. A deepening reshapes internals BEHIND a seam. Cast a HARD VETO ONLY if the candidate INHERENTLY cannot preserve a contract by any implementation path (then it isn't a deepening). If a naive implementation would break a contract but a behaviour-preserving path exists (keep the old signature/shim/adapter), do NOT veto — instead list the exact behavior_invariants that must stay byte-identical (these become characterization-test targets + mandate constraints) and vote concerns. Difficulty of preserving the contract is a plan input, not a veto.`,
+        brief: `Determine whether the change can be done while preserving EVERY externally observable contract: public/plugin APIs (check package READMEs / doc comments for documented extension points), CLI surface, wire formats / outbound request payloads, persisted schemas (session stores, config files, DBs), error contracts callers depend on. A deepening reshapes internals BEHIND a seam. Cast a HARD VETO ONLY if the candidate INHERENTLY cannot preserve a contract by any implementation path (then it isn't a deepening). If a naive implementation would break a contract but a behaviour-preserving path exists (keep the old signature/shim/adapter), do NOT veto — instead list the exact behavior_invariants that must stay byte-identical (these become characterization-test targets + mandate constraints) and vote concerns. Difficulty of preserving the contract is a plan input, not a veto.`,
       },
       {
         role: 'Blast-Radius Engineer',
         hardVeto: false,
-        brief: `Assess scope HONESTLY (the find pass routinely under-counts) and TURN IT INTO A PLAN — never a veto. Count call sites, \`from X import Y\` sites, and \`patch("X.Y")\` / monkeypatch sites across src/ AND dev/tests/. A large or judgment-heavy radius is fine; your job is to make it safe: put concrete preconditions into required_safeguards — every old import path that must keep resolving as "shim: <path>", and, when the change is too large to land correctly in a single round, a DECOMPOSITION into ordered safe sub-steps as "stage N: <bounded leaf-extraction that is independently behaviour-preserving and verifiable>". The loop re-finds after each commit, so a multi-stage change lands one safe leaf per round. Only vote veto if the radius reflects a FALSE PREMISE or an inherent contract break (defer to those lenses); otherwise vote approve (if a clean plan exists) or concerns (plan + caveats). Do NOT veto for size/difficulty/"needs judgment".`,
+        brief: `Assess scope HONESTLY (the find pass routinely under-counts) and TURN IT INTO A PLAN — never a veto. Count call sites, import sites, and test-seam sites across the source tree AND ${TDIRX()}. ${P.seamGuide(m)} A large or judgment-heavy radius is fine; your job is to make it safe: put concrete preconditions into required_safeguards — every old import path that must keep resolving as "shim: <path>", and, when the change is too large to land correctly in a single round, a DECOMPOSITION into ordered safe sub-steps as "stage N: <bounded leaf-extraction that is independently behaviour-preserving and verifiable>". The loop re-finds after each commit, so a multi-stage change lands one safe leaf per round. Only vote veto if the radius reflects a FALSE PREMISE or an inherent contract break (defer to those lenses); otherwise vote approve (if a clean plan exists) or concerns (plan + caveats). Do NOT veto for size/difficulty/"needs judgment".`,
       },
       {
         role: 'Test-Net Architect',
         hardVeto: false,
-        brief: `Make the change CATCHABLE — the classic trap is tests moving with the code so they pass while behaviour drifts. Require CHARACTERIZATION tests (golden-master, written and committed at the EXISTING interface BEFORE refactoring) for each behaviour the change touches; put each into required_safeguards as "characterization test: <behavior>". Name the full dev/tests/<sub> dirs whose suites must stay green. If behaviour is hard to pin (e.g. concurrency/race/timing), do NOT veto — instead prescribe HOW to net it: deterministic seams, fake clocks/loops, injected executors, thread-join probes, or staging the risky core into its own later round behind a smaller first step. Vote veto ONLY if NO net can exist even in principle for ANY decomposition (extremely rare); otherwise approve/concerns with the net spelled out.`,
+        brief: `Make the change CATCHABLE — the classic trap is tests moving with the code so they pass while behaviour drifts. Require CHARACTERIZATION tests (golden-master, written and committed at the EXISTING interface BEFORE refactoring) for each behaviour the change touches; put each into required_safeguards as "characterization test: <behavior>". Name the full ${TDIRX()}/<sub> dirs whose suites must stay green. If behaviour is hard to pin (e.g. concurrency/race/timing), do NOT veto — instead prescribe HOW to net it: deterministic seams, fake clocks/loops, injected executors, thread-join probes, or staging the risky core into its own later round behind a smaller first step. Vote veto ONLY if NO net can exist even in principle for ANY decomposition (extremely rare); otherwise approve/concerns with the net spelled out.`,
       },
       {
         role: 'Deepening Steward',
@@ -362,7 +550,7 @@ const buildPanel = (ctx, stage) => {
         role: 'Execution Strategist',
         hardVeto: false,
         brief: `Decide HOW to land it — and there is ALWAYS a how; never veto for "too hard/too big". STRONGLY PREFER programmatic transformation over manual rewriting (hand-editing large files is the #1 source of silent breakage). Inspect the real files (note line counts) and prescribe the mechanism in required_safeguards as "execution: <method> — <step>":
-- Moving/splitting symbols out of a big file: git mv for whole-file moves (preserve history) + a scripted/AST codemod (Python ast/libcst or a one-off transform script) to relocate definitions and REWRITE all imports + patch("old.path") refs — never hand-retype a large file.
+- Moving/splitting symbols out of a big file: git mv for whole-file moves (preserve history) + ${P.codemodGuide} to relocate definitions and REWRITE all imports + any test-seam refs pinned to old paths — never hand-retype a large file.
 - Wide mechanical edits (rename across N sites, import rewrites): scripted (codemod / sed over a grep'd file list), not file-by-file.
 - Genuinely large/unwieldy refactors: do NOT reject — recommend execution_method:"staged" and break it into ordered single-round sub-steps, each independently verifiable.
 - Small, localized, low-site-count changes: manual is fine.
@@ -379,33 +567,33 @@ Recommend execution_method (programmatic / hybrid / staged / manual) + a concret
     {
       role: 'Contract Guardian',
       hardVeto: true,
-      brief: `${TARGET} is imported by other src modules and pinned by test seams. ${CONTRACT_CENSUS}
-Determine whether the extraction can preserve EVERY externally observable contract: every name currently importable from ${SHIM_MODULE} must STAY importable from ${SHIM_MODULE} (via a re-export shim), every \`patch("${SHIM_MODULE}.X")\` must keep resolving to the SAME object the live code uses (so test seams still bite), CLI surface, wire formats, persisted schemas, and error contracts unchanged. A decomposition reshapes file layout BEHIND those unchanged import paths. Cast a HARD VETO ONLY if the extraction INHERENTLY cannot preserve a contract by any path (extremely rare for a pure move — almost always a shim fixes it). If a naive move would break \`patch("${SHIM_MODULE}.X")\` resolution (the classic trap: code moves but the patch target must still point at the object the moved code actually calls), do NOT veto — instead enumerate the exact shim re-exports AND the patch-target invariants required, and vote concerns. Difficulty of preserving the seam is a plan input, not a veto.
-SECOND, audit for SOURCE-TEXT GUARD tests — a distinct failure class a re-export shim CANNOT fix. Some tests read ${TARGET} as a STRING and assert on its literal contents (e.g. \`source = Path(".../${TARGET.split('/').pop()}").read_text(); assert "def some_symbol" in source\`). grep dev/tests for tests that open/read the target path or parametrize on it (search: the file's basename, \`read_text\`, \`.py").read\`, \`ast.parse\`, the bare symbol names as quoted strings). For EVERY moved symbol, check whether any test asserts that symbol's def/call appears in ${TARGET}'s text — moving it makes that assertion FALSE no matter what shim you add. This is NOT an inherent contract break (do not hard-veto): the fix is to UPDATE the guard test to point at the new module (or assert the shim line is present). List each such guard in required_safeguards as "source-text-guard: <test node id> — repoint to <new module>" and vote concerns. A missed source-text guard is the #1 silent red for this loop.`,
+      brief: `${TARGET} is imported/referenced by other source modules and may be pinned by test seams at its public import path ${MODULE_ID}. ${CONTRACT_CENSUS}
+${P.contractTraps(m)}`,
     },
     {
       role: 'Blast-Radius Engineer',
       hardVeto: false,
-      brief: `Assess scope HONESTLY (find passes routinely under-count) and TURN IT INTO A PLAN — never a veto. Count, across src/ AND dev/tests/: \`from ${SHIM_MODULE} import <sym>\` sites, \`patch("${SHIM_MODULE}.<sym>")\` / monkeypatch sites, and internal references within ${TARGET} between the extracted cluster and the code that stays (these become the cross-module imports or lazy-import seams after the move). A large radius is fine; make it safe: put every old import path that must keep resolving into required_safeguards as "shim: ${SHIM_MODULE}.<name>", and if the cluster is too tangled to move in one round, give a DECOMPOSITION into ordered sub-steps as "stage N: <bounded sub-cluster that moves cleanly on its own>". The loop re-finds after each commit, so a big carve-out lands one cohesive leaf per round. Only vote veto if the radius reflects a FALSE PREMISE or an inherent contract break (defer to those lenses); otherwise approve (clean plan) or concerns (plan + caveats). Do NOT veto for size/difficulty.`,
+      brief: `Assess scope HONESTLY (find passes routinely under-count) and TURN IT INTO A PLAN — never a veto. Count, across the source tree AND ${TDIRX()}: ${P.siteKinds(m)}, and internal references within ${TARGET} between the extracted cluster and the code that stays (these become the cross-module imports or seams after the move). A large radius is fine; make it safe: put every old import path that must keep resolving into required_safeguards as "shim: ${MODULE_ID}.<name>" (or this ecosystem's compat equivalent), and if the cluster is too tangled to move in one round, give a DECOMPOSITION into ordered sub-steps as "stage N: <bounded sub-cluster that moves cleanly on its own>". The loop re-finds after each commit, so a big carve-out lands one cohesive leaf per round. Only vote veto if the radius reflects a FALSE PREMISE or an inherent contract break (defer to those lenses); otherwise approve (clean plan) or concerns (plan + caveats). Do NOT veto for size/difficulty.`,
     },
     {
       role: 'Test-Net Architect',
       hardVeto: false,
-      brief: `Make the extraction CATCHABLE. The classic trap: a name moves, its \`patch("${SHIM_MODULE}.X")\` test seam silently stops biting (now patches a dead shim, not the object the live code calls), and tests pass GREEN while behaviour drifted. Require, in required_safeguards: (a) for every heavily-patched symbol in the cluster, a CHARACTERIZATION assertion that \`patch("${SHIM_MODULE}.<sym>")\` STILL intercepts the live call path after the move (the import-binding-rename regression class from package-reorg-traps.md), and (b) the dev/tests dirs that must stay green (the validation scope): ${VAL_DIRS_STR}. If a symbol's behaviour is hard to pin, prescribe HOW to net it (golden-master against the existing interface BEFORE moving, deterministic seams, fake clocks/loops). Vote veto ONLY if NO net can exist even in principle (extremely rare); otherwise approve/concerns with the net spelled out.`,
+      brief: `Make the extraction CATCHABLE. ${P.testNetTrap(m)} (b) the test dirs that must stay green (the validation scope): ${VAL_DIRS_STR}. If a symbol's behaviour is hard to pin, prescribe HOW to net it (golden-master against the existing interface BEFORE moving, deterministic seams, fake clocks/loops). Vote veto ONLY if NO net can exist even in principle (extremely rare); otherwise approve/concerns with the net spelled out.`,
     },
     {
       role: 'Decomposition Steward',
       hardVeto: false,
-      brief: `You are the DIRECTION arbiter for GOD-FILE DECOMPOSITION. Read ${SKILL_DIR}/LANGUAGE.md and ${SKILL_DIR}/DEEPENING.md for vocabulary, but apply this loop's goal: ${TARGET} is a large god-file (~${FILE_LINES} lines) and the win is LOCALITY + NAVIGABILITY — concentrating one concern in one focused module under ${DEST_PKG} so a maintainer reads one place instead of scrolling a huge file. UNLIKE the deepening loop, a pure ORGANISATION move that improves locality IS a valid direction here even if it adds no new leverage at a smaller interface. Apply a navigability-aware deletion test: after the move, is the concept MORE local (one cohesive module) or did you just scatter it across more files you must now bounce between? Vote veto ONLY for genuine WRONG DIRECTION: (a) the move increases bouncing (splits a tight cluster across many files, or pulls out a fragment that still requires constant cross-reference to what stays), or (b) it fabricates a speculative port/seam with only one adapter (indirection, not locality — the two-adapter rule from DEEPENING.md still holds). A cohesive cluster moving to a focused module behind unchanged ${SHIM_MODULE} shims = APPROVE. Difficulty/size are NOT your concern. Also weigh PLACEMENT: the extracted module should land in a convention-correct home (an existing/justified subpackage under ${DEST_PKG}), not as yet another loose flat sibling in an already-large directory. Vote approve/concerns/veto with rationale naming the locality gain.${CONV}`,
+      brief: `You are the DIRECTION arbiter for GOD-FILE DECOMPOSITION. Read ${SKILL_DIR}/LANGUAGE.md and ${SKILL_DIR}/DEEPENING.md for vocabulary, but apply this loop's goal: ${TARGET} is a large god-file (~${FILE_LINES} lines) and the win is LOCALITY + NAVIGABILITY — concentrating one concern in one focused module under ${DEST_PKG} so a maintainer reads one place instead of scrolling a huge file. UNLIKE the deepening loop, a pure ORGANISATION move that improves locality IS a valid direction here even if it adds no new leverage at a smaller interface. Apply a navigability-aware deletion test: after the move, is the concept MORE local (one cohesive module) or did you just scatter it across more files you must now bounce between? Vote veto ONLY for genuine WRONG DIRECTION: (a) the move increases bouncing (splits a tight cluster across many files, or pulls out a fragment that still requires constant cross-reference to what stays), or (b) it fabricates a speculative port/seam with only one adapter (indirection, not locality — the two-adapter rule from DEEPENING.md still holds). A cohesive cluster moving to a focused module behind an UNCHANGED public import surface at ${MODULE_ID} (per this ecosystem's compat mechanism) = APPROVE. Difficulty/size are NOT your concern. Also weigh PLACEMENT: the extracted module should land in a convention-correct home (an existing/justified subdirectory under ${DEST_PKG}), not as yet another loose flat sibling in an already-large directory. Vote approve/concerns/veto with rationale naming the locality gain.${CONV}`,
     },
     {
       role: 'Execution Strategist',
       hardVeto: false,
-      brief: `Decide HOW to land it — there is ALWAYS a how; never veto for "too hard/too big". ${TARGET} is ~${FILE_LINES} lines: hand-retyping or hand-moving symbols out of it is the #1 source of silent breakage — STRONGLY PREFER scripted/AST transformation. Inspect the real file (note line counts). Prescribe the mechanism in required_safeguards as "execution: <method> — <step>":
-- Extracting a symbol cluster: a scripted/AST codemod (Python ast/libcst, or a throwaway /tmp transform run via \`uv run python\` and DELETED before commit) that (1) slices the named defs byte-for-byte out of ${TARGET} into the new ${DEST_PKG}/<module>.py, (2) writes a re-export shim block back in ${TARGET} (\`from ${ctx.DEST_PKG_DOTTED}.<module> import <names>\`) so ${SHIM_MODULE}.<name> still resolves, and (3) rewrites any in-file references + cross-module imports. NEVER hand-retype the slice.
+      brief: `Decide HOW to land it — there is ALWAYS a how; never veto for "too hard/too big". ${TARGET} is ~${FILE_LINES} lines: hand-retyping or hand-moving symbols out of it is the #1 source of silent breakage — STRONGLY PREFER scripted/programmatic transformation. Inspect the real file (note line counts). ${P.shimGuide(m)}
+Prescribe the mechanism in required_safeguards as "execution: <method> — <step>":
+- Extracting a symbol cluster: ${P.codemodGuide} — a transform that (1) slices the named definitions byte-for-byte out of ${TARGET} into the new ${DEST_PKG}/<module>, (2) writes the compat shims described above back at the old path (where this ecosystem has them), and (3) rewrites any in-file references + cross-module imports. NEVER hand-retype the slice.
 - Wide mechanical edits (rename across N sites): scripted, not file-by-file.
 - A cluster too tangled for one round: do NOT reject — recommend execution_method:"staged" and split into ordered single-round leaves (coordinate with the Blast-Radius Engineer's stages).
-- A tiny, localized move (a few short helpers): manual is acceptable but a codemod is still safer.
+- A tiny, localized move (a few short helpers): manual is acceptable but a scripted transform is still safer.
 Recommend execution_method (programmatic / hybrid / staged / manual) + a concrete step list. Vote approve/concerns (never veto for difficulty).`,
     },
   ]
@@ -419,7 +607,8 @@ const SETUP_SCHEMA = {
     started_clean: { type: 'boolean', description: 'true if the tree was already clean (no baseline commit needed)' },
     baseline_commit: { type: 'string', description: 'short hash of the baseline commit if one was made, else empty' },
     branch: { type: 'string' },
-    env_ready: { type: 'boolean', description: 'true if `uv sync` succeeded and the verification commands are runnable' },
+    ecosystem: { type: 'string', description: 'the resolved ecosystem this run operates under (python | node | go | rust | generic)' },
+    env_ready: { type: 'boolean', description: 'true if the env-setup command succeeded (or none was needed) and the verification commands are runnable' },
     baseline_red_tests: { type: 'array', items: { type: 'string' }, description: 'pre-existing keep-set failures (oracle seed)' },
     baseline_untracked: { type: 'array', items: { type: 'string' }, description: 'CRITICAL: every pre-existing untracked path (git ls-files --others --directory). NEVER deleted; git clean is banned.' },
     detail: { type: 'string' },
@@ -434,7 +623,7 @@ const DISCOVER_SCHEMA = {
       items: {
         type: 'object', additionalProperties: false, required: ['path', 'lines'],
         properties: {
-          path: { type: 'string', description: 'repo-relative path to a .py source file' },
+          path: { type: 'string', description: 'repo-relative path to a source file' },
           lines: { type: 'number', description: 'wc -l line count of that file' },
         },
       },
@@ -443,13 +632,13 @@ const DISCOVER_SCHEMA = {
   },
 }
 
-// Live import/patch contract census for one file's shim module — replaces the old hardcoded counts.
+// Live import/seam contract census for one file's public import path — replaces hardcoded counts.
 const CENSUS_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['total_patch_sites', 'total_import_sites'],
   properties: {
-    total_patch_sites: { type: 'number', description: 'count of patch("<shim>.X") / monkeypatch sites across dev/tests and src' },
-    total_import_sites: { type: 'number', description: 'count of `from <shim> import X` / `<shim>.X` reference sites across dev/tests and src' },
-    src_importers: { type: 'number', description: 'rough count of distinct src/ modules that import this file' },
+    total_patch_sites: { type: 'number', description: 'count of test-double sites pinned to this file\'s public import path (python patch()/monkeypatch; node jest.mock/vi.mock/require-path). Ecosystems with no patch-by-path mechanism (go/rust/generic) report 0 by design, with a note in detail.' },
+    total_import_sites: { type: 'number', description: 'count of import / reference sites of this file\'s public import path across the test tree and the source tree' },
+    src_importers: { type: 'number', description: 'rough count of distinct source modules that import this file' },
     top_symbols: {
       type: 'array',
       items: {
@@ -472,7 +661,7 @@ const FIND_SCHEMA = {
         required: ['title', 'symbols', 'line_range', 'dest_module', 'problem', 'solution', 'strength', 'deletion_test'],
         properties: {
           title: { type: 'string', description: 'short name for the extraction (the concern being made local)' },
-          symbols: { type: 'array', items: { type: 'string' }, description: 'exact top-level def/class names (or method names) that move out of the target' },
+          symbols: { type: 'array', items: { type: 'string' }, description: 'exact top-level definition names (functions/classes/types, or method names) that move out of the target' },
           line_range: { type: 'string', description: 'approximate current line range in the target file, e.g. "1670-2010"' },
           dest_module: { type: 'string', description: 'proposed destination module path under the file\'s dest package — convention-correct per the CONVENTIONS block (an existing/justified subpackage), NOT a loose flat sibling' },
           placement_rationale: { type: 'string', description: 'why dest_module is the convention-correct home for this concern (cite the CONVENTIONS block / a sibling subpackage); avoid flat-sibling path bloat in an already-large directory' },
@@ -482,8 +671,8 @@ const FIND_SCHEMA = {
           strength: { type: 'string', enum: ['Strong', 'Worth exploring', 'Speculative'] },
           deletion_test: { type: 'string', description: 'navigability deletion test: after the move is the concept MORE local (one module) or just scattered?' },
           cohesion_note: { type: 'string', description: 'why the cluster is self-contained — what (if anything) ties it back to code that stays, and how the seam handles that' },
-          est_blast_radius: { type: 'number', description: 'rough count of import + patch() sites across src/ and dev/tests/ that reference these symbols' },
-          patched_symbols: { type: 'array', items: { type: 'string' }, description: 'subset of symbols that appear in patch("<shim>.X") test sites — these need shim + seam care' },
+          est_blast_radius: { type: 'number', description: 'rough count of import + test-seam sites across the source tree and the test tree that reference these symbols' },
+          patched_symbols: { type: 'array', items: { type: 'string' }, description: 'subset of symbols pinned by test seams at the file\'s public import path (python patch()/monkeypatch, node mocked module paths; empty for ecosystems without such seams) — these need extra shim + seam care' },
         },
       },
     },
@@ -550,7 +739,7 @@ const PANELIST_SCHEMA = {
     hard_veto: { type: 'boolean', description: 'true only for a NON-NEGOTIABLE blocker (false premise, or an inherent contract break a shim cannot fix) — overrides any majority' },
     confidence: { type: 'number', description: '0..1 after reading the actual file' },
     rationale: { type: 'string' },
-    required_safeguards: { type: 'array', items: { type: 'string' }, description: 'concrete preconditions (e.g. "shim: <shim>.X", "characterization: patch(\\"<shim>.X\\") still bites after move", "execution: libcst codemod slices lines 1670-2010")' },
+    required_safeguards: { type: 'array', items: { type: 'string' }, description: 'concrete preconditions (e.g. "shim: <old import path>.X", "characterization: the test seam at the old path still bites after the move", "execution: scripted codemod slices lines 1670-2010")' },
     behavior_invariants: { type: 'array', items: { type: 'string' }, description: 'observable behaviours / importable names that MUST stay identical' },
   },
 }
@@ -565,15 +754,15 @@ const CHAIR_SCHEMA = {
     mandate: {
       type: 'object', additionalProperties: false,
       properties: {
-        dest_module: { type: 'string', description: 'final destination module path the implementer must create — convention-correct per the CONVENTIONS block (prefer an existing/justified subpackage over a loose flat sibling in an already-large directory)' },
-        dest_placement_rationale: { type: 'string', description: 'why dest_module is the convention-correct home (cite the CONVENTIONS block / target subpackage)' },
-        new_subpackage_init: { type: 'boolean', description: 'true if dest_module needs a NEW subpackage __init__.py created (the implementer must create it so the package is importable)' },
-        validation_dirs: { type: 'array', items: { type: 'string' }, description: 'full dev/tests/<sub> dirs that must stay green for this change (used by the deepen stage; decompose derives scope from moved symbols)' },
-        shims_required: { type: 'array', items: { type: 'string' }, description: 'every <shim>.<name> that must keep resolving via a re-export shim' },
-        characterization_tests_required: { type: 'array', items: { type: 'string' }, description: 'golden-master / patch-still-bites tests to write + commit BEFORE moving' },
+        dest_module: { type: 'string', description: 'final destination module path the implementer must create — convention-correct per the CONVENTIONS block (prefer an existing/justified subdirectory over a loose flat sibling in an already-large directory)' },
+        dest_placement_rationale: { type: 'string', description: 'why dest_module is the convention-correct home (cite the CONVENTIONS block / target subdirectory)' },
+        scaffold_files: { type: 'array', items: { type: 'string' }, description: 'repo-relative paths of scaffold files the implementer must create empty so the destination is importable/buildable — e.g. a Python subpackage __init__.py; EMPTY for most other ecosystems' },
+        validation_dirs: { type: 'array', items: { type: 'string' }, description: 'full test dirs that must stay green for this change (used by the deepen stage; decompose derives scope from moved symbols)' },
+        shims_required: { type: 'array', items: { type: 'string' }, description: 'every <old import path>.<name> that must keep resolving via the ecosystem\'s compat mechanism (re-export shim / barrel / alias / pub use)' },
+        characterization_tests_required: { type: 'array', items: { type: 'string' }, description: 'golden-master / seam-still-bites tests to write + commit BEFORE moving' },
         behavior_invariants: { type: 'array', items: { type: 'string' } },
-        execution_method: { type: 'string', enum: ['programmatic', 'hybrid', 'staged', 'manual'], description: '"programmatic"/AST codemod is the default for slicing symbols out of the god-file; "manual" only for a few short helpers; "staged" when the cluster is too tangled for one round.' },
-        execution_plan: { type: 'array', items: { type: 'string' }, description: 'ordered concrete steps naming the exact mechanism (ast/libcst slice, shim block write-back, import rewrite)' },
+        execution_method: { type: 'string', enum: ['programmatic', 'hybrid', 'staged', 'manual'], description: '"programmatic"/scripted codemod is the default for slicing symbols out of the god-file; "manual" only for a few short helpers; "staged" when the cluster is too tangled for one round.' },
+        execution_plan: { type: 'array', items: { type: 'string' }, description: 'ordered concrete steps naming the exact mechanism (scripted slice, compat-shim write-back, reference rewrite)' },
         this_round_scope: { type: 'string', description: 'when staged, the SINGLE bounded sub-cluster to move THIS round' },
         deferred_stages: { type: 'array', items: { type: 'string' }, description: 'when staged, the remaining ordered sub-clusters NOT done this round' },
       },
@@ -587,7 +776,7 @@ const IMPLEMENT_SCHEMA = {
     ok: { type: 'boolean' },
     files_touched: { type: 'array', items: { type: 'string' } },
     new_module: { type: 'string', description: 'the module created by the extraction' },
-    shims_written: { type: 'array', items: { type: 'string' }, description: 'the <shim>.<name> re-exports written back into the target' },
+    shims_written: { type: 'array', items: { type: 'string' }, description: 'the <old import path>.<name> compat re-exports written back at the target (empty where the ecosystem needs none, e.g. a Go same-package split)' },
     tests_changed: { type: 'array', items: { type: 'string' } },
     target_lines_after: { type: 'number', description: 'line count of the target file after the extraction (should shrink)' },
     detail: { type: 'string' },
@@ -597,9 +786,9 @@ const IMPLEMENT_SCHEMA = {
 const VALIDATE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['passed', 'detail'],
   properties: {
-    passed: { type: 'boolean', description: 'true ONLY if import smoke + pytest + lint all pass with NO new failures vs the per-round oracle' },
+    passed: { type: 'boolean', description: 'true ONLY if the smoke/compile check + the tests + lint all pass with NO new failures vs the per-round oracle' },
     import_smoke_ok: { type: 'boolean' },
-    pytest_ok: { type: 'boolean' },
+    tests_ok: { type: 'boolean' },
     lint_ok: { type: 'boolean' },
     new_failures: { type: 'array', items: { type: 'string' }, description: 'failing tests NOT in the oracle — regressions from this round' },
     detail: { type: 'string' },
@@ -631,12 +820,13 @@ const REVERT_SCHEMA = {
   properties: { ok: { type: 'boolean' }, clean: { type: 'boolean' }, detail: { type: 'string' } },
 }
 
-// Per-file worktree bring-up: create an isolated checkout on a child branch with its OWN uv env.
+// Per-file worktree bring-up: create an isolated checkout on a child branch, with its OWN project
+// env where the profile requires one (python .venv / node node_modules; go/rust/generic skip it).
 const WORKTREE_SETUP_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['ok', 'env_ready'],
   properties: {
     ok: { type: 'boolean', description: 'true if the worktree exists on the child branch and is usable' },
-    env_ready: { type: 'boolean', description: 'true if the worktree got its OWN .venv whose editable .pth points at the WORKTREE src (not ROOT src)' },
+    env_ready: { type: 'boolean', description: 'true if the worktree\'s own env is ready (python: its own .venv whose editable .pth points at the WORKTREE src; node: its own node_modules; ecosystems without a per-worktree env: always true)' },
     worktree_path: { type: 'string' },
     branch: { type: 'string' },
     protected_untracked: { type: 'array', items: { type: 'string' }, description: 'the worktree\'s own untracked paths (git ls-files --others --directory) — off-limits to revert' },
@@ -655,13 +845,13 @@ const MERGE_SCHEMA = {
   },
 }
 
-// Per-round TARGETED test scope: the minimal subset of dev/tests that exercises the moved symbols.
+// Per-round TARGETED test scope: the minimal subset of the test tree that exercises the moved symbols.
 // confident:false => the symbol is too pervasive to scope safely; the loop runs the full sweep.
 const SCOPE_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['confident', 'test_paths', 'detail'],
   properties: {
-    confident: { type: 'boolean', description: 'true ONLY if a targeted subset safely covers every site that exercises the moved symbols; false if a moved symbol is pervasive (referenced across many dev/tests subdirs / 40+ files) or hit indirectly by integration tests that do not name it — then the loop runs the FULL suite' },
-    test_paths: { type: 'array', items: { type: 'string' }, description: 'minimal deduped list of test files (preferred) or dirs under dev/tests/ (repo-relative) that reference the moved symbols / patch <shim>.<sym> / import the dest module / read the target as source text. Only meaningful when confident:true.' },
+    confident: { type: 'boolean', description: 'true ONLY if a targeted subset safely covers every site that exercises the moved symbols; false if a moved symbol is pervasive (referenced across many test subdirs / 40+ files) or hit indirectly by integration tests that do not name it — then the loop runs the FULL suite' },
+    test_paths: { type: 'array', items: { type: 'string' }, description: 'minimal deduped list of test files (preferred) or dirs under the test root (repo-relative) that reference the moved symbols / pin them via a test seam / import the dest module / read the target as source text. Only meaningful when confident:true.' },
     lint_paths: { type: 'array', items: { type: 'string' }, description: 'source files the extraction will touch and should be linted (at least the target + dest module)' },
     site_counts: { type: 'string', description: 'short tally of what was grepped, e.g. "build_welcome_banner: 11 sites in 7 files"' },
     detail: { type: 'string' },
@@ -678,11 +868,12 @@ const candSpan = (c) => {
   return (c.symbols || []).length
 }
 
-// Dedup a list of pytest targets and drop any file nested under an included dir.
+// Dedup a list of test targets and drop any file nested under an included dir. "File" is judged by
+// the resolved source extensions (test files share them in every supported ecosystem).
 const normalizePaths = (paths) => {
   const uniq = Array.from(new Set((paths || []).filter(Boolean).map(p => p.replace(/\/+$/, ''))))
-  const dirs = uniq.filter(p => !p.endsWith('.py'))
-  return uniq.filter(p => !p.endsWith('.py') || !dirs.some(d => p.startsWith(d + '/')))
+  const dirs = uniq.filter(p => !isSourceFile(p))
+  return uniq.filter(p => !isSourceFile(p) || !dirs.some(d => p.startsWith(d + '/')))
 }
 
 // Parse a candidate's line_range into [lo,hi]; null if unparseable. Two candidates "overlap" when
@@ -736,87 +927,147 @@ const testDirsForFiles = (files) => {
   return Array.from(dirs)
 }
 
-// Build the human-readable contract census string the panel briefs interpolate.
-const censusString = (c, shimModule) => {
-  if (!c) return `Contract census for ${shimModule}: (unavailable — grep the import/patch sites yourself before voting).`
+// Build the human-readable contract census string the panel briefs interpolate. moduleId is the
+// file's public import path (python: dotted module; elsewhere: repo-relative path without extension).
+const censusString = (c, moduleId) => {
+  if (!c) return `Contract census for ${moduleId}: (unavailable — grep the import/seam sites yourself before voting).`
   const top = (c.top_symbols || []).map(s => `${s.name} ×${s.count}`).join(', ')
-  return `Contract census for ${shimModule} (computed live this run): ~${c.total_patch_sites || 0} \`patch("${shimModule}.X")\`/monkeypatch site(s) and ~${c.total_import_sites || 0} \`from ${shimModule} import X\` / \`${shimModule}.X\` reference site(s) across dev/tests and src; ~${c.src_importers || 0} src module(s) import it. Most-referenced symbols: ${top || '(none surfaced)'}. EVERY name importable from ${shimModule} must STAY importable from it (via a re-export shim), and every \`patch("${shimModule}.X")\` must keep resolving to the live object the moved code calls.`
+  const seamBit = (c.total_patch_sites || 0) > 0
+    ? `~${c.total_patch_sites} test-seam site(s) pinned to ${moduleId} (patch/mock-by-path) and `
+    : `no patch/mock-by-path test seams counted (${ECOSYSTEM === 'python' || ECOSYSTEM === 'node' ? 'none found' : 'this ecosystem has no patch-by-path mechanism — 0 by design'}) and `
+  return `Contract census for ${moduleId} (computed live this run): ${seamBit}~${c.total_import_sites || 0} import/reference site(s) across ${TDIRX()} and the source tree; ~${c.src_importers || 0} source module(s) import it. Most-referenced symbols: ${top || '(none surfaced)'}. EVERY name currently reachable from ${moduleId} (the file's public import path) must STAY reachable from it after the move, via this ecosystem's compat mechanism, and every test seam pinned to that path must keep biting.`
 }
 
 // ================= Phase: Setup (once for the whole sweep) =================
 phase('Setup')
 log('Repo decomposition sweep starting on ' + ROOT + ' (branch=' + BRANCH + ', discover>' + DISCOVER_LINES + ' lines, per-file target<=' + TARGET_LINES + ', max ' + MAX_FILES + ' file(s), ' + MAX_ITERS + ' round(s)/file' + (SINGLE_TARGET ? ', SINGLE-FILE mode: ' + SINGLE_TARGET : '') + (SKIP_SETUP ? ', FAST SETUP (skip env sync + baseline oracle)' : '') + ')')
 
-// ---- DETECT: derive repo-appropriate defaults for the values the caller did not pin ----
-// The engine was born tuned to one repo; a general Python project has a different src root, package
-// set, test root, extras, and linter. A single read-only agent reads pyproject.toml + the source
-// layout (+ repo_scan.py when bundled) and returns a config; each field fills the matching `let`
-// ONLY when the caller passed no explicit arg (HAS()). Explicit args always win. Best-effort: if
-// detection fails, the original hardcoded fallbacks stand and the loop proceeds.
+// ---- DETECT: derive the ecosystem + repo-appropriate defaults for values the caller did not pin ----
+// A single read-only agent inspects the repo manifests, source layout, and toolchain and returns a
+// config; each field fills the matching `let` ONLY when the caller passed no explicit arg (HAS()).
+// Explicit args always win. Best-effort: if detection fails, neutral profile fallbacks stand and the
+// loop proceeds.
 const DETECT_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['ok'],
   properties: {
     ok: { type: 'boolean' },
-    src_root: { type: 'string', description: 'the source root dir, repo-relative (e.g. "src", or "." for a flat layout)' },
-    packages: { type: 'array', items: { type: 'string' }, description: 'top-level importable package names under src_root (dirs with __init__.py)' },
-    base_imports: { type: 'string', description: 'comma-separated importable modules for a package-wide import smoke — one stable entry per top-level package (e.g. "pkg_a, pkg_b.cli")' },
-    test_root: { type: 'string', description: 'where the test suite lives, repo-relative (pyproject [tool.pytest.ini_options] testpaths if set, else "tests"/"test"/"dev/tests" by dir presence)' },
-    keep_set: { type: 'array', items: { type: 'string' }, description: 'a SMALL fast subset of test dirs (2-4) for the baseline oracle; [test_root] is fine if there are no sub-suites' },
-    env_setup: { type: 'string', description: 'the command that builds the CI-faithful env — "uv sync" (+ any REAL extras this project declares, e.g. --extra dev) when uv.lock/pyproject present; else "" if none inferable' },
-    lint_cmd: { type: 'string', description: 'whole-repo lint command if a linter is configured (ruff -> "uvx ruff check ."), else "" if no linter is configured' },
+    ecosystem: { type: 'string', description: "one of 'python' | 'node' | 'go' | 'rust' | 'generic'" },
+    ecosystem_evidence: { type: 'string', description: 'the manifest / dominant-extension evidence the ecosystem verdict rests on' },
+    python3_available: { type: 'boolean', description: 'true if a python3 (or python) interpreter is on PATH — required by the bundled stdlib-only recon scripts (repo_scan.py + structure verifier), which run on ANY repo, not just Python ones' },
+    toolchain_ready: { type: 'boolean', description: "true if the ecosystem's primary tool is on PATH (python: uv or python; node: node + the detected package manager; go: go; rust: cargo)" },
+    uses_uv: { type: 'boolean', description: 'python only: true when the project is uv-managed (uv.lock present, or pyproject + uv on PATH)' },
+    src_root: { type: 'string', description: 'the source root dir, repo-relative ("src", "lib", "app", or "." for root-level package dirs / a flat layout)' },
+    packages: { type: 'array', items: { type: 'string' }, description: 'python only: top-level importable package names under src_root (dirs with __init__.py)' },
+    base_imports: { type: 'string', description: 'python only: comma-separated importable modules for a package-wide import smoke — one stable entry per top-level package (e.g. "pkg_a, pkg_b.cli")' },
+    test_root: { type: 'string', description: 'where the test suite lives, repo-relative (manifest-configured location if set — pyproject testpaths, jest/vitest roots — else the first present of tests | test | dev/tests | spec | __tests__); "" when tests are colocated with the source (typical go/rust) or absent' },
+    keep_set: { type: 'array', items: { type: 'string' }, description: 'a SMALL fast subset of test dirs (2-4) for the baseline oracle; [test_root] is fine if there are no sub-suites; [] when tests are colocated/absent' },
+    env_setup: { type: 'string', description: 'the command that builds the CI-faithful env: python-uv -> "uv sync"; node -> the lockfile-matched install ("npm ci" if package-lock.json, "pnpm install --frozen-lockfile" if pnpm-lock.yaml, "yarn install --frozen-lockfile" if yarn.lock, "bun install" if bun.lockb, else "npm install"); go/rust -> "" (module/registry caches are automatic); else ""' },
+    test_prefix: { type: 'string', description: 'the command that runs tests on given paths: python "uv run python -m pytest" (or "python -m pytest" without uv); node "npm test --" ONLY if package.json has a REAL test script (not the npm default error stub), else "npx vitest run" (vitest config/dep) or "npx jest" (jest config/dep), else ""; go "go test"; rust "cargo test"; generic ""' },
+    smoke_cmd: { type: 'string', description: 'file-independent compile/smoke command: node "npx tsc --noEmit" when a tsconfig*.json exists else ""; go "go build ./..."; rust "cargo check --all-targets"; python "" (its smoke is built from base_imports); generic ""' },
+    lint_cmd: { type: 'string', description: 'whole-repo lint command ONLY if a linter is actually configured (python ruff config/dep -> "uvx ruff check ." with uv else "ruff check ."; node eslint config -> "npx eslint ."; go -> "go vet ./..."; rust -> "cargo clippy -q" only if clippy is plausibly installed), else ""' },
+    lint_per_file: { type: 'string', description: 'the per-file lint prefix matching lint_cmd (e.g. "uvx ruff check", "npx eslint", "go vet"), else ""' },
     test_dirs_for: {
       type: 'array',
       items: {
         type: 'object', additionalProperties: false, required: ['package', 'test_dirs'],
         properties: { package: { type: 'string' }, test_dirs: { type: 'array', items: { type: 'string' } } },
       },
-      description: 'per-package test dirs that must stay green when that package is touched — the src/<pkg> <-> <test_root>/<pkg> mirror',
+      description: 'per-package/subsystem test dirs that must stay green when that package is touched — the <src>/<pkg> <-> <test_root>/<pkg> mirror',
     },
     detail: { type: 'string' },
   },
 }
 const det = await agent(
-  `Read-only — make NO edits. Detect the build/test configuration of the Python repo at ${ROOT} so an automated refactor loop uses repo-appropriate defaults. Run commands from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
+  `Read-only — make NO edits. Detect the ECOSYSTEM and build/test configuration of the repo at ${ROOT} so an automated refactor loop uses repo-appropriate defaults. Run commands from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
 
-Gather:
-1. Read pyproject.toml (and setup.cfg/setup.py if present): the build system, packages / package-dir (src layout?), optional-dependency groups (extras), and [tool.pytest.ini_options] testpaths. Note whether uv is used (uv.lock present).
-2. List the source layout: \`ls -1 ${ROOT}\` and, if a src/ dir exists, \`ls -1 ${ROOT}/src\`; identify the SRC ROOT (the dir that holds the top-level importable packages — "src" if a src-layout, else "." for a flat top-level package) and the top-level PACKAGES under it (subdirs containing __init__.py).
-3. Identify the TEST ROOT: testpaths from pyproject if set; else the first present of tests/, test/, dev/tests/.
-4. Detect the linter: ruff if a [tool.ruff] table or ruff config exists.
-${SCAN_SCRIPT ? '5. You MAY run `python3 ' + SCAN_SCRIPT + ' . --large-cap 5000` for a structured view of the tree (stdlib-only, no env needed).\n' : ''}
-Return:
-- src_root, packages (top-level importable package names).
-- base_imports: ONE stable importable module per package (prefer the package itself, e.g. "pkg" or "pkg.__init__" -> just "pkg"; if the bare package import is heavy, a light submodule is fine). Comma-separated. These must ALL import cleanly on the current tree — when unsure, pick the safest (the bare package name).
-- test_root, and keep_set (a small 2-4 dir fast subset under test_root; use [test_root] if there are no sub-suites).
-- env_setup: the env-build command. If uv is used: "uv sync" plus ONLY extras this project actually declares that are needed for tests (e.g. "uv sync --extra dev"); do NOT invent "--extra all" unless such an extra exists. If no uv, return "".
-- lint_cmd: "uvx ruff check ." if ruff is configured, else "".
-- test_dirs_for: for each package, the test dirs that exercise it (the <test_root>/<package> mirror when it exists; else []).
-Set ok:true if you produced a usable config; ok:false + detail if the repo is not a recognizable Python project. Do NOT edit anything.`,
+${ECOSYSTEM
+    ? '1. The ecosystem is PINNED by the caller: **' + ECOSYSTEM + '**. Do not second-guess it; report it in `ecosystem` and gather the fields below for it.'
+    : '1. DETECT THE ECOSYSTEM from the manifests at the repo ROOT: pyproject.toml / setup.py / setup.cfg / uv.lock / requirements.txt -> python; package.json -> node; go.mod -> go; Cargo.toml -> rust; none of those -> generic. If SEVERAL match, prefer the one whose manifest governs the DOMINANT source extension under ' + JSON.stringify(SCAN_ROOTS) + ' (count files by extension: .py vs .ts/.tsx/.js/.jsx vs .go vs .rs); if still tied, prefer python > node > go > rust. Report the evidence in ecosystem_evidence.'}
+2. TOOL AVAILABILITY (\`command -v\`): python3 (or python) — set python3_available (it powers the plugin's bundled stdlib-only recon scripts and is needed on ANY repo, not just Python ones); plus the ecosystem's own tools (python: uv + python; node: node + npm/pnpm/yarn/bun; go: go; rust: cargo) — set toolchain_ready. For python also set uses_uv (uv.lock present, or pyproject + uv on PATH).
+3. SOURCE ROOT + layout: \`ls -1 ${ROOT}\`; use src/ if it exists, else the manifest-conventional root — python: src | the top-level package dir(s); node: src | lib | app; go: "." (package dirs at the root); rust: src. For python, also list the top-level importable PACKAGES (subdirs with __init__.py) and derive base_imports: ONE stable importable module per package (prefer the bare package name; if that import is heavy, a light submodule is fine) — they must ALL import cleanly on the current tree.
+4. TEST ROOT: the manifest-configured location if set (pyproject [tool.pytest.ini_options] testpaths; jest/vitest config roots); else the first present of tests/ | test/ | dev/tests/ | spec/ | __tests__/; "" when tests are colocated with the source (typical for go/rust). keep_set: a small 2-4 dir fast subset under test_root ([test_root] when there are no sub-suites; [] when colocated/absent).
+5. COMMANDS — env_setup, test_prefix, smoke_cmd, lint_cmd, lint_per_file exactly per the field descriptions in the output schema. DETECT, don't invent: for node, read package.json scripts.test and IGNORE the npm default stub (\`echo "Error: no test specified" && exit 1\`); pick the install command from the lockfile actually present; check for tsconfig*.json before proposing tsc; only report a linter that is actually configured (a config file or a declared dependency).
+6. test_dirs_for: for each top-level package/subsystem, the test dirs that exercise it (the <test_root>/<package> mirror when it exists; omit packages with no mirror).
+${SCAN_SCRIPT ? '7. You MAY run `python3 ' + SCAN_SCRIPT + ' . --large-cap 5000` for a structured view of the tree (stdlib-only, no project env needed) — only if python3 is available.\n' : ''}
+Set ok:true if you produced a usable config; ok:false + detail if the repo is unreadable. Do NOT edit anything.`,
   { label: 'detect-config', phase: 'Setup', agentType: 'Explore', schema: DETECT_SCHEMA, model: M_COORD }
 )
-if (det && det.ok) {
-  if (!HAS('scanRoots') && det.src_root) SCAN_ROOTS = [det.src_root.replace(/\/+$/, '')]
-  if (!HAS('testRoot') && det.test_root) TEST_ROOT = det.test_root.replace(/\/+$/, '')
-  if (!HAS('baseImports') && det.base_imports && det.base_imports.trim()) BASE_IMPORTS = det.base_imports.trim()
-  if (!HAS('keepSet') && Array.isArray(det.keep_set) && det.keep_set.length) KEEP_SET = det.keep_set
-  if (!HAS('envSetup') && typeof det.env_setup === 'string' && det.env_setup.trim()) ENV_SETUP = det.env_setup.trim()
-  if (!HAS('lintCmd') && typeof det.lint_cmd === 'string') {
-    LINT = det.lint_cmd.trim() || 'true'                    // '' => no linter => whole-repo lint no-op
-    if (!HAS('lintPerFile')) LINT_PER_FILE_PREFIX = /ruff/.test(det.lint_cmd) ? 'uvx ruff check' : (det.lint_cmd.trim() ? det.lint_cmd.replace(/\s+\.$/, '').trim() : '')
+// ---- Resolve the ecosystem + profile (explicit arg always wins; detection fills the rest) ----
+const D = (det && det.ok) ? det : null
+if (!D) log('Detect: no usable config (' + ((det && det.detail) || 'agent produced no result') + ') — using neutral profile fallbacks / explicit args.')
+if (!ECOSYSTEM && D && typeof D.ecosystem === 'string' && ALL_ECOSYSTEMS.includes(D.ecosystem.trim().toLowerCase())) {
+  ECOSYSTEM = D.ecosystem.trim().toLowerCase()
+}
+if (!ECOSYSTEM) ECOSYSTEM = 'generic'
+P = PROFILES[ECOSYSTEM]
+PY3 = D ? D.python3_available !== false : true
+if (!HAS('srcExts')) SRC_EXTS = P.exts
+if (D) {
+  if (!HAS('scanRoots') && D.src_root) SCAN_ROOTS = [D.src_root.replace(/\/+$/, '')]
+  if (!HAS('testRoot') && typeof D.test_root === 'string') TEST_ROOT = D.test_root.trim().replace(/\/+$/, '')
+  if (!HAS('keepSet') && Array.isArray(D.keep_set) && D.keep_set.length) KEEP_SET = D.keep_set
+  if (!HAS('testDirsFor') && Array.isArray(D.test_dirs_for) && D.test_dirs_for.length) {
+    const map = {}
+    for (const e of D.test_dirs_for) { if (e && e.package && Array.isArray(e.test_dirs) && e.test_dirs.length) map[e.package] = e.test_dirs }
+    if (Object.keys(map).length) TEST_DIRS_FOR = map
   }
-  if (!HAS('testDirsFor') && Array.isArray(det.test_dirs_for) && det.test_dirs_for.length) {
-    const m = {}
-    for (const e of det.test_dirs_for) { if (e && e.package && Array.isArray(e.test_dirs) && e.test_dirs.length) m[e.package] = e.test_dirs }
-    if (Object.keys(m).length) TEST_DIRS_FOR = m
+}
+if (ECOSYSTEM === 'python') {
+  if (!HAS('baseImports') && D && D.base_imports && D.base_imports.trim()) BASE_IMPORTS = D.base_imports.trim()
+} else if (HAS('baseImports')) {
+  BASE_IMPORTS = ''
+  log("Note: baseImports is a python-only concept — ignored for ecosystem '" + ECOSYSTEM + "'.")
+  RUN_NOTES.push("baseImports arg ignored (python-only concept; ecosystem is '" + ECOSYSTEM + "')")
+}
+if (!HAS('envSetup')) ENV_SETUP = (D && typeof D.env_setup === 'string') ? D.env_setup.trim() : ENV_SETUP
+const USES_UV = ECOSYSTEM === 'python' && ((D && D.uses_uv === true) || /(^|\s)uv(\s|$)/.test(ENV_SETUP))
+RUN_PREFIX = USES_UV ? 'uv run ' : ''
+if (!HAS('testCmdPrefix')) {
+  TEST_PREFIX = (D && typeof D.test_prefix === 'string' && D.test_prefix.trim()) ? D.test_prefix.trim() : (P.defaultTestPrefix || '')
+  if (ECOSYSTEM === 'python' && TEST_PREFIX && USES_UV && !/^uv /.test(TEST_PREFIX)) TEST_PREFIX = 'uv run ' + TEST_PREFIX
+}
+if (SMOKE_OVERRIDE === null) SMOKE_BASE = (D && typeof D.smoke_cmd === 'string' && D.smoke_cmd.trim()) ? D.smoke_cmd.trim() : (P.defaultSmoke || '')
+if (!HAS('lintCmd') && D && typeof D.lint_cmd === 'string') LINT = D.lint_cmd.trim()
+if (!HAS('lintPerFile')) {
+  const dp = (D && typeof D.lint_per_file === 'string') ? D.lint_per_file.trim() : ''
+  LINT_PER_FILE_PREFIX = dp || (LINT ? LINT.replace(/\s+(\.|\.\/\.\.\.)$/, '').trim() : (P.defaultLintPerFile || ''))
+}
+recomputeDerived()
+log('Detect: ecosystem=' + ECOSYSTEM + (D && D.ecosystem_evidence ? ' [' + String(D.ecosystem_evidence).replace(/\s+/g, ' ').slice(0, 80) + ']' : ' [pinned/fallback]')
+  + ', src=' + JSON.stringify(SCAN_ROOTS) + ', exts=' + JSON.stringify(SRC_EXTS.slice(0, 6)) + (SRC_EXTS.length > 6 ? '+' : '')
+  + ', tests=' + (TEST_ROOT || '(none/colocated)') + ', keep=' + JSON.stringify(KEEP_SET)
+  + ', env=' + (ENV_SETUP ? '"' + ENV_SETUP.slice(0, 40) + '"' : '(none needed)')
+  + ', test="' + (TEST_PREFIX || '(none)') + '", smoke=' + (importSmokeFor('') ? '"' + importSmokeFor('').slice(0, 40) + '"' : '(none)')
+  + ', lint=' + (LINT_PER_FILE_PREFIX || 'none')
+  + (ECOSYSTEM === 'python' ? ', base_imports=' + (BASE_IMPORTS ? BASE_IMPORTS.split(',').length : 0) + ' module(s)' : '')
+  + ', python3=' + PY3)
+
+// ---- python3-availability hardening: the bundled recon scripts (repo_scan.py + structure verifier)
+// are stdlib-python helpers that run on ANY repo. Without python3 the ORGANIZE stage cannot run and
+// the org-audit / conventions verifier steps become no-ops (decompose/deepen still run).
+if (!PY3) {
+  if (STAGES.includes('organize')) {
+    STAGES = STAGES.filter(s => s !== 'organize')
+    log('ORGANIZE SKIPPED: python3 is not available for the recon scripts (repo_scan.py + structure verifier).')
+    RUN_NOTES.push('organize skipped: python3 not available for the recon scripts (repo_scan.py + the structure verifier are stdlib-python helpers bundled by the plugin — install any python3 to enable the organize stage)')
   }
-  recomputeDerived()
-  log('Detect: src=' + JSON.stringify(SCAN_ROOTS) + ', tests=' + TEST_ROOT + ', keep=' + JSON.stringify(KEEP_SET) + ', env=' + (ENV_SETUP ? '"' + ENV_SETUP.slice(0, 40) + '"' : '(none)') + ', lint=' + (LINT_PER_FILE_PREFIX || 'none') + ', base_imports=' + BASE_IMPORTS.split(',').length + ' module(s)')
-} else {
-  log('Detect: no usable config (' + ((det && det.detail) || 'agent produced no result') + ') — using the hardcoded fallbacks / explicit args.')
+  RUN_NOTES.push('org-audit / conventions structure-verifier steps are no-ops this run: python3 not available')
+}
+// ---- 'generic' degraded mode: organize still runs (when python3 exists), but decompose/deepen only
+// run when the caller supplied enough of a toolchain to gate on (testCmdPrefix or oracleCmd).
+if (ECOSYSTEM === 'generic' && !(HAS('testCmdPrefix') || HAS('oracleCmd'))) {
+  if (STAGES.some(s => s === 'decompose' || s === 'deepen')) {
+    STAGES = STAGES.filter(s => s !== 'decompose' && s !== 'deepen')
+    log('GENERIC DEGRADED MODE: decompose/deepen skipped — no test toolchain supplied for this unrecognized ecosystem.')
+    RUN_NOTES.push("decompose/deepen skipped (generic ecosystem, degraded mode): pass testCmdPrefix (a command that runs tests on given paths) or oracleCmd (a fixed full-suite test command) — plus optionally smokeCmd and srcExts — to enable these stages")
+  }
+}
+if (!STAGES.length) {
+  return { aborted: 'Detect', ecosystem: ECOSYSTEM, reason: 'no runnable stages remain after ecosystem gating', notes: RUN_NOTES }
 }
 
 const SETUP_PROMPT = SKIP_SETUP
-  ? `FAST SETUP for an automated god-file decomposition loop on the repo at ${ROOT}. A previous run already synced the env and captured the test oracle, so SKIP \`uv sync\` and SKIP the baseline pytest — but you MUST still do the cheap, load-bearing safety steps below. Anchor every git command with git -C "${ROOT}" (your cwd is NOT the repo).
+  ? `FAST SETUP for an automated god-file decomposition loop on the repo at ${ROOT} (ecosystem: ${ECOSYSTEM}). A previous run already set up the env and captured the test oracle, so SKIP the env setup and SKIP the baseline test run — but you MUST still do the cheap, load-bearing safety steps below. Anchor every git command with git -C "${ROOT}" (your cwd is NOT the repo).
 
 Do, in order:
 1. Confirm a git work tree: git -C "${ROOT}" rev-parse --is-inside-work-tree. If not, return ok:false.
@@ -832,10 +1083,10 @@ Captures pre-existing working-tree state so each extraction round starts from a 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
      Then started_clean:false and the new short hash in baseline_commit.
 4. Re-verify clean (git -C "${ROOT}" status --porcelain prints nothing).
-5. CRITICAL — capture the PROTECTED UNTRACKED SET (this repo legitimately carries untracked dirs a blanket clean would destroy, e.g. .venv/, node_modules/, archive/, build/): git -C "${ROOT}" ls-files --others --directory — put every line into baseline_untracked. Off-limits to all later revert/cleanup. Do NOT skip this even in fast setup.
+5. CRITICAL — capture the PROTECTED UNTRACKED SET (this repo legitimately carries untracked dirs a blanket clean would destroy, e.g. .venv/, node_modules/, target/, archive/, build/): git -C "${ROOT}" ls-files --others --directory — put every line into baseline_untracked. Off-limits to all later revert/cleanup. Do NOT skip this even in fast setup.
 
-Set env_ready:true (assumed from a prior run — do NOT run uv sync) and baseline_red_tests:[] (skipped; each round captures its own targeted oracle). NEVER delete files. NEVER run \`git clean\`. NEVER push. Report branch + clean/commit + untracked state in detail.`
-  : `You are preparing the repo at ${ROOT} for an AUTOMATED, multi-round loop that sweeps the Python source tree for oversized god-files and decomposes each into focused modules, driven by the improve-codebase-architecture skill at ${SKILL_DIR}. The loop extracts ONE cohesive cluster per round and commits after each, so it needs (a) a clean committed baseline on a dedicated branch and (b) a runnable, CI-faithful verification environment plus a baseline test oracle. Anchor every git command with git -C "${ROOT}" (your cwd is NOT the repo).
+Set env_ready:true (assumed from a prior run — do NOT run the env setup), ecosystem:"${ECOSYSTEM}", and baseline_red_tests:[] (skipped; each round captures its own targeted oracle). NEVER delete files. NEVER run \`git clean\`. NEVER push. Report branch + clean/commit + untracked state in detail.`
+  : `You are preparing the repo at ${ROOT} (ecosystem: ${ECOSYSTEM}) for an AUTOMATED, multi-round loop that sweeps the source tree for oversized god-files and decomposes each into focused modules, driven by the improve-codebase-architecture skill at ${SKILL_DIR}. The loop extracts ONE cohesive cluster per round and commits after each, so it needs (a) a clean committed baseline on a dedicated branch and (b) a runnable, CI-faithful verification environment plus a baseline test oracle. Anchor every git command with git -C "${ROOT}" (your cwd is NOT the repo).
 
 Do, in order:
 1. Confirm a git work tree: git -C "${ROOT}" rev-parse --is-inside-work-tree. If not, return ok:false.
@@ -851,13 +1102,17 @@ Captures pre-existing working-tree state so each extraction round starts from a 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
      Then started_clean:false and the new short hash in baseline_commit.
 4. Re-verify clean (git -C "${ROOT}" status --porcelain prints nothing).
-5. Set up the CI-faithful env (a bare python/pytest on PATH is NOT acceptable). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`):
+5. ${ENV_SETUP
+      ? `Set up the CI-faithful env (a bare interpreter/test-runner on PATH is NOT acceptable when the project declares its own env). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`):
        ${ENV_SETUP}
-   If uv is missing or sync fails, env_ready:false + explain (still return ok:true if git steps succeeded — the loop aborts cleanly at the first validation).
-6. Capture the BASELINE TEST ORACLE (keep-set already-red tests): cd "${ROOT}" && ${PYTEST_FAST} — record every failing node id into baseline_red_tests (empty = fully green).
+   If the tool is missing or the setup fails, env_ready:false + explain (still return ok:true if git steps succeeded — the loop aborts cleanly at the first validation).`
+      : `No env-setup step is needed for this ecosystem (${ECOSYSTEM} manages its own caches). Just verify the toolchain: the test command below (if any) must be runnable from inside the repo; set env_ready accordingly (true when nothing is missing).`}
+6. ${ORACLE_CMD
+      ? `Capture the BASELINE TEST ORACLE (keep-set already-red tests): cd "${ROOT}" && ${ORACLE_CMD} — record every failing test id into baseline_red_tests (empty = fully green).`
+      : `No baseline oracle command is configured — set baseline_red_tests:[] (each round captures its own targeted oracle).`}
 7. CRITICAL — capture the PROTECTED UNTRACKED SET (this repo legitimately carries untracked dirs a blanket clean would destroy): git -C "${ROOT}" ls-files --others --directory — put every line into baseline_untracked. Off-limits to all later revert/cleanup.
 
-NEVER delete files. NEVER run \`git clean\`. NEVER push. Report what you committed and env/oracle/untracked state in detail.`
+Set ecosystem:"${ECOSYSTEM}" in your result. NEVER delete files. NEVER run \`git clean\`. NEVER push. Report what you committed and env/oracle/untracked state in detail.`
 
 const setup = await agent(SETUP_PROMPT, { label: SKIP_SETUP ? 'fast-setup' : 'setup-baseline', phase: 'Setup', schema: SETUP_SCHEMA, model: M_COORD })
 
@@ -872,14 +1127,15 @@ if (!setup.env_ready) {
   log('WARNING: verification env not ready (' + setup.detail + '). The loop will abort at the first validation gate rather than implement blind.')
 }
 
-// ---- IMPORT-SMOKE BASELINE ORACLE (Fix #1) ----
-// Unlike pytest (which subtracts a pre-existing-red oracle), the per-round import smoke must pass
-// ABSOLUTELY: any module in BASE_IMPORTS that is already un-importable on the CLEAN tree — or that the
-// DETECT step guessed wrong — would fail EVERY round's smoke and revert EVERY extraction, so the sweep
-// could never commit. So: on the clean tree, test each BASE_IMPORTS module individually and DROP the
-// ones already broken at baseline (logged). Import smoke then only asserts modules importable before we
-// touched anything — a true regression gate. Runs only when the env is ready (else smoke can't run at all).
-if (setup.env_ready && BASE_IMPORTS.trim()) {
+// ---- SMOKE BASELINE ORACLE (Fix #1) ----
+// Unlike the tests (which subtract a pre-existing-red oracle), the per-round smoke/compile check must
+// pass ABSOLUTELY: anything already broken on the CLEAN tree would fail EVERY round's smoke and revert
+// EVERY extraction, so the sweep could never commit. python: test each BASE_IMPORTS module individually
+// on the clean tree and DROP the ones already broken at baseline (logged) — smoke then only asserts
+// modules importable before we touched anything. Other ecosystems: run the file-independent smoke once
+// on the clean tree and DISABLE it (with a note) if it is already red at baseline. Runs only when the
+// env is ready (else smoke can't run at all). An explicit smokeCmd override is never auto-disabled.
+if (setup.env_ready && ECOSYSTEM === 'python' && SMOKE_OVERRIDE === null && BASE_IMPORTS.trim()) {
   const IMPORT_ORACLE_SCHEMA = {
     type: 'object', additionalProperties: false, required: ['importable'],
     properties: {
@@ -895,7 +1151,7 @@ if (setup.env_ready && BASE_IMPORTS.trim()) {
   const baseMods = BASE_IMPORTS.split(',').map(s => s.trim()).filter(Boolean)
   const impOracle = await agent(
     `Read-only — make NO edits. On the CLEAN committed tree at ${ROOT}, determine which of these top-level modules import cleanly through the project's env, so an automated refactor loop's import-smoke gate only asserts modules that were importable BEFORE any change. Test EACH module INDEPENDENTLY (a later one failing must not hide an earlier success) by running, per module, from inside the repo:
-  \`bash -c 'cd "${ROOT}" && uv run python -c "import <module>"'\`
+  \`bash -c 'cd "${ROOT}" && ${RUN_PREFIX}python -c "import <module>"'\`
 Modules to test: ${JSON.stringify(baseMods)}
 Classify each into importable (exit 0) or broken (non-zero — capture a one-line error). Do NOT try to fix anything. Return importable + broken + a short detail. Do NOT edit code.`,
     { label: 'import-oracle', phase: 'Setup', schema: IMPORT_ORACLE_SCHEMA, model: M_COORD }
@@ -913,6 +1169,26 @@ Classify each into importable (exit 0) or broken (non-zero — capture a one-lin
   } else {
     log('Import oracle step produced no result — leaving BASE_IMPORTS unchanged.')
   }
+} else if (setup.env_ready && ECOSYSTEM !== 'python' && SMOKE_OVERRIDE === null && SMOKE_BASE) {
+  const SMOKE_BASELINE_SCHEMA = {
+    type: 'object', additionalProperties: false, required: ['ok'],
+    properties: { ok: { type: 'boolean', description: 'true if the smoke command exited 0 on the clean tree' }, detail: { type: 'string' } },
+  }
+  const smk = await agent(
+    `Read-only — make NO edits. On the CLEAN committed tree at ${ROOT}, run the refactor loop's smoke/compile check ONCE so the loop knows whether it passes at baseline (a check that is already red on the clean tree cannot gate anything). Run synchronously in the foreground from inside the repo:
+  \`bash -c 'cd "${ROOT}" && ${SMOKE_BASE}'\`
+Set ok:true only on exit 0; otherwise ok:false with the tail of the error output in detail. Do NOT try to fix anything. Do NOT edit code.`,
+    { label: 'smoke-baseline', phase: 'Setup', schema: SMOKE_BASELINE_SCHEMA, model: M_COORD }
+  )
+  if (smk && smk.ok === false) {
+    log('Smoke baseline: "' + SMOKE_BASE + '" is ALREADY RED on the clean tree — disabling the per-round smoke gate (it could never pass). ' + ((smk.detail || '').slice(0, 120)))
+    RUN_NOTES.push('per-round smoke check disabled: "' + SMOKE_BASE + '" was already failing at baseline (pass smokeCmd to override)')
+    SMOKE_BASE = ''
+  } else if (smk && smk.ok) {
+    log('Smoke baseline: "' + SMOKE_BASE + '" passes on the clean tree.')
+  } else {
+    log('Smoke baseline step produced no result — keeping the smoke command as-is.')
+  }
 }
 
 // SAFE revert instruction. `git clean` is BANNED everywhere (it has caused unrecoverable data loss
@@ -929,7 +1205,7 @@ if (ISOLATE && STAGES.includes('decompose')) {
     await agent(
       `Clean up any STALE decomposition worktrees left by a crashed prior run, in the repo at ${ROOT}. Anchor with git -C "${ROOT}". Do, in order:
 1. git -C "${ROOT}" worktree list --porcelain — find every worktree whose path is under ${ROOT}/${WORKTREES_SUBDIR}/ .
-2. For EACH such stale worktree: git -C "${ROOT}" worktree remove --force "<path>"  (removes its dir + .venv).
+2. For EACH such stale worktree: git -C "${ROOT}" worktree remove --force "<path>"  (removes its dir + any env inside it).
 3. git -C "${ROOT}" worktree prune.
 4. Delete any leftover child branches: list git -C "${ROOT}" branch --list "${BRANCH}-wt-*" and for each, git -C "${ROOT}" branch -D "<branch>" (these are per-file worktree branches from crashed runs; the base ${BRANCH} itself must NOT be deleted).
 NEVER run \`git clean\`. NEVER touch ${ROOT}'s tracked files or push. Report ok + detail (what you removed).`,
@@ -977,9 +1253,15 @@ const STRUCT_SCHEMA = {
 
 // Run the deterministic structure verifier and return its parsed JSON ({summary, findings}). The
 // verifier wraps the codebase-organizer's repo_scan.py; if it is missing/errors the caller falls
-// back to convention-text-only judgement (mirrors the census-failure fallback).
+// back to convention-text-only judgement (mirrors the census-failure fallback). Both scripts are
+// stdlib-only python — they need a python3 on PATH (NOT the project env) even on non-Python repos;
+// without python3 this is a no-op returning null (noted once).
 async function runStructVerify(extraArgs, phaseName, label, model, root) {
-  const RT = root || ROOT   // run in the worktree's uv env when isolated; ROOT otherwise
+  if (!PY3) {
+    if (!py3NoteLogged) { log('Structure verifier skipped: python3 is not available for the recon scripts — org checks are no-ops this run.'); py3NoteLogged = true }
+    return null
+  }
+  const RT = root || ROOT   // run in the worktree when isolated; ROOT otherwise
   // Scope to the DETECTED source root (SCAN_ROOTS[0]) unless the caller already passed a --subtree.
   // The verifier defaults to "src"; a repo whose source root differs would otherwise scan a
   // nonexistent dir and silently report nothing. Explicit --subtree from a caller (org-audit) wins.
@@ -1018,15 +1300,14 @@ if (NEEDS_CONV) {
   }
   if (ORG_AWARE_PLACEMENT) {
     const convRes = await agent(
-      `Read-only — make NO edits. Produce a concise REPO ORGANIZATION CONVENTIONS block for the Python source tree at ${ROOT}, to guide WHERE newly-created modules should be placed during automated refactors (so they land in logically-organized subpackages, not as loose flat siblings that bloat a directory).
+      `Read-only — make NO edits. Produce a concise REPO ORGANIZATION CONVENTIONS block for the source tree at ${ROOT} (ecosystem: ${ECOSYSTEM}), to guide WHERE newly-created modules should be placed during automated refactors (so they land in logically-organized subdirectories, not as loose flat siblings that bloat a directory).
 
 Sources to read and distill (do NOT copy verbatim — synthesize into <= ~30 lines):
 - ${ORGANIZER_SKILL_DIR}/references/philosophy.md (the 8 organization principles — esp. "root holds intent", "no overstuffed directories ~25 files", "directories are nouns", "honor ecosystem idioms", progressive disclosure).
-- ${ORGANIZER_SKILL_DIR}/references/language-layouts.md (the idiomatic Python src/<package>/ layout).
-${CONVENTIONS_DOC ? '- ' + ROOT + '/' + CONVENTIONS_DOC + ' (project-specific layout notes — honor these over generic advice).\n' : ''}- The ACTUAL package layout under the source root **${SCAN_ROOTS[0]}**: list it with \`bash -c 'cd "${ROOT}" && ls -1 ${SCAN_ROOTS[0]}'\`, then inspect the contents of the 2-3 largest packages (\`ls -1 ${SCAN_ROOTS[0]}/<pkg>\`) so the conventions name the REAL packages of THIS repo + their existing subpackage patterns (mirror what already exists — do NOT invent a parallel scheme or copy names from another project).
-- The current structure-verifier findings (which dirs are ALREADY over the flat-file limit, so new modules there MUST go into a subpackage): run \`bash -c 'cd "${ROOT}" && ${STRUCT_VERIFY_CMD} --subtree ${SCAN_ROOTS[0]}'\`.
-
-Output a \`conventions\` string with: (1) the 1-line placement rule (a module extracted from <pkg> belongs in <pkg>/<concern-subpackage> grouped by concern, NOT a flat sibling, especially when <pkg> is already at/over the flat-file limit); (2) the real package map + the existing subpackage names to mirror (don't invent a parallel scheme); (3) which dirs are currently over the limit (from the verifier) so placement avoids worsening them; (4) tests mirror the source tree under ${TEST_ROOT}/<pkg>/...; (5) every relocation leaves a re-export shim at the OLD dotted path. Keep it tight and factual.`,
+- ${ORGANIZER_SKILL_DIR}/references/language-layouts.md (the idiomatic source layout for this ecosystem: ${ECOSYSTEM}).
+${CONVENTIONS_DOC ? '- ' + ROOT + '/' + CONVENTIONS_DOC + ' (project-specific layout notes — honor these over generic advice).\n' : ''}- The ACTUAL package/directory layout under the source root **${SCAN_ROOTS[0]}**: list it with \`bash -c 'cd "${ROOT}" && ls -1 ${SCAN_ROOTS[0]}'\`, then inspect the contents of the 2-3 largest packages/dirs (\`ls -1 ${SCAN_ROOTS[0]}/<pkg>\`) so the conventions name the REAL packages of THIS repo + their existing subdirectory patterns (mirror what already exists — do NOT invent a parallel scheme or copy names from another project).
+${PY3 ? '- The current structure-verifier findings (which dirs are ALREADY over the flat-file limit, so new modules there MUST go into a subdirectory): run \`bash -c \'cd "' + ROOT + '" && ' + STRUCT_VERIFY_CMD + ' --subtree ' + SCAN_ROOTS[0] + '\'\`.\n' : '- (The deterministic structure verifier is unavailable this run — python3 is not on PATH — so derive the over-the-limit dirs from the ls listings above.)\n'}
+Output a \`conventions\` string with: (1) the 1-line placement rule (a module extracted from <pkg> belongs in <pkg>/<concern-subdirectory> grouped by concern, NOT a flat sibling, especially when <pkg> is already at/over the flat-file limit); (2) the real package map + the existing subdirectory names to mirror (don't invent a parallel scheme); (3) which dirs are currently over the limit so placement avoids worsening them; (4) how tests mirror the source tree (${TEST_ROOT ? 'under ' + TEST_ROOT + '/<pkg>/...' : 'colocated with the source, per this ecosystem'}); (5) every relocation keeps the OLD public import path alive via this ecosystem's compat mechanism (python re-export shim / node barrel / go alias or same-package split / rust pub use). Keep it tight and factual.`,
       { label: 'conventions', phase: 'Conventions', agentType: 'Explore', schema: CONV_SCHEMA, model: M_KEY }
     )
     CONVENTIONS = (convRes && convRes.conventions) ? convRes.conventions : ''
@@ -1042,9 +1323,9 @@ const pendingOrgFixes = []
 // tree and report whether the implementer honored the conventions. Observational — never reverts.
 async function orgAudit(touchedPaths, mtag, phaseName, root) {
   if (!ORG_AUDIT) return null
-  const dirs = Array.from(new Set((touchedPaths || []).filter(p => /\.py$/.test(p)).map(p => p.replace(/\/[^/]+\.py$/, '')).filter(Boolean)))
+  const dirs = Array.from(new Set((touchedPaths || []).filter(p => isSourceFile(p)).map(p => (String(p).includes('/') ? String(p).replace(/\/[^/]+$/, '') : '')).filter(Boolean)))
   const baseKeys = new Set(((STRUCT_BASELINE && STRUCT_BASELINE.findings) || []).map(f => f.check + '|' + f.path))
-  const res = await runStructVerify(dirs.length ? ('--subtree ' + (dirs[0].split('/').slice(0, 2).join('/') || 'src')) : '', phaseName, 'org-audit:' + mtag, M_AUDIT, root)
+  const res = await runStructVerify(dirs.length ? ('--subtree ' + (dirs[0].split('/').slice(0, 2).join('/') || SCAN_ROOTS[0])) : '', phaseName, 'org-audit:' + mtag, M_AUDIT, root)
   if (!res) return null
   const findings = (res.findings || []).filter(f => !baseKeys.has(f.check + '|' + f.path))
   const fresh = findings.filter(f => dirs.some(d => (f.path || '').startsWith(d.split('/').slice(0, 2).join('/'))) || dirs.includes((f.path || '').replace(/\/[^/]+$/, '')))
@@ -1062,9 +1343,9 @@ async function orgAudit(touchedPaths, mtag, phaseName, root) {
 // scope -> per-round oracle -> implement -> validate+repair-forward -> commit/revert -> org audit.
 // Used by BOTH the decompose and deepen engines; stage-specific prompts come from `cfg`. Returns
 // { committed, newLines, commit, stopFile, convergence } so the round loop can update its counters.
-async function applyMemberOnRoot(P) {
-  const { ctx, chosen, mtag, phaseOf, n, FLOOR, rounds, panelLog, cfg } = P
-  const { TARGET, SHIM_MODULE, IMPORT_SMOKE } = ctx
+async function applyMemberOnRoot(PARAMS) {
+  const { ctx, chosen, mtag, phaseOf, n, FLOOR, rounds, panelLog, cfg } = PARAMS
+  const { TARGET, IMPORT_SMOKE } = ctx
   // PER-FILE ISOLATION: at K>1 (concurrent decompose) these point at this file's worktree; at K=1 /
   // deepen / organize they equal the global ROOT / PROTECTED_BLOCK (legacy behavior). The cfg prompt
   // builders + processOneFile already retarget via ctx.WORKDIR; here we wire the inline oracle, the
@@ -1088,11 +1369,14 @@ async function applyMemberOnRoot(P) {
   log('Round ' + mtag + ' scope: ' + (TARGETED ? ('TARGETED — ' + VAL_PATHS.length + ' path(s) [' + (scope.site_counts || '') + ']: ' + VAL_PATHS_STR) : ('FULL sweep over ' + VAL_PATHS.length + ' dir(s) — ' + (scope ? 'too pervasive to scope safely' : 'scope step failed'))))
 
   // --- PER-ROUND ORACLE (clean tree, this round's scope) ---
+  const ORACLE_RUN_CMD = TEST_CMD(VAL_PATHS)
   const roundOracle = await agent(
-    `Capture the CURRENT (pre-change) test failures on the clean committed tree at ${WORKDIR}, so a later validation pass can tell new regressions from pre-existing redness. The tree is clean — make NO edits. Run through the project's uv env, from inside the repo (\`bash -c 'cd "${WORKDIR}" && <cmd>'\`):
-    uv run python -m pytest ${VAL_PATHS_STR} -q -p no:cacheprovider
+    ORACLE_RUN_CMD
+      ? `Capture the CURRENT (pre-change) test failures on the clean committed tree at ${WORKDIR}, so a later validation pass can tell new regressions from pre-existing redness. The tree is clean — make NO edits. Run through the project's own toolchain, from inside the repo (\`bash -c 'cd "${WORKDIR}" && <cmd>'\`):
+    ${ORACLE_RUN_CMD}
 RUN IT SYNCHRONOUSLY IN THE FOREGROUND in a SINGLE Bash call and read the output directly. Set the Bash tool's timeout to 600000 (10 min) for this call so it does not get cut off. Do NOT use run_in_background. Do NOT redirect the output to a file and then wait for a notification — you are a subagent and will NOT be notified of background completion; backgrounding will hang this step. The command may take a couple of minutes; that is expected — just let it finish in the foreground.
-This is the TARGETED validation scope for this round (the minimal subset covering the change's blast radius — NOT the whole suite). Record EVERY failing or erroring test node id into red_tests, and the total collected count. Do NOT change the selection above. ALSO record the current HEAD short hash (git -C "${WORKDIR}" rev-parse --short HEAD) into base_sha — this is the round's base commit that the revert-on-red path must return to (undoing any commit an implementer wrongly makes mid-round). Do NOT edit code, do NOT commit.`,
+This is the TARGETED validation scope for this round (the minimal subset covering the change's blast radius${ECOSYSTEM === 'rust' ? ' — cargo test selects by name, not path, so this runs the crate suite' : ' — NOT the whole suite'}). Record EVERY failing or erroring test id into red_tests, and the total collected count. Do NOT change the selection above. ALSO record the current HEAD short hash (git -C "${WORKDIR}" rev-parse --short HEAD) into base_sha — this is the round's base commit that the revert-on-red path must return to (undoing any commit an implementer wrongly makes mid-round). Do NOT edit code, do NOT commit.`
+      : `No test command is configured for this repo, so there are no pre-change test failures to capture — set red_tests:[] and collected:0. The ONE load-bearing step: record the current HEAD short hash of the clean committed tree at ${WORKDIR} (git -C "${WORKDIR}" rev-parse --short HEAD) into base_sha — this is the round's base commit that the revert-on-red path must return to. Make NO edits, do NOT commit.`,
     { label: 'oracle:' + mtag, phase: phaseOf(n), schema: ORACLE_SCHEMA, model: M_MECH })
   const ROUND_BASE = (roundOracle && roundOracle.base_sha) || ''
   const ROUND_RED = Array.from(new Set([...BASELINE_RED, ...((roundOracle && roundOracle.red_tests) || [])]))
@@ -1113,12 +1397,12 @@ This is the TARGETED validation scope for this round (the minimal subset coverin
   // --- VALIDATE + REPAIR-FORWARD ---
   const curImpl = cfg.initialCurImpl(impl, mandate)
   const validateNow = async (vtag) => {
-    const lintFiles = (curImpl.files_touched || []).filter(f => /\.py$/.test(f))
-    // No configured linter -> a shell no-op so lint never REDs the round on a non-ruff repo.
+    const lintFiles = (curImpl.files_touched || []).filter(f => isSourceFile(f))
+    // No configured linter -> a shell no-op so lint never REDs the round on a linter-less repo.
     const ROUND_LINT = !LINT_PER_FILE_PREFIX ? 'true'
-      : (lintFiles.length ? (LINT_PER_FILE_PREFIX + ' ' + lintFiles.map(f => "'" + f + "'").join(' ')) : LINT)
-    const PYTEST_SCOPE = 'uv run python -m pytest ' + VAL_PATHS_STR + ' -q -p no:cacheprovider'
-    return await agent(cfg.validatePrompt(chosen, curImpl, PYTEST_SCOPE, ROUND_RED, ROUND_LINT, IMPORT_SMOKE),
+      : (lintFiles.length ? (LINT_PER_FILE_PREFIX + ' ' + lintFiles.map(f => "'" + f + "'").join(' ')) : (LINT || 'true'))
+    const TEST_SCOPE_CMD = TEST_CMD(VAL_PATHS)
+    return await agent(cfg.validatePrompt(chosen, curImpl, TEST_SCOPE_CMD, ROUND_RED, ROUND_LINT, IMPORT_SMOKE),
       { label: 'validate:' + vtag, phase: phaseOf(n), schema: VALIDATE_SCHEMA, model: M_VAL })
   }
   const isVerdict = (v) => !!(v && typeof v.passed === 'boolean')
@@ -1203,17 +1487,19 @@ const EXCLUDE_RES = EXCLUDE_GLOBS.map(globToRe)
 const isExcludedPath = (p) => EXCLUDE_RES.some(re => re.test(p))
 const underScanRoots = (p) => SCAN_ROOTS.some(r => { const rr = String(r).replace(/\/+$/, ''); return rr === '.' || p === rr || p.startsWith(rr + '/') })
 
-// List every importable Python source file over the threshold, largest-first. Re-runnable so the
+// List every source file (profile extensions) over the threshold, largest-first. Re-runnable so the
 // sweep can refresh the queue after each file (new extracted modules may themselves be oversized).
-// DETERMINISTIC PATH (Fix #2): when a scanScript is available, drive discovery off repo_scan.py's
-// machine-generated `large_source_files` JSON (a bounded {path,lines} array) rather than asking an
-// agent to transcribe unbounded `wc -l` output — which silently truncated the worklist. The agent
-// only relays a bounded JSON array; SCAN_ROOTS / EXCLUDE_GLOBS / threshold filtering happens HERE.
+// DETERMINISTIC PATH (Fix #2): when a scanScript is available AND python3 exists to run it (the
+// scanner is a bundled stdlib-python helper that works on ANY repo), drive discovery off
+// repo_scan.py's machine-generated `large_source_files` JSON (a bounded {path,lines} array) rather
+// than asking an agent to transcribe unbounded `wc -l` output — which silently truncated the
+// worklist. The agent only relays a bounded JSON array; SCAN_ROOTS / EXCLUDE_GLOBS / SRC_EXTS /
+// threshold filtering happens HERE.
 async function discover(processed, discoverPhase, threshold) {
   const TH = Number.isFinite(threshold) ? threshold : DISCOVER_LINES
   let res
-  if (SCAN_SCRIPT) {
-    // repo_scan is stdlib-only → plain python3, no uv env needed. --large-min at the god-file
+  if (SCAN_SCRIPT && PY3) {
+    // repo_scan is stdlib-only → plain python3, no project env needed. --large-min at the god-file
     // threshold and a high --large-cap so a big worklist is never truncated.
     res = await agent(
       `Read-only — make NO edits. Run the deterministic repo scanner and relay its large-file list. Run EXACTLY this one command, synchronously in the foreground, and read its stdout directly:
@@ -1222,13 +1508,17 @@ It prints a JSON object. Take its \`large_source_files\` array — each element 
       { label: 'discover', phase: discoverPhase || 'Discover', agentType: 'Explore', schema: DISCOVER_SCHEMA, model: M_COORD }
     )
   } else {
-    // Legacy fallback (no scanScript passed): LLM-transcribed `find | wc -l`. Kept for direct,
-    // non-plugin invocations that don't bundle repo_scan.py.
+    // Fallback (no scanScript bundled, or no python3 to run it): LLM-transcribed `find | wc -l`
+    // over the profile's source extensions.
+    const nameClause = SRC_EXTS.map(e => '-name "*' + e + '"').join(' -o ')
+    const prunes = ['__pycache__', 'node_modules', '.venv', 'target', 'dist', 'build', 'vendor', '.git', '.worktrees']
+      .map(d => '-not -path "*/' + d + '/*"').join(' ')
+    const testPrune = TEST_ROOT ? ' -not -path "' + TEST_ROOT + '/*" -not -path "*/' + TEST_ROOT + '/*"' : ''
     res = await agent(
-      `Read-only. Find every Python SOURCE file over ${TH} lines that is a candidate in the repo at ${ROOT}. Make NO edits.
+      `Read-only. Find every SOURCE file (extensions: ${SRC_EXTS.join(' ')}) over ${TH} lines that is a candidate in the repo at ${ROOT}. Make NO edits.
 
 Run EXACTLY this command (sorted largest-first so the files you want are all at the TOP of the output):
-\`bash -c 'cd "${ROOT}" && find ${SCAN_ROOTS.join(' ')} -name "*.py" -not -path "*/ui-tui/*" -not -path "*/__pycache__/*" -not -path "*/dev/tests/*" -print0 | xargs -0 wc -l | sort -rn'\`
+\`bash -c 'cd "${ROOT}" && find ${SCAN_ROOTS.join(' ')} -type f \\( ${nameClause} \\) ${prunes}${testPrune} -print0 | xargs -0 wc -l | sort -rn'\`
 
 The output is \`<lines> <repo-relative-path>\` per line, biggest first. The first line is the \`total\` (skip it). Then come the files in descending size: take every line whose line-count is GREATER THAN ${TH} and STOP at the first line ≤ ${TH} (everything below it is too small).
 
@@ -1239,9 +1529,9 @@ CRITICAL OUTPUT CONTRACT: put EVERY qualifying file (lines > ${TH}) into the \`f
   const files = ((res && res.files) || [])
     .map(f => f && f.path ? { path: String(f.path).replace(/^\.\//, ''), lines: f.lines } : f)
     .filter(f => f && f.path && Number.isFinite(f.lines) && f.lines > TH)
-    // SCAN_ROOTS / EXCLUDE_GLOBS applied HERE (repo_scan scans the whole repo; the legacy find
-    // pre-filters, but re-applying is harmless and keeps both paths consistent).
-    .filter(f => underScanRoots(f.path) && !isExcludedPath(f.path))
+    // SCAN_ROOTS / EXCLUDE_GLOBS / SRC_EXTS applied HERE (repo_scan scans the whole repo; the
+    // fallback find pre-filters, but re-applying is harmless and keeps both paths consistent).
+    .filter(f => isSourceFile(f.path) && underScanRoots(f.path) && !isExcludedPath(f.path))
     .filter(f => !processed.has(f.path))
     .sort((a, b) => b.lines - a.lines)
   return files
@@ -1251,7 +1541,8 @@ CRITICAL OUTPUT CONTRACT: put EVERY qualifying file (lines > ${TH}) into the \`f
 // makeDecomposeCfg holds the proven god-file-split prompts (scope/implement/repair/validate/commit);
 // makeDeepenCfg adapts them for in-place architectural deepenings. Both close over ctx + CONVENTIONS.
 function makeDecomposeCfg(ctx) {
-  const { TARGET, SHIM_MODULE, DEST_PKG, DEST_PKG_DOTTED, SCOPE_TAG } = ctx
+  const { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED, SCOPE_TAG } = ctx
+  const m = { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED }
   // Shadow ROOT/BRANCH from the per-file isolation surface so every prompt below retargets this
   // file's worktree at K>1; falls back to the global values (K=1 / deepen / organize) unchanged.
   const ROOT = ctx.WORKDIR || A.projectDir
@@ -1260,7 +1551,7 @@ function makeDecomposeCfg(ctx) {
   return {
     reportTargetLines: true,
     targetLines: TARGET_LINES,
-    floorList: (chosen, FLOOR) => [FLOOR],
+    floorList: (chosen, FLOOR) => (FLOOR ? [FLOOR] : (KEEP_SET.length ? KEEP_SET.slice() : VAL_DIRS.slice())),
     fullList: () => VAL_DIRS,
     initialCurImpl: (impl, mandate) => ({
       new_module: impl.new_module || mandate.dest_module,
@@ -1270,25 +1561,22 @@ function makeDecomposeCfg(ctx) {
       target_lines_after: impl.target_lines_after,
     }),
     scopePrompt: (chosen, FLOOR) =>
-      `Read-only — make NO edits. Pick the MINIMAL set of tests that must run to catch any regression from extracting this cluster out of ${TARGET}, in the repo at ${ROOT}. The extraction MOVES these symbols, each left behind as a re-export shim at ${SHIM_MODULE}.<name> (so the import surface is byte-identical):
+      `Read-only — make NO edits. Pick the MINIMAL set of tests that must run to catch any regression from extracting this cluster out of ${TARGET}, in the repo at ${ROOT}. The extraction MOVES these symbols while keeping the file's public import path ${MODULE_ID} alive per this ecosystem's compat mechanism (${ECOSYSTEM}):
   symbols: ${JSON.stringify(chosen.cand.symbols)}
   patched_symbols (test seams): ${JSON.stringify(chosen.cand.patched_symbols || [])}
   dest_module: ${chosen.mandate.dest_module}
 
-Because the move leaves shims, the regression surface is bounded by tests that actually exercise these symbols. Grep dev/tests (ripgrep) and, for EVERY moved symbol, find the test files that:
-  - patch("${SHIM_MODULE}.<sym>") / patch.object(...,"<sym>") / monkeypatch <sym>
-  - \`from ${SHIM_MODULE} import <sym>\` or reference \`${SHIM_MODULE}.<sym>\`
-  - use <sym> bare in a test body, or import the destination module ${chosen.mandate.dest_module}
-  - SOURCE-TEXT GUARDS: read ${TARGET} as text / ast.parse it / assert a symbol name string appears in it (search: ${TARGET.split('/').pop()}, read_text, ast.parse, each symbol as a quoted string)
+Because the public surface is preserved, the regression surface is bounded by tests that actually exercise these symbols. Grep ${TDIRX()} (ripgrep) and, for EVERY moved symbol, find the test files that match:
+${P.scopeGreps(m, chosen.mandate.dest_module)}
 
-MANDATORY FLOOR: ALWAYS include the target file's own test directory **${FLOOR}** as a floor (verify it exists: \`bash -c 'cd "${ROOT}" && ls -d ${FLOOR}'\` — if it does NOT exist, use ${JSON.stringify(KEEP_SET)} as the floor instead). test_paths MUST therefore be NON-EMPTY: at minimum the floor, plus any specific test files your grep surfaced. Prefer specific test files; a whole dir is fine when many files in it match. All paths repo-relative under dev/tests/. NEVER return an empty test_paths list (an empty list is NOT "run nothing" — it would force the entire suite).
+MANDATORY FLOOR: ${FLOOR ? `ALWAYS include the target file's own test directory **${FLOOR}** as a floor (verify it exists: \`bash -c 'cd "${ROOT}" && ls -d ${FLOOR}'\` — if it does NOT exist, use ${JSON.stringify(KEEP_SET.length ? KEEP_SET : [TEST_ROOT].filter(Boolean))} as the floor instead).` : `use ${JSON.stringify(KEEP_SET.length ? KEEP_SET : VAL_DIRS)} as the floor.`} test_paths MUST therefore be NON-EMPTY: at minimum the floor, plus any specific test files your grep surfaced. Prefer specific test files; a whole dir is fine when many files in it match. All paths repo-relative${TEST_ROOT ? ' under ' + TEST_ROOT + '/' : ''}. NEVER return an empty test_paths list (an empty list is NOT "run nothing" — it would force the entire suite).
 
-Set confident:FALSE ONLY if a moved symbol is SO pervasive that even the floor + your greps cannot bound it safely — referenced across MANY (>~6) different dev/tests subdirectories OR in >~40 files, OR plausibly exercised by integration tests that do not name it. That is the RARE case; the floor handles the common "few/zero direct tests" case with confident:true. When confident:true, test_paths MUST cover the floor + every site you found. Report lint_paths (${TARGET} + ${chosen.mandate.dest_module}) and a site_counts tally of what you grepped.`,
+Set confident:FALSE ONLY if a moved symbol is SO pervasive that even the floor + your greps cannot bound it safely — referenced across MANY (>~6) different test subdirectories OR in >~40 files, OR plausibly exercised by integration tests that do not name it. That is the RARE case; the floor handles the common "few/zero direct tests" case with confident:true. When confident:true, test_paths MUST cover the floor + every site you found. Report lint_paths (${TARGET} + ${chosen.mandate.dest_module}) and a site_counts tally of what you grepped.`,
     implPrompt: (chosen) => {
       const c = chosen.cand, mandate = chosen.mandate
       return `You are implementing ONE god-file decomposition from the improve-codebase-architecture skill, under a BINDING MANDATE from a decision panel. You work DIRECTLY in the repo at ${ROOT} (NOT a worktree) — anchor git with git -C "${ROOT}" and edit files under ${ROOT}. The tree is clean and committed. Read ${SKILL_DIR}/LANGUAGE.md and ${SKILL_DIR}/DEEPENING.md first; use that vocabulary. NEVER run \`git clean\`. Do NOT commit (a later step does).
 
-GOAL: extract a cohesive cluster out of the god-file ${TARGET} into a focused module, leaving re-export shims so the external surface (${SHIM_MODULE}.<name>) is byte-identical to callers and test patch() sites.
+GOAL: extract a cohesive cluster out of the god-file ${TARGET} into a focused module, keeping the file's external surface byte-identical to callers and test seams. ${P.shimGuide(m)}
 
 Candidate:
   title: ${c.title}
@@ -1300,56 +1588,56 @@ Candidate:
 
 === PANEL MANDATE (binding — deviating is grounds to abort) ===
 Destination module: ${mandate.dest_module}${mandate.dest_placement_rationale ? ' (placement: ' + mandate.dest_placement_rationale + ')' : ''}
-${mandate.new_subpackage_init ? 'CREATE the destination subpackage __init__.py if it does not exist (the dest is a NEW subpackage) so it is importable.\n' : ''}Execution method: ${mandate.execution_method}
+${(mandate.scaffold_files || []).length ? 'CREATE these scaffold files (empty) so the destination is importable/buildable (' + P.scaffoldNote + '):\n' + mandate.scaffold_files.map(s => '  - ' + s).join('\n') + '\n' : ''}Execution method: ${mandate.execution_method}
 ${mandate.execution_method === 'staged' ? `STAGED — move ONLY this sub-cluster (the loop continues the rest in later rounds):
   THIS ROUND: ${mandate.this_round_scope || '(see execution plan)'}
   DEFERRED (do NOT attempt now): ${mandate.deferred_stages.length ? mandate.deferred_stages.join(' | ') : '(none listed)'}
 ` : ''}Execution plan (follow in order):
 ${mandate.execution_plan.length ? mandate.execution_plan.map((s, i) => '  ' + (i + 1) + '. ' + s).join('\n') : '  (none specified — apply the method below with judgement)'}
-Re-export shims REQUIRED (every old import path that MUST keep resolving from ${SHIM_MODULE}, so \`from ${SHIM_MODULE} import X\` and \`patch("${SHIM_MODULE}.X")\` survive):
-${mandate.shims_required.length ? mandate.shims_required.map(s => '  - ' + s).join('\n') : '  (the panel listed none explicitly — you MUST still shim EVERY name you move that is imported or patched anywhere)'}
+Compat shims REQUIRED (every old import path that MUST keep resolving from ${MODULE_ID}, per the compat mechanism above):
+${mandate.shims_required.length ? mandate.shims_required.map(s => '  - ' + s).join('\n') : '  (the panel listed none explicitly — you MUST still keep EVERY name you move reachable from ' + MODULE_ID + ' wherever it is imported or pinned by a test seam' + (ECOSYSTEM === 'generic' ? ', or rewrite every reference since this ecosystem has no shim mechanism' : '') + ')'}
 Characterization tests REQUIRED (write + keep these):
-${mandate.characterization_tests_required.length ? mandate.characterization_tests_required.map(s => '  - ' + s).join('\n') : '  (none explicitly — but if any moved symbol is patched in tests, add a test asserting patch("' + SHIM_MODULE + '.<sym>") still intercepts the live call path)'}
-Behaviour invariants / importable names that MUST stay identical:
+${mandate.characterization_tests_required.length ? mandate.characterization_tests_required.map(s => '  - ' + s).join('\n') : '  (none explicitly — but if any moved symbol is pinned by a test seam at the old path, add a test asserting that seam still intercepts the live call path after the move)'}
+Behaviour invariants / externally reachable names that MUST stay identical:
 ${mandate.behavior_invariants.length ? mandate.behavior_invariants.map(s => '  - ' + s).join('\n') : '  (none stated)'}
 Strongest dissent on record (heed it): ${mandate.dissent || '(none)'}
 
 === EXECUTION DISCIPLINE ===
-- PREFER PROGRAMMATIC TRANSFORMATION. ${TARGET} is large — NEVER hand-retype the slice. Use a throwaway Python ast/libcst codemod (write it under /tmp, run with \`bash -c 'cd "${ROOT}" && uv run python /tmp/<script>.py'\`, then DELETE it before finishing). The codemod must:
-    1. slice the mandated symbols BYTE-FOR-BYTE out of ${TARGET} into the new module ${mandate.dest_module} (preserve their bodies exactly — line-by-line diff later must show a pure move),
-    2. give the new module the imports it needs (move or duplicate the module-level imports those symbols depend on),
-    3. write a RE-EXPORT SHIM block back into ${TARGET} at/near the old location: \`from ${DEST_PKG_DOTTED}.<module> import <names>\` (so ${SHIM_MODULE}.<name> resolves to the SAME object the live code now calls — this is what keeps \`patch("${SHIM_MODULE}.<name>")\` biting),
+- PREFER PROGRAMMATIC TRANSFORMATION. ${TARGET} is large — NEVER hand-retype the slice. Use ${P.codemodGuide}. The transform must:
+    1. slice the mandated symbols BYTE-FOR-BYTE out of ${TARGET} into the new module ${mandate.dest_module} (preserve their bodies exactly — a line-by-line diff later must show a pure move),
+    2. give the new module the imports/uses it needs (move or duplicate the file-level imports those symbols depend on),
+    3. write the COMPAT SHIMS back at the old path exactly as the mechanism above describes (where this ecosystem has them), so every old reference keeps resolving to the SAME object/definition the live code now calls,
     4. rewrite any other in-file references and cross-module imports as needed.
-- PLACEMENT: put the new module at the convention-correct path the mandate names (an existing/justified subpackage), NOT a loose flat sibling in an already-large directory. Create the subpackage __init__.py if needed.
-- WATCH THE patch() SEAM (the import-binding-rename trap): if the moved code calls a sibling that was also moved, callers inside the new module must reference it so that patching \`${SHIM_MODULE}.<name>\` still affects the call — verify by reasoning about WHERE the name is looked up. If a symbol is called via the module global, the shim alone preserves the seam; if it was called bare within the moved cluster, the cluster now resolves it locally and the OLD patch target would go dead — in that case re-export AND keep the call going through a path the test patches (note any such case in detail).
-- CHARACTERIZATION FIRST: write the mandated tests (esp. patch-still-bites) against the existing interface BEFORE moving, so drift is caught.
-- UPDATE SOURCE-TEXT GUARD TESTS (a failure class a shim CANNOT fix). BEFORE finishing, grep dev/tests for any test that reads ${TARGET} as TEXT and asserts a moved symbol's def/call appears in it (search: \`${TARGET.split('/').pop()}\`, \`read_text\`, \`ast.parse\`, and each moved symbol name as a quoted string). Such a test asserts \`"def <sym>" in source_of_target\` or parametrizes on the target path; moving the symbol makes it FALSE. For each one (the mandate lists them as "source-text-guard: ..."), REPOINT the assertion to the new module ${mandate.dest_module} (or assert the new shim line is present in ${TARGET}) so the guard still verifies the real intent. Add these files to files_touched. A missed guard is the most common silent red for this loop.
-- Preserve EXACTLY: public/CLI surface, wire formats, persisted schemas, error contracts, and every importable name. Replace-don't-layer tests at the new module's interface only where it genuinely improves them.
-- You MAY run \`bash -c 'cd "${ROOT}" && uv run python -c "import ${SHIM_MODULE}, ${DEST_PKG_DOTTED}.<module>"'\` as a sanity check while working.
+- PLACEMENT: put the new module at the convention-correct path the mandate names (an existing/justified subdirectory), NOT a loose flat sibling in an already-large directory. Create any mandated scaffold_files (empty).
+${P.implSeamWatch(m)}
+- CHARACTERIZATION FIRST: write the mandated tests (esp. seam-still-bites) against the existing interface BEFORE moving, so drift is caught.
+${P.implGuardAudit(m, mandate.dest_module)}
+- Preserve EXACTLY: public/CLI surface, wire formats, persisted schemas, error contracts, and every externally reachable name. Replace-don't-layer tests at the new module's interface only where it genuinely improves them.
+${ctx.IMPORT_SMOKE ? '- You MAY run \`bash -c \'cd "' + ROOT + '" && ' + ctx.IMPORT_SMOKE + '\'\` as a sanity check while working.' : '- No smoke command is configured; rely on the test scope for sanity checks while working.'}
 - DO NOT COMMIT and DO NOT \`git add\`/\`git stash\`. Leave ALL your changes UNCOMMITTED in the working tree — a later step validates then commits. A commit you make here survives the revert-on-red path and leaks an orphan onto the branch.
 - If honoring the mandate proves unsafe/oversized or the cluster is not actually cohesive (entangled with code that stays), make NO partial edits: run the safe revert yourself (git -C "${ROOT}" checkout -- . ; remove only NEW untracked files you created) and return ok:false with the reason. Do NOT commit even on abort.
 
-Report files_touched (every path created/modified, INCLUDING any source-text-guard tests you repointed), new_module, shims_written (the ${SHIM_MODULE}.<name> re-exports), tests_changed, target_lines_after (wc -l of ${TARGET} — it should SHRINK), and a concise detail. Leave the change in the working tree (uncommitted) for validation.${CONV}`
+Report files_touched (every path created/modified, INCLUDING any source-text-guard tests you repointed), new_module, shims_written (the ${MODULE_ID}.<name> compat re-exports — empty if this ecosystem needed none), tests_changed, target_lines_after (wc -l of ${TARGET} — it should SHRINK), and a concise detail. Leave the change in the working tree (uncommitted) for validation.${CONV}`
     },
-    validatePrompt: (chosen, curImpl, PYTEST_SCOPE, ROUND_RED, ROUND_LINT, IMPORT_SMOKE) =>
-      `Validate a god-file decomposition just applied to the repo at ${ROOT}: the cluster "${chosen.cand.title}" was extracted from ${TARGET} into ${curImpl.new_module} behind re-export shims. Run everything through the project's uv env (a bare python/pytest is NOT acceptable — tests live under dev/tests/, not tests/). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
+    validatePrompt: (chosen, curImpl, TEST_SCOPE, ROUND_RED, ROUND_LINT, IMPORT_SMOKE) =>
+      `Validate a god-file decomposition just applied to the repo at ${ROOT}: the cluster "${chosen.cand.title}" was extracted from ${TARGET} into ${curImpl.new_module} behind the ecosystem's compat mechanism (${ECOSYSTEM}). Run everything through the project's own toolchain exactly as given below (do NOT substitute a bare interpreter/test-runner for a project-managed one${TEST_ROOT ? '; tests live under ' + TEST_ROOT + '/' : ''}). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
 
-Run, in order (run ALL THREE even if one fails). Run each SYNCHRONOUSLY IN THE FOREGROUND and read its output directly — set the Bash tool timeout to 600000 (10 min) for the pytest call. Do NOT use run_in_background and do NOT redirect to a file then wait for a notification (you are a subagent and will NOT be notified; backgrounding hangs this step). A couple of minutes is expected.
-1. Import smoke (this exercises that ${SHIM_MODULE} still exposes the moved names): ${IMPORT_SMOKE}
-2. Tests — the TARGETED validation scope for this round: ${PYTEST_SCOPE}
+Run, in order (run ALL of them even if one fails). Run each SYNCHRONOUSLY IN THE FOREGROUND and read its output directly — set the Bash tool timeout to 600000 (10 min) for the test call. Do NOT use run_in_background and do NOT redirect to a file then wait for a notification (you are a subagent and will NOT be notified; backgrounding hangs this step). A couple of minutes is expected.
+1. ${IMPORT_SMOKE ? P.smokeNoun + ' (this exercises that the public surface at ' + MODULE_ID + ' still resolves): ' + IMPORT_SMOKE : '(no smoke/compile check is configured for this run — set import_smoke_ok:true and move on)'}
+2. ${TEST_SCOPE ? 'Tests — the TARGETED validation scope for this round: ' + TEST_SCOPE : '(no test command is configured — set tests_ok:true and rely on the other checks)'}
 3. Lint (the files this round touched): ${ROUND_LINT}
 
-A test counts as a REGRESSION only if it FAILS now and was NOT already failing in the oracle below. Pre-existing red tests are NOT regressions. Any characterization test the round added MUST be green. PAY SPECIAL ATTENTION to any \`patch("${SHIM_MODULE}.X")\`-based test: if it now fails, the move likely broke the patch seam — flag that explicitly.
+A test counts as a REGRESSION only if it FAILS now and was NOT already failing in the oracle below. Pre-existing red tests are NOT regressions. Any characterization test the round added MUST be green. ${P.valSeamNote(m)}
 PER-ROUND ORACLE (failures on these exact dirs, clean tree, before the change — pre-existing, NOT this round's fault):
 ${ROUND_RED.length ? ROUND_RED.map(t => '  - ' + t).join('\n') : '  (none — these dirs were fully green on the clean tree)'}
 
-Set passed:true ONLY if import smoke succeeds AND zero NEW test failures AND lint clean. List every new failure (node id + one-line cause, flag patch-seam breaks) in new_failures. Report raw command tails. Do NOT edit code, do NOT commit.`,
+Set passed:true ONLY if the smoke/compile check succeeds AND zero NEW test failures AND lint clean. List every new failure (test id + one-line cause, flag seam breaks) in new_failures. Report raw command tails. Do NOT edit code, do NOT commit.`,
     repairPrompt: (chosen, failures, val, curImpl, ROUND_RED) => {
       const c = chosen.cand
       return `You are REPAIRING a god-file decomposition that is ALREADY APPLIED to the working tree at ${ROOT} (UNCOMMITTED) but FAILED validation. FIX IT FORWARD so it passes — do NOT revert, do NOT \`git checkout\`/discard the extraction. Anchor git with git -C "${ROOT}". NEVER run \`git clean\`. Do NOT commit. Read ${SKILL_DIR}/LANGUAGE.md if you need the vocabulary.
 
 CONTEXT — the extraction in the tree right now:
-  cluster "${c.title}" moved from ${TARGET} -> ${curImpl.new_module}, behind re-export shims at ${SHIM_MODULE}.* .
+  cluster "${c.title}" moved from ${TARGET} -> ${curImpl.new_module}, with the old public surface at ${MODULE_ID} kept alive per this ecosystem's compat mechanism (${ECOSYSTEM}).
   symbols moved: ${JSON.stringify(c.symbols)}
   patched_symbols (test seams that must keep biting): ${JSON.stringify(c.patched_symbols || [])}
   files touched so far: ${(curImpl.files_touched || []).join(', ') || '(unknown — inspect git status)'}
@@ -1360,10 +1648,7 @@ PRE-EXISTING ORACLE REDS (ignore):
 ${ROUND_RED.length ? ROUND_RED.map(t => '  - ' + t).join('\n') : '  (none)'}
 
 HOW TO FIX (diagnose each failure, then fix the RIGHT layer — do not paper over a real behavior break):
-- SOURCE-TEXT / SOURCE-INTROSPECTION GUARD (a test reads ${TARGET} as text, \`ast.parse\`s it, or uses inspect/getsource and asserts a moved symbol appears in ${TARGET}): a shim CANNOT satisfy this. REPOINT the test to inspect ${curImpl.new_module} (or both). Most common red.
-- PATCH-SEAM BREAK (a \`patch("${SHIM_MODULE}.X")\` test stopped biting): ensure the moved code resolves X through a path the patch still intercepts (re-export at ${SHIM_MODULE}.X AND make the live call go through the patched module attribute, not a bare local rebind).
-- IMPORT / NAME ERROR in the new module or shim: add the missing imports, fix the shim re-export so \`from ${SHIM_MODULE} import <name>\` and the dotted path both resolve.
-- A genuine behavior regression: fix the moved code so behavior is identical to before the move.
+${P.repairHints(m, curImpl.new_module || '(the new module)')}
 Leave ALL changes UNCOMMITTED for re-validation. If the extraction is fundamentally unsound (cannot be made green without undoing the move), set ok:false with the reason so the loop reverts as a last resort — but PREFER fixing forward.
 
 Report files_touched (every path you created/modified this repair, INCLUDING repointed guard tests), new_module (${curImpl.new_module}), shims_written, tests_changed, target_lines_after (wc -l of ${TARGET}), and a concise detail. Leave changes uncommitted.`
@@ -1371,14 +1656,14 @@ Report files_touched (every path you created/modified this repair, INCLUDING rep
     commitPrompt: (chosen, curImpl, mtag, repairs) => {
       const c = chosen.cand
       const titleLine = c.title.replace(/\s+/g, ' ').slice(0, 60)
-      return `A panel-approved god-file decomposition was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (import smoke + targeted tests + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
+      return `A panel-approved god-file decomposition was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (smoke/compile check + targeted tests + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
 
 Do:
 1. git -C "${ROOT}" status --porcelain (expect ${TARGET} shrunk + the new module + any new tests; remove any stray /tmp codemod artifacts if they leaked into the tree).
 2. git -C "${ROOT}" add -A
 3. git -C "${ROOT}" commit -m "refactor(${SCOPE_TAG}): extract ${titleLine} from ${TARGET}
 
-Decomposition round ${mtag}: moved a cohesive cluster (${(c.symbols || []).slice(0, 6).join(', ')}${(c.symbols || []).length > 6 ? ', …' : ''}) out of the ${TARGET} god-file into ${curImpl.new_module}, behind re-export shims at ${SHIM_MODULE}.* so all imports and patch() seams are preserved. Panel-approved (${chosen.mandate.execution_method}); validated green${repairs > 0 ? ' after ' + repairs + ' repair pass(es)' : ''}.
+Decomposition round ${mtag}: moved a cohesive cluster (${(c.symbols || []).slice(0, 6).join(', ')}${(c.symbols || []).length > 6 ? ', …' : ''}) out of the ${TARGET} god-file into ${curImpl.new_module}, keeping the public surface at ${MODULE_ID} alive via compat shims so all imports and test seams are preserved. Panel-approved (${chosen.mandate.execution_method}); validated green${repairs > 0 ? ' after ' + repairs + ' repair pass(es)' : ''}.
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 4. Report the new commit's short hash and files changed.`
@@ -1388,6 +1673,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 function makeDeepenCfg(ctx) {
   const { TARGET } = ctx
+  const m = { TARGET, MODULE_ID: ctx.MODULE_ID, DEST_PKG: ctx.DEST_PKG, DEST_PKG_DOTTED: ctx.DEST_PKG_DOTTED }
   // Shadow ROOT/BRANCH from ctx (= globals for deepen, which never isolates) so prompts are consistent.
   const ROOT = ctx.WORKDIR || A.projectDir
   const BRANCH = ctx.FILE_BRANCH || A.branch || 'optimize-codebase/auto'
@@ -1405,19 +1691,19 @@ function makeDeepenCfg(ctx) {
       target_lines_after: undefined,
     }),
     scopePrompt: (chosen, FLOOR) =>
-      `Read-only — make NO edits. Pick the MINIMAL set of tests that must run to catch any regression from this architecture deepening in the repo at ${ROOT}. The change touches these files (it reshapes internals behind a seam, leaving re-export shims at any moved import path):
+      `Read-only — make NO edits. Pick the MINIMAL set of tests that must run to catch any regression from this architecture deepening in the repo at ${ROOT}. The change touches these files (it reshapes internals behind a seam, keeping every moved import path alive per this ecosystem's compat mechanism — ${ECOSYSTEM}):
   files: ${JSON.stringify(chosen.cand.files)}
   dependency_category: ${chosen.cand.dependency_category}
   mandated validation dirs: ${JSON.stringify((chosen.mandate.validation_dirs) || [])}
 
-Grep dev/tests (ripgrep) for tests that import or patch anything in those files, and ALWAYS include the mandated validation dirs above (and the keep-set ${JSON.stringify(KEEP_SET)}) as a floor. test_paths MUST be NON-EMPTY. Prefer specific test files; whole dirs are fine when many files match. All paths repo-relative under dev/tests/.
+Grep ${TDIRX()} (ripgrep) for tests that import — or pin via a test seam (patch/mock at an import path, where this ecosystem has that) — anything in those files, and ALWAYS include the mandated validation dirs above (and the keep-set ${JSON.stringify(KEEP_SET)}) as a floor. test_paths MUST be NON-EMPTY. Prefer specific test files; whole dirs are fine when many files match. All paths repo-relative${TEST_ROOT ? ' under ' + TEST_ROOT + '/' : ''}.
 
-Set confident:FALSE only if the change is so cross-cutting that even the mandated dirs + your greps cannot bound it safely (then the loop runs the full sweep). Report lint_paths (the touched .py files) and a site_counts tally.`,
+Set confident:FALSE only if the change is so cross-cutting that even the mandated dirs + your greps cannot bound it safely (then the loop runs the full sweep). Report lint_paths (the touched source files) and a site_counts tally.`,
     implPrompt: (chosen) => {
       const c = chosen.cand, mandate = chosen.mandate
       return `You are implementing ONE architecture DEEPENING from the improve-codebase-architecture skill, under a BINDING MANDATE from a decision panel. You work DIRECTLY in the repo at ${ROOT} (NOT a worktree) — anchor git with git -C "${ROOT}" and edit files under ${ROOT}. The tree is clean and committed. Read ${SKILL_DIR}/LANGUAGE.md and ${SKILL_DIR}/DEEPENING.md first; use that vocabulary. NEVER run \`git clean\`. Do NOT commit (a later step does).
 
-GOAL: reshape the shallow module(s) behind a smaller, higher-leverage interface (locality + leverage), preserving EVERY externally observable contract. Leave re-export shims at any import path you move so \`from x import y\` and \`patch("x.y")\` keep resolving.
+GOAL: reshape the shallow module(s) behind a smaller, higher-leverage interface (locality + leverage), preserving EVERY externally observable contract. Keep every import path you move alive via this ecosystem's compat mechanism, so imports and any test seams pinned to old paths keep resolving. ${P.shimGuide(m)}
 
 Candidate:
   title: ${c.title}
@@ -1433,8 +1719,8 @@ ${mandate.execution_method === 'staged' ? `STAGED — land ONLY this sub-step (t
   DEFERRED (do NOT attempt now): ${mandate.deferred_stages.length ? mandate.deferred_stages.join(' | ') : '(none listed)'}
 ` : ''}Execution plan (follow in order):
 ${mandate.execution_plan.length ? mandate.execution_plan.map((s, i) => '  ' + (i + 1) + '. ' + s).join('\n') : '  (none specified — apply the method below with judgement)'}
-Re-export shims REQUIRED (old import paths that must keep resolving):
-${mandate.shims_required.length ? mandate.shims_required.map(s => '  - ' + s).join('\n') : '  (none explicitly — still shim any import path you move)'}
+Compat shims REQUIRED (old import paths that must keep resolving):
+${mandate.shims_required.length ? mandate.shims_required.map(s => '  - ' + s).join('\n') : '  (none explicitly — still keep any import path you move alive per the compat mechanism above)'}
 Characterization tests REQUIRED (write at the EXISTING interface BEFORE refactoring):
 ${mandate.characterization_tests_required.length ? mandate.characterization_tests_required.map(s => '  - ' + s).join('\n') : '  (none explicitly — add golden-master tests for each behaviour the change touches)'}
 Behaviour invariants that MUST stay byte-identical:
@@ -1442,28 +1728,28 @@ ${mandate.behavior_invariants.length ? mandate.behavior_invariants.map(s => '  -
 Strongest dissent on record (heed it): ${mandate.dissent || '(none)'}
 
 === EXECUTION DISCIPLINE ===
-- PREFER PROGRAMMATIC TRANSFORMATION over hand-retyping large files (Python ast/libcst or a throwaway /tmp codemod run via \`bash -c 'cd "${ROOT}" && uv run python /tmp/<script>.py'\`; delete it before finishing). Use \`git mv\` for whole-file moves to preserve history.
+- PREFER PROGRAMMATIC TRANSFORMATION over hand-retyping large files (use ${P.codemodGuide}; delete any throwaway transform script before finishing). Use \`git mv\` for whole-file moves to preserve history.
 - CHARACTERIZATION TESTS FIRST: write the mandated tests against the existing interface; they must survive the refactor.
 - Implement the deepening: reshape the shallow module(s) behind a small interface; update ALL call sites + add the mandated shims; preserve the listed invariants, public APIs, CLI, wire formats, persisted schemas EXACTLY. Replace-don't-layer tests at the new interface; only introduce a port/seam if two adapters justify it. If you create a NEW module, place it in a convention-correct home (see conventions below), not a loose sibling.
-- WATCH patch() SEAMS exactly as a decomposition would: a moved name must still be resolvable through the patched path.
+${P.implSeamWatch(m)}
 - DO NOT COMMIT / \`git add\` / \`git stash\`. Leave ALL changes UNCOMMITTED for the validation step. A commit here survives revert-on-red and leaks an orphan.
 - If the change proves unsafe/oversized or cannot honor the mandate, make NO partial edits: run the safe revert yourself (git -C "${ROOT}" checkout -- . ; remove only NEW untracked files you created) and return ok:false with the reason.
 
 Report files_touched (every path created/modified, incl. new module + tests), new_module (if any), shims_written, tests_changed, and a concise detail. Leave the change uncommitted for validation.${CONV}`
     },
-    validatePrompt: (chosen, curImpl, PYTEST_SCOPE, ROUND_RED, ROUND_LINT, IMPORT_SMOKE) =>
-      `Validate an architecture deepening just applied to the repo at ${ROOT}: "${chosen.cand.title}" (files: ${JSON.stringify(chosen.cand.files)}). Run everything through the project's uv env (a bare python/pytest is NOT acceptable — tests live under dev/tests/, not tests/). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
+    validatePrompt: (chosen, curImpl, TEST_SCOPE, ROUND_RED, ROUND_LINT, IMPORT_SMOKE) =>
+      `Validate an architecture deepening just applied to the repo at ${ROOT}: "${chosen.cand.title}" (files: ${JSON.stringify(chosen.cand.files)}). Run everything through the project's own toolchain exactly as given below (do NOT substitute a bare interpreter/test-runner for a project-managed one${TEST_ROOT ? '; tests live under ' + TEST_ROOT + '/' : ''}). Run from inside the repo (\`bash -c 'cd "${ROOT}" && <cmd>'\`).
 
-Run, in order (run ALL THREE even if one fails). Run each SYNCHRONOUSLY IN THE FOREGROUND; set the Bash tool timeout to 600000 (10 min) for pytest. Do NOT background or redirect-then-wait (you are a subagent and will NOT be notified).
-1. Import smoke: ${IMPORT_SMOKE}
-2. Tests — the TARGETED validation scope for this round: ${PYTEST_SCOPE}
+Run, in order (run ALL of them even if one fails). Run each SYNCHRONOUSLY IN THE FOREGROUND; set the Bash tool timeout to 600000 (10 min) for the test call. Do NOT background or redirect-then-wait (you are a subagent and will NOT be notified).
+1. ${IMPORT_SMOKE ? P.smokeNoun + ': ' + IMPORT_SMOKE : '(no smoke/compile check is configured for this run — set import_smoke_ok:true and move on)'}
+2. ${TEST_SCOPE ? 'Tests — the TARGETED validation scope for this round: ' + TEST_SCOPE : '(no test command is configured — set tests_ok:true and rely on the other checks)'}
 3. Lint (the files this round touched): ${ROUND_LINT}
 
-A test is a REGRESSION only if it FAILS now and was NOT already failing in the oracle below. Any characterization test the round added MUST be green.
+A test is a REGRESSION only if it FAILS now and was NOT already failing in the oracle below. Any characterization test the round added MUST be green. ${P.valSeamNote(m)}
 PER-ROUND ORACLE (pre-existing failures on these exact dirs, clean tree — NOT this round's fault):
 ${ROUND_RED.length ? ROUND_RED.map(t => '  - ' + t).join('\n') : '  (none — these dirs were fully green on the clean tree)'}
 
-Set passed:true ONLY if import smoke succeeds AND zero NEW test failures AND lint clean. List every new failure (node id + one-line cause) in new_failures. Report raw command tails. Do NOT edit code, do NOT commit.`,
+Set passed:true ONLY if the smoke/compile check succeeds AND zero NEW test failures AND lint clean. List every new failure (test id + one-line cause) in new_failures. Report raw command tails. Do NOT edit code, do NOT commit.`,
     repairPrompt: (chosen, failures, val, curImpl, ROUND_RED) => {
       const c = chosen.cand
       return `You are REPAIRING an architecture deepening that is ALREADY APPLIED to the working tree at ${ROOT} (UNCOMMITTED) but FAILED validation. FIX IT FORWARD — do NOT revert/discard the change. Anchor git with git -C "${ROOT}". NEVER run \`git clean\`. Do NOT commit.
@@ -1475,14 +1761,16 @@ ${failures.length ? failures.map(s => '  - ' + s).join('\n') : '  (validator set
 PRE-EXISTING ORACLE REDS (ignore):
 ${ROUND_RED.length ? ROUND_RED.map(t => '  - ' + t).join('\n') : '  (none)'}
 
-HOW TO FIX: add missing imports / fix shim re-exports so old import paths resolve; ensure any \`patch("...")\` seam still bites through the patched path; repoint source-text/introspection guards to the new home; fix any genuine behaviour regression so behaviour is identical. Leave ALL changes UNCOMMITTED for re-validation. If the deepening is fundamentally unsound, set ok:false so the loop reverts as a last resort — but PREFER fixing forward.
+HOW TO FIX: add missing imports / fix the compat shims so old import paths resolve; ensure any test seam pinned to an old path (patch/mock, where this ecosystem has them) still bites through that path; repoint source-text/introspection guards to the new home; fix any genuine behaviour regression so behaviour is identical. Ecosystem-specific fix classes:
+${P.repairHints(m, curImpl.new_module || '(the new module)')}
+Leave ALL changes UNCOMMITTED for re-validation. If the deepening is fundamentally unsound, set ok:false so the loop reverts as a last resort — but PREFER fixing forward.
 
 Report files_touched (incl. repointed guards), new_module, shims_written, tests_changed, and a concise detail.`
     },
     commitPrompt: (chosen, curImpl, mtag, repairs) => {
       const c = chosen.cand
       const titleLine = c.title.replace(/\s+/g, ' ').slice(0, 60)
-      return `A panel-approved architecture deepening was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (import smoke + mandated suites + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
+      return `A panel-approved architecture deepening was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (smoke/compile check + mandated suites + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
 
 Do:
 1. git -C "${ROOT}" status --porcelain (expect the reshaped files + any new module/tests; remove any stray /tmp codemod artifacts).
@@ -1504,7 +1792,8 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 // applyMemberOnRoot apply pipeline (scope -> oracle -> implement -> validate+repair -> commit/revert
 // -> org audit). Returns a per-file summary.
 async function processOneFile(ctx, fileIndex, stage) {
-  const { TARGET, SHIM_MODULE, DEST_PKG, DEST_PKG_DOTTED, SCOPE_TAG, IMPORT_SMOKE, CONTRACT_CENSUS } = ctx
+  const { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED, SCOPE_TAG, IMPORT_SMOKE, CONTRACT_CENSUS } = ctx
+  const m = { TARGET, MODULE_ID, DEST_PKG, DEST_PKG_DOTTED }
   // Shadow ROOT so every inline prompt (lane plan, find, panel, chair) targets this file's worktree
   // at K>1; falls back to the global ROOT (K=1 / deepen / organize) — behavior unchanged there.
   const ROOT = ctx.WORKDIR || A.projectDir
@@ -1512,9 +1801,11 @@ async function processOneFile(ctx, fileIndex, stage) {
   const D = stage === 'deepen'                                  // deepen vs decompose branch
   const cfg = D ? makeDeepenCfg(ctx) : makeDecomposeCfg(ctx)    // stage-specific apply prompts
   const candKeyFn = D ? candKeyFiles : candKey                  // dedup by files (deepen) or symbols (decompose)
-  // The file's own test dir (src/<pkg>/… -> dev/tests/<pkg>) — the MANDATORY validation floor so a
-  // change with few/zero direct tests still validates against a fast, BOUNDED, relevant subset.
-  const FLOOR = TEST_ROOT + '/' + ((TARGET.split('/')[1]) || '')
+  // The file's own test dir (<src>/<pkg>/… -> <test_root>/<pkg>) — the MANDATORY validation floor so
+  // a change with few/zero direct tests still validates against a fast, BOUNDED, relevant subset.
+  // '' when the repo has no separate test root (colocated tests) — the scope prompt then floors on
+  // the keep-set / VAL_DIRS instead.
+  const FLOOR = TEST_ROOT ? (TEST_ROOT + '/' + ((TARGET.split('/')[1]) || '')).replace(/\/+$/, '') : ''
   // UNIQUE phase name per (stage, file, round). phase() names MUST be globally unique across the whole
   // run — the stage prefix (DEC/DEEP) + monotonic global file index + round number guarantees it.
   const tag = (D ? 'DEEP F' : 'DEC F') + fileIndex
@@ -1546,11 +1837,11 @@ async function processOneFile(ctx, fileIndex, stage) {
   // Falls back to a generic equal-region split (or the explicit `lanes` override) if it yields nothing.
   async function planLanes(n) {
     const plan = await agent(
-      `You are the LANE PLANNER for a god-file decomposition loop — file ${TARGET}, round ${n}. The target ${ROOT}/${TARGET} is CONSTANTLY CHANGING: every prior round carved a cohesive cluster out into ${DEST_PKG} and left a thin re-export shim behind, so ANY fixed line map is already stale. Read the ENTIRE current ${TARGET} as it exists RIGHT NOW (use the real file, not memory) and partition it into ${LANE_MIN}-${LANE_MAX} concern LANES that downstream read-only find agents will each mine in parallel for ONE extractable cluster.
+      `You are the LANE PLANNER for a god-file decomposition loop — file ${TARGET}, round ${n}. The target ${ROOT}/${TARGET} is CONSTANTLY CHANGING: every prior round carved a cohesive cluster out into ${DEST_PKG} and left thin compat shims/forwarders behind (per this ecosystem's mechanism), so ANY fixed line map is already stale. Read the ENTIRE current ${TARGET} as it exists RIGHT NOW (use the real file, not memory) and partition it into ${LANE_MIN}-${LANE_MAX} concern LANES that downstream read-only find agents will each mine in parallel for ONE extractable cluster.
 
 Do NOT edit anything. After reading the whole file:
 - MAP THE LINE MASS as it stands now — identify the largest current method/function clusters (e.g. run-loop orchestration, a big class's method groups, rendering/streaming, command dispatch, input handling) and whatever free-function regions remain.
-- Carve into lanes that are MUTUALLY EXCLUSIVE by line range (no two lanes overlap) and each internally COHESIVE (a single concern a find agent can extract behind a shim).
+- Carve into lanes that are MUTUALLY EXCLUSIVE by line range (no two lanes overlap) and each internally COHESIVE (a single concern a find agent can extract behind the ecosystem's compat mechanism).
 - LARGEST-FIRST: the loop attacks the biggest carve-outs first, so guarantee the largest remaining concentrations each get a lane. If a single method/cluster is very large (> ${GIANT_LINES} lines), give it its OWN lane and set giant:true so one agent focuses entirely on slicing it into a focused module (staged across rounds if needed).
 - SKIP DEAD REGIONS: spend NO lane on any region that is already just thin shims / forwards to ${DEST_PKG}. Those have no cluster left to move. Every lane must point at live, still-embedded code.
 - Prefer ${LANE_MAX} lanes while the file is large; emit fewer only if there are genuinely fewer distinct live concerns left.
@@ -1597,7 +1888,7 @@ For each lane: key (unique slug), concern, line_range (current, non-overlapping)
     if (D) {
       // DEEPEN: a single whole-file find over the anchor module + its collaborators (no lane planning).
       laneFindings = [await agent(
-        `You are running the EXPLORE step of the improve-codebase-architecture skill (read-only) anchored on ${ROOT}/${TARGET} (~${linesEnd} lines) and the modules it collaborates with in src/${(TARGET.split('/')[1]) || ''}. Do NOT edit anything.
+        `You are running the EXPLORE step of the improve-codebase-architecture skill (read-only) anchored on ${ROOT}/${TARGET} (~${linesEnd} lines) and the modules it collaborates with under ${TARGET.includes('/') ? TARGET.replace(/\/[^/]+$/, '') : SCAN_ROOTS[0]}. Do NOT edit anything.
 
 FIRST read the skill's vocabulary so every suggestion uses it exactly:
 - ${SKILL_DIR}/SKILL.md (process)
@@ -1629,13 +1920,13 @@ FIRST read the skill vocabulary so suggestions use it exactly:
 - ${SKILL_DIR}/LANGUAGE.md (module / interface / seam / adapter / leverage / locality)
 - ${SKILL_DIR}/DEEPENING.md (dependency categories; the two-adapter rule)
 
-THIS LOOP'S GOAL is GOD-FILE DECOMPOSITION: ${TARGET} mixes many concerns in one large file, which is hard to navigate. A good candidate EXTRACTS a cohesive cluster of symbols (the ones in your lane hint, confirmed against the REAL current file) into a focused new module under ${DEST_PKG}, leaving re-export shims at the old ${SHIM_MODULE}.<name> paths so nothing downstream breaks. The win is LOCALITY/NAVIGABILITY (one concern in one place), which is a VALID direction here even if the moved code gains no new leverage — UNLIKE a pure deepening loop.
+THIS LOOP'S GOAL is GOD-FILE DECOMPOSITION: ${TARGET} mixes many concerns in one large file, which is hard to navigate. A good candidate EXTRACTS a cohesive cluster of symbols (the ones in your lane hint, confirmed against the REAL current file) into a focused new module under ${DEST_PKG}, keeping the file's public import path ${MODULE_ID} alive so nothing downstream breaks. ${P.shimGuide(m)} The win is LOCALITY/NAVIGABILITY (one concern in one place), which is a VALID direction here even if the moved code gains no new leverage — UNLIKE a pure deepening loop.
 
 Read the real file region for your lane and confirm:
 - the EXACT symbol names + current line range that form a cohesive, self-contained cluster,
 - a navigability DELETION TEST: after extraction, is the concept MORE local (one module) or just scattered across more files you must bounce between? Only the former earns "Strong".
 - COHESION: what (if anything) ties the cluster back to code that stays in ${TARGET}, and whether a clean seam (cross-module import or lazy import) handles it. A cluster entangled with code that stays is NOT cohesive — say so and rate it lower.
-- which symbols appear in \`patch("${SHIM_MODULE}.X")\` test sites or \`from ${SHIM_MODULE} import X\` (grep dev/tests and src) — these need careful shims + seams.
+- which symbols are pinned by imports or test seams at ${MODULE_ID} (${P.siteKinds(m)}; grep ${TDIRX()} and the source tree) — these need careful shims + seams.
 
 This loop pursues improvement by ARCHITECTURAL MERIT (locality), not ease. Do NOT down-rank a candidate for being large, cross-cutting, or hard — a decision panel designs the safe path (codemod, staging, characterization nets). Rate \`strength\` purely on the navigability-deletion-test signal and cohesion (Strong = a genuinely cohesive cluster with a clean seam whose extraction makes the concept local). Set est_blast_radius honestly (import + patch sites). Fill the schema per candidate: title, symbols, line_range, dest_module (under ${DEST_PKG}, convention-correct per the conventions below), placement_rationale, problem, solution (incl. the shim left behind), benefits (locality + how tests improve), strength, deletion_test, cohesion_note, est_blast_radius, patched_symbols. Return [] if your lane has no cohesive extractable cluster (e.g. it's already a thin shim block, or too entangled to split cleanly). Do NOT design the new module's internals yet — just the candidate.${CONV_FIND}`,
           { label: 'find:' + tag + ':' + lane.key, phase: phaseOf(n), agentType: 'Explore', schema: FIND_SCHEMA, model: M_MECH }
@@ -1732,7 +2023,7 @@ ${p.hardVeto
   ? 'You hold a HARD VETO: if your lens finds a non-negotiable blocker (false premise, or an inherent contract break no shim can fix), set vote:"veto" AND hard_veto:true — no majority can override it.'
   : 'You do NOT hold a hard veto. Set hard_veto:false. A serious concern is vote:"veto" (soft) — the chair weighs it.'}
 
-Set confidence (0..1) after reading the file. Put concrete preconditions in required_safeguards (shims, characterization "patch-still-bites" tests, execution mechanism) and importable names/behaviours that must not change in behavior_invariants. Cite file:line where you can.`,
+Set confidence (0..1) after reading the file. Put concrete preconditions in required_safeguards (compat shims, characterization "seam-still-bites" tests, execution mechanism) and externally reachable names/behaviours that must not change in behavior_invariants. Cite file:line where you can.`,
           { label: 'panel:' + tag + ':' + p.role.split(' ')[0].toLowerCase() + ':' + cand.title.slice(0, 14).replace(/\s+/g, '-'), phase: phaseOf(n), schema: PANELIST_SCHEMA, model: p.hardVeto ? M_KEY : M_MECH }
         )
       ))).filter(Boolean)
@@ -1772,7 +2063,7 @@ SAFEGUARDS / PLAN FRAGMENTS the panel demanded (shims, characterization tests, $
 ${safeguards.length ? safeguards.map(s => '  - ' + s).join('\n') : '  (none)'}
 BEHAVIOUR INVARIANTS / importable names to preserve:
 ${invariants.length ? invariants.map(s => '  - ' + s).join('\n') : '  (none)'}
-${ctx.CONVENTIONS ? '\nREPO ORGANIZATION CONVENTIONS — if the mandate creates a NEW module, set mandate.dest_module to a convention-correct home (an existing/justified subpackage, NOT a loose flat sibling in an already-large directory) and explain it in mandate.dest_placement_rationale; set mandate.new_subpackage_init:true if a new subpackage __init__.py is needed:\n' + ctx.CONVENTIONS + '\n' : ''}
+${ctx.CONVENTIONS ? '\nREPO ORGANIZATION CONVENTIONS — if the mandate creates a NEW module, set mandate.dest_module to a convention-correct home (an existing/justified subdirectory, NOT a loose flat sibling in an already-large directory) and explain it in mandate.dest_placement_rationale; list any scaffold files needed to make the destination importable/buildable in mandate.scaffold_files (' + P.scaffoldNote + '):\n' + ctx.CONVENTIONS + '\n' : ''}
 DECISION RULE (autonomous, ${D ? 'deepening' : 'decomposition'} mode):
 - decision:"implement" is the DEFAULT. Difficulty, large blast radius, hard-to-test behaviour, or "an unattended agent might struggle" are NOT reasons to reject — they are reasons to design a safer PATH (${D ? 'stage across rounds, add characterization nets, hold contracts via shims' : 'codemod the slice, stage across rounds, add characterization "patch-still-bites" nets, hold the surface via shims'}).
 - decision:"reject" ONLY when: (a) the ${D ? 'Deepening' : 'Decomposition'} Steward establishes WRONG DIRECTION — ${D ? 'pure rename/indirection/file-move with NO real depth or locality gain' : 'the move scatters a concept across more files than before (worse navigability) or fabricates a speculative one-adapter port (indirection, not locality)'}, or (b) a lens shows the change INHERENTLY cannot preserve ${TARGET}'s external ${D ? 'behaviour/contracts' : 'surface'} by ANY path (almost never — a shim/adapter fixes it). A soft-veto for size/difficulty is NOT grounds to reject; absorb it into the plan.
@@ -1780,8 +2071,8 @@ DECISION RULE (autonomous, ${D ? 'deepening' : 'decomposition'} mode):
 
 When implementing, fill the FULL mandate:
 ${D
-  ? '- mandate.shims_required (every old import path that must keep resolving), mandate.characterization_tests_required (golden-master at the EXISTING interface BEFORE refactoring), mandate.behavior_invariants, mandate.validation_dirs (full dev/tests/<sub> dirs that must stay green).\n- mandate.execution_method — "programmatic"/"hybrid" by default (scripted/AST, never hand-retype a large file); "manual" only for small localized changes; "staged" when too large for one round.\n- mandate.execution_plan — ordered concrete steps naming the exact mechanism (git mv / ast|libcst codemod / scripted import rewrite). If the deepening creates a NEW module, place it in a convention-correct home.'
-  : '- mandate.dest_module (convention-correct under ' + DEST_PKG + ', NOT a loose flat sibling), mandate.dest_placement_rationale, mandate.new_subpackage_init, mandate.shims_required (EVERY ' + SHIM_MODULE + '.<name> that must keep resolving), mandate.characterization_tests_required (esp. "patch(\\"' + SHIM_MODULE + '.X\\") still bites" for every patched symbol), mandate.behavior_invariants.\n- mandate.execution_method — "programmatic"/AST codemod by DEFAULT (never hand-retype a slice of a large file); "manual" only for a few short helpers; "staged" when the cluster is too tangled for one round.\n- If "staged": mandate.this_round_scope = the SINGLE bounded sub-cluster to move THIS round; mandate.deferred_stages = the rest. The loop re-finds and continues next round.\n- mandate.execution_plan — ordered concrete steps naming the exact mechanism (ast/libcst slice of the named symbols out of ' + TARGET + '; write the new module; write the re-export shim block back into ' + TARGET + '; rewrite cross-module imports; run the throwaway codemod via `uv run python` then delete it).'}
+  ? '- mandate.shims_required (every old import path that must keep resolving via the ecosystem\'s compat mechanism), mandate.characterization_tests_required (golden-master at the EXISTING interface BEFORE refactoring), mandate.behavior_invariants, mandate.validation_dirs (full ' + (TEST_ROOT ? TEST_ROOT + '/<sub>' : 'test') + ' dirs that must stay green).\n- mandate.execution_method — "programmatic"/"hybrid" by default (scripted transforms, never hand-retype a large file); "manual" only for small localized changes; "staged" when too large for one round.\n- mandate.execution_plan — ordered concrete steps naming the exact mechanism (git mv / ' + P.codemodGuide + ' / scripted import rewrite). If the deepening creates a NEW module, place it in a convention-correct home and list any needed scaffold files in mandate.scaffold_files (' + P.scaffoldNote + ').'
+  : '- mandate.dest_module (convention-correct under ' + DEST_PKG + ', NOT a loose flat sibling), mandate.dest_placement_rationale, mandate.scaffold_files (' + P.scaffoldNote + '), mandate.shims_required (EVERY ' + MODULE_ID + '.<name> that must keep resolving via the compat mechanism), mandate.characterization_tests_required (esp. "the test seam at ' + MODULE_ID + '.<sym> still bites" for every seam-pinned symbol), mandate.behavior_invariants.\n- mandate.execution_method — "programmatic"/scripted codemod by DEFAULT (never hand-retype a slice of a large file); "manual" only for a few short helpers; "staged" when the cluster is too tangled for one round.\n- If "staged": mandate.this_round_scope = the SINGLE bounded sub-cluster to move THIS round; mandate.deferred_stages = the rest. The loop re-finds and continues next round.\n- mandate.execution_plan — ordered concrete steps naming the exact mechanism (scripted slice of the named symbols out of ' + TARGET + ' via ' + P.codemodGuide + '; write the new module; write the compat shims back at the old path; rewrite cross-module imports; delete any throwaway transform script before finishing).'}
 Always record the strongest dissent, even when overruled.`,
           { label: 'chair:' + tag + ':' + cand.title.slice(0, 18).replace(/\s+/g, '-') + (attempt > 1 ? '#' + attempt : ''), phase: phaseOf(n), schema: CHAIR_SCHEMA, model: (attempt < CHAIR_TRIES ? M_CHAIR : M_CHAIR_FALLBACK) }
           )
@@ -1807,7 +2098,7 @@ Always record the strongest dissent, even when overruled.`,
         mandate = {
           dest_module: m.dest_module || cand.dest_module || '',
           dest_placement_rationale: m.dest_placement_rationale || cand.placement_rationale || '',
-          new_subpackage_init: m.new_subpackage_init === true,
+          scaffold_files: (Array.isArray(m.scaffold_files) ? m.scaffold_files.filter(Boolean) : []),
           validation_dirs: (m.validation_dirs && m.validation_dirs.length ? m.validation_dirs : (D ? testDirsForFiles(cand.files) : [])),
           shims_required: m.shims_required || [],
           characterization_tests_required: m.characterization_tests_required || [],
@@ -1868,7 +2159,7 @@ Always record the strongest dissent, even when overruled.`,
 
   const applied = rounds.filter(r => r.validated)
   return {
-    target: TARGET, shim_module: SHIM_MODULE, dest_pkg: DEST_PKG,
+    target: TARGET, module_id: MODULE_ID, dest_pkg: DEST_PKG,
     convergence, rounds_run: rounds.length, extractions_applied: applied.length,
     lines_start: ctx.FILE_LINES, lines_end: linesEnd,
     applied: applied.map(r => ({ round: r.member || r.round, candidate: r.candidate, new_module: r.new_module, execution_method: r.execution_method, commit: r.commit, target_lines_after: r.target_lines_after })),
@@ -1917,7 +2208,8 @@ const withMergeLock = (fn) => { const run = mergeLock.then(fn, fn); mergeLock = 
 const retryQueue = []            // merge-conflict re-enqueues (re-run FRESH on the updated base)
 const retryCount = new Map()     // target -> times re-enqueued after a merge conflict
 
-// Create an ISOLATED checkout for one file on a child branch, with its OWN uv env. Returns the working
+// Create an ISOLATED checkout for one file on a child branch, with its OWN project env where the
+// profile requires one (perWorktreeEnv). Returns the working
 // dir / branch / protected-untracked block the engine is parameterized on. No-op (returns globals)
 // unless isolate.
 async function bringUpWorktree(d, fileIndex, isolate) {
@@ -1927,6 +2219,21 @@ async function bringUpWorktree(d, fileIndex, isolate) {
   const wpath = worktreePathFor(d), cbranch = childBranchFor(d)
   const setupPhase = 'DEC F' + fileIndex + ' ' + d.scopeTag + ' · Setup'
   phase(setupPhase)
+  // Per-worktree env only where the profile requires one (python: own .venv because the root venv's
+  // editable .pth pins ROOT's source; node: own node_modules). go/rust/generic share toolchain caches
+  // safely and skip the env-sync step entirely.
+  const envSteps = (P.perWorktreeEnv && ENV_SETUP)
+    ? (ECOSYSTEM === 'python'
+      ? `2. Build the worktree's OWN verification env — it starts with NO .venv, and validation MUST run against THIS worktree's edited source, so it CANNOT reuse ${ROOT}'s .venv (whose editable .pth hardcodes ${ROOT}/src):
+   bash -c 'cd "${wpath}" && ${ENV_SETUP}'
+3. ASSERT ISOLATION (load-bearing): the worktree's editable install must point at the WORKTREE's src, not ${ROOT}/src:
+   bash -c 'cd "${wpath}" && cat .venv/lib/python*/site-packages/__editable__.*.pth'
+   The printed path MUST start with ${wpath}/src. If it shows ${ROOT}/src (or no .venv was made), set env_ready:false and explain — validating against ROOT's source would green broken extractions. (If the project is NOT an editable install — no __editable__ .pth exists at all — a worktree-local .venv is sufficient; sanity-check with a quick import through the env instead.)`
+      : `2. Build the worktree's OWN verification env — it starts with NO node_modules and validation MUST resolve THIS worktree's dependencies:
+   bash -c 'cd "${wpath}" && ${ENV_SETUP}'
+3. ASSERT ISOLATION: after the install, \`ls -d "${wpath}/node_modules"\` must succeed. If it does not (or the install failed), set env_ready:false and explain.`)
+    : `2. This ecosystem (${ECOSYSTEM}) needs NO per-worktree env (the toolchain caches are shared safely) — skip any env setup.
+3. Set env_ready:true (nothing to isolate).`
   const res = await agent(
     `Create an ISOLATED git worktree so this god-file can be decomposed WITHOUT colliding with other files being decomposed concurrently in their own worktrees. The MAIN repo is at ${ROOT} (base branch ${BRANCH}); anchor every git command as shown and do NOT touch ${ROOT}'s own working tree.
 
@@ -1936,14 +2243,10 @@ Do, in order:
    If it fails because the branch/path already exists from a crashed prior run, clean and retry ONCE with the SAME name:
    git -C "${ROOT}" worktree remove --force "${wpath}" 2>/dev/null; git -C "${ROOT}" branch -D "${cbranch}" 2>/dev/null; then re-run the identical add.
    If the add STILL fails, set ok:false and report the exact git error verbatim. Do NOT invent an alternative branch name to work around an error — a mismatched name silently breaks merge-back.
-2. Build the worktree's OWN verification env — it starts with NO .venv, and validation MUST run against THIS worktree's edited source, so it CANNOT reuse ${ROOT}'s .venv (whose editable .pth hardcodes ${ROOT}/src):
-   bash -c 'cd "${wpath}" && ${ENV_SETUP}'
-3. ASSERT ISOLATION (load-bearing): the worktree's editable install must point at the WORKTREE's src, not ${ROOT}/src:
-   bash -c 'cd "${wpath}" && cat .venv/lib/python*/site-packages/__editable__.*.pth'
-   The printed path MUST start with ${wpath}/src. If it shows ${ROOT}/src (or no .venv was made), set env_ready:false and explain — validating against ROOT's source would green broken extractions.
+${envSteps}
 4. Capture the worktree's OWN protected untracked set: git -C "${wpath}" ls-files --others --directory → protected_untracked.
 
-NEVER run \`git clean\`. NEVER push. Report ok (worktree exists on the child branch), env_ready (own .venv whose .pth points at the worktree src), worktree_path, branch, protected_untracked, detail.`,
+NEVER run \`git clean\`. NEVER push. Report ok (worktree exists on the child branch), env_ready, worktree_path, branch, protected_untracked, detail.`,
     { label: 'worktree:F' + fileIndex, phase: setupPhase, schema: WORKTREE_SETUP_SCHEMA, model: M_COORD }
   )
   if (!res || !res.ok) return { ok: false, env_ready: false, detail: res ? res.detail : 'no result' }
@@ -1983,7 +2286,7 @@ async function teardownWorktree(d, fileIndex, keepBranch, isolate) {
   try {
     await agent(
       `Tear down a finished decomposition worktree in the MAIN repo at ${ROOT}. Anchor with git -C "${ROOT}". Do, in order:
-1. git -C "${ROOT}" worktree remove --force "${wpath}"   (removes the worktree directory AND its .venv).
+1. git -C "${ROOT}" worktree remove --force "${wpath}"   (removes the worktree directory AND any env inside it).
 2. ${keepBranch ? 'KEEP the branch "' + cbranch + '" — it holds UNMERGED work for human review; do NOT delete it.' : 'git -C "' + ROOT + '" branch -D "' + cbranch + '"   (delete the now-merged child branch).'}
 3. git -C "${ROOT}" worktree prune.
 NEVER run \`git clean\`. NEVER push. Report ok + detail.`,
@@ -2001,9 +2304,9 @@ async function runFile(entry, fileIndex, stage) {
   const isolate = ISOLATE && stage === 'decompose'
   const prefix = isDeepen ? 'DEEP F' : 'DEC F'
   const filePhase = prefix + fileIndex + ' ' + d.scopeTag
-  log('=== ' + (isDeepen ? 'Deepen' : 'Decompose') + ' file ' + fileIndex + ': ' + d.target + ' (' + entry.lines + ' lines) → shim ' + d.shimModule + ', dest ' + d.destPkg + (isolate ? ', isolated worktree' : '') + ' ===')
+  log('=== ' + (isDeepen ? 'Deepen' : 'Decompose') + ' file ' + fileIndex + ': ' + d.target + ' (' + entry.lines + ' lines) → import path ' + d.moduleId + ', dest ' + d.destPkg + (isolate ? ', isolated worktree' : '') + ' ===')
   const errResult = (convergence, extra) => ({
-    target: d.target, shim_module: d.shimModule, dest_pkg: d.destPkg, stage, convergence,
+    target: d.target, module_id: d.moduleId, dest_pkg: d.destPkg, stage, convergence,
     rounds_run: 0, extractions_applied: 0, lines_start: entry.lines, lines_end: entry.lines,
     applied: [], rounds: [], ...(extra || {}),
   })
@@ -2022,13 +2325,11 @@ async function runFile(entry, fileIndex, stage) {
 
   // 2. Live contract census — inside the worktree at K>1 (stable, isolated from concurrent merges).
   let census = null
+  const mCensus = { TARGET: d.target, MODULE_ID: d.moduleId, DEST_PKG: d.destPkg, DEST_PKG_DOTTED: d.destPkgDotted }
   try {
     census = await agent(
-      `Read-only — make NO edits. Compute the import/patch CONTRACT CENSUS for the Python module ${d.shimModule} (file ${WORKDIR}/${d.target}) so a decision panel knows the real blast radius. Use ripgrep from inside the repo (\`bash -c 'cd "${WORKDIR}" && rg …'\`). Count, across BOTH dev/tests/ and src/:
-  - total_patch_sites: occurrences of \`patch("${d.shimModule}.\` / \`patch('${d.shimModule}.\` / \`patch.object(${d.shimModule}\` / monkeypatch of names from this module.
-  - total_import_sites: occurrences of \`from ${d.shimModule} import \` plus bare \`${d.shimModule}.\` attribute references.
-  - src_importers: rough count of DISTINCT files under src/ that import ${d.shimModule}.
-  - top_symbols: the ~6 individual symbols of this module that appear most often across those sites, each with its count (e.g. {name:"_cprint", count:74}).
+      `Read-only — make NO edits. Compute the import/seam CONTRACT CENSUS for ${d.target} (public import path: ${d.moduleId}) in the repo at ${WORKDIR}, so a decision panel knows the real blast radius. Use ripgrep from inside the repo (\`bash -c 'cd "${WORKDIR}" && rg …'\`). ${P.seamGuide(mCensus)}
+${P.censusBody(mCensus)}
 
 Return your result ONLY via the StructuredOutput tool, using EXACTLY these fields and NO others: total_patch_sites (number, required), total_import_sites (number, required), src_importers (number), top_symbols (array of {name, count}), detail (string). Do NOT add an "answer" field or any prose field — additional properties are REJECTED. Put any one-line narrative in "detail" only. Do NOT edit anything.`,
       { label: 'census:' + prefix.trim() + fileIndex, phase: filePhase, schema: CENSUS_SCHEMA, model: M_COORD }
@@ -2036,11 +2337,11 @@ Return your result ONLY via the StructuredOutput tool, using EXACTLY these field
   } catch (e) {
     log('File ' + fileIndex + ' census failed (' + ((e && e.message) ? e.message.slice(0, 80) : 'error') + ') — using generic census fallback; panelists grep sites themselves.')
   }
-  const CONTRACT_CENSUS = censusString(census, d.shimModule)
+  const CONTRACT_CENSUS = censusString(census, d.moduleId)
   log('File ' + fileIndex + ' census: ' + CONTRACT_CENSUS.replace(/\s+/g, ' ').slice(0, 200))
   const ctx = {
-    TARGET: d.target, SHIM_MODULE: d.shimModule, DEST_PKG: d.destPkg, DEST_PKG_DOTTED: d.destPkgDotted,
-    SCOPE_TAG: d.scopeTag, FILE_LINES: entry.lines, IMPORT_SMOKE: importSmokeFor(d.shimModule),
+    TARGET: d.target, MODULE_ID: d.moduleId, DEST_PKG: d.destPkg, DEST_PKG_DOTTED: d.destPkgDotted,
+    SCOPE_TAG: d.scopeTag, FILE_LINES: entry.lines, IMPORT_SMOKE: importSmokeFor(d.moduleId),
     CONTRACT_CENSUS, VAL_DIRS_STR: VAL_DIRS.join(', '), CONVENTIONS,
     // Per-file isolation surface the engine is parameterized on (= globals at !isolate).
     WORKDIR: wt.workdir, FILE_BRANCH: wt.fileBranch, PROTECTED_BLOCK: wt.protectedBlock,
@@ -2357,10 +2658,12 @@ if (SINGLE_TARGET) {
 phase('Report')
 const engineApplied = fileResults.reduce((a, r) => a + (r.extractions_applied || 0), 0)
 const orgMoves = orgResults.reduce((a, r) => a + (r.total_moves || 0), 0)
-log('Run finished: stages=[' + STAGES.join(', ') + '] — ' + fileResults.length + ' engine file(s), ' + engineApplied + ' extraction/deepening(s) landed, ' + orgResults.length + ' organize pass(es)/' + orgMoves + ' moves. stop=' + (sweepStop || 'complete'))
+log('Run finished: ecosystem=' + ECOSYSTEM + ', stages=[' + STAGES.join(', ') + '] — ' + fileResults.length + ' engine file(s), ' + engineApplied + ' extraction/deepening(s) landed, ' + orgResults.length + ' organize pass(es)/' + orgMoves + ' moves. stop=' + (sweepStop || 'complete') + (RUN_NOTES.length ? '. Notes: ' + RUN_NOTES.join(' | ') : ''))
 
 return {
   branch: BRANCH,
+  ecosystem: ECOSYSTEM,
+  notes: RUN_NOTES,
   stages: STAGES,
   mode: SINGLE_TARGET ? 'single-file' : 'staged-sweep',
   decompose_isolation: (ISOLATE && STAGES.includes('decompose')) ? 'concurrent-worktrees' : 'serial',

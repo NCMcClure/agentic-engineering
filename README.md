@@ -45,7 +45,8 @@ first-class. [Read more →](plugins/agentic-teamwork/README.md)
 
 ### codebase-optimizer
 
-A staged, autonomous optimizer for Python repos: organize the file tree,
+A staged, autonomous optimizer for whatever language your repo speaks —
+Python, JS/TS, Go, and Rust detected out of the box. Organize the file tree,
 decompose god-files, deepen shallow architecture — every change behind
 CI-faithful validation with revert-on-red, nothing ever pushed.
 [Read more →](plugins/codebase-optimizer/README.md)
