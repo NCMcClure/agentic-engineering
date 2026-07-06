@@ -1,0 +1,21 @@
+{
+  "name": "workflow-studio",
+  "displayName": "Workflow Studio",
+  "version": "0.1.0",
+  "description": "Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "repository": "https://github.com/NCMcClure/workflow-editor",
+  "license": "MIT",
+  "keywords": [
+    "workflows",
+    "visual-editor",
+    "node-graph",
+    "blueprint",
+    "react-flow",
+    "dynamic-workflows"
+  ],
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json"
+}

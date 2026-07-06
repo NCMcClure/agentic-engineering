@@ -1,0 +1,53 @@
+{
+  "name": "agentic-engineering",
+  "owner": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "metadata": {
+    "description": "Plugins that solve foundational engineering problems in the brave new world of agentic engineering."
+  },
+  "plugins": [
+    {
+      "name": "but-first-planning",
+      "source": "./plugins/but-first-planning",
+      "description": "A file-based planning + build workflow: author a language-agnostic spec, plan it, and build it with coordinated builder agents — the plan-0..plan-6 pipeline, the build loop, and an autopilot that chains it all, landing in a single .plan/ workspace.",
+      "category": "planning"
+    },
+    {
+      "name": "codebase-optimizer",
+      "source": "./plugins/codebase-optimizer",
+      "description": "Staged autonomous codebase optimizer — organize the file tree, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red.",
+      "category": "refactoring"
+    },
+    {
+      "name": "agentic-teamwork",
+      "source": "./plugins/agentic-teamwork",
+      "description": "Deterministic version-control guardrails for mixed-skill teams — hooks that block commits to protected branches, force-pushes, secrets, and failing tests, in Claude Code, the terminal, and CI. GitHub and GitLab first-class.",
+      "category": "collaboration"
+    },
+    {
+      "name": "workflow-studio",
+      "source": "./plugins/workflow-studio",
+      "description": "Blueprint-style visual studio for Claude Code dynamic workflows — node canvas, typed pins, lossless graph↔.js round-trip — plus a hand-authoring skill.",
+      "category": "workflow"
+    },
+    {
+      "name": "animated-storytelling",
+      "source": "./plugins/animated-storytelling",
+      "description": "Narrative arc + visual design + motion craft for making ideas land: NCP storyform, hierarchy/type/color, and Motion v12 recipes.",
+      "category": "creative"
+    },
+    {
+      "name": "strata",
+      "source": {
+        "source": "github",
+        "repo": "NCMcClure/strata",
+        "ref": "claude-code"
+      },
+      "description": "Strata harness for Claude Code: persistent project memory, capture pipeline, and workflow scaffolding.",
+      "category": "memory",
+      "repository": "https://github.com/NCMcClure/strata"
+    }
+  ]
+}

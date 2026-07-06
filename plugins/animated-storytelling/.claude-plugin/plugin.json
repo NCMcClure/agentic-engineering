@@ -1,0 +1,21 @@
+{
+  "name": "animated-storytelling",
+  "displayName": "Animated Storytelling",
+  "version": "0.1.0",
+  "description": "Make ideas land at the intersection of narrative arc, visual design, and motion: NCP story structure, hierarchy/typography/color craft, and tasteful Motion (Framer Motion v12) animation — with a catalog of showcase recipes.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": [
+    "storytelling",
+    "narrative",
+    "motion-design",
+    "visual-design",
+    "framer-motion",
+    "animation",
+    "pitch",
+    "explainer"
+  ],
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json"
+}

@@ -1,0 +1,18 @@
+# This repo IS the optimize-codebase Claude Code plugin (repo root = plugin root).
+# Everything tracked should be plugin content: .claude-plugin/, skills/, README.md.
+
+# loom knowledge base + runtime state (kept on disk, never tracked here)
+.loom/
+
+# preserved non-plugin material (skills library, original workflow) moved aside during cleanup
+.archive/
+
+# Python envs / caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# macOS
+.DS_Store

@@ -1,0 +1,66 @@
+#!/bin/bash
+# Team pre-commit hook (agentic-teamwork) — mirrors the Claude Code git-guard
+# for commits made outside Claude Code. One-time activation per clone:
+#     git config core.hooksPath .githooks
+# Escape hatches: TEAMWORK_SKIP_TESTS=1 skips the test run;
+#                 <escapeHatch var>=1 (default TEAMWORK_ALLOW=1) skips
+#                 everything (maintainer use — CI still runs server-side).
+set -uo pipefail
+
+ROOT="$(git rev-parse --show-toplevel)"
+[ -f "$ROOT/.claude/teamwork.json" ] || exit 0
+
+# The guards are configured via JSON; without jq we cannot know what to
+# enforce, so fail CLOSED here (CI is the backstop, but a silent local skip
+# would defeat the point of a deterministic gate).
+if ! command -v jq >/dev/null 2>&1; then
+    echo "pre-commit: jq is required by the teamwork guards and is not installed." >&2
+    echo "pre-commit: install it (apt install jq / brew install jq), or bypass once with the configured escape hatch var (default TEAMWORK_ALLOW=1)." >&2
+    exit 1
+fi
+
+. "$ROOT/.githooks/lib-guard.sh"
+
+ESCAPE_VAR=$(tw_escape_var)
+[ "${!ESCAPE_VAR:-0}" = "1" ] && exit 0
+
+fail() {
+    echo "pre-commit: $1" >&2
+    exit 1
+}
+
+PR_NOUN=$(tw_pr_noun)
+PR_CREATE=$(tw_pr_create_cmd)
+PREFIX=$(tw_cfg_list '.branchPrefixes' | head -n1)
+[ -n "$PREFIX" ] || PREFIX="feature/"
+
+branch=$(git symbolic-ref --short -q HEAD || echo "")
+if tw_is_protected "$branch" && tw_rule blockCommitOnProtected; then
+    fail "commits on $branch are not allowed. Create a branch (git switch -c ${PREFIX}<topic>) and open a $PR_NOUN with '$PR_CREATE'."
+fi
+
+if tw_rule blockJunk; then
+    junk=$(tw_staged_junk "$ROOT")
+    if [ -n "$junk" ]; then
+        fail "these staged files must never be committed:
+$junk"
+    fi
+fi
+
+if tw_rule blockSecrets; then
+    hits=$(tw_secret_hits_staged "$ROOT")
+    if [ -n "$hits" ]; then
+        fail "possible secrets detected (file:line) — remove them before committing:
+$hits
+Secrets belong in a secret manager or an untracked env file, never in the repo."
+    fi
+fi
+
+if [ "${TEAMWORK_SKIP_TESTS:-0}" != "1" ] && tw_rule requireTestsPass; then
+    if ! out=$(tw_run_tests "$ROOT"); then
+        fail "the test gate failed — fix the build/tests before committing (or TEAMWORK_SKIP_TESTS=1 if you know what you're doing):
+$out"
+    fi
+fi
+
+exit 0

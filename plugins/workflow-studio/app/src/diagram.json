@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 3,
+  "workflow": "sample-workflow",
+  "source": "sample-workflow.js",
+  "nodes": [
+    { "id": "start", "kind": "start", "label": "Start", "position": { "x": 0, "y": 340 } },
+    { "id": "gfRoot", "kind": "getField", "label": "args.root", "position": { "x": 60, "y": 540 }, "data": { "field": "root" } },
+    { "id": "log0", "kind": "log", "label": "log root", "position": { "x": 280, "y": 340 } },
+
+    { "id": "gvSetupPrompt", "kind": "getVar", "label": "Get SETUP_PROMPT", "position": { "x": 360, "y": 120 }, "data": { "varId": "v-setupprompt", "varName": "SETUP_PROMPT", "varType": "string" } },
+    { "id": "gvSetupSchema", "kind": "getVar", "label": "Get SETUP_SCHEMA", "position": { "x": 360, "y": 560 }, "data": { "varId": "v-setupschema", "varName": "SETUP_SCHEMA", "varType": "schema" } },
+    { "id": "setup", "kind": "agent", "label": "setup", "position": { "x": 620, "y": 340 }, "group": "g-setup" },
+    { "id": "gfReady", "kind": "getField", "label": "result.ready", "position": { "x": 620, "y": 540 }, "data": { "field": "ready" } },
+    { "id": "ready", "kind": "branch", "label": "ready?", "position": { "x": 900, "y": 340 }, "group": "g-setup" },
+    { "id": "abort", "kind": "end", "label": "Return (aborted)", "position": { "x": 900, "y": 600 }, "group": "g-setup" },
+
+    { "id": "gvTasks", "kind": "getVar", "label": "Get ANALYZE_TASKS", "position": { "x": 1100, "y": 130 }, "data": { "varId": "v-analyzetasks", "varName": "ANALYZE_TASKS", "varType": "array", "varElementType": "struct:struct-task" } },
+    { "id": "analyze", "kind": "parallel", "label": "analyze", "position": { "x": 1180, "y": 340 }, "group": "g-analyze" },
+    { "id": "more", "kind": "branch", "label": "more to review?", "position": { "x": 1460, "y": 340 }, "group": "g-analyze", "pinOverrides": { "cond": { "default": "false" } } },
+    { "id": "review", "kind": "verify", "label": "review", "position": { "x": 1460, "y": 600 }, "group": "g-analyze" },
+    { "id": "apply", "kind": "gate", "label": "apply", "position": { "x": 1180, "y": 600 }, "group": "g-analyze" },
+    { "id": "gvBuild1", "kind": "getVar", "label": "Get BUILD_CMD", "position": { "x": 1180, "y": 800 }, "data": { "varId": "v-build", "varName": "BUILD_CMD", "varType": "string" } },
+    { "id": "analyzeReport", "kind": "synthesize", "label": "analyze report", "position": { "x": 1740, "y": 340 }, "group": "g-analyze" },
+
+    { "id": "gvRefineTasks", "kind": "getVar", "label": "Get REFINE_TASKS", "position": { "x": 1960, "y": 130 }, "data": { "varId": "v-refinetasks", "varName": "REFINE_TASKS", "varType": "array", "varElementType": "struct:struct-task" } },
+    { "id": "refineExtract", "kind": "parallel", "label": "refine extract", "position": { "x": 2040, "y": 340 }, "group": "g-refine" },
+    { "id": "refine", "kind": "pipeline", "label": "refine", "position": { "x": 2320, "y": 340 }, "group": "g-refine", "data": { "stageCount": 0 } },
+    { "id": "refineGate", "kind": "gate", "label": "refine gate", "position": { "x": 2600, "y": 340 }, "group": "g-refine" },
+    { "id": "gvBuild2", "kind": "getVar", "label": "Get BUILD_CMD", "position": { "x": 2600, "y": 540 }, "data": { "varId": "v-build", "varName": "BUILD_CMD", "varType": "string" } },
+    { "id": "refineReport", "kind": "synthesize", "label": "refine report", "position": { "x": 2880, "y": 340 }, "group": "g-refine" },
+
+    { "id": "gvReportPrompt", "kind": "getVar", "label": "Get REPORT_PROMPT", "position": { "x": 3160, "y": 130 }, "data": { "varId": "v-reportprompt", "varName": "REPORT_PROMPT", "varType": "string" } },
+    { "id": "gvReportSchema", "kind": "getVar", "label": "Get REPORT_SCHEMA", "position": { "x": 3320, "y": 560 }, "data": { "varId": "v-reportschema", "varName": "REPORT_SCHEMA", "varType": "schema" } },
+    { "id": "report", "kind": "agent", "label": "report", "position": { "x": 3240, "y": 340 }, "group": "g-report" },
+    { "id": "end", "kind": "end", "label": "Return summary", "position": { "x": 3520, "y": 340 }, "group": "g-report" }
+  ],
+  "edges": [
+    { "id": "x1", "source": { "node": "start", "pin": "args" }, "target": { "node": "gfRoot", "pin": "object" }, "role": "data" },
+    { "id": "x2", "source": { "node": "gfRoot", "pin": "value" }, "target": { "node": "log0", "pin": "message" }, "role": "data" },
+    { "id": "e1", "source": { "node": "start", "pin": "exec-out" }, "target": { "node": "log0", "pin": "exec-in" }, "role": "exec" },
+    { "id": "e2", "source": { "node": "log0", "pin": "exec-out" }, "target": { "node": "setup", "pin": "exec-in" }, "role": "exec" },
+
+    { "id": "x3", "source": { "node": "gvSetupPrompt", "pin": "value" }, "target": { "node": "setup", "pin": "prompt" }, "role": "data" },
+    { "id": "x4", "source": { "node": "gvSetupSchema", "pin": "value" }, "target": { "node": "setup", "pin": "schema" }, "role": "data" },
+    { "id": "e3", "source": { "node": "setup", "pin": "exec-out" }, "target": { "node": "ready", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x5", "source": { "node": "setup", "pin": "result" }, "target": { "node": "gfReady", "pin": "object" }, "role": "data" },
+    { "id": "x6", "source": { "node": "gfReady", "pin": "value" }, "target": { "node": "ready", "pin": "cond" }, "role": "data" },
+    { "id": "e4", "source": { "node": "ready", "pin": "false" }, "target": { "node": "abort", "pin": "exec-in" }, "role": "exec", "label": "not ready" },
+    { "id": "e5", "source": { "node": "ready", "pin": "true" }, "target": { "node": "analyze", "pin": "exec-in" }, "role": "exec", "label": "ready" },
+
+    { "id": "x7", "source": { "node": "gvTasks", "pin": "value" }, "target": { "node": "analyze", "pin": "tasks" }, "role": "data" },
+    { "id": "e6", "source": { "node": "analyze", "pin": "exec-out" }, "target": { "node": "more", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x8", "source": { "node": "analyze", "pin": "results" }, "target": { "node": "review", "pin": "work" }, "role": "data" },
+    { "id": "x9", "source": { "node": "analyze", "pin": "results" }, "target": { "node": "analyzeReport", "pin": "inputs" }, "role": "data" },
+    { "id": "e7", "source": { "node": "more", "pin": "true" }, "target": { "node": "review", "pin": "exec-in" }, "role": "exec", "label": "more" },
+    { "id": "e8", "source": { "node": "more", "pin": "false" }, "target": { "node": "analyzeReport", "pin": "exec-in" }, "role": "exec", "label": "done" },
+    { "id": "e9", "source": { "node": "review", "pin": "ok" }, "target": { "node": "apply", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x10", "source": { "node": "gvBuild1", "pin": "value" }, "target": { "node": "apply", "pin": "command" }, "role": "data" },
+    { "id": "e10", "source": { "node": "apply", "pin": "pass" }, "target": { "node": "analyze", "pin": "exec-in" }, "role": "exec", "label": "next round" },
+
+    { "id": "e11", "source": { "node": "analyzeReport", "pin": "exec-out" }, "target": { "node": "refineExtract", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x11", "source": { "node": "gvRefineTasks", "pin": "value" }, "target": { "node": "refineExtract", "pin": "tasks" }, "role": "data" },
+    { "id": "e12", "source": { "node": "refineExtract", "pin": "exec-out" }, "target": { "node": "refine", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x12", "source": { "node": "refineExtract", "pin": "results" }, "target": { "node": "refine", "pin": "items" }, "role": "data" },
+    { "id": "e13", "source": { "node": "refine", "pin": "exec-out" }, "target": { "node": "refineGate", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x13", "source": { "node": "gvBuild2", "pin": "value" }, "target": { "node": "refineGate", "pin": "command" }, "role": "data" },
+    { "id": "x14", "source": { "node": "refine", "pin": "results" }, "target": { "node": "refineReport", "pin": "inputs" }, "role": "data" },
+    { "id": "e14", "source": { "node": "refineGate", "pin": "pass" }, "target": { "node": "refineReport", "pin": "exec-in" }, "role": "exec" },
+
+    { "id": "e15", "source": { "node": "refineReport", "pin": "exec-out" }, "target": { "node": "report", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x15", "source": { "node": "gvReportPrompt", "pin": "value" }, "target": { "node": "report", "pin": "prompt" }, "role": "data" },
+    { "id": "x16", "source": { "node": "gvReportSchema", "pin": "value" }, "target": { "node": "report", "pin": "schema" }, "role": "data" },
+    { "id": "e16", "source": { "node": "report", "pin": "exec-out" }, "target": { "node": "end", "pin": "exec-in" }, "role": "exec" },
+    { "id": "x17", "source": { "node": "report", "pin": "result" }, "target": { "node": "end", "pin": "value" }, "role": "data" }
+  ],
+  "groups": [
+    { "id": "g-setup", "label": "Setup", "rect": { "x": 580, "y": 250, "w": 580, "h": 500 }, "color": "gray" },
+    { "id": "g-analyze", "label": "Analyze — review loop", "rect": { "x": 1150, "y": 260, "w": 860, "h": 520 }, "color": "object" },
+    { "id": "g-refine", "label": "Refine", "rect": { "x": 2010, "y": 270, "w": 1140, "h": 230 }, "color": "string" },
+    { "id": "g-report", "label": "Report", "rect": { "x": 3210, "y": 250, "w": 560, "h": 460 }, "color": "array" }
+  ],
+  "variables": [
+    { "id": "v-build", "name": "BUILD_CMD", "type": "string", "value": { "kind": "string", "value": "npm run build" } },
+    { "id": "v-setupprompt", "name": "SETUP_PROMPT", "type": "string", "value": { "kind": "string", "value": "Verify preconditions and prepare the working environment. Report whether it is ready and why." } },
+    { "id": "v-reportprompt", "name": "REPORT_PROMPT", "type": "string", "value": { "kind": "string", "value": "Summarize the run: what changed, what passed, and any follow-ups. Return a structured report." } },
+    { "id": "v-analyzetasks", "name": "ANALYZE_TASKS", "type": "array", "elementType": "struct:struct-task", "value": { "kind": "array", "elementType": "struct:struct-task", "items": [ { "kind": "struct", "structId": "struct-task", "fields": { "label": { "kind": "string", "value": "analyze" }, "prompt": { "kind": "string", "value": "Analyze one module and report findings" } } } ] } },
+    { "id": "v-refinetasks", "name": "REFINE_TASKS", "type": "array", "elementType": "struct:struct-task", "value": { "kind": "array", "elementType": "struct:struct-task", "items": [ { "kind": "struct", "structId": "struct-task", "fields": { "label": { "kind": "string", "value": "refine" }, "prompt": { "kind": "string", "value": "Refine one item based on the findings" } } } ] } },
+    { "id": "v-setupschema", "name": "SETUP_SCHEMA", "type": "schema", "value": { "kind": "schema", "root": { "type": "object", "fields": [ { "name": "ready", "required": true, "node": { "type": "boolean" } }, { "name": "reasons", "required": true, "node": { "type": "string" } } ] } } },
+    { "id": "v-reportschema", "name": "REPORT_SCHEMA", "type": "schema", "value": { "kind": "schema", "root": { "type": "object", "fields": [ { "name": "summary", "required": true, "node": { "type": "string" } }, { "name": "status", "required": true, "node": { "type": "string" } } ] } } }
+  ],
+  "types": [
+    { "id": "struct-task", "name": "Task", "fields": [ { "name": "label", "type": "string" }, { "name": "prompt", "type": "string" } ] }
+  ]
+}

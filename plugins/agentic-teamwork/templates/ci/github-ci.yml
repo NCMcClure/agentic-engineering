@@ -1,0 +1,31 @@
+name: CI
+
+# Build and test on every PR to {{BASE_BRANCH}}, and on {{BASE_BRANCH}} after
+# merge. This is the one gate that runs server-side regardless of what a
+# contributor has configured locally — the .githooks/agentic-teamwork hooks
+# only run for whoever installed them, so CI is where "tests must pass" is
+# actually enforced for the whole team.
+on:
+  pull_request:
+    branches: [{{BASE_BRANCH}}]
+  push:
+    branches: [{{BASE_BRANCH}}]
+
+# A newer push to the same branch/PR supersedes an in-flight run.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-test:
+    name: Build & test
+    runs-on: {{RUNNER}}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Remove this step if the repo has no separate build command.
+      - name: Build
+        run: {{BUILD_COMMAND}}
+
+      - name: Test
+        run: {{TEST_COMMAND}}

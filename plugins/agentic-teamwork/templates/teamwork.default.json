@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "provider": "auto",
+  "remote": "origin",
+  "baseBranch": "main",
+  "protectedBranches": ["main", "master"],
+  "branchPrefixes": ["feature/", "fix/", "chore/"],
+  "escapeHatch": "TEAMWORK_ALLOW",
+  "test": {
+    "command": null,
+    "dir": ".",
+    "sourcePatterns": [],
+    "testPatterns": [],
+    "timeoutSeconds": 240
+  },
+  "build": {
+    "command": null,
+    "dir": "."
+  },
+  "lint": {
+    "command": null,
+    "filePatterns": []
+  },
+  "junkPatterns": [
+    "(^|/)\\.DS_Store$",
+    "(^|/)Thumbs\\.db$",
+    "(^|/)node_modules/",
+    "(^|/)__pycache__/",
+    "(^|/)\\.env(\\..*)?$"
+  ],
+  "secretPatternsExtra": [],
+  "coupledFiles": [],
+  "docs": {
+    "files": ["README.md", "CLAUDE.md"],
+    "watchPatterns": []
+  },
+  "scan": {
+    "maxFileBytes": 524288
+  },
+  "rules": {
+    "blockCommitOnProtected": true,
+    "blockPushToProtected": true,
+    "blockForcePush": true,
+    "blockNoVerify": true,
+    "blockSecrets": true,
+    "blockJunk": true,
+    "requireTestsPass": true,
+    "stopGate": true
+  }
+}

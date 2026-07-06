@@ -1,0 +1,20 @@
+# The server-side backstop for .claude/rules/dev-rules.md — the same checks
+# scripts/validate.sh runs locally, enforced for every push and PR.
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: validate-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: bash scripts/validate.sh

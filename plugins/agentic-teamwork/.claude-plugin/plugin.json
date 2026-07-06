@@ -1,0 +1,22 @@
+{
+  "name": "agentic-teamwork",
+  "version": "0.1.0",
+  "description": "Deterministic version-control guardrails for mixed-skill teams. Hooks block commits to protected branches, force-pushes, secrets, junk files, and failing tests — in Claude Code sessions, in the terminal via a mirrored pre-commit hook, and in CI. GitHub and GitLab first-class.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "license": "MIT",
+  "keywords": [
+    "git",
+    "guardrails",
+    "hooks",
+    "pre-commit",
+    "branch-protection",
+    "secrets",
+    "teamwork",
+    "github",
+    "gitlab",
+    "ci"
+  ]
+}

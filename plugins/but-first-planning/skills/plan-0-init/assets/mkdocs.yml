@@ -1,0 +1,48 @@
+# Self-contained docs site for the .plan/ specification.
+# Serve from the repo root with:  mkdocs serve -f .plan/mkdocs.yml
+# Paths below are resolved relative to THIS file (.plan/).
+site_name: "{{PROJECT_NAME}} Specification"
+docs_dir: spec
+site_dir: .site
+use_directory_urls: true
+
+theme:
+  name: shadcn
+  show_title: true
+  show_stargazers: false
+  topbar_sections: false
+  accent: "oklch(70.4% 0.181 41.3)"
+  pygments_style:
+    light: gruvbox-light
+    dark: gruvbox-dark
+
+extra_css:
+  - assets/gruvbox.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
+  - assets/mermaid-init.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      css_class: codehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+
+plugins:
+  - awesome-pages
+  - search
+
+exclude_docs: |
+  /scripts/

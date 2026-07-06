@@ -1,0 +1,17 @@
+# Build and test on every MR and on pushes to {{BASE_BRANCH}}. This is the one
+# gate that runs server-side regardless of what a contributor has configured
+# locally — the .githooks/agentic-teamwork hooks only run for whoever installed
+# them, so CI is where "tests must pass" is actually enforced for the whole team.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == "{{BASE_BRANCH}}"
+
+test:
+  image: {{RUNNER_IMAGE}}
+  # A newer push to the same branch/MR supersedes an in-flight run.
+  interruptible: true
+  script:
+    # Remove the build line if the repo has no separate build command.
+    - {{BUILD_COMMAND}}
+    - {{TEST_COMMAND}}

@@ -1,0 +1,117 @@
+/*
+ * Gruvbox palette override for mkdocs-shadcn.
+ * Maps the canonical gruvbox-medium hex colors onto the shadcn CSS variables.
+ * Light mode mirrors `:root`; dark mode mirrors `.dark`.
+ */
+
+:root {
+  /* Surfaces */
+  --background: #fbf1c7;          /* gruvbox light0 */
+  --foreground: #3c3836;          /* gruvbox dark1 */
+  --card: #f9f5d7;                /* gruvbox light0_h */
+  --card-foreground: #3c3836;
+  --popover: #f9f5d7;
+  --popover-foreground: #3c3836;
+  --surface: #ebdbb2;             /* gruvbox light1 */
+  --surface-foreground: #3c3836;
+
+  /* Sidebar */
+  --sidebar: #f2e5bc;             /* gruvbox light0_s */
+  --sidebar-foreground: #3c3836;
+  --sidebar-forground: #3c3836;   /* shadcn typo in base.css */
+  --sidebar-primary: #d65d0e;     /* gruvbox-light orange */
+  --sidebar-primary-foreground: #fbf1c7;
+  --sidebar-accent: #ebdbb2;
+  --sidebar-accent-foreground: #3c3836;
+  --sidebar-border: #bdae93;      /* gruvbox light3 */
+  --sidebar-ring: #d65d0e;
+
+  /* Primary/secondary */
+  --primary: #d65d0e;             /* gruvbox-light orange */
+  --primary-foreground: #fbf1c7;
+  --secondary: #ebdbb2;
+  --secondary-foreground: #3c3836;
+
+  /* Muted */
+  --muted: #ebdbb2;
+  --muted-foreground: #7c6f64;    /* gruvbox gray on light */
+
+  /* Accent (interactive surfaces, NOT the theme accent option) */
+  --accent: #ebdbb2;
+  --accent-foreground: #3c3836;
+
+  /* Borders, inputs, focus */
+  --border: #bdae93;
+  --input: #bdae93;
+  --ring: #d65d0e;
+
+  /* Destructive / warning */
+  --destructive: #9d0006;         /* gruvbox-light red */
+  --destructive-foreground: #fbf1c7;
+  --warning: #b57614;             /* gruvbox-light yellow */
+
+  /* Selection */
+  --selection: #d3869b;           /* gruvbox-light purple, muted */
+
+  /* Code surface (used for inline code chips and code-block chrome) */
+  --code: #ebdbb2;
+  --code-foreground: #3c3836;
+  --code-highlight: #d5c4a1;      /* gruvbox light2 */
+  --code-number: #928374;
+}
+
+.dark {
+  /* Surfaces */
+  --background: #282828;          /* gruvbox dark0 */
+  --foreground: #ebdbb2;          /* gruvbox light1 */
+  --card: #32302f;                /* gruvbox dark0_s */
+  --card-foreground: #ebdbb2;
+  --popover: #32302f;
+  --popover-foreground: #ebdbb2;
+  --surface: #3c3836;             /* gruvbox dark1 */
+  --surface-foreground: #ebdbb2;
+
+  /* Sidebar */
+  --sidebar: #1d2021;             /* gruvbox dark0_h */
+  --sidebar-foreground: #ebdbb2;
+  --sidebar-forground: #ebdbb2;
+  --sidebar-primary: #fe8019;     /* gruvbox-dark orange */
+  --sidebar-primary-foreground: #282828;
+  --sidebar-accent: #3c3836;
+  --sidebar-accent-foreground: #ebdbb2;
+  --sidebar-border: #504945;      /* gruvbox dark2 */
+  --sidebar-ring: #fe8019;
+
+  /* Primary/secondary */
+  --primary: #fe8019;             /* gruvbox-dark orange */
+  --primary-foreground: #282828;
+  --secondary: #3c3836;
+  --secondary-foreground: #ebdbb2;
+
+  /* Muted */
+  --muted: #3c3836;
+  --muted-foreground: #a89984;    /* gruvbox light4 */
+
+  /* Accent */
+  --accent: #504945;              /* gruvbox dark2 */
+  --accent-foreground: #ebdbb2;
+
+  /* Borders, inputs, focus */
+  --border: #504945;
+  --input: #504945;
+  --ring: #fe8019;
+
+  /* Destructive / warning */
+  --destructive: #fb4934;         /* gruvbox-dark red */
+  --destructive-foreground: #282828;
+  --warning: #fabd2f;             /* gruvbox-dark yellow */
+
+  /* Selection */
+  --selection: #d3869b;
+
+  /* Code surface */
+  --code: #3c3836;
+  --code-foreground: #ebdbb2;
+  --code-highlight: #504945;
+  --code-number: #928374;
+}
