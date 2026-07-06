@@ -70,7 +70,9 @@ the eye believes, what change feels like.
 A file-based agent harness that wraps Claude Code with persistent project
 memory and a knowledge-capture pipeline — what the agent learns today, it
 still knows next month. Lives in [its own repo](https://github.com/NCMcClure/strata);
-installs here resolve from that repo's CI-built `claude-code` branch.
+installs here resolve from that repo's CI-built `claude-code` branch. (That
+repo is currently private — installing strata requires GitHub access to it;
+the other five plugins install for anyone.)
 
 ## Working in this repo
 
