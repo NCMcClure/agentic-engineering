@@ -47,12 +47,13 @@ The contract for maintaining this marketplace. Applies to humans and agents alik
    the root README section.
 4. validate.sh + local install test, then commit and tag.
 
-## External-source plugins (strata)
+## External-source plugins
 
-- Strata's installable plugin is a CI artifact on the `claude-code` branch of
-  NCMcClure/strata. This repo holds only its catalog entry; never vendor its
-  files here. Releases happen in the strata repo — this repo changes only when
-  the entry itself (description, ref) changes.
+- A plugin may live in its own repo and appear here as a catalog entry with an
+  object source (`{"source": "github", "repo": ..., "ref": ...}`) — never vendor
+  its files. Releases happen in that repo; this repo changes only when the entry
+  itself changes. There are currently none; the entry's repo must be public (a
+  private repo makes the entry uninstallable for anyone without access).
 
 ## Testing locally before pushing
 

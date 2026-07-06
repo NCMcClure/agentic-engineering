@@ -2,8 +2,8 @@
 
 A personal marketplace of Claude Code plugins, each built to solve a
 foundational problem of engineering with agents: planning before code,
-memory that outlives a session, teams that can't break main, workflows you
-can see, and ideas that actually land.
+teams that can't break main, workflows you can see, and ideas that
+actually land.
 
 > The premise: agents didn't make the fundamentals optional — they made
 > them enforceable. New world, old lesson: the fundamentals still win.
@@ -65,15 +65,6 @@ narrative arc, visual design, and motion: what order things land in, what
 the eye believes, what change feels like.
 [Read more →](plugins/animated-storytelling/README.md)
 
-### strata
-
-A file-based agent harness that wraps Claude Code with persistent project
-memory and a knowledge-capture pipeline — what the agent learns today, it
-still knows next month. Lives in [its own repo](https://github.com/NCMcClure/strata);
-installs here resolve from that repo's CI-built `claude-code` branch. (That
-repo is currently private — installing strata requires GitHub access to it;
-the other five plugins install for anyone.)
-
 ## Working in this repo
 
 The contribution contract — layout invariants, the versioning rule, how to
@@ -83,4 +74,4 @@ push. Agents maintaining this repo read the same rules you do.
 
 ## License
 
-MIT — see [LICENSE](LICENSE). Strata carries its own license in its repo.
+MIT — see [LICENSE](LICENSE).

@@ -37,17 +37,6 @@
       "source": "./plugins/animated-storytelling",
       "description": "Narrative arc + visual design + motion craft for making ideas land: NCP storyform, hierarchy/type/color, and Motion v12 recipes.",
       "category": "creative"
-    },
-    {
-      "name": "strata",
-      "source": {
-        "source": "github",
-        "repo": "NCMcClure/strata",
-        "ref": "claude-code"
-      },
-      "description": "Strata harness for Claude Code: persistent project memory, capture pipeline, and workflow scaffolding.",
-      "category": "memory",
-      "repository": "https://github.com/NCMcClure/strata"
     }
   ]
 }
