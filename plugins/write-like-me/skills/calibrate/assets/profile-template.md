@@ -29,6 +29,5 @@ code, commit messages, or PR descriptions.
 - <punctuation: e.g. "Em-dashes sparingly — one per email, not four.">
 - <correspondence: e.g. "Open with 'Hey <name>,'; sign off 'Thanks, N' or nothing.">
 
-## Learned
-
-<!-- Auto-refined from observed style feedback. Reviewable via /write-like-me:review. -->
+<!-- Observed style feedback is folded into the sections above as in-place
+     revisions (logged to the plugin changelog). Review via /write-like-me:review. -->

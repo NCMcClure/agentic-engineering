@@ -20,8 +20,9 @@ captures five true things beats one that catalogs twenty.
 
 1. **Check for an existing profile.** If the profile file
    exists, read it and tell the user you'll update rather than start over.
-   Lines in its `## Learned` section came from observed feedback — carry them
-   forward unless the user drops them.
+   `${CLAUDE_PLUGIN_DATA}/changelog.md` records which lines were auto-revised
+   from observed feedback — carry those preferences forward unless the user
+   drops them.
 
 2. **Gather 2–4 writing samples.** Ask for prose the user actually wrote —
    pasted text or file paths (emails, docs, posts; a few hundred words total
