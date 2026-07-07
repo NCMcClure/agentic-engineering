@@ -1,7 +1,7 @@
 {
   "name": "workflow-studio",
   "displayName": "Workflow Studio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.",
   "author": {
     "name": "Nicholas McClure",

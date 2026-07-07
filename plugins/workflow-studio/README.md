@@ -1,6 +1,6 @@
 # Workflow Studio
 
-An Unreal-Blueprint-style visual editor for Claude Code dynamic workflows —
+An Unreal-Blueprint-style visual editor for Claude Code dynamic workflows:
 drag nodes, wire pins, and compile the graph losslessly to
 `.claude/workflows/*.js`. No blueprint compiler errors, though. Mostly.
 
@@ -12,7 +12,7 @@ drag nodes, wire pins, and compile the graph losslessly to
    the printout, not 5173).
 
 First launch copies the app into `~/.claude/plugins/data/workflow-studio/app`
-and runs `npm ci` — expect 30–60 seconds, Node 20+, and network access, once.
+and runs `npm ci`; expect 30–60 seconds, Node 20+, and network access, once.
 After that, launches are near-instant and offline-friendly.
 
 ## Skills
@@ -20,7 +20,7 @@ After that, launches are near-instant and offline-friendly.
 | Skill | What it does |
 |---|---|
 | `/workflow-studio` | Launches the visual studio (Vite dev server) and hands you the URL. |
-| `/author-workflow` | Hand-author or edit workflows and `diagram.json` graphs — no GUI, just the protocol docs. |
+| `/author-workflow` | Hand-author or edit workflows and `diagram.json` graphs: no GUI, just the protocol docs. |
 
 ## Storage layout
 
@@ -63,15 +63,16 @@ package.json package-lock.json LICENSE README.md .gitignore` from the source
 repo into `app/` (excluding `node_modules/`, `dist/`, `.git/`, `studio/`),
 update the commit SHA above, and bump the plugin version.
 
-**Exception — `app/docs/` is maintained in this plugin**, not re-copied: as of
+**Exception: `app/docs/` is maintained in this plugin**, not re-copied: as of
 0.1.1 its authoring protocol was rewritten to match the plugin's studio layout.
 When refreshing, diff the upstream docs for genuinely new protocol content and
 fold it in by hand instead of overwriting.
 
 ## Changelog
 
-- **0.1.1** — studio-root fallback now actually applied in the launch command; storage layout single-sourced in this README; AUTHORING.md de-sedimented (workspace model replaced with the studio layout, dead references/ paths fixed, stale skill notes removed); compilation routed to the studio's codegen instead of hand-emulation; trimmed skill descriptions (~219 → ~138 est passive tokens).
-- **0.1.0** — Initial release: vendored studio app (workflow-editor @
+- **0.1.2**: README reworded.
+- **0.1.1**: studio-root fallback now actually applied in the launch command; storage layout single-sourced in this README; AUTHORING.md de-sedimented (workspace model replaced with the studio layout, dead references/ paths fixed, stale skill notes removed); compilation routed to the studio's codegen instead of hand-emulation; trimmed skill descriptions (~219 → ~138 est passive tokens).
+- **0.1.0**: Initial release: vendored studio app (workflow-editor @
   `studio-overhaul`, `8c65333`), `launch-studio.sh` with persistent install
   home and lockfile-aware `npm ci`, `/workflow-studio` and `/author-workflow`
   skills.
