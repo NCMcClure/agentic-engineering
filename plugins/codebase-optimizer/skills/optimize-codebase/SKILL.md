@@ -1,6 +1,6 @@
 ---
 name: optimize-codebase
-description: Staged, autonomous codebase optimizer that folds three loops into one engine — ORGANIZE (tidy the file tree via history-preserving git mv + reference rewriting), DECOMPOSE (split god-files into focused modules behind compat shims), and DEEPEN (architectural deepenings of shallow modules / leaky seams) — each behind CI-faithful validation with revert-on-red. Language-aware — a Setup pass detects the ecosystem (Python, JS/TS, Go, Rust; generic fallback) and derives the src root, test root, env/test/smoke/lint commands, and per-language shim + codemod strategy. Use when the user wants to optimize / refactor / restructure / clean up / tidy / reorganize a codebase, split large "god" files, break up an overstuffed directory, improve or deepen architecture, or reduce a repo's file-navigability friction — phrases like "optimize this codebase", "decompose these huge files", "organize the folder structure", "improve the architecture", "this repo is a mess / hard to navigate". Drives a Claude Code dynamic Workflow that fans out many subagents; stages are toggleable (organize / decompose / deepen).
+description: Staged autonomous codebase optimizer — ORGANIZE the file tree, DECOMPOSE god-files, DEEPEN shallow architecture — each behind CI-faithful validation with revert-on-red. Use for whole-codebase asks — "optimize this codebase", "decompose these huge files", a multi-stage refactor sweep.
 ---
 
 # Optimize Codebase

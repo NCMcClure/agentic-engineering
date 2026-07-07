@@ -11,7 +11,8 @@ deterministic JSON profile into pass/fail findings with exit codes.
 
 Checks (severity):
 1. FLAT_DIR_BLOAT (WARNING) — a package directory whose *source* file count
-   meets/exceeds --flat-max (philosophy principle 3: ~25 files → add a layer).
+   meets/exceeds --flat-max (philosophy principle 3; the canonical default
+   lives in repo_scan.py's FLAT_MAX_DEFAULT).
 2. OVERSIZED_MODULE (INFO) — a source file at/over --module-max lines; the
    decompose stage's god-file signal (agrees with the workflow's discoverLines).
 3. MISSING_INIT (CRITICAL) — a non-root directory under the subtree that holds
@@ -24,7 +25,7 @@ Checks (severity):
 
 Usage:
     python3 dev/bin/verify_source_structure.py [repo_path] [--subtree src]
-        [--flat-max 25] [--module-max 1500] [--json] [--scan-script PATH]
+        [--flat-max N] [--module-max 1500] [--json] [--scan-script PATH]
 
     repo_path defaults to the repo root inferred from this script's location
     (dev/bin/ -> two levels up). Findings are filtered to --subtree (default
@@ -96,11 +97,18 @@ class Report:
 # repo_scan invocation
 # ---------------------------------------------------------------------------
 
-def run_repo_scan(scan_script: Path, repo_root: Path, flat_max: int):
-    """Run repo_scan.py and return its parsed JSON profile, or raise."""
+def run_repo_scan(scan_script: Path, repo_root: Path, flat_max):
+    """Run repo_scan.py and return its parsed JSON profile, or raise.
+
+    flat_max=None means "use repo_scan's canonical FLAT_MAX_DEFAULT" — the
+    threshold is read back from the profile's overstuffed_threshold field, so
+    the number lives in exactly one script.
+    """
+    cmd = [sys.executable, str(scan_script), str(repo_root)]
+    if flat_max is not None:
+        cmd += ["--overstuffed", str(flat_max)]
     proc = subprocess.run(
-        [sys.executable, str(scan_script), str(repo_root),
-         "--overstuffed", str(flat_max)],
+        cmd,
         capture_output=True, text=True, timeout=120,
     )
     if proc.returncode != 0 and not proc.stdout.strip():
@@ -316,8 +324,9 @@ def main():
     ap.add_argument("--subtree", default="src",
                     help="restrict findings to this repo-relative subtree "
                          "(default: src; pass '' for the whole repo)")
-    ap.add_argument("--flat-max", type=int, default=25,
-                    help="source files per dir before FLAT_DIR_BLOAT (default 25)")
+    ap.add_argument("--flat-max", type=int, default=None,
+                    help="source files per dir before FLAT_DIR_BLOAT "
+                         "(default: repo_scan.py's canonical FLAT_MAX_DEFAULT)")
     ap.add_argument("--module-max", type=int, default=1500,
                     help="lines before OVERSIZED_MODULE (default 1500)")
     ap.add_argument("--scan-script", default=None,
@@ -361,8 +370,14 @@ def main():
 
     report.total_files = profile.get("totals", {}).get("total_files", 0)
 
+    # Effective threshold: explicit flag, else the canonical default echoed
+    # back by repo_scan in the profile (single source of the number).
+    flat_max = (args.flat_max if args.flat_max is not None
+                else profile.get("overstuffed_threshold"))
+
     check_missing_init(repo_root, report)
-    check_flat_dir_bloat(profile, report, args.flat_max)
+    if flat_max is not None:
+        check_flat_dir_bloat(profile, report, flat_max)
     check_oversized_module(profile, report, args.module_max)
     check_cruft(profile, report)
     check_ephemera(profile, report)

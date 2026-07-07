@@ -57,7 +57,9 @@ something else.
 
 A directory with dozens of sibling files forces the reader to scan filenames
 linearly; the directory has stopped disclosing structure. When a directory
-holds more than ~25 source files, give it a second layer. Two ways to split,
+holds more source files than the flat-max threshold (the canonical default,
+`FLAT_MAX_DEFAULT`, lives in `scripts/repo_scan.py`), give it a second layer.
+Two ways to split,
 and the existing names usually tell you which:
 
 - **By feature/domain** when filenames cluster around nouns

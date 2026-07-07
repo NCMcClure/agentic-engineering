@@ -125,7 +125,7 @@ phase('Verify')
 const verify = await agent(
   `You are verifying that an in-progress reorganization of the repo at ${ROOT} (branch ${pre.branch || BRANCH}) did not break the build. Detect the project's OWN tooling and run it; let exit codes judge. Anchor to the repo: cd "${ROOT}" before running, or use the tool's project-dir flag.
 
-Detect ecosystem from manifests (the plan lists ecosystems; ${JSON.stringify((pre && []) || [])}) and run the appropriate checks, fastest first:
+Detect ecosystem from manifests, cross-checking the ecosystems list in the plan at ${PLAN_PATH}, and run the appropriate checks, fastest first:
 - Python: python3 -c "import <top-level package>" smoke test, then pytest (or pytest --co -q to confirm collection if a full run is too slow/heavy), and ruff/flake8 if configured.
 - Node/TS: npm run build or npx tsc --noEmit for path/type resolution, then npm test if a test script exists.
 - Go: go build ./... then go test ./...

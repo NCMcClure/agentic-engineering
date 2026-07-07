@@ -1,8 +1,11 @@
 # codebase-optimizer
 
-A Claude Code plugin that runs a **staged, autonomous codebase optimizer** over a
-repository. It folds three loops into one engine, each gated by CI-faithful
-validation with revert-on-red:
+Codebases accrete: roots fill with loose files, modules balloon into god-files,
+and shallow pass-through layers pile up until neither a newcomer nor an agent
+can navigate the tree — and hand-refactoring it is slow and risky. This plugin
+runs a **staged, autonomous codebase optimizer** over a repository instead. It
+folds three loops into one engine, each gated by CI-faithful validation with
+revert-on-red:
 
 | Stage | What it does |
 |-------|--------------|
@@ -93,5 +96,6 @@ skills/
 
 ## Changelog
 
+- **0.2.1** — bundled CONTEXT-FORMAT.md/ADR-FORMAT.md (fixing links that escaped the plugin); always-on description footprint cut from ~574 to ~194 est tokens with distinct triggers per skill; HTML report skeleton ships as an asset; flat-max threshold single-sourced in repo_scan.py; workflow fixes (Measure phase in meta, schema'd recon-scan, real plan path in the verify prompt, soft-judgment panel lenses floored at sonnet).
 - **0.2.0** — language-agnostic engine: ecosystem profiles (Python, JS/TS, Go, Rust + `generic` fallback) detected at Setup drive the toolchain commands, shim strategy, seam census, and codemod guidance; host-repo leftovers removed from the defaults; ORGANIZE degrades gracefully when `python3` is absent.
 - **0.1.0** — initial release via the agentic-engineering marketplace (plugin renamed from `optimize-codebase` to `codebase-optimizer`; the entry skill keeps its `optimize-codebase` name).

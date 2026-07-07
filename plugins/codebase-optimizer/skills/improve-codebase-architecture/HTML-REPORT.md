@@ -4,34 +4,11 @@ The architectural review is rendered as a single self-contained HTML file in the
 
 ## Scaffold
 
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <title>Architecture review — {{repo name}}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module">
-      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
-    </script>
-    <style>
-      /* small custom layer for things Tailwind doesn't cover cleanly:
-         dashed seam lines, hand-drawn-feeling arrow heads, etc. */
-      .seam { stroke-dasharray: 4 4; }
-      .leak { stroke: #dc2626; }
-      .deep { background: linear-gradient(135deg, #0f172a, #1e293b); }
-    </style>
-  </head>
-  <body class="bg-stone-50 text-slate-900 font-sans">
-    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
-      <header>...</header>
-      <section id="candidates" class="space-y-10">...</section>
-      <section id="top-recommendation">...</section>
-    </main>
-  </body>
-</html>
-```
+The report chrome is a shipped asset — copy
+[assets/report-skeleton.html](assets/report-skeleton.html) to the temp-dir
+output path and fill its `{{…}}` placeholders (each names the section below
+that specifies its content). Don't retype the head/CDN/mermaid-init/CSS block;
+only the header, candidate cards, and top recommendation are authored per run.
 
 ## Header
 

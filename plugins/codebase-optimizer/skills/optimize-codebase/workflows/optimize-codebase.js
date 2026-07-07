@@ -7,6 +7,7 @@ export const meta = {
     { title: 'Org[{p}] · Iter {r}', detail: 'ORGANIZE stage repo-level rounds (when selected): codebase-organizer plan -> persist -> apply (git mv + ref rewrite) -> CI verify -> commit -> re-scan until converged; phases unique per (pass, round)' },
     { title: 'Discover[{stage}] {p}', detail: 'DECOMPOSE worklist scan (files > discoverLines) / DEEPEN anchor scan (files > deepAnchorLines), unique per pass' },
     { title: '{STAGE} F{n} {file} · Iter {r}', detail: 'per-file engine rounds, created DYNAMICALLY and uniquely per (stage, file, round) — e.g. "DEC F2 main · Iter 1": compute the file public import path + contract census, then iterate rounds (find -> panel -> apply+shims -> validate -> commit) until convergence; no phase name is reused across stages, files, or rounds' },
+    { title: 'Measure', detail: 'single-target mode only: measure the named file to decide whether the engine stages apply' },
     { title: 'Report', detail: 'per-stage rollup: organize moves landed, per-file before/after line counts + extractions, deepenings landed, org-audit findings, and convergence reasons' },
   ],
 }
@@ -79,6 +80,10 @@ const M_KEY = A.keyModel || 'opus'        // hard-veto correctness lenses, chair
 // pass haikuMech:true to swap the default down to Haiku (cheaper/faster) for these steps. An explicit
 // mechModel always wins. M_CHAIR_FALLBACK + M_VAL/M_CHAIR defaults that key off M_MECH follow suit.
 const M_MECH = A.mechModel || (A.haikuMech === true ? 'haiku' : 'sonnet')
+// SOFT-JUDGMENT tier: the non-veto panel lenses (blast radius, test net, steward, execution
+// strategist) are architectural judgment, not mechanics — they never drop below Sonnet even when
+// haikuMech swaps the mechanical loop to Haiku. An explicit mechModel still wins.
+const M_SOFT = A.mechModel || 'sonnet'
 // COORDINATION tier: the per-file / per-advance steps that are essentially pure structured-output
 // transcription — fast-setup, discover (run wc -l, transcribe every oversized file), census (grep +
 // tally), measure-target. Haiku is unreliable at emitting StructuredOutput for these and CRASHES the
@@ -1303,7 +1308,7 @@ if (NEEDS_CONV) {
       `Read-only — make NO edits. Produce a concise REPO ORGANIZATION CONVENTIONS block for the source tree at ${ROOT} (ecosystem: ${ECOSYSTEM}), to guide WHERE newly-created modules should be placed during automated refactors (so they land in logically-organized subdirectories, not as loose flat siblings that bloat a directory).
 
 Sources to read and distill (do NOT copy verbatim — synthesize into <= ~30 lines):
-- ${ORGANIZER_SKILL_DIR}/references/philosophy.md (the 8 organization principles — esp. "root holds intent", "no overstuffed directories ~25 files", "directories are nouns", "honor ecosystem idioms", progressive disclosure).
+- ${ORGANIZER_SKILL_DIR}/references/philosophy.md (the 8 organization principles — esp. "root holds intent", "no overstuffed directories" (repo_scan.py owns the flat-max threshold), "directories are nouns", "honor ecosystem idioms", progressive disclosure).
 - ${ORGANIZER_SKILL_DIR}/references/language-layouts.md (the idiomatic source layout for this ecosystem: ${ECOSYSTEM}).
 ${CONVENTIONS_DOC ? '- ' + ROOT + '/' + CONVENTIONS_DOC + ' (project-specific layout notes — honor these over generic advice).\n' : ''}- The ACTUAL package/directory layout under the source root **${SCAN_ROOTS[0]}**: list it with \`bash -c 'cd "${ROOT}" && ls -1 ${SCAN_ROOTS[0]}'\`, then inspect the contents of the 2-3 largest packages/dirs (\`ls -1 ${SCAN_ROOTS[0]}/<pkg>\`) so the conventions name the REAL packages of THIS repo + their existing subdirectory patterns (mirror what already exists — do NOT invent a parallel scheme or copy names from another project).
 ${PY3 ? '- The current structure-verifier findings (which dirs are ALREADY over the flat-file limit, so new modules there MUST go into a subdirectory): run \`bash -c \'cd "' + ROOT + '" && ' + STRUCT_VERIFY_CMD + ' --subtree ' + SCAN_ROOTS[0] + '\'\`.\n' : '- (The deterministic structure verifier is unavailable this run — python3 is not on PATH — so derive the over-the-limit dirs from the ls listings above.)\n'}
@@ -2024,7 +2029,7 @@ ${p.hardVeto
   : 'You do NOT hold a hard veto. Set hard_veto:false. A serious concern is vote:"veto" (soft) — the chair weighs it.'}
 
 Set confidence (0..1) after reading the file. Put concrete preconditions in required_safeguards (compat shims, characterization "seam-still-bites" tests, execution mechanism) and externally reachable names/behaviours that must not change in behavior_invariants. Cite file:line where you can.`,
-          { label: 'panel:' + tag + ':' + p.role.split(' ')[0].toLowerCase() + ':' + cand.title.slice(0, 14).replace(/\s+/g, '-'), phase: phaseOf(n), schema: PANELIST_SCHEMA, model: p.hardVeto ? M_KEY : M_MECH }
+          { label: 'panel:' + tag + ':' + p.role.split(' ')[0].toLowerCase() + ':' + cand.title.slice(0, 14).replace(/\s+/g, '-'), phase: phaseOf(n), schema: PANELIST_SCHEMA, model: p.hardVeto ? M_KEY : M_SOFT }
         )
       ))).filter(Boolean)
 

@@ -201,19 +201,19 @@ Run exactly this (the script is stdlib-only Python):
 \`\`\`
 cd "${ROOT}" && python3 "${SKILL_DIR}/scripts/repo_scan.py" "${ROOT}"${EXCLUDE_FLAGS}
 \`\`\`
-If python3 is unavailable, try python. Capture the script's STDOUT (it is a single JSON object) and return it as your entire final message — raw JSON, no commentary, no code fences. If the script errors, return a JSON object {"error": "<the stderr>"}.`,
-  { label: 'recon-scan', phase: 'Scan' }
+If python3 is unavailable, try python. Capture the script's STDOUT (it is a single JSON object) and return it verbatim in the json field. If the script errors, set json to {"error": "<the stderr>"}.`,
+  { label: 'recon-scan', phase: 'Scan', schema: { type: 'object', required: ['json'], properties: { json: { type: 'string', description: "the script's raw stdout JSON, verbatim" } } } }
 )
 
 let profile = {}
 try {
-  const m = scanRaw.match(/\{[\s\S]*\}/)
-  profile = m ? JSON.parse(m[0]) : {}
+  profile = scanRaw && scanRaw.json ? JSON.parse(scanRaw.json) : {}
 } catch (e) { profile = {} }
 if (profile.error) log('Scan reported: ' + profile.error)
 
+// overstuffed_dirs is already thresholded by repo_scan.py's flat-max default —
+// don't re-filter by a second copy of the number here.
 const overstuffed = (profile.overstuffed_dirs || [])
-  .filter(d => (d.source_file_count || d.file_count) >= 25)
   .filter(d => !isExcluded(d.path))
 if (EXCLUDE.length) log('Excluding from reorg (will not move/restructure): ' + EXCLUDE.join(', '))
 log('Scan done: ' + (profile.totals ? JSON.stringify(profile.totals) : 'no totals') + '; ' + overstuffed.length + ' overstuffed source dirs')

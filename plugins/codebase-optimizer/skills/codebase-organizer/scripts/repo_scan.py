@@ -179,6 +179,12 @@ def make_exclude_matcher(excludes):
     return excluded
 
 
+# Canonical "overstuffed directory" threshold (philosophy principle 3). This is
+# the single source for the number: verify_source_structure.py imports it, and
+# prose/prompts elsewhere refer to "repo_scan's flat-max" instead of restating it.
+FLAT_MAX_DEFAULT = 25
+
+
 def scan(repo, overstuffed_threshold, max_list, excludes=None,
          large_min=800, large_cap=25):
     repo = os.path.abspath(repo)
@@ -188,6 +194,7 @@ def scan(repo, overstuffed_threshold, max_list, excludes=None,
         "git": git_info(repo),
         "ecosystems": [],
         "root": {"intent_files": [], "loose_files": [], "dirs": []},
+        "overstuffed_threshold": overstuffed_threshold,
         "overstuffed_dirs": [],
         "cruft": {"files": [], "dirs": [], "duplicate_cache_dirs": []},
         "large_source_files": [],
@@ -332,8 +339,9 @@ def scan(repo, overstuffed_threshold, max_list, excludes=None,
 def main():
     ap = argparse.ArgumentParser(description="Recon a repo's tree shape.")
     ap.add_argument("repo_path")
-    ap.add_argument("--overstuffed", type=int, default=25,
-                    help="files-in-one-dir threshold to flag as overstuffed")
+    ap.add_argument("--overstuffed", type=int, default=FLAT_MAX_DEFAULT,
+                    help="files-in-one-dir threshold to flag as overstuffed "
+                         "(default: FLAT_MAX_DEFAULT, the canonical constant)")
     ap.add_argument("--max-list", type=int, default=30,
                     help="max sample filenames to include per overstuffed dir")
     ap.add_argument("--large-min", type=int, default=800,

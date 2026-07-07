@@ -1,19 +1,10 @@
 ---
 name: codebase-organizer
 description: >
-  Reorganize a messy, sprawling codebase into a clean, progressive-disclosure
-  directory layout — declutter an overloaded repo root, break up overstuffed
-  directories, apply language-idiomatic structure, and quarantine cruft, then
-  actually move the files (history-preserving git mv), rewrite the broken
-  import/config/CI references, and verify the build still passes. Use this
-  whenever the user wants to tidy, restructure, reorganize, clean up, or
-  improve the navigability of a codebase's file tree — when they say a repo's
-  root is "a mess", has "too many files at the top level", "grew without a
-  plan", is "hard to navigate", or ask to "lay it out properly", "make it more
-  logical", or "organize the folder structure" — even if they don't say the
-  word "organize". Drives the heavy fan-out through Claude Code dynamic
-  Workflows: a read-only planning pass, an inline human approval gate, then a
-  mutating apply pass.
+  Reorganize a sprawling file tree into a progressive-disclosure layout — plan,
+  history-preserving git mv, reference rewriting, build verification. Use for
+  tree-only asks — the repo root is "a mess", "too many files at the top
+  level", "organize the folder structure".
 ---
 
 # Codebase organizer
