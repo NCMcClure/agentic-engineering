@@ -1,24 +1,13 @@
 ---
 name: animated-storytelling
 description: >-
-  Craft, revise, and enhance concepts, ideas, stories, explainers, and pitches
-  by giving them an intentional narrative arc and/or bringing them to life with
-  animation. Three levers: (1) NARRATIVE — diagnose or build a dramatic arc with
-  perspectives, beats, and tension so a piece stops reading like a flat list;
-  (2) VISUAL — establish hierarchy, typography, color, and composition so the
-  piece looks credible and the eye lands where the story needs it;
-  (3) MOTION — design and implement tasteful, accessible animation (Motion /
-  Framer Motion, scroll-driven, SVG choreography, streaming feeds, interactive
-  mocks, visual metaphors) that makes an idea felt, not just stated. Use this
-  whenever the user wants to make a concept land harder, restructure something
-  that "reads flat" or "is just bullet points," add story/dramatic arc to
-  content, animate or "bring to life" a webpage / hero / explainer / diagram /
-  data story, pick easing/timing/spring for a transition, decide which moments
-  deserve bespoke animation, or polish existing animation — even when they don't
-  say "narrative" or "animation" outright but are reworking how an idea is told
-  or shown. Also use it to make something look more polished, professional, or
-  premium, fix visual hierarchy, or choose type or color for a pitch or landing
-  page.
+  Make an idea land by working three levers — narrative arc, visual hierarchy
+  (type, color, composition), and tasteful accessible animation (Motion /
+  Framer Motion). Use when content "reads flat" or "is just bullet points",
+  when a page / hero / explainer / diagram should be animated or "brought to
+  life", when a transition needs easing/timing/spring choices or polish, or
+  when something should look more professional — fix hierarchy, pick type or
+  color — even when the user never says "narrative" or "animation".
 ---
 
 # Animated Storytelling
@@ -50,7 +39,7 @@ Use this when a piece "looks amateur," everything on screen competes for attenti
 Use this when something static should move, when an entrance/reveal needs polish, when a mechanism would "click" if you could *see* it animate, or when existing animation feels janky, gratuitous, or inaccessible.
 
 → Start at **`references/motion-design/overview.md`** (the *why* and *when*: three designer lenses, the enter recipe, the decision framework, the golden rules). Then drop down as needed:
-- `references/motion-api/` — the *how* in code (Motion / Framer Motion v12: `motion.*`, `AnimatePresence`, `useScroll`/`useTransform`, variants, layout animations, performance). Code assumes React + Motion; the principles port, the syntax may not.
+- `references/motion-api/` — the *how* in code (Motion / Framer Motion: `motion.*`, `AnimatePresence`, `useScroll`/`useTransform`, variants, layout animations, performance; the pinned version lives in its overview.md).
 - `references/creative-recipes/` — bespoke, memorable patterns for the 2-3 showcase moments (state machines, SVG choreography, streaming feeds, interactive mocks, visual metaphors). These are recipes to *adapt*, not components to import.
 - Always honor `references/motion-design/accessibility.md` — `prefers-reduced-motion` is non-negotiable.
 
@@ -72,17 +61,37 @@ Standard presumes the visual system is already right; showcase moments stack all
 
 ## The creative workflow
 
-1. **Name the goal and the lever(s).** What should the audience believe/feel/do after? Narrative, motion, or both?
-2. **If story-shaped, build the narrative skeleton first** (NCP storyform). Get the arc and the throughline tension right before any visuals — motion on a broken arc is polish on sand.
-3. **Establish the visual system** (type scale, spacing scale, palette roles, grid) — 15 minutes here saves every later step.
-4. **Locate the 1-3 moments worth a showcase.** Usually the narrative pivot and the primary evidence. Everything else is standard/enhanced.
-5. **For each showcase, run the creative process** (from `creative-recipes/overview.md`): What's the concept? What makes it *visceral*? Which recipe is closest? What do I adapt?
-6. **Implement with the right physics** (`motion-design/technical-principles.md` + `motion-api/`): real spring/easing values, GPU-friendly properties, reduced-motion fallback.
-7. **Review against the golden rules** (`motion-design/golden-rules.md`): does each animation serve orientation/feedback/continuity? Does it survive the 10th viewing? Are exits subtler than entrances?
+Each step ends on a checkable state — don't move on while one is unmet:
+
+1. **Name the goal and the lever(s).** *Done when* you can state, in one
+   sentence, what the audience should believe/feel/do after, and which
+   lever(s) you're pulling.
+2. **If story-shaped, build the narrative skeleton first** (NCP storyform).
+   Motion on a broken arc is polish on sand. *Done when* the storyform names
+   the thesis, both throughlines, and every act's beats — no empty slots.
+3. **Establish the visual system.** *Done when* the type scale, spacing
+   scale, palette roles, and grid are written down — every size and color
+   used later must appear in them.
+4. **Locate the moments worth a showcase.** Usually the narrative pivot and
+   the primary evidence. *Done when* there are at most 3 showcases and each
+   names the beat it serves; everything else is standard/enhanced.
+5. **For each showcase, run the creative process** (from
+   `creative-recipes/overview.md`). *Done when* concept, what makes it
+   *visceral*, the closest recipe, and what you're adapting each have a
+   written one-line answer.
+6. **Implement with the right physics** (`motion-design/technical-principles.md`
+   + `motion-api/`). *Done when* only GPU-friendly properties animate and a
+   reduced-motion fallback exists for every animation.
+7. **Review before shipping.** *Done when* the five-point audit in
+   `visual-design/overview.md` passes (contrast pairs verified by
+   `scripts/contrast_check.py`, exit 0) and every animation passes the golden
+   rules (`motion-design/golden-rules.md`): names its job
+   (orientation/feedback/continuity), survives the 10th viewing, exits
+   subtler than entrances.
 
 ## Scope & honesty
 
-- The motion **code** assumes a React + Motion (Framer Motion v12) web context. The motion **principles** — timing, easing, restraint, staggering, accessibility, narrative arc — are universal; on other targets (vanilla CSS/JS, native, video), carry the principles over and port the code.
+- The motion **code** assumes a React + Motion web context (version pinned in `references/motion-api/overview.md`). The motion **principles** — timing, easing, restraint, staggering, accessibility, narrative arc — are universal; on other targets (vanilla CSS/JS, native, video), carry the principles over and port the code.
 - NCP here is a deliberately minimal subset (2 throughlines) tuned for communication pieces, not the full theory. It's enough to give almost any idea a spine.
 - When adapting a recipe, say what you changed and why — these are starting points, not drop-in components.
 

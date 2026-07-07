@@ -8,7 +8,7 @@ Implementation details for motion in presentations.
 
 | Type | When to Use | Config |
 |------|-------------|--------|
-| Spring | Interactive elements, content entrances | `type: "spring", duration: 0.45, bounce: 0` |
+| Spring | Interactive elements, content entrances | the enter recipe's bounce-0 spring — values canonical in [jakub-krehel.md](jakub-krehel.md) |
 | Tween | Progress bars, precise timing needs | `duration: 0.35, ease: [0.25, 0.1, 0.25, 1]` |
 
 ### Common Easing Curves
@@ -142,20 +142,6 @@ Multiple thresholds ensure the callback fires at meaningful visibility levels ra
 
 ## Reduced Motion Implementation
 
-```tsx
-// At presentation root
-<MotionConfig reducedMotion="user">
-
-// For CSS animations
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-// For RAF loops
-const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)')
-if (prefersReduced.matches) return
-```
+The full implementation — `MotionConfig reducedMotion="user"` at the root,
+plus the CSS media-query and RAF-loop escapes it does *not* cover — is
+canonical in [accessibility.md](accessibility.md); apply it from there.

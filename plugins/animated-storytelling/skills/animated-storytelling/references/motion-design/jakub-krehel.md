@@ -10,7 +10,9 @@ Jakub's approach centers on **polish recipes** — repeatable patterns that cons
 
 ## The Enter Animation Recipe
 
-The foundational pattern for any element appearing on screen:
+The foundational pattern for any element appearing on screen. **This file is
+the canonical home of the recipe's values** — other references point here
+rather than restating them:
 
 ```tsx
 initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}

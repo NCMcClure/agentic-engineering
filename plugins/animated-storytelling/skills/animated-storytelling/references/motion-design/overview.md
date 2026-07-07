@@ -43,32 +43,15 @@ Read "slide" as "the moment/section you're animating":
 
 ## The Enter Animation Recipe (Foundation)
 
-Every content element entering view should use this baseline:
+Every content element entering view uses the enter recipe — opacity + a small
+y offset + blur, on a bounce-0 spring. The canonical values (and the y-offset
+sizing table) live in [jakub-krehel.md](jakub-krehel.md); read them there
+rather than working from memory.
 
-```tsx
-initial={{ opacity: 0, y: 8, filter: "blur(4px)" }}
-animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-transition={{ type: "spring", duration: 0.45, bounce: 0 }}
-```
-
-Adjust `y` offset (8-20px) based on element size. Larger elements need more offset to feel natural.
-
-## Stagger Pattern (Multiple Elements)
-
-When several content blocks enter together (bullets, cards, stats):
-
-```tsx
-// Parent: staggerChildren in transition
-transition={{ staggerChildren: 0.08 }}
-
-// Children: use variants
-variants={{
-  hidden: { opacity: 0, y: 12, filter: "blur(4px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)" }
-}}
-```
-
-Stagger delay: 60-100ms between items. More than 5 items? Reduce to 40-60ms to avoid feeling slow.
+For several blocks entering together (bullets, cards, stats), the same recipe
+runs through a `staggerChildren` parent — the variants-based orchestration
+pattern is in `../motion-api/animation-patterns.md`. Stagger delay: 60-100ms
+between items; more than 5 items, reduce to 40-60ms to avoid feeling slow.
 
 ## Reference Files (this folder)
 

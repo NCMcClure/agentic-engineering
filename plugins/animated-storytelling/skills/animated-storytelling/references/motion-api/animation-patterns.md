@@ -1,6 +1,9 @@
 # Animation Patterns
 
-Reusable patterns for presentation animations.
+Reusable patterns for presentation animations. The enter/exit/stagger values
+below are the enter recipe — canonical in
+`../motion-design/jakub-krehel.md`; these blocks show its *API orchestration*,
+not a second copy to tweak independently.
 
 ## Enter/Exit Pattern
 

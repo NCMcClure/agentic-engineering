@@ -49,7 +49,7 @@ The same posture as `../motion-design/accessibility.md` takes on reduced motion:
 | Large text (≥ 24px, or ≥ 18.66px bold) | **3:1** |
 | UI components, focus indicators, chart strokes | **3:1** |
 
-The place it always fails: muted text on a surface. Step 400 in the ramp above sits near the 4.5:1 line on white — check it against *surface*, not background, because that's where captions actually live. Check the accent-on-background pairing too; saturated accents around 50% lightness routinely fail as text.
+The place it always fails: muted text on a surface. Step 400 in the ramp above sits near the 4.5:1 line on white — check it against *surface*, not background, because that's where captions actually live. Check the accent-on-background pairing too; saturated accents around 50% lightness routinely fail as text. The arithmetic is the bundled script's job, not yours: `python3 "${CLAUDE_PLUGIN_ROOT}/skills/animated-storytelling/scripts/contrast_check.py" 'FG:BG' …` reports each ratio and pass/fail at both thresholds.
 
 Contrast is also a hierarchy instrument, which gives you a second reason to be stingy with it: **reserve maximum contrast for the focal point.** If every text block sits at 15:1, the ratio stops ranking anything. Body at a comfortable 8–12:1, muted at 4.5–6:1, and the one number that matters at full 16:1+ — now contrast is doing hierarchy work for free.
 

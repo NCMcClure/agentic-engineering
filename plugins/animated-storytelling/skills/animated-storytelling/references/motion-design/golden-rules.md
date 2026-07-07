@@ -21,23 +21,14 @@ Animations that pass on first use but fail at 10th use:
 ### 3. Subtler Exits
 Exit animations should be quieter than entrance animations. The user's attention moves forward, not backward. A departing element doesn't need to announce its leaving.
 
-```tsx
-// Entrance: full recipe
-initial={{ opacity: 0, y: 12, filter: "blur(4px)" }}
-animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-
-// Exit: subdued
-exit={{ opacity: 0, y: -6, filter: "blur(4px)" }}
-```
+Entrances get the full enter recipe; exits get a smaller, opposite-direction
+offset that doesn't mirror the entrance distance. Both value sets are canonical
+in [jakub-krehel.md](jakub-krehel.md) ("Exit Animation Subtlety").
 
 ### 4. Accessibility is Non-Negotiable
-`prefers-reduced-motion` must be respected. Use `MotionConfig reducedMotion="user"` at the presentation root. This is not optional, not a nice-to-have, not something you'll add later.
-
-When reduced motion is active:
-- Slide transitions become instant crossfades
-- Stagger animations collapse to simultaneous
-- Background animations stop entirely
-- Only meaningful state changes remain (opacity for visibility)
+`prefers-reduced-motion` must be respected — not optional, not a nice-to-have,
+not something you'll add later. The implementation and the reduced-motion
+behavior contract are canonical in [accessibility.md](accessibility.md).
 
 ### 5. The Best Animation Goes Unnoticed
 > "The best animation is that which goes unnoticed."

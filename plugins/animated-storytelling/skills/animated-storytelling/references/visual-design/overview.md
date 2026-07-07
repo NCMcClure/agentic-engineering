@@ -54,7 +54,7 @@ Run this on every view before shipping. Each item is pass/fail — no partial cr
 1. **Squint test** — Blur your eyes (or blur the screenshot 8px). Does exactly one thing dominate? If two or more elements survive the squint at equal strength, the hierarchy is broken.
 2. **One focal point per view** — Can you point at *the* element this view exists to deliver? If you hesitate, the audience will too.
 3. **Type sizes from a scale, not by eye** — Every font size on screen appears in your scale table. A single freehand `17px` is a fail.
-4. **Contrast ratios pass** — 4.5:1 for body text, 3:1 for large text and UI elements. Check the muted text; that's where it always fails.
+4. **Contrast ratios pass** — 4.5:1 for body text, 3:1 for large text and UI elements. Never eyeball the math: run the bundled checker on each FG:BG pair — `python3 "${CLAUDE_PLUGIN_ROOT}/skills/animated-storytelling/scripts/contrast_check.py" '#5b5b66:#ffffff' …` (hex or `h,s%,l%`; non-zero exit on any hard 3:1 failure). Check the muted text especially; that's where it always fails.
 5. **Every color has a job** — Point at each distinct color and name its role (background, surface, text, muted, accent, semantic). A color you can't assign a job to is decoration, and decoration is debt.
 
 A view that passes all five is ready for motion. A view that fails any of them isn't — and no amount of spring tuning will fix it.

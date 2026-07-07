@@ -121,7 +121,10 @@ Adds spring physics to any MotionValue.
 ### Spring (recommended for UI)
 
 ```tsx
+// duration form — content entrances use the enter recipe's values,
+// canonical in ../motion-design/jakub-krehel.md
 transition={{ type: "spring", duration: 0.45, bounce: 0 }}
+// physics form
 transition={{ type: "spring", stiffness: 300, damping: 30 }}
 ```
 
@@ -144,25 +147,10 @@ transition={{
 
 ## Variants — Orchestration Pattern
 
-Used heavily in presentations for staggered reveals:
-
-```tsx
-const container = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.08 } }
-}
-
-const item = {
-  hidden: { opacity: 0, y: 12, filter: "blur(4px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)" }
-}
-
-<motion.div variants={container} initial="hidden" whileInView="visible">
-  <motion.div variants={item} />
-  <motion.div variants={item} />
-  <motion.div variants={item} />
-</motion.div>
-```
+Used heavily in presentations for staggered reveals: a `container` variant
+carrying `staggerChildren` plus an `item` variant carrying the enter recipe.
+The worked code is in [animation-patterns.md](animation-patterns.md)
+("Stagger Pattern") — read it there rather than reconstructing it.
 
 ## Layout Animations
 
