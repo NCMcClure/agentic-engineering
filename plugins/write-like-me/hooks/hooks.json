@@ -3,21 +3,21 @@
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py\"" }
+          { "type": "command", "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py\"" }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt_submit.py\"" }
+          { "type": "command", "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt_submit.py\"" }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\"", "timeout": 30 }
+          { "type": "command", "command": "python3 -B \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\"", "timeout": 30 }
         ]
       }
     ]

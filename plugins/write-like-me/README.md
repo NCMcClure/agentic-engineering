@@ -5,9 +5,6 @@ emails, docs, READMEs, reports, posts, messages — so it sounds like *you*
 instead of like a language model. Code, commit messages, and PR descriptions
 are deliberately out of scope.
 
-Built on a verified research corpus of 2024–2026 AI-writing-detection
-literature (see [`research/`](research/)).
-
 ## How it works — three layers
 
 1. **Always-on profile** — `~/.claude/rules/write-like-me.md`, a ≤60-line
@@ -67,15 +64,20 @@ rm ~/.claude/rules/write-like-me.md
 
 ## Changelog
 
+- **0.2.0** — distilled the bundled research corpus into the catalog itself:
+  lexical tells are now categories + tests (word lists decay; the framework
+  doesn't), references trimmed, primary citations kept as a footer. Dev-only
+  `evals/` dropped. Hooks no longer write bytecode (`python3 -B`).
 - **0.1.0** — initial release via the agentic-engineering marketplace; state
   lives under `${CLAUDE_PLUGIN_DATA}`.
 
 ## The tells catalog
 
-The distilled, actionable catalog Claude checks drafts against is
+The catalog Claude checks drafts against is
 [`skills/write-like-me/references/ai-tells.md`](skills/write-like-me/references/ai-tells.md)
-— lexical markers (the "delve" family), structural/rhetorical patterns
+— a lexical framework (style-word categories plus the spoken-register test,
+rather than a decaying word list), structural/rhetorical patterns
 (rule-of-three runs, negative parallelism, hedging, uniform rhythm),
 formatting tells, and the honest caveats: tells decay once publicized, single
-signals are unreliable, and only *co-occurring clusters* mean much. Sources
-and confidence grades live in [`research/`](research/).
+signals are unreliable, and only *co-occurring clusters* mean much. Primary
+sources (2024–2026 detection research) are cited in the catalog's footer.
