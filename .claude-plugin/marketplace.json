@@ -37,6 +37,12 @@
       "source": "./plugins/animated-storytelling",
       "description": "Narrative arc + visual design + motion craft for making ideas land: NCP storyform, hierarchy/type/color, and Motion v12 recipes.",
       "category": "creative"
+    },
+    {
+      "name": "write-like-me",
+      "source": "./plugins/write-like-me",
+      "description": "Make Claude's human-facing prose sound like you — a calibrated always-on voice profile, AI-tell auditing, and hooks that learn from your style feedback.",
+      "category": "writing"
     }
   ]
 }

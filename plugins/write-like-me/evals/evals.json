@@ -1,0 +1,23 @@
+{
+  "skill_name": "write-like-me",
+  "evals": [
+    {
+      "id": 0,
+      "prompt": "Write an email to my team announcing that we're moving sprint planning from Monday mornings to Wednesday afternoons starting next month, because too many people have Monday PTO conflicts. Keep it brief.",
+      "expected_output": "A short, natural-sounding email in a human voice: varied rhythm, no AI-tell clusters (no 'I hope this finds you well' boilerplate, no rule-of-three padding, no empty closer), leads with the change.",
+      "files": []
+    },
+    {
+      "id": 1,
+      "prompt": "Write the intro section (2-3 paragraphs, before any install instructions) of a README for a Python CLI tool called 'snapdiff' that screenshots two URLs and produces a visual diff image highlighting what changed. Audience is developers browsing GitHub.",
+      "expected_output": "Concrete, direct README prose: says what the tool does and why you'd want it with specifics, avoids 'comprehensive/robust/seamlessly' inflation, prose not bullet-scaffolding, no formulaic closer.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Summarize the report at research/ai-writing-tells-2024-2026.md in about 150 words as a Slack post for engineering leadership who haven't read it. They need the takeaways, not the methodology.",
+      "expected_output": "A ~150-word Slack-register summary: leads with the takeaway, concrete numbers kept, no hedging boilerplate, reads like a person posted it.",
+      "files": ["research/ai-writing-tells-2024-2026.md"]
+    }
+  ]
+}
