@@ -1,6 +1,6 @@
 ---
 name: plan-6-edit
-description: Change an existing spec or plan and keep spec, plan tree, and tracker in sync — routes the edit to the owning planning skill, then propagates consequences through spec anchors. Use for any change after initial planning — "the design changed", "update the plan", "add a feature". Requires a .plan/ workspace.
+description: Change an existing spec or plan, keeping spec, plan tree, and tracker in sync via spec anchors. Use for any change after planning — "the design changed", "add a feature". Requires .plan/.
 ---
 
 # plan-6-edit — change the plan, keep everything in sync

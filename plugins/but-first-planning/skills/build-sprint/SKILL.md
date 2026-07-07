@@ -1,6 +1,6 @@
 ---
 name: build-sprint
-description: Build a whole sprint with coordinated builder subagents — consume build-next-issue's dispatch plan, fan builders across the parallel-safe frontier, integrate serially with re-checkpointing, pause at HITL gates, open one PR per sprint. Use for autonomy asks — "build the sprint", "have agents complete epic N". Run build-next-issue first.
+description: Build a whole sprint with coordinated builder subagents from build-next-issue's dispatch plan, integrating serially with HITL gates. Use for autonomy asks — "build the sprint", "agents build epic N".
 ---
 
 # build-sprint — run the builders that build a sprint
@@ -40,10 +40,9 @@ These are the user's calls, and they change the run. Surface them first:
    produce one first.
 2. **Gate on HITL.** If the frontier's lead is a HITL issue, or an AFK issue
    implicitly depends on one, handle it per the chosen policy *before* fanning out.
-   The reliable pattern for "pause and ask": a builder (or you) **drafts** the
-   artifact, you review and correct it, the human **signs off**, then commit. Ground
-   factual claims before sign-off (e.g. confirm host/tool facts against real docs)
-   rather than guessing.
+   The reliable pattern for "pause and ask" — draft → review → sign-off → commit,
+   with factual claims grounded before sign-off — is in
+   [ORCHESTRATION.md](ORCHESTRATION.md).
 3. **Open a sprint branch** off the integration branch (usually `main`).
 4. **Dispatch wave by wave.** For each wave, dispatch the parallel-safe, file-disjoint
    issues to builders; cluster issues that touch the same module into one builder /

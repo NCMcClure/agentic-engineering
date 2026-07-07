@@ -99,7 +99,6 @@ what's already published.
 
 ## Idempotency
 
-If a run is interrupted, re-reading the plan files tells you what's already
-published (rows with a real `#NNN`) versus pending (`<unassigned>`). Only publish
-the pending ones — never create a duplicate for an issue that already has a
-reference.
+The canonical rule is in SKILL.md step 2 — an issue that already carries a
+`#NNN` ref is never re-created. The as-you-go backfill above is what makes that
+rule work across interrupted runs.

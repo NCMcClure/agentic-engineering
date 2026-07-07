@@ -73,7 +73,7 @@ const unitKey = u => u.coords.join('+')
 // ---------- Phase 1: preflight ----------
 phase('Preflight')
 const preflight = await agent(
-  `${CTX}\nYou are the preflight checker. In order: (1) git -C ${ROOT} status --porcelain — if ANYTHING is uncommitted, report clean=false and STOP (never build on top of uncommitted user work). (2) Create the sprint branch: git -C ${ROOT} checkout -b ${BRANCH} ${PR_BASE} (if it already exists, check it out and report resumed=true). (3) python3 ${PLANDIR}/verify-plan-tree.py — must exit 0; report its state. (4) Spot-check wave-1 tooling: for these first-wave checkpoint commands, check the named tools/scripts exist WITHOUT running the checkpoints: ${JSON.stringify((dispatch.waves[0] ? dispatch.waves[0].units : []).map(u => ({ unit: unitKey(u), files: u.files })))} — cross-reference the known checkpoint-health problems: ${JSON.stringify(dispatch.checkpointHealth || [])}. ${BRIEF}`,
+  `${CTX}\nYou are the preflight checker. In order: (1) git -C ${ROOT} status --porcelain — if ANYTHING is uncommitted, report clean=false and STOP (never build on top of uncommitted user work). (2) Create the sprint branch: git -C ${ROOT} checkout -b ${BRANCH} ${PR_BASE} (if it already exists, check it out and report resumed=true).${PARALLELISM === 'worktree' ? ` (2b) Prune stale isolation leftovers from any previous run: git -C ${ROOT} worktree prune; then for each leftover ${ROOT}/.worktrees/* directory, git -C ${ROOT} worktree remove <it> --force, and delete its matching issue/* branch with git -C ${ROOT} branch -D — a stale worktree/branch collides with this run's worktree add. Report what you pruned in warnings.` : ''} (3) python3 ${PLANDIR}/verify-plan-tree.py — must exit 0; report its state. (4) Spot-check wave-1 tooling: for these first-wave checkpoint commands, check the named tools/scripts exist WITHOUT running the checkpoints: ${JSON.stringify((dispatch.waves[0] ? dispatch.waves[0].units : []).map(u => ({ unit: unitKey(u), files: u.files })))} — cross-reference the known checkpoint-health problems: ${JSON.stringify(dispatch.checkpointHealth || [])}. ${BRIEF}`,
   {
     label: 'preflight', phase: 'Preflight', model: 'sonnet', effort: 'low',
     schema: {
@@ -205,6 +205,20 @@ const failed = []     // {unit, reason, route}
 let failuresLeft = MAX_FAILURES
 let stoppedEarly = false
 
+// A blocked/failed builder in worktree mode never reaches its integrator, whose
+// step 2 owns worktree/branch removal — clean up here so the orphaned
+// .worktrees/<unit> dir and issue/<unit> branch can't collide with a re-run.
+const cleanupWorktree = async (u) => {
+  if (PARALLELISM !== 'worktree') return
+  await agent(
+    `Cleanup for skipped unit ${unitKey(u)} — its builder was blocked or failed, so its isolation worktree may be orphaned. Run, tolerating "not found" errors: git -C ${ROOT} worktree remove ${ROOT}/.worktrees/${unitKey(u)} --force ; git -C ${ROOT} branch -D issue/${unitKey(u)} ; git -C ${ROOT} worktree prune. Pure command driving; no judgment. ${BRIEF}`,
+    {
+      label: `cleanup:${unitKey(u)}`, phase: 'Build', model: 'haiku', effort: 'low',
+      schema: { type: 'object', required: ['removed'], properties: { removed: { type: 'boolean', description: 'true if a worktree or branch existed and was removed' }, notes: { type: 'string' } } },
+    }
+  )
+}
+
 const integrateOne = async (u, builder) => {
   const integration = await agent(integratorPrompt(u, built), {
     label: `integrate:${unitKey(u)}`, phase: 'Integrate', model: 'sonnet', effort: 'medium', schema: INTEGRATE_SCHEMA,
@@ -256,6 +270,7 @@ for (const wave of dispatch.waves) {
       if (!b || b.status === 'blocked') {
         failed.push({ unit: unitKey(u), coords: u.coords, reason: b ? `builder blocked: ${b.evidence}` : 'builder agent failed', route: 'retry' })
         failuresLeft--
+        await cleanupWorktree(u)
         continue
       }
       if (!(await integrateOne(u, b))) failuresLeft--
@@ -267,6 +282,7 @@ for (const wave of dispatch.waves) {
       if (!b || b.status === 'blocked') {
         failed.push({ unit: unitKey(u), coords: u.coords, reason: b ? `builder blocked: ${b.evidence}` : 'builder agent failed', route: 'retry' })
         failuresLeft--
+        await cleanupWorktree(u)
         continue
       }
       if (!(await integrateOne(u, b))) failuresLeft--

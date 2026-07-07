@@ -58,14 +58,13 @@ autonomously.
 
 ## Decision issues (routed open questions)
 
-When the spec defers a genuine product decision ("Open questions" sections,
-inline `**Open question:**` blocks), the plan carries it as a **decision issue**:
-`HITL`, titled by the decision to make, placed in the earliest sprint whose work
-it gates, blocking the issues that need the answer. Its acceptance criteria are
-decision-shaped — "an ADR records the choice and the spec note is updated" — not
-code-shaped. Questions that are really builder latitude within fixed constraints
-don't get issues; they get an inline note in the implementing issue's
-`## What to build`. Either way, every open question lands exactly once.
+The routing rule itself lives in SKILL.md step 3 ("Route every open question").
+The shape that rule produces: a decision issue is `HITL`, titled by the decision
+to make, placed in the earliest sprint whose work it gates, blocking the issues
+that need the answer — and its acceptance criteria are decision-shaped ("an ADR
+records the choice and the spec note is updated"), not code-shaped. Example of
+builder latitude (the other route): "pick any stable sort" is an inline note in
+the implementing issue, not an issue of its own.
 
 ## Sizing and dependencies
 

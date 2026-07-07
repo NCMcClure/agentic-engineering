@@ -1,6 +1,6 @@
 ---
 name: autopilot
-description: Autopilot the full planning-and-build pipeline — spec from a brief, grill until dry, architect, plan, publish, and build sprint after sprint — as a sequence of the suite's autonomous workflow modes with one consolidated human touchpoint. Use when the user wants a project or feature built end-to-end autonomously — "build this whole thing AFK", "take it from idea to shipped sprints". Requires trust settled up front via the autonomy contract.
+description: Autopilot the planning-and-build pipeline — spec, grill, architect, plan, publish, build — with one human touchpoint. Use when the user wants a project built end-to-end autonomously ("build this AFK").
 ---
 
 # autopilot — the whole pipeline, hands-off
@@ -19,11 +19,10 @@ everything after. Ask which stages are yours at contract time.
 ## Step 0 — settle the autonomy contract (plan mode)
 
 Enter plan mode and settle the contract in one pass — the questions, defaults,
-policy-arg mappings, and the permissions to pre-approve are in
-[AUTONOMY-CONTRACT.md](AUTONOMY-CONTRACT.md). Four calls: **decisions**
-(batch | auto), **hitl** (draft-and-defer | skip-and-flag | auto-implement),
-**scope** (sprint | epic NN | backlog), and the **publish/PR posture** (which
-tracker, openPr, prBase). Present the contract and the stage list; the user's
+option sets, policy-arg mappings, and the permissions to pre-approve are in
+[AUTONOMY-CONTRACT.md](AUTONOMY-CONTRACT.md). Four calls: **decisions**,
+**hitl**, **scope**, and the **publish/PR posture** — the contract file owns
+each one's options. Present the contract and the stage list; the user's
 approval of this plan is the run's one blanket authorization — after it, stop
 only at the touchpoints the contract keeps.
 

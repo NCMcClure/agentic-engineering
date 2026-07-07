@@ -1,6 +1,6 @@
 ---
 name: build-tdd
-description: Test-driven development with a red-green-refactor loop — the build-phase skill for implementing work test-first, especially a plan issue from build-next-issue (its acceptance criteria and spec anchors drive the tests). Use when the user wants to build a feature or fix a bug test-first, mentions "red-green-refactor", or says "implement this issue".
+description: Test-driven development with a red-green-refactor loop, driven by a plan issue's acceptance criteria when one is in play. Use for test-first features and fixes, "red-green-refactor", or "implement this issue".
 ---
 
 # build-tdd — red-green-refactor
@@ -73,7 +73,7 @@ Before writing any code:
 
 - [ ] Confirm with user what interface changes are needed
 - [ ] Confirm with user which behaviors to test (prioritize)
-- [ ] Identify opportunities for [deep modules](../plan-3-architect-spec/LANGUAGE.md) (small interface, deep implementation)
+- [ ] Identify opportunities for **deep modules** — small interface, deep implementation; the suite's canonical architecture vocabulary lives in [plan-3-architect-spec's LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md), shared rather than duplicated here
 - [ ] Design interfaces for testability: **accept dependencies** (don't construct them inside), **return results** (don't mutate arguments as side effects), **small surface** (fewer methods and params = simpler tests)
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan

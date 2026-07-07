@@ -127,6 +127,6 @@ with a comment beats deleting; the board history stays honest.
 
 ## Idempotency
 
-Same rule as GitHub: re-reading the plan files tells you what's already published
-(`#NNN`) versus pending (`<unassigned>`). Only publish the pending ones — never
-create a duplicate for an issue that already has a reference.
+The canonical rule is in SKILL.md step 2 — an issue that already carries a ref
+is never re-created; iids being non-reusable (above) makes duplicates extra
+costly here.

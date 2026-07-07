@@ -1,6 +1,6 @@
 ---
 name: plan-1-specify
-description: Author the specification as a progressive-disclosure markdown docs website under .plan/spec/ — language-agnostic (pseudocode + diagrams) unless plan-0-init recorded a language. Use when the user wants to write or grow a spec — "spec this out", "document the design", "add a section to the spec". Requires .plan/ (plan-0-init).
+description: Author the specification as a progressive-disclosure docs site under .plan/spec/. Use when the user wants to write or grow a spec — "spec this out", "document the design", "add a section". Requires .plan/.
 ---
 
 # plan-1-specify — author the specification

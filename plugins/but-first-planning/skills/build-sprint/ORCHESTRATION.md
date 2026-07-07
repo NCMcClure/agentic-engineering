@@ -37,8 +37,9 @@ Keep builders from colliding.
   commit touched disjoint files. If you can't confirm real isolation, fall back to
   serial.
 
-The non-negotiable: **never run two agents that write the same working tree at the
-same time.**
+The rule all of this serves is stated once, in SKILL.md's coordination model —
+the coordinator never lets two agents write the same working tree concurrently.
+This section is the how and the observed failure when it's violated.
 
 ## What each builder must do
 
@@ -71,11 +72,9 @@ Brief every builder to:
   lands: `plan-status.py set EE-SS-II done`. The funnel rewrites shared parent files
   (`sprint.md`, `epic.md`, `plan/index.md`), so it must never be fanned out across
   parallel builders/worktrees — only the coordinator runs it, one issue at a time,
-  which the serial integration above already guarantees. Write the per-run narrative
-  to `.plan/progress/notes/YYYY-MM-DD-NN-MM-slug.md` and mirror any plan/spec defects
-  or architecture smells into their own files under `.plan/progress/drift/`
-  (one `drift-<slug>.md` each). Keep these bookkeeping
-  edits on the same branch but in their own commit, so the issue commits stay clean.
+  which the serial integration above already guarantees. Keep the bookkeeping edits
+  (the per-run narrative and drift files SKILL.md step 7 writes) on the same branch
+  but in their own commit, so the issue commits stay clean.
 
 ## The scaffolded plan-tree integrity gate
 

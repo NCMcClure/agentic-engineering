@@ -147,6 +147,7 @@ entry carries none — plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **2.5.2** — halved the always-on description footprint; deduplicated rules restated across skill/reference pairs; drift-file format disclosed to DRIFT-FORMAT.md; HTML report skeleton shipped as an asset; build-sprint workflow now prunes/cleans orphaned worktrees from blocked builders.
 - **2.5.1** — moved into the agentic-engineering marketplace; install paths updated. No skill changes.
 - **2.5.0** — rubric-driven skill overhaul; autonomous workflow modes for 9 skills; autopilot.
 

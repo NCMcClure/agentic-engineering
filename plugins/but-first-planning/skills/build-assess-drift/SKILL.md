@@ -155,10 +155,8 @@ drift file with its verdict. A fully pre-authorized autonomous caller may run
 `publish: true` directly. **Converged when** every open item is settled to a
 terminal status or routed to a `follow-up issue #NNN`.
 
-## What this skill does not do
+## Scope boundary
 
-- It does not implement the fix — that's the route skill the issue points at.
-- It does not edit the spec or plan, or touch any `Status:` field — only drift
-  `status:` and the issue it opens.
-- It does not redefine the drift-file format — `build-next-issue` owns it.
-- It does not invoke `plan-5-publish-issues`; it only borrows its GitHub recipe.
+The one non-obvious edge: this skill touches only drift `status:` fields (and
+the issues it opens) — never the plan tree's `Status:` fields, the spec, or the
+plan itself. Everything else it hands off is stated where it happens above.

@@ -101,13 +101,10 @@ Workflow({
 **Autonomous mode** is this workflow with `{applyFixes: true, rounds: 3}` —
 grill-until-dry. **Converged when** a re-review round over the changed files
 confirms no critical or major finding. What stays gated: product decisions —
-the fixers park them as `**Open question:**` blocks for the interactive grill
-(or plan-4's decision routing) rather than inventing them.
-
-The two modes compose: fixers never invent product decisions — anything needing
-one lands as an `**Open question:**` block in the spec, which the interactive
-grill then resolves with the user. Findings and fix reports come back for you to
-walk through and hand off normally.
+fixers never invent them; anything needing one lands as an `**Open question:**`
+block in the spec, which the interactive grill (or plan-4's decision routing)
+then resolves with the user. Findings and fix reports come back for you to walk
+through and hand off normally.
 
 ## Done when
 

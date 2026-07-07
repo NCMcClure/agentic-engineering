@@ -1,6 +1,6 @@
 ---
 name: plan-0-init
-description: Scaffold the .plan/ planning workspace — spec docs site, plan tree, glossary, ADRs, tracker config, status funnel, verifiers. Run once per project. Use when the user wants to plan, spec, or design a project and .plan/ does not exist yet, or says "set up planning" / "init plan".
+description: Scaffold the .plan/ planning workspace — spec site, plan tree, glossary, ADRs, tracker. Run once, when the user wants to plan or spec a project and .plan/ doesn't exist — "set up planning".
 ---
 
 # plan-0-init — scaffold the `.plan/` workspace
