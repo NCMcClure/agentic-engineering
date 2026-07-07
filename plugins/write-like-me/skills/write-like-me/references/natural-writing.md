@@ -1,9 +1,11 @@
 # Natural Writing Craft
 
 For when a draft is tell-free but still reads flat. The tells catalog says
-what to remove; this says what makes prose alive. All of it defers to the
-user's profile (`~/.claude/rules/write-like-me.md`) — these defaults exist
-only for the space the profile doesn't cover.
+what to remove; this says what makes prose alive. The Rhythm, Concreteness,
+and Commitment sections are the deep dives behind SKILL.md's drafting moves
+1, 2, and 4 — the move states the rule once; this file holds the technique
+for when the rule isn't landing. All of it defers to the user's profile —
+these defaults exist only for the space the profile doesn't cover.
 
 ## Rhythm
 

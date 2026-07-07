@@ -2,21 +2,22 @@
 name: review
 description: >
   Show, prune, revert, or configure the user's writing profile and its
-  auto-refinement history. Use when the user runs /write-like-me:review, asks
-  what's in their writing profile, wants to see or undo auto-applied style
-  refinements, or wants to pause/resume profile learning from feedback.
+  auto-refinement history — the human valve on the learning loop.
+disable-model-invocation: true
 ---
 
 # Review: Inspect and Curate the Profile
 
-The profile at `~/.claude/rules/write-like-me.md` is auto-loaded into every
-session, and the Stop hook auto-applies refinements to its `## Learned`
-section. This skill is the human valve on that loop.
+The profile (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE`
+if set) is auto-loaded into every session, and the Stop hook auto-applies
+refinements to its `## Learned` section. This skill is the human valve on
+that loop.
 
 ## Steps
 
-1. **Show the current state.** Print the profile with line count against the
-   60-line budget, then the recent entries from
+1. **Show the current state.** Print the profile, run
+   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile_budget.py"` for the
+   line count against the budget, then show the recent entries from
    `${CLAUDE_PLUGIN_DATA}/changelog.md` so the user can see what was
    auto-applied and when. Flag any conflict between a Learned line and a calibrated line.
 

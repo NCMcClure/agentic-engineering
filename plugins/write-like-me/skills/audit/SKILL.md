@@ -1,10 +1,10 @@
 ---
 name: audit
 description: >
-  Analyze existing text for AI-writing tells and optionally rewrite it in the
-  user's voice. Use when the user runs /write-like-me:audit, asks "does this
-  sound AI-written?", wants text checked / audited / scanned for AI tells, or
-  asks to "de-AI" or "humanize" an existing draft they provide.
+  Analyze existing text for AI-writing tells, report a verdict, and optionally
+  rewrite it in the user's voice. Use when the user runs /write-like-me:audit,
+  asks "does this sound AI-written?", or wants a draft checked for AI tells.
+  (Fresh prose is the write-like-me skill's job.)
 ---
 
 # Audit: Find the Tells
@@ -33,6 +33,7 @@ wants, rewrite it in their **voice**.
      reported cluster carries a quote — an unquoted finding doesn't count.
 
 4. **Offer the rewrite.** If the user wants it, rewrite the flagged passages
-   in their voice — their profile (`~/.claude/rules/write-like-me.md`) governs
+   in their voice — their profile (normally `~/.claude/rules/write-like-me.md`,
+   or `$WLM_PROFILE` if set; `scripts/wlm/paths.py` is the resolver) governs
    tone and vocabulary; rewrite the sentence rather than swapping the flagged
    word. Show before/after for each changed passage.

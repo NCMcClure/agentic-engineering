@@ -25,8 +25,10 @@ The message that invoked you names two resolved paths — use those, not guesses
    - Prefer sharpening an existing line over adding a new one.
    - One line per preference, written as an instruction in the profile's own
      style (e.g. `- Contractions always; "do not" only for emphasis.`).
-   - The profile must stay **at or under 60 lines total**. If your edit would
-     exceed that, evict the least load-bearing Learned line to make room.
+   - The profile must stay at or under the line budget —
+     `scripts/wlm/profile_budget.py` (next to the paths resolver) owns the
+     number; run it after editing and it must exit 0. If your edit would
+     exceed the budget, evict the least load-bearing Learned line to make room.
    - The calibrated sections (Voice, Rhythm, Vocabulary, Formatting, Scope)
      came from an explicit interview — you may not rewrite them. If feedback
      contradicts a calibrated line, add the Learned line anyway and flag the
@@ -41,7 +43,7 @@ The message that invoked you names two resolved paths — use those, not guesses
    ```
    ## 2026-07-06 (auto)
    - Added: "<new line>"  (from: "<feedback phrase>")
-   - Removed: "<evicted line>"  (over 60-line budget)
+   - Removed: "<evicted line>"  (over the line budget)
    ```
 
 4. Delete `observations.jsonl` in the data dir (they are processed).

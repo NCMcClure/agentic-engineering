@@ -1,12 +1,20 @@
 {
   "name": "write-like-me",
   "displayName": "Write Like Me",
-  "version": "0.2.0",
-  "description": "Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated ≤60-line voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
+  "version": "0.2.1",
+  "description": "Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["writing", "voice", "style", "prose", "ai-tells", "humanize", "profile"],
+  "keywords": [
+    "writing",
+    "voice",
+    "style",
+    "prose",
+    "ai-tells",
+    "humanize",
+    "profile"
+  ],
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json"
 }

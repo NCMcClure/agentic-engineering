@@ -2,22 +2,23 @@
 name: calibrate
 description: >
   Build or rebuild the user's writing voice profile through sample analysis
-  and a short interview. Use when the user runs /write-like-me:calibrate, or
-  asks to set up / create / redo / recalibrate their writing profile, or wants
-  Claude to learn their writing style.
+  and a short interview — the plugin's one-time (re)setup step.
+disable-model-invocation: true
 ---
 
 # Calibrate: Build the Voice Profile
 
-Produce a **concise** profile of how the user writes, saved to
-`~/.claude/rules/write-like-me.md`. That file is auto-loaded into every one of
-the user's future sessions, so every line is paid for in permanent context:
-the budget is **60 lines, hard**. A profile that captures five true things
-beats one that catalogs twenty.
+Produce a **concise** profile of how the user writes, saved to the profile
+path (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE` if set —
+`scripts/wlm/paths.py` is the resolver). That file is auto-loaded into every
+one of the user's future sessions, so every line is paid for in permanent
+context: the line budget is **hard**, and
+`scripts/wlm/profile_budget.py` owns the number and the count. A profile that
+captures five true things beats one that catalogs twenty.
 
 ## Steps
 
-1. **Check for an existing profile.** If `~/.claude/rules/write-like-me.md`
+1. **Check for an existing profile.** If the profile file
    exists, read it and tell the user you'll update rather than start over.
    Lines in its `## Learned` section came from observed feedback — carry them
    forward unless the user drops them.
@@ -52,11 +53,12 @@ beats one that catalogs twenty.
    [assets/profile-template.md](assets/profile-template.md). Every line must
    be an instruction Claude can act on while writing ("Short declarative
    openers; no throat-clearing greeting line") — a line that merely describes
-   ("has a distinctive style") is dead weight; cut it. Stay under 60 lines
-   including headings.
+   ("has a distinctive style") is dead weight; cut it. Verify the budget with
+   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile_budget.py" <draft>` —
+   it must exit 0 before you show the draft.
 
 6. **Show the user the full draft and iterate** until they approve it. Then
-   write it to `~/.claude/rules/write-like-me.md` and append a dated entry to
+   write it to the profile path and append a dated entry to
    `${CLAUDE_PLUGIN_DATA}/changelog.md` noting calibration (created or
    rebuilt, and what changed).
 

@@ -69,8 +69,8 @@ the eye believes, what change feels like.
 ### write-like-me
 
 Everything an agent drafts for you ships in someone else's voice. A
-calibrated ≤60-line profile of how *you* write auto-loads into every
-session, skills audit text against a research-backed catalog of AI tells,
+calibrated, tightly line-budgeted profile of how *you* write auto-loads into
+every session, skills audit text against a research-backed catalog of AI tells,
 and reflective hooks fold your style feedback back into the profile —
 prose only; code and commit messages stay out of scope.
 [Read more →](plugins/write-like-me/README.md)

@@ -1,13 +1,12 @@
 ---
 name: write-like-me
 description: >
-  Write human-facing prose in the user's own voice, free of AI tells. Use this
-  skill EVERY time you are about to write or rewrite prose a human will read —
-  emails, documents, READMEs, reports, blog or social posts, announcements,
-  summaries, Slack/Teams/chat replies, proposals, newsletters — and whenever
-  the user says "draft", "write up", "humanize", "de-AI", "make it sound like
-  me", or complains that text "sounds like AI". Applies to prose only: code,
-  code comments, commit messages, and PR descriptions are out of scope.
+  Write human-facing prose in the user's own voice, free of AI tells. Use
+  EVERY time you are about to write or rewrite prose a human will read —
+  emails, docs, READMEs, reports, posts, summaries, chat replies — and
+  whenever the user says "draft", "write up", "humanize", "de-AI", "make it
+  sound like me", or complains that text "sounds like AI". Prose only: code,
+  commit messages, and PR descriptions are out of scope.
 ---
 
 # Write Like Me
@@ -17,8 +16,8 @@ Prose you produce should sound like the user wrote it on a good day — their
 
 ## Voice first
 
-The user's voice profile lives at `~/.claude/rules/write-like-me.md` and is
-already in your context if it exists. It is the authority on tone, rhythm,
+The user's voice profile lives at `~/.claude/rules/write-like-me.md` (or
+`$WLM_PROFILE` if set) and is already in your context if it exists. It is the authority on tone, rhythm,
 vocabulary, and formatting; everything below fills only the space it leaves
 open. No profile in context? Write with the defaults below, and mention
 `/write-like-me:calibrate` once at the end of your reply — a one-time setup

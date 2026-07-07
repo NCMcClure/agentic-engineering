@@ -7,9 +7,11 @@ are deliberately out of scope.
 
 ## How it works — three layers
 
-1. **Always-on profile** — `~/.claude/rules/write-like-me.md`, a ≤60-line
-   voice profile Claude Code auto-loads into every session. Your tone, rhythm,
-   vocabulary, and formatting habits, written as actionable instructions.
+1. **Always-on profile** — `~/.claude/rules/write-like-me.md` (overridable
+   via `WLM_PROFILE`), a tightly line-budgeted voice profile Claude Code
+   auto-loads into every session (`scripts/wlm/profile_budget.py` owns and
+   enforces the budget). Your tone, rhythm, vocabulary, and formatting habits,
+   written as actionable instructions.
 2. **Skills** — deep guidance loaded on demand:
    | Skill | Invocation | Does |
    |---|---|---|
@@ -64,6 +66,7 @@ rm ~/.claude/rules/write-like-me.md
 
 ## Changelog
 
+- **0.2.1** — calibrate and review are now hand-run (`disable-model-invocation`), cutting the always-on listing to ~172 est tokens; the profile line budget lives in and is enforced by scripts/wlm/profile_budget.py; skills reference the WLM_PROFILE-aware resolver instead of hardcoding the path; audit no longer competes with write-like-me on "humanize"/"de-AI".
 - **0.2.0** — distilled the bundled research corpus into the catalog itself:
   lexical tells are now categories + tests (word lists decay; the framework
   doesn't), references trimmed, primary citations kept as a footer. Dev-only
