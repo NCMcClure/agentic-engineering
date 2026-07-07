@@ -1,0 +1,25 @@
+export const meta = {
+  name: '{{WORKFLOW_NAME}}',
+  description: 'TODO(author): one line — what this workflow orchestrates and what it returns',
+  whenToUse: "TODO(author): when to run this instead of working inline, and the args contract: {…}",
+  phases: [
+    { title: 'TODO', detail: 'TODO(author): one entry per phase() call, titles matched exactly' },
+  ],
+}
+
+// TODO(author): model tiers — cheap tiers for script driving and mechanical
+// work, strong tiers for parallel judgment fan-outs, omit model for singleton
+// synthesis. No Date.now / Math.random / new Date — pass timestamps via args.
+
+// ---------- args (may arrive as a JSON string — coerce defensively) ----------
+let A = args
+if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
+if (!A) {
+  throw new Error('args must be an object: {…TODO(author): document the required keys…}')
+}
+
+phase('TODO')
+// TODO(author): agent()/pipeline()/parallel() calls, schema on every agent(),
+// .filter(Boolean) after parallel(), log() progress counts.
+
+return { ok: true }

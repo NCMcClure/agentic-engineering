@@ -1,0 +1,24 @@
+# {{NAME}}
+
+TODO(author): the problem this plugin solves, then the mechanism — two to
+four sentences, no hype words.
+
+## How it works
+
+TODO(author): the flow, component by component.
+
+## Install
+
+```text
+{{INSTALL_BLOCK}}
+```
+
+## Skills
+
+| Skill | Invocation | Does |
+|---|---|---|
+{{SKILL_ROWS}}
+
+## Changelog
+
+- **{{VERSION}}**: initial release.

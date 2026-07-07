@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Deterministic scanner and scoring calculator for the evaluate-plugin skill.
+"""Deterministic scanner and scoring calculator for the plugin-workbench measurement core.
 
 Scan mode walks a Claude Code plugin directory and emits a single JSON profile
 to stdout: component census, per-skill frontmatter facts, context-footprint
@@ -806,7 +806,40 @@ def worst_tier(a, b):
     return a if TIER_ORDER.index(a) >= TIER_ORDER.index(b) else b
 
 
-def run_score(scan, grades_doc):
+def compute_fix_deltas(scan, grades_doc, base_composite):
+    # For every improvable check, the composite if just that item were raised
+    # to grade 4 — the hypothetical-regrade loop, owned by the script so no
+    # consumer walks it by hand. Per-skill checks get one candidate per entry.
+    candidates = []
+    for i, entry in enumerate(grades_doc.get("grades", [])):
+        if entry.get("grade", 4) < 4:
+            candidates.append(("j", i, entry.get("check"), entry.get("skill")))
+    for cid, m in scan["mechanical_grades"].items():
+        if m["grade"] < 4:
+            candidates.append(("m", None, cid, None))
+
+    deltas = []
+    for kind, idx, cid, skill in candidates:
+        hypo_scan, hypo_grades = scan, grades_doc
+        if kind == "j":
+            hypo_grades = json.loads(json.dumps(grades_doc))
+            hypo_grades["grades"][idx]["grade"] = 4
+        else:
+            hypo_scan = json.loads(json.dumps(scan))
+            hypo_scan["mechanical_grades"][cid]["grade"] = 4
+        hypo = run_score(hypo_scan, hypo_grades, with_deltas=False)
+        deltas.append({
+            "check": cid,
+            **({"skill": skill} if skill else {}),
+            "kind": kind,
+            "delta": round(hypo["composite"] - base_composite, 1),
+            "verdict_after": hypo["verdict"],
+        })
+    deltas.sort(key=lambda d: -d["delta"])
+    return deltas
+
+
+def run_score(scan, grades_doc, with_deltas=True):
     na_dims = set(scan["na"]["dimensions"])
     na_checks = set(scan["na"]["checks"])
     mech = scan["mechanical_grades"]
@@ -908,6 +941,10 @@ def run_score(scan, grades_doc):
         "gates": gates,
         "na": scan["na"],
         "findings": grades_doc.get("findings", []),
+        # each improvable check's composite gain if raised to 4, sorted —
+        # consumers rank fixes from here, never by hand
+        **({"fix_deltas": compute_fix_deltas(scan, grades_doc, composite)}
+           if with_deltas else {}),
         "note": EST_NOTE,
     }
 

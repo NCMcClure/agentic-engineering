@@ -1,0 +1,23 @@
+#!/usr/bin/env python3
+"""TODO(author): what this script computes deterministically for the
+{{SKILL_NAME}} skill, and its exact stdin/argv -> stdout contract."""
+
+import argparse
+import json
+import sys
+
+sys.dont_write_bytecode = True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    # TODO(author): arguments
+    parser.parse_args()
+    # TODO(author): emit machine-readable output; the model reads, never
+    # re-derives.
+    json.dump({"ok": True}, sys.stdout)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

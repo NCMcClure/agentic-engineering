@@ -31,9 +31,9 @@ points here):
   scan.json's `orphans`.
 - Escape `<`, `>`, `&` in quotes/evidence before inserting into HTML.
 
-Top-fixes points: for each candidate fix, re-run `--score` with that check's
-grade hypothetically raised to 4 in a copy of grades.json and report the
-composite delta. Never estimate the delta in your head.
+Top-fixes points come from score.json's `fix_deltas`, verbatim — the script
+computes each improvable check's composite gain (sorted, with the verdict it
+would reach). Never estimate a delta yourself.
 
 Write the result to `<outdir>/scorecard.html` and open it
 (`xdg-open`/`open`, ignore failure in headless environments).

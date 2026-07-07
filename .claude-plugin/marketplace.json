@@ -45,10 +45,10 @@
       "category": "writing"
     },
     {
-      "name": "plugin-evaluator",
-      "source": "./plugins/plugin-evaluator",
-      "description": "A plugin's real cost — context burned every turn, mechanical work dumped on the model — is invisible until installed; score it first against a six-dimension rubric (skill quality, component symbiosis, workflows, architecture, context footprint, distribution hygiene) into an HTML scorecard with an adopt/rework verdict.",
-      "category": "quality"
+      "name": "plugin-workbench",
+      "source": "./plugins/plugin-workbench",
+      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta.",
+      "category": "authoring"
     }
   ]
 }

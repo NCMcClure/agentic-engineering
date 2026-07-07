@@ -1,0 +1,17 @@
+---
+name: {{SKILL_NAME}}
+description: TODO(author) — what this skill does{{MODE_NOTE}}
+{{MODE_LINE}}{{ARGUMENT_HINT_LINE}}---
+
+# {{SKILL_NAME}}
+
+TODO(author): one-paragraph statement of the job this skill does and what
+"done" looks like.
+
+## Step 1 — TODO(author)
+
+TODO(author): steps in execution order. Offload anything deterministic to a
+script; reference sibling files by relative path so they are reachable and
+counted as used.
+
+*Done when: TODO(author) — an observable completion criterion.*

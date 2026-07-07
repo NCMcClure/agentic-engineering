@@ -76,15 +76,16 @@ your style feedback back into the profile.
 Prose only: code and commit messages stay out of scope.
 [Read more →](plugins/write-like-me/README.md)
 
-### plugin-evaluator
+### plugin-workbench
 
-A plugin's true cost is invisible until it's installed: context burned
-every turn, mechanical work dumped on the model, workflows that put
-judgment calls on the cheapest tier. Point this at any path or git URL and
-get a scored verdict. A deterministic scanner grades what code can grade
-and the model grades the rest against an evidence-backed rubric, so the
-result is an HTML scorecard with the fixes that would raise the score.
-[Read more →](plugins/plugin-evaluator/README.md)
+A plugin's true cost is invisible until it's installed, and authoring a good
+one means guessing at standards nobody wrote down. This is both halves of
+that problem on one rubric: create-plugin interviews you, scaffolds the
+layout, and authors against the six evaluation dimensions; evaluate-plugin
+scores any path or git URL into an HTML scorecard with an adopt/rework
+verdict; improve-plugin applies the fixes ranked by how many points each one
+buys back.
+[Read more →](plugins/plugin-workbench/README.md)
 
 ## Working in this repo
 

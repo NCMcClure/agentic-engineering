@@ -433,7 +433,7 @@ Shape:
 ```json
 {
   "grades": [
-    {"check": "SQ1", "skill": "evaluate-plugin", "grade": 3,
+    {"check": "SQ1", "skill": "example-skill", "grade": 3,
      "evidence": "skills/foo/SKILL.md: \"…verbatim quote…\" — lead buried"},
     {"check": "CS2", "grade": 4,
      "evidence": "scripts/scan.py owns all counting; SKILL.md step 2 invokes it"}
