@@ -75,6 +75,16 @@ and reflective hooks fold your style feedback back into the profile —
 prose only; code and commit messages stay out of scope.
 [Read more →](plugins/write-like-me/README.md)
 
+### plugin-evaluator
+
+A plugin's true cost — context burned every turn, mechanical work dumped on
+the model, workflows with judgment on the cheapest tier — is invisible until
+it's installed. Point this at any path or git URL and get a scored verdict:
+a deterministic scanner grades what code can grade, the model grades the
+rest against an evidence-backed rubric, and it all lands in an HTML
+scorecard with the fixes that would raise the score.
+[Read more →](plugins/plugin-evaluator/README.md)
+
 ## Working in this repo
 
 The contribution contract — layout invariants, the versioning rule, how to

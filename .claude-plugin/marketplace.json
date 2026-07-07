@@ -43,6 +43,12 @@
       "source": "./plugins/write-like-me",
       "description": "Make Claude's human-facing prose sound like you — a calibrated always-on voice profile, AI-tell auditing, and hooks that learn from your style feedback.",
       "category": "writing"
+    },
+    {
+      "name": "plugin-evaluator",
+      "source": "./plugins/plugin-evaluator",
+      "description": "Score any Claude Code plugin against a six-dimension rubric — skill quality, component symbiosis, workflow quality, architecture, context-window footprint, distribution hygiene — into an HTML scorecard with an adopt/rework verdict.",
+      "category": "quality"
     }
   ]
 }

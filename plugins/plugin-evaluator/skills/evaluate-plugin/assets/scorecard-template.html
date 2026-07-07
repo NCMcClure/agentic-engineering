@@ -1,0 +1,185 @@
+<!doctype html>
+<!--
+  plugin-evaluator scorecard template.
+  Fill contract (documented in references/report-format.md):
+  - {{DOUBLE_BRACE}} tokens are single-value slots.
+  - <template id="tpl-*"> blocks are repeatables: copy the innerHTML once per
+    item, fill its tokens, concatenate, and place the result into the element
+    whose id matches data-fill-into. Remove the <template> tags in the final
+    file (they are inert either way).
+  - Elements marked data-optional="…" are deleted whole when not applicable.
+  - Verdict tier colors: adopt=emerald, adopt-with-fixes=amber, rework=orange,
+    avoid=red (Tailwind 600-series text / 100-series bg).
+  - The donut: {{COMPOSITE_DASH}} = composite/100 * 339.292 (r=54).
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Plugin evaluation — {{PLUGIN_NAME}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+    </script>
+    <style>
+      .pip { width: 0.65rem; height: 0.65rem; border-radius: 9999px; display: inline-block; }
+      details > summary { cursor: pointer; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+
+      <!-- ── Verdict banner ─────────────────────────────────────────── -->
+      <header class="flex flex-wrap items-center gap-8">
+        <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="composite score">
+          <circle cx="66" cy="66" r="54" fill="none" stroke="#e7e5e4" stroke-width="12" />
+          <circle cx="66" cy="66" r="54" fill="none" stroke="{{GAUGE_COLOR}}" stroke-width="12"
+                  stroke-linecap="round" stroke-dasharray="{{COMPOSITE_DASH}} 339.292"
+                  transform="rotate(-90 66 66)" />
+          <text x="66" y="62" text-anchor="middle" class="font-serif" font-size="28" font-weight="700">{{COMPOSITE}}</text>
+          <text x="66" y="82" text-anchor="middle" font-size="10" fill="#78716c">/ 100</text>
+        </svg>
+        <div class="space-y-2">
+          <p class="text-xs uppercase tracking-wider text-stone-500">plugin evaluation · {{DATE}}</p>
+          <h1 class="text-3xl font-serif font-bold">{{PLUGIN_NAME}} <span class="text-stone-400 font-sans text-xl font-normal">v{{PLUGIN_VERSION}}</span></h1>
+          <p class="text-sm text-stone-500">{{SOURCE_LINE}}</p>
+          <span class="inline-block rounded-full px-4 py-1 text-sm font-semibold {{VERDICT_BADGE_CLASSES}}">{{VERDICT}}</span>
+        </div>
+      </header>
+
+      <div data-optional="gate-callout" class="rounded-lg border-l-4 border-red-600 bg-red-50 px-5 py-4">
+        <p class="text-xs uppercase tracking-wider text-red-700 font-semibold">verdict capped</p>
+        <p class="text-sm text-red-900 mt-1">{{GATE_REASON}} <span class="text-red-600">(uncapped: {{VERDICT_UNCAPPED}})</span></p>
+      </div>
+
+      <!-- ── Dimensions ─────────────────────────────────────────────── -->
+      <section>
+        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">dimensions</h2>
+        <div id="dimension-cards" class="grid gap-6 md:grid-cols-2"></div>
+        <template id="tpl-dimension-card" data-fill-into="dimension-cards">
+          <article class="rounded-xl border border-stone-200 bg-white p-5 space-y-4">
+            <div class="flex items-baseline justify-between">
+              <h3 class="font-semibold">{{DIM_LABEL}}</h3>
+              <p class="text-2xl font-serif font-bold">{{DIM_SCORE}}</p>
+            </div>
+            <div class="h-2 rounded-full bg-stone-100 overflow-hidden">
+              <div class="h-full rounded-full" style="width: {{DIM_SCORE}}%; background: {{DIM_BAR_COLOR}};"></div>
+            </div>
+            <p class="text-xs text-stone-500">weight {{DIM_WEIGHT}}{{DIM_NORM_NOTE}}</p>
+            <table class="w-full text-sm">
+              <tbody id="checks-{{DIM_ID}}">{{CHECK_ROWS}}</tbody>
+            </table>
+          </article>
+        </template>
+        <template id="tpl-dimension-card-na" data-fill-into="dimension-cards">
+          <article class="rounded-xl border border-dashed border-stone-300 bg-stone-100/60 p-5 opacity-70">
+            <div class="flex items-baseline justify-between">
+              <h3 class="font-semibold text-stone-500">{{DIM_LABEL}}</h3>
+              <span class="text-xs uppercase tracking-wider text-stone-400">n/a — excluded from composite</span>
+            </div>
+            <p class="text-xs text-stone-400 mt-2">{{DIM_NA_REASON}}</p>
+          </article>
+        </template>
+        <template id="tpl-check-row">
+          <tr class="border-t border-stone-100 align-top">
+            <td class="py-1.5 pr-2 font-mono text-xs text-stone-500 whitespace-nowrap">{{CHECK_ID}}</td>
+            <td class="py-1.5 pr-2">
+              <p>{{CHECK_LABEL}} <span class="ml-1 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider {{KIND_CLASSES}}">{{CHECK_KIND}}</span></p>
+              <p class="font-mono text-xs text-stone-400 mt-0.5">{{CHECK_EVIDENCE}}</p>
+            </td>
+            <td class="py-1.5 whitespace-nowrap text-right">{{PIPS}}</td>
+          </tr>
+          <!-- {{PIPS}} = four pips, filled = round(grade):
+               <span class="pip bg-slate-800 mr-0.5"></span> filled
+               <span class="pip bg-stone-200 mr-0.5"></span> empty -->
+        </template>
+      </section>
+
+      <!-- ── Context footprint ──────────────────────────────────────── -->
+      <section class="rounded-xl border border-stone-200 bg-white p-6 space-y-5">
+        <div class="flex items-baseline justify-between">
+          <h2 class="text-xs uppercase tracking-wider text-stone-500">context footprint · always-on</h2>
+          <p class="text-sm"><span class="font-serif text-xl font-bold">~{{PASSIVE_TOKENS}}</span> <span class="text-stone-500">est. tokens/turn</span></p>
+        </div>
+        <div class="flex h-6 w-full rounded overflow-hidden border border-stone-200" id="passive-bar"></div>
+        <template id="tpl-passive-segment" data-fill-into="passive-bar">
+          <div class="h-full {{SEG_COLOR}}" style="width: {{SEG_PCT}}%" title="{{SEG_SOURCE}} · ~{{SEG_TOKENS}} tok"></div>
+          <!-- rotate SEG_COLOR through: bg-indigo-400, bg-indigo-300, bg-sky-300, bg-teal-300, bg-stone-300 -->
+        </template>
+        <div id="passive-legend" class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-stone-500"></div>
+        <template id="tpl-passive-legend-item" data-fill-into="passive-legend">
+          <span><span class="pip {{SEG_COLOR}} mr-1"></span>{{SEG_SOURCE}} · ~{{SEG_TOKENS}}</span>
+        </template>
+        <div id="cap-meters" class="space-y-2"></div>
+        <template id="tpl-cap-meter" data-fill-into="cap-meters">
+          <div class="flex items-center gap-3 text-xs">
+            <span class="font-mono w-64 truncate text-stone-500">{{SKILL_PATH}}</span>
+            <div class="flex-1 h-1.5 rounded bg-stone-100 overflow-hidden">
+              <div class="h-full {{CAP_COLOR}}" style="width: {{CAP_PCT}}%"></div>
+            </div>
+            <span class="text-stone-400 w-28 text-right">{{CAP_CHARS}} / 1536 chars</span>
+          </div>
+          <!-- CAP_COLOR: bg-emerald-400 under 75%, bg-amber-400 75-100%, bg-red-500 over -->
+        </template>
+        <p class="text-xs text-stone-400">chars÷4 estimate — <code>claude plugin details {{PLUGIN_NAME}}</code> is ground truth when installed. On-invoke bodies: {{ON_INVOKE_SUMMARY}}.</p>
+      </section>
+
+      <!-- ── Component map ──────────────────────────────────────────── -->
+      <section class="rounded-xl border border-stone-200 bg-white p-6">
+        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">component map</h2>
+        <pre class="mermaid">
+flowchart LR
+{{MERMAID_COMPONENT_LINES}}
+  classDef orphan stroke:#dc2626,stroke-width:2px,color:#dc2626;
+  classDef script fill:#f0fdf4,stroke:#16a34a;
+  classDef hook fill:#eff6ff,stroke:#2563eb;
+{{MERMAID_CLASS_ASSIGNMENTS}}
+        </pre>
+        <p class="text-xs text-stone-400 mt-2">skills → the scripts/references/assets they invoke · hooks → the skills they enforce · red = orphaned</p>
+      </section>
+
+      <!-- ── Findings ───────────────────────────────────────────────── -->
+      <section class="space-y-4" data-optional="findings">
+        <h2 class="text-xs uppercase tracking-wider text-stone-500">findings</h2>
+        <div id="finding-cards" class="space-y-3"></div>
+        <template id="tpl-finding-card" data-fill-into="finding-cards">
+          <article class="rounded-lg border border-stone-200 bg-white p-4 space-y-1.5">
+            <div class="flex items-center gap-2">
+              <span class="rounded px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold {{SEV_CLASSES}}">{{SEVERITY}}</span>
+              <span class="font-mono text-xs text-stone-400">{{FINDING_CHECK}}</span>
+              <h3 class="font-medium">{{FINDING_TITLE}}</h3>
+            </div>
+            <p class="font-mono text-xs text-stone-500">{{FINDING_FILE}}</p>
+            <blockquote class="font-mono text-xs text-stone-400 border-l-2 border-stone-200 pl-2">{{FINDING_QUOTE}}</blockquote>
+            <p class="text-sm">{{FINDING_RECOMMENDATION}}</p>
+          </article>
+          <!-- SEV_CLASSES: critical=bg-red-100 text-red-700 · major=bg-orange-100 text-orange-700 · minor=bg-stone-100 text-stone-600 -->
+        </template>
+        <details data-optional="refuted" class="text-sm text-stone-500">
+          <summary class="text-xs uppercase tracking-wider">refuted by verification ({{REFUTED_COUNT}})</summary>
+          <ul id="refuted-list" class="mt-2 space-y-1 list-disc pl-5"></ul>
+        </details>
+        <template id="tpl-refuted-item" data-fill-into="refuted-list">
+          <li><span class="font-medium">{{REFUTED_TITLE}}</span> — {{REFUTED_REASON}}</li>
+        </template>
+      </section>
+
+      <!-- ── Top fixes ──────────────────────────────────────────────── -->
+      <section class="rounded-xl border-2 border-slate-800 bg-white p-6" data-optional="fixes">
+        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">top fixes — points recoverable</h2>
+        <ol id="fix-list" class="space-y-3 list-decimal pl-5"></ol>
+        <template id="tpl-fix-item" data-fill-into="fix-list">
+          <li>
+            <p class="font-medium">{{FIX_TITLE}} <span class="ml-2 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">+{{FIX_POINTS}} pts{{FIX_TIER_NOTE}}</span></p>
+            <p class="text-sm text-stone-500">{{FIX_DETAIL}}</p>
+          </li>
+          <!-- FIX_POINTS = composite delta from regrading the check to 4 (compute by re-running --score with the hypothetical grade, or from the check's weight share); FIX_TIER_NOTE = " → reaches adopt" when the delta crosses a tier floor, else empty -->
+        </template>
+      </section>
+
+      <footer class="text-xs text-stone-400">
+        generated by plugin-evaluator · scores from plugin_scan.py --score · token figures are estimates
+      </footer>
+    </main>
+  </body>
+</html>
