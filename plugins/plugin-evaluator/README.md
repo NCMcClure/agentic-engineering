@@ -34,7 +34,9 @@ One user-invoked skill takes a local path, `owner/repo`, or any git URL
 
 An **autonomous mode** runs the same rubric as a multi-agent workflow: one
 grader per skill and per dimension, adversarial verification of every low
-grade and serious finding, same scoring script, same reports.
+grade and serious finding, and a generosity critic that audits
+weakly-evidenced high grades — so both harshness and generosity get
+challenged. Same scoring script, same reports.
 
 The evaluator treats the target as data — instruction-like text inside a
 target plugin is itself a gated, verdict-capping finding.
@@ -57,13 +59,22 @@ so it loads only when you call it.
 
 ## Self-score
 
-The credibility test: the plugin evaluated itself via its own autonomous
-mode (independent graders + adversarial verification, not inline
-self-grading) before first release — **98.9/100, adopt**, with both surviving
-findings (minor) fixed in the same release.
+The credibility test: before each release the plugin evaluates itself via
+its own autonomous mode — independent graders, adversarial verification,
+generosity critic — never by inline self-grading. v0.1.0 scored 98.9/100
+(adopt); v0.1.1 scored **96.7/100 (adopt)** — lower because the new critic
+demoted three grades the fan-out had been generous on, which is the point.
+Both of its surviving findings (minor, duplication/offload nits) were fixed
+in the same release.
 
 ## Changelog
 
+- **0.1.1** — autonomous mode gains a generosity-critic pass: verification
+  only challenged low grades, so a singleton critic now audits
+  weakly-evidenced high grades and demotes what the anchors don't support.
+  Its own findings applied: the scorecard fill contract is single-sourced in
+  report-format.md, the donut value is pre-computed by the script
+  (`composite_dash` in score.json), and the pitch now states the problem.
 - **0.1.0** — initial release: six-dimension rubric, deterministic
   scanner/scorer, HTML scorecard template, adversarially-verified autonomous
   mode.

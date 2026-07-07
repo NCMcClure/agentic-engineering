@@ -47,7 +47,7 @@
     {
       "name": "plugin-evaluator",
       "source": "./plugins/plugin-evaluator",
-      "description": "Score any Claude Code plugin against a six-dimension rubric — skill quality, component symbiosis, workflow quality, architecture, context-window footprint, distribution hygiene — into an HTML scorecard with an adopt/rework verdict.",
+      "description": "A plugin's real cost — context burned every turn, mechanical work dumped on the model — is invisible until installed; score it first against a six-dimension rubric (skill quality, component symbiosis, workflows, architecture, context footprint, distribution hygiene) into an HTML scorecard with an adopt/rework verdict.",
       "category": "quality"
     }
   ]

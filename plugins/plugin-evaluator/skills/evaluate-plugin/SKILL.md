@@ -129,6 +129,6 @@ Workflow({
 ```
 
 It fans out one grader per skill and per dimension, adversarially verifies
-every low grade and serious finding, then runs the same `--score` and the
-same report formats. Relay its returned summary, composite, verdict, and
-report paths.
+every low grade and serious finding, runs a generosity critic over the
+weakly-evidenced high grades, then the same `--score` and the same report
+formats. Relay its returned summary, composite, verdict, and report paths.

@@ -9,7 +9,8 @@ no number in any report is computed by hand.
 Copy `../assets/scorecard-template.html` and fill it. The layout, styling,
 and structure are proven; your job is substitution, not generation.
 
-The fill contract (also stated in the template's header comment):
+The fill contract (this section is its single source — the template only
+points here):
 
 - `{{TOKEN}}` slots take a single value.
 - `<template id="tpl-*" data-fill-into="…">` blocks are repeatables: take the
@@ -21,7 +22,8 @@ The fill contract (also stated in the template's header comment):
   gate cap, no findings, no refuted list, no fixes).
 - Color maps live in comments beside each template block (verdict tiers,
   severity badges, cap meters, segment rotation). Follow them exactly.
-- `{{COMPOSITE_DASH}}` = `composite / 100 * 339.292`.
+- `{{COMPOSITE_DASH}}` = score.json's `composite_dash`, verbatim — the
+  script pre-computes it; never do the arithmetic yourself.
 - Pips: four per check row, `round(grade)` filled.
 - The Mermaid component map is the one generated part: one node per
   component, edges skill→script/reference/asset it invokes and hook→skill it

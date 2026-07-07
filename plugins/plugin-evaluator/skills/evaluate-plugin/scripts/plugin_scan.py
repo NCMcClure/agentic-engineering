@@ -891,6 +891,9 @@ def run_score(scan, grades_doc):
     return {
         "dimensions": dims_out,
         "composite": composite,
+        # pre-computed for the scorecard donut (r=54, circumference 339.292)
+        # so the report filler never does arithmetic
+        "composite_dash": round(composite / 100 * 339.292, 3),
         "verdict": verdict,
         "verdict_uncapped": tier_for(composite),
         "verdict_capped_by": capped_by,

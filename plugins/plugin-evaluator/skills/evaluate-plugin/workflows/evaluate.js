@@ -1,11 +1,12 @@
 export const meta = {
   name: 'plugin-evaluate',
-  description: 'Adversarially-verified multi-agent evaluation of a Claude Code plugin: deterministic scan, one grader per skill and per rubric dimension, refutation-based verification of low grades and serious findings, script-computed scoring, and a filled HTML scorecard + markdown report',
+  description: 'Adversarially-verified multi-agent evaluation of a Claude Code plugin: deterministic scan, one grader per skill and per rubric dimension, refutation-based verification of low grades and serious findings, a generosity critic auditing weakly-evidenced high grades, script-computed scoring, and a filled HTML scorecard + markdown report',
   whenToUse: "The evaluate-plugin skill's autonomous mode — when the user asks for a thorough/deep/multi-agent plugin audit, or the target exceeds ~15 skills or ~5 workflows. Args: {pluginPath: <absolute plugin root, already acquired locally>, skillDir: <absolute path to the evaluate-plugin skill dir>, outDir: <absolute output dir>, dateToday: <YYYY-MM-DD>, context?}. Acquisition (clone) and temp cleanup stay with the caller.",
   phases: [
     { title: 'Scan', detail: 'run plugin_scan.py, persist scan.json, load applicability', model: 'haiku' },
     { title: 'Grade', detail: 'one grader per skill (SQ) + one per applicable dimension', model: 'opus' },
     { title: 'Verify', detail: 'adversarial refutation of low grades and critical/major findings', model: 'opus' },
+    { title: 'Critique', detail: 'generosity critic audits weakly-evidenced high grades (singleton)' },
     { title: 'Score', detail: 'assemble grades.json, run --score (the script owns all math)', model: 'haiku' },
     { title: 'Report', detail: 'fill the scorecard template + write report.md' },
   ],
@@ -217,7 +218,52 @@ const allRefuted = ok.flatMap(r => r.refutedFindings)
 const nullVerdicts = ok.reduce((n, r) => n + r.nullVerdicts, 0)
 log(`Graded ${ok.length}/${units.length} units: ${allGrades.length} grades, ${allFindings.length} findings kept, ${allRefuted.length} refuted${nullVerdicts ? `, ${nullVerdicts} verifier nulls (originals kept)` : ''}`)
 
-// ---------- Phase 4: score (the script owns the arithmetic) ----------
+// ---------- Phase 4: generosity critic ----------
+// The verifiers only challenge harshness (low grades); nothing above audits
+// generosity. One critic re-reads the thinnest-evidenced HIGH grades and
+// demotes what the anchors don't support. Singleton judgment — inherits the
+// session model.
+phase('Critique')
+const CRITIC = {
+  type: 'object',
+  required: ['assessment', 'demotions'],
+  properties: {
+    assessment: { type: 'string', description: 'where the grade set looks generous and why — or why it holds' },
+    demotions: {
+      type: 'array', maxItems: 10,
+      items: {
+        type: 'object',
+        required: ['check', 'adjusted_grade', 'reasoning'],
+        properties: {
+          check: { type: 'string' },
+          skill: { type: 'string', description: 'must match the grade entry being demoted, when it has one' },
+          adjusted_grade: { type: 'integer', minimum: 0, maximum: 4 },
+          reasoning: { type: 'string', description: 'cited counter-evidence: file + quote the original grade ignored or over-read' },
+        },
+      },
+    },
+  },
+}
+const critic = allGrades.length === 0 ? null : await agent(
+  `${CTX}\nYou are the generosity critic — the counterweight to the adversarial verifiers, which only challenge LOW grades. Below is the full settled grade set for the target. Hunt UNJUSTIFIED HIGH grades: pick the entries at grade 3-4 whose evidence looks thinnest relative to the rubric's anchors for that level, re-read the cited target files AND the check's section in ${SKILL}/references/rubric.md, and demote any grade the evidence does not support. Rules: you may only LOWER grades currently at 3 or 4; every demotion needs concrete counter-evidence (target file + quote) — a demotion without one is invalid, return fewer instead of padding; an empty demotions list is a legitimate outcome when the grades hold.\n\nGRADES:\n${JSON.stringify(allGrades, null, 1)}`,
+  { label: 'generosity-critic', phase: 'Critique', schema: CRITIC, effort: 'high' }
+)
+let demoted = 0
+if (critic && critic.demotions) {
+  for (const d of critic.demotions) {
+    const hit = allGrades.find(g => g.check === d.check
+      && (g.skill || null) === (d.skill || null)
+      && g.grade >= 3 && d.adjusted_grade < g.grade)
+    if (hit) {
+      hit.evidence = `${hit.evidence} [generosity critic demoted from ${hit.grade}: ${d.reasoning.slice(0, 160)}]`
+      hit.grade = d.adjusted_grade
+      demoted++
+    }
+  }
+}
+log(`Generosity critic: ${demoted}/${allGrades.length} grades demoted${critic && critic.assessment ? ` — ${critic.assessment.slice(0, 140)}` : ' (no grades to audit)'}`)
+
+// ---------- Phase 5: score (the script owns the arithmetic) ----------
 phase('Score')
 const scored = await agent(
   `Write the following JSON verbatim to ${OUT}/grades.json, then run: python3 ${SKILL}/scripts/plugin_scan.py ${PLUGIN} --score ${OUT}/grades.json > ${OUT}/score.json. If the script exits non-zero, set ok=false and put its stderr in error. Otherwise read ${OUT}/score.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
@@ -240,7 +286,7 @@ const scored = await agent(
 if (!scored || !scored.ok) throw new Error('--score failed: ' + (scored && scored.error ? scored.error : 'no output') + (failedUnits.length ? ` (grader units that returned null: ${failedUnits.join(', ')})` : ''))
 log(`Composite ${scored.composite} — ${scored.verdict}${scored.verdictCappedBy ? ` (capped: ${scored.verdictCappedBy})` : ''}`)
 
-// ---------- Phase 5: report (singleton synthesis — inherits the session model) ----------
+// ---------- Phase 6: report (singleton synthesis — inherits the session model) ----------
 phase('Report')
 const report = await agent(
   `${CTX}\nYou are the report writer. Inputs on disk: ${SCAN}, ${OUT}/score.json, ${OUT}/grades.json. The refuted-findings list for the report's collapsed section:\n${JSON.stringify(allRefuted, null, 1)}\n\nFollow ${SKILL}/references/report-format.md exactly: copy ${SKILL}/assets/scorecard-template.html, fill every slot and repeatable per its contract (evaluation date: ${A.dateToday}; source line: "${PLUGIN}"), write ${OUT}/scorecard.html and ${OUT}/report.md. Compute top-fix point deltas the contract's way (hypothetical regrade + --score on a COPY of grades.json — never overwrite the real one, never arithmetic in your head). Then return the chat-summary lines per the contract's section 3.`,
@@ -270,5 +316,6 @@ return {
   reportPath: report.reportPath,
   htmlPath: report.htmlPath,
   summary: report.summary,
-  stats: { units: units.length, gradedUnits: ok.length, grades: allGrades.length, findingsKept: allFindings.length, findingsRefuted: allRefuted.length },
+  criticAssessment: critic ? critic.assessment : null,
+  stats: { units: units.length, gradedUnits: ok.length, grades: allGrades.length, gradesDemoted: demoted, findingsKept: allFindings.length, findingsRefuted: allRefuted.length },
 }

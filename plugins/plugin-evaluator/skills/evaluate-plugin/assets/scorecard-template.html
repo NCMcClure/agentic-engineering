@@ -1,16 +1,9 @@
 <!doctype html>
 <!--
   plugin-evaluator scorecard template.
-  Fill contract (documented in references/report-format.md):
-  - {{DOUBLE_BRACE}} tokens are single-value slots.
-  - <template id="tpl-*"> blocks are repeatables: copy the innerHTML once per
-    item, fill its tokens, concatenate, and place the result into the element
-    whose id matches data-fill-into. Remove the <template> tags in the final
-    file (they are inert either way).
-  - Elements marked data-optional="…" are deleted whole when not applicable.
-  - Verdict tier colors: adopt=emerald, adopt-with-fixes=amber, rework=orange,
-    avoid=red (Tailwind 600-series text / 100-series bg).
-  - The donut: {{COMPOSITE_DASH}} = composite/100 * 339.292 (r=54).
+  The fill contract — slots, repeatables, optionals, tier colors, computed
+  values — lives in references/report-format.md; this file never restates it.
+  Copy this file, substitute, delete the <template> tags and this comment.
 -->
 <html lang="en">
   <head>
@@ -173,7 +166,7 @@ flowchart LR
             <p class="font-medium">{{FIX_TITLE}} <span class="ml-2 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">+{{FIX_POINTS}} pts{{FIX_TIER_NOTE}}</span></p>
             <p class="text-sm text-stone-500">{{FIX_DETAIL}}</p>
           </li>
-          <!-- FIX_POINTS = composite delta from regrading the check to 4 (compute by re-running --score with the hypothetical grade, or from the check's weight share); FIX_TIER_NOTE = " → reaches adopt" when the delta crosses a tier floor, else empty -->
+          <!-- FIX_POINTS = composite delta from regrading the check to 4 — re-run --score on a COPY of grades.json, never estimate; FIX_TIER_NOTE = " → reaches adopt" when the delta crosses a tier floor, else empty -->
         </template>
       </section>
 
