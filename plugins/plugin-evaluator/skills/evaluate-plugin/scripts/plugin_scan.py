@@ -33,6 +33,10 @@ import os
 import re
 import sys
 
+# Never leave __pycache__ next to this script — it would be cruft inside the
+# plugin tree (and inside any target that vendors the script).
+sys.dont_write_bytecode = True
+
 # ---------------------------------------------------------------------------
 # The rubric's numeric skeleton. Check kinds: "m" = mechanical (graded here),
 # "j" = judgment (graded by the model against references/rubric.md anchors).
@@ -117,7 +121,8 @@ CRUFT_NAMES = {".DS_Store", "Thumbs.db"}
 CRUFT_DIRS = {"node_modules", "__pycache__", ".pytest_cache", ".mypy_cache"}
 
 ABS_PATH_RE = re.compile(r"(?:^|[\"'\s(=:])(/(?:home|Users|fast|mnt/c/Users)/[A-Za-z0-9._-]+[^\s\"')]*)")
-TEXT_EXTS = {".md", ".sh", ".js", ".json", ".py", ".yml", ".yaml", ".ts", ".txt", ".html"}
+TEXT_EXTS = {".md", ".sh", ".js", ".mjs", ".cjs", ".json", ".py", ".yml", ".yaml",
+             ".ts", ".tsx", ".css", ".txt", ".html"}
 
 # Frontmatter fields the harness actually reads; anything else is noted.
 KNOWN_SKILL_FIELDS = {
@@ -619,7 +624,10 @@ def scan_orphans(root, skills, all_files):
         if corpus.count(base) - own.count(base) > 0:
             continue
         stem = os.path.splitext(base)[0]
-        if os.path.splitext(base)[1] in (".py", ".js", ".sh"):
+        # Code modules are commonly referenced by stem: Python imports, JS/TS
+        # extensionless imports ("./codegen"), shell sourcing. Match the stem.
+        if os.path.splitext(base)[1] in (".py", ".js", ".mjs", ".cjs", ".ts",
+                                         ".tsx", ".sh", ".css"):
             stem_re = re.compile(r"\b" + re.escape(stem) + r"\b")
             if len(stem_re.findall(corpus)) - len(stem_re.findall(own)) > 0:
                 continue

@@ -69,6 +69,10 @@ in the same release.
 
 ## Changelog
 
+- **0.1.2** — orphan scanner now stem-matches .ts/.tsx/.mjs/.cjs/.css so
+  extensionless TypeScript imports count as references (fixes false orphans
+  on app-bundling plugins); plugin_scan.py sets `sys.dont_write_bytecode` so
+  runs stop leaving `__pycache__` inside the plugin tree.
 - **0.1.1** — autonomous mode gains a generosity-critic pass: verification
   only challenged low grades, so a singleton critic now audits
   weakly-evidenced high grades and demotes what the anchors don't support.
