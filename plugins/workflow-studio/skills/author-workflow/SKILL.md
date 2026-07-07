@@ -2,12 +2,10 @@
 name: author-workflow
 description: >-
   Author, edit, or reason about Claude Code dynamic workflows
-  (.claude/workflows/*.js) and their Blueprint-style diagram.json graphs by
-  hand — node/pin vocabulary, exec-wire vs data-wire semantics, the
-  @workflow-graph sidecar, and lossless js↔graph round-tripping. Use when
-  writing or modifying a workflow script or diagram.json directly, mapping
-  existing JS to a graph, or answering questions about the workflow-diagram
-  protocol — no GUI needed.
+  (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when
+  writing or modifying a workflow script or graph directly, mapping existing
+  JS to a graph, or answering workflow-diagram protocol questions — no GUI
+  needed.
 ---
 
 # Author Workflow (no GUI)
@@ -44,10 +42,6 @@ Ground truth and examples:
   sidecar** — a stale sidecar silently breaks round-tripping.
 - **When the user wants VISUAL editing**, do not do it by hand: launch the
   studio via the **workflow-studio** skill instead.
-
-## Known stale note in the vendored docs
-
-`AUTHORING.md` predates extraction into this plugin and claims "this skill
-drives everything itself — installing deps, starting the dev server". That is
-stale: server launch belongs to the **workflow-studio** skill, not this one.
-Do NOT edit the vendored doc; just ignore that section.
+- **Compilation is the studio's job.** `compile()` in `app/src/codegen.ts` is
+  the only deterministic graph→js compiler; when byte-stable output matters,
+  compile in the studio rather than hand-emulating codegen.

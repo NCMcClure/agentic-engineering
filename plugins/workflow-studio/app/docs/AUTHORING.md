@@ -1,27 +1,24 @@
 # Authoring guide (workflow-diagram protocol)
 
-_Adapted from the Claude Code skill this project was extracted from._
-
-# workflow-diagram
-
 Render a Claude Code dynamic workflow as a **Blueprint-style node graph** the user
 can edit in the browser — free-form nodes, typed pins, exec wires, a right-click
 node finder, comment groups, and collapse-to-function — backed by a `diagram.json`
 that round-trips with the workflow script. Two jobs: **generate** a graph from a
 workflow, and **sync** edits between the graph and the `.js`.
 
-This skill drives everything itself — installing deps, starting the dev server,
-opening the browser. **Never tell the user to run commands.**
+Launching the app (deps, dev server, browser) is the **workflow-studio** skill's
+job, never described here; this guide is the authoring protocol only.
 
 ## Read first
 
-Before authoring any graph, read these (they're short and they're the spec):
+Before authoring any graph, read these sibling docs (they're short and they're
+the spec):
 
-- `references/primitive-vocabulary.md` — the node catalog: every kind, its pins,
+- `primitive-vocabulary.md` — the node catalog: every kind, its pins,
   and what JS it compiles to. Mirrors `src/catalog.ts`.
-- `references/mapping-guide.md` — how control flow maps to the graph: **exec
+- `mapping-guide.md` — how control flow maps to the graph: **exec
   wires are statement order, data wires are variable bindings.**
-- `references/diagram-schema.md` — the exact `diagram.json` shape (pin-based
+- `diagram-schema.md` — the exact `diagram.json` shape (pin-based
   edges, groups, function subgraphs, the `@workflow-graph` sidecar).
 
 The TypeScript contract is `src/types.ts`; the catalog is
@@ -105,48 +102,44 @@ build the perfect workflow together, each editing in the form they prefer.
 
 1. **Resolve the target.** Accept a path (`.claude/workflows/foo.js`) or a
    `meta.name`. Read the **entire** script — `meta` and the body after it.
-2. **Derive the workspace.** `<meta.name>-workspace` under the same
-   `.claude/workflows/` directory, e.g. `.claude/workflows/deep-research-workspace/`.
-3. **Create or reuse it.**
-   - If it doesn't exist: copy the whole `./` directory into it.
-   - If it exists: **don't re-copy.** Read its current `src/diagram.json` so you
-     can preserve node ids (and thus saved positions), then rewrite that file.
-4. **Author `src/diagram.json` — fully wired (see "Author for humans" above).**
-   Set `schemaVersion: 3`, `workflow`, `source` (a **workspace-relative** flow
-   file, e.g. `<name>-flow.js`), `nodes` (each with a `position`), `edges`
-   (pin-based, with a `role`), `groups`, and any `variables`/`types`. Pick each
+2. **Resolve the workflow's home under the studio root.** Graphs live at
+   `<studio-root>/<project-id>/workflows/<workflow-id>/diagram.json` (the
+   studio's storage layout — see the plugin README). If the workflow already
+   has a `diagram.json` there, read it first so you can preserve node ids (and
+   thus saved positions), then rewrite that file; never start from scratch over
+   an existing layout.
+3. **Author `diagram.json` — fully wired (see "Author for humans" above).**
+   Set `schemaVersion: 3`, `workflow`, `source`, `nodes` (each with a
+   `position`), `edges` (pin-based, with a `role`), `groups`, and any
+   `variables`/`types`. Pick each
    node's `kind` from the catalog; wire **exec** pins for control flow and **data**
    pins for values. Lift prompts/commands/schemas into `variables` + Get nodes,
    model domain data as `types` (structs), read object outputs with `getField`,
    and leave **no input pin empty**. Reuse ids for nodes that still exist so the
    user's layout survives.
-5. **Launch it (you do this, not the user).**
-   - Run `npm install` in the workspace (skip if `node_modules` exists).
-   - Start the dev server **in the background**: `npm run dev`.
-   - Wait for Vite's URL (e.g. `http://localhost:5173/`), then open it
-     (`open <url>` on macOS). Vite auto-bumps the port; use the printed one.
-   - If a dev server is already running for the workspace, skip the launch — HMR
-     refreshes the open page from your new `diagram.json`.
-6. **Report** the URL and a one-line summary (node count, notable loops/branches).
+4. **Open it in the studio** — launch via the **workflow-studio** skill (or, if
+   the dev server is already running, do nothing: the file-watcher hot-syncs
+   the new `diagram.json` into the open canvas).
+5. **Report** the URL and a one-line summary (node count, notable loops/branches).
    Tell the user they can right-click to add nodes, drag freely, wire pins, group
    and collapse, hit **Save** to persist the graph, and **Compile** to write the
    `.js` — and that you can reconcile their changes whenever they ask.
 
 ## Keep them in sync (bidirectional)
 
-The on-disk `src/diagram.json` is the source of truth the canvas and you share.
-The canvas writes it on **Save**; it writes the workflow `.js` on **Compile**.
+The on-disk `diagram.json` is the source of truth the canvas and you share.
+The canvas writes it on **Save**; it writes `compiled.js` next to it on
+**Compile**.
 
-**Compile writes INSIDE the workspace; Publish promotes to the workflows root.**
-The diagram's `source` is a **workspace-relative** path (e.g. `<meta.name>-flow.js`,
-resolved inside the `-workspace/` directory) — **Compile** writes there, never
-touching a hand-written workflow. When the user is ready, the **Publish ↑** button
-copies the compiled `.js` up to `.claude/workflows/<workflow>.js` (overwrites, with
-a confirm). So author `source` as a workspace-local flow file, and only the user's
-explicit Publish moves it to the root. The diagram→`.js` codegen is a faithful
+**Compile writes INSIDE the workflow's studio directory; Publish promotes to
+the workflows root.** **Compile** writes `compiled.js` beside the graph, never
+touching a hand-written workflow. When the user is ready, the **Publish ↑**
+button copies the compiled `.js` up to `.claude/workflows/<workflow>.js`
+(overwrites, with a confirm) — only the user's explicit Publish moves it to
+the root. The diagram→`.js` codegen is a faithful
 structural *map*, not a reconstruction (it can't recover rich prompts,
 schemas-as-objects, or helper functions from arbitrary JS); the loaded graph is
-deterministic from the flow file's embedded sidecar.
+deterministic from the compiled file's embedded sidecar.
 
 **Wire it up — don't describe data flow in notes.** Use the pins: an agent's
 `prompt`/`schema`, a gate's `command`, a branch's `cond` should be **wired** from
@@ -163,9 +156,12 @@ the exact graph. Re-importing that fence reproduces the graph exactly
 (compile∘import∘compile is byte-stable).
 
 **Diagram → workflow** ("I changed the graph, update the workflow"):
-1. Read the workspace's `src/diagram.json` (the user's saved edits).
-2. Either trust the user already hit **Compile** (the `.js` + fence are current),
-   or regenerate the `.js` yourself from the graph the same way `compile()` does.
+1. Read the workflow's saved `diagram.json` (the user's edits).
+2. The deterministic compiler is `compile()` in the studio app — have the user
+   hit **Compile** (or launch the studio via the **workflow-studio** skill and
+   do it there). Do not hand-emulate codegen when byte-stable output matters;
+   if you edit the `.js` directly instead, treat the `.js` as the new source
+   and update its `@workflow-graph` sidecar to the graph verbatim.
 3. Explain each change; ask before anything destructive or ambiguous.
 
 **Workflow → diagram** ("I changed the workflow, update the diagram"):
@@ -178,15 +174,16 @@ the exact graph. Re-importing that fence reproduces the graph exactly
    the control flow and author `nodes`/`edges` per the mapping guide. (Import
    returns only a scaffold for fence-less scripts — it never guesses typed pins
    from arbitrary JS.) From then on, Compile keeps it lossless.
-3. Rewrite `src/diagram.json`, preserving existing `positions`/ids for nodes that
-   still exist. HMR updates the open page; otherwise relaunch per step 5 above.
+3. Rewrite `diagram.json`, preserving existing `positions`/ids for nodes that
+   still exist. The watcher hot-syncs the open canvas; otherwise open it per
+   step 4 above.
 
 ## Design notes
 
 - **Catalog is the single owner.** Node identity — pins, accent, geometry,
   codegen — lives only in `src/catalog.ts`. To add or change a node kind, edit
   the catalog; rendering, the palette, layout, validation, and codegen follow.
-  Keep `references/primitive-vocabulary.md` in lockstep.
+  Keep `primitive-vocabulary.md` (this directory) in lockstep.
 - **Codegen fidelity.** Compile emits `phase('…')` calls + `meta.phases` from the
   comment groups, a self-contained `gate`/`verify` helper preamble (agent-backed)
   so the file runs without undefined functions, and recovers **reducible loops**:
@@ -212,8 +209,3 @@ the exact graph. Re-importing that fence reproduces the graph exactly
   `getField`) — that's expected and good; keep the graph scannable with comment
   groups per phase and collapse-to-function for sub-routines. Legible *and* fully
   wired, not one or the other.
-
-> Auto-triggering: this skill is set `disable-model-invocation: true` to match
-> the repo convention, so it runs when invoked as `/workflow-diagram`. To let it
-> fire automatically on phrases like "visualize this workflow," remove that line
-> from the frontmatter.

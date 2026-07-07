@@ -58,13 +58,19 @@ The `app/` directory is vendored from
 [github.com/NCMcClure/workflow-editor](https://github.com/NCMcClure/workflow-editor)
 @ `studio-overhaul`, commit `8c65333534077e44cced1bc37beb3fc937512195`.
 
-To refresh: re-copy `src/ docs/ index.html vite.config.ts tsconfig*.json
+To refresh: re-copy `src/ index.html vite.config.ts tsconfig*.json
 package.json package-lock.json LICENSE README.md .gitignore` from the source
 repo into `app/` (excluding `node_modules/`, `dist/`, `.git/`, `studio/`),
 update the commit SHA above, and bump the plugin version.
 
+**Exception — `app/docs/` is maintained in this plugin**, not re-copied: as of
+0.1.1 its authoring protocol was rewritten to match the plugin's studio layout.
+When refreshing, diff the upstream docs for genuinely new protocol content and
+fold it in by hand instead of overwriting.
+
 ## Changelog
 
+- **0.1.1** — studio-root fallback now actually applied in the launch command; storage layout single-sourced in this README; AUTHORING.md de-sedimented (workspace model replaced with the studio layout, dead references/ paths fixed, stale skill notes removed); compilation routed to the studio's codegen instead of hand-emulation; trimmed skill descriptions (~219 → ~138 est passive tokens).
 - **0.1.0** — Initial release: vendored studio app (workflow-editor @
   `studio-overhaul`, `8c65333`), `launch-studio.sh` with persistent install
   home and lockfile-aware `npm ci`, `/workflow-studio` and `/author-workflow`
