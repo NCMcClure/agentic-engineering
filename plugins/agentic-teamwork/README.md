@@ -1,6 +1,6 @@
 # agentic-teamwork
 
-Deterministic version-control guardrails for mixed-skill teams — the rules
+Deterministic version-control guardrails for mixed-skill teams: the rules
 that keep a repo healthy when experienced engineers, vibe-coders, and Claude
 itself all commit to it.
 
@@ -13,7 +13,7 @@ history, an API key ends up in a diff, a branch cut from a stale base merges
 with vacuously green tests. Prompting an agent to behave helps until it
 doesn't; humans forget faster than that.
 
-This plugin makes the rules deterministic. Hooks — not vibes — decide.
+This plugin makes the rules deterministic: hooks decide, not vibes.
 
 ## The four enforcement layers
 
@@ -24,8 +24,8 @@ This plugin makes the rules deterministic. Hooks — not vibes — decide.
 | `permissions.deny` | Claude Code, before the hook even fires | Belt-and-suspenders denial of `--force` and `--no-verify` variants |
 | CI (GitHub Actions / GitLab CI) | Server-side, every PR/MR | The one gate nobody can configure away locally |
 
-One config file — `.claude/teamwork.json`, committed in the repo — drives all
-four. Its presence turns the guards on; repos without it are untouched (the
+One config file drives all four: `.claude/teamwork.json`, committed in the
+repo. Its presence turns the guards on; repos without it are untouched (the
 hooks exit instantly, so the plugin is safe to leave enabled globally).
 
 ## Blocked vs warned
@@ -59,7 +59,7 @@ Or as a skills-directory plugin: clone this repo and copy (or symlink)
 `plugins/agentic-teamwork/` into `~/.claude/skills/`.
 
 Requirements: bash, git, and **jq** on every machine that should enforce
-(hooks fail open without jq — and tell you so at session start; the terminal
+(hooks fail open without jq, and tell you so at session start; the terminal
 pre-commit fails closed). `gh` or `glab` are used by the skills, not the guards.
 
 ## Initialize a repo
@@ -72,13 +72,13 @@ The skill detects your provider (GitHub or GitLab) from the remote URL, the
 default branch, and your test/lint/build commands from the project manifests;
 confirms everything in a short interview; then writes:
 
-- `.claude/teamwork.json` — the committed config (see reference below)
-- `.githooks/pre-commit` + `.githooks/lib-guard.sh` — the terminal mirror
-- `.claude/settings.json` — merged `permissions.deny` entries
+- `.claude/teamwork.json`: the committed config (see reference below)
+- `.githooks/pre-commit` + `.githooks/lib-guard.sh`: the terminal mirror
+- `.claude/settings.json`: merged `permissions.deny` entries
 - `.claude/rules/team-workflow.md` + a short CLAUDE.md section
 - `.github/workflows/ci.yml` or `.gitlab-ci.yml` (diffed, never clobbered)
 
-Commit the result **on a branch** — the guards are live immediately, and yes,
+Commit the result **on a branch**; the guards are live immediately, and yes,
 they will block you from committing them to main. That's the product working.
 
 Each teammate activates the terminal mirror once per clone:
@@ -92,7 +92,7 @@ git config core.hooksPath .githooks
 ## Config reference
 
 Full schema with types and defaults: `skills/teamwork-init/reference.md`.
-The short version — every key of `.claude/teamwork.json`:
+The short version, every key of `.claude/teamwork.json`:
 
 | Key | Default | Purpose |
 |---|---|---|
@@ -118,7 +118,7 @@ The short version — every key of `.claude/teamwork.json`:
   command bypasses everything for that command. Deliberately loud: it sits in
   the transcript or shell history, so it's auditable. Maintainers only.
 - **`TEAMWORK_SKIP_TESTS=1`** skips only the test run in the terminal
-  pre-commit — for the "fixing the tests is the commit" case.
+  pre-commit, for the "fixing the tests is the commit" case.
 - CI has no escape hatch. That's the point of the fourth layer.
 
 ## GitHub vs GitLab
@@ -135,22 +135,22 @@ nor "gitlab": set `provider` explicitly (init asks).
 
 **Why was my push blocked?** You targeted a protected branch, used a force
 flag, or used `--no-verify`. The deny message says which and what to do
-instead — usually `git push -u origin <branch>` and open a PR/MR.
+instead, usually `git push -u origin <branch>` and open a PR/MR.
 
 **The hooks aren't firing.** In order: (1) the plugin must be enabled and
 trusted (check `/plugin`); (2) the repo must contain `.claude/teamwork.json`
-— no config, no guards; (3) `jq` must be installed — the session briefing
-warns when it's missing; (4) for terminal commits,
+(no config, no guards); (3) `jq` must be installed (the session briefing
+warns when it's missing); (4) for terminal commits,
 `git config core.hooksPath` must be `.githooks` in *your* clone. Run
 `/teamwork-audit` and it will point at the broken layer.
 
 **I genuinely need to force-push.** Get a maintainer to run the command with
 `TEAMWORK_ALLOW=1` (auditable), or flip `rules.blockForcePush` to `false` in
 a reviewed config change. Note the Claude-side `permissions.deny` entries
-also match force-push — remove those from `.claude/settings.json` too if the
+also match force-push, so remove those from `.claude/settings.json` too if the
 push should come from a session.
 
-**Does this replace server-side branch protection?** No — enable that too.
+**Does this replace server-side branch protection?** No; enable that too.
 This plugin covers the gap where server rules can't reach: local commits,
 agent sessions, and the feedback loop *before* the push fails.
 
@@ -161,11 +161,12 @@ code.
 ## Requirements
 
 - bash ≥ 4, git, jq (guards)
-- `gh` (GitHub) or `glab` (GitLab) — used by the skills for PR/MR flows
+- `gh` (GitHub) or `glab` (GitLab): used by the skills for PR/MR flows
 - GNU or BSD userland; macOS Homebrew paths handled automatically
 
 ## Changelog
 
-- **0.1.0** — Initial release: git-guard, session briefing, edit-check,
+- **0.1.1**: README reworded.
+- **0.1.0**: Initial release: git-guard, session briefing, edit-check,
   stop-gate; terminal pre-commit mirror; GitHub + GitLab providers;
   `/teamwork-init` and `/teamwork-audit`.
