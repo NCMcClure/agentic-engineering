@@ -29,7 +29,7 @@ incomplete:
 If the current sprint's issues are all verified-complete, the next issue is the
 first issue of the next sprint. If that sprint hasn't been published yet (its
 issues are `<unassigned>` and the tracker is GitHub), the real next action is to
-run `plan-5-publish-issues` for it before work can be grabbed.
+run `plan-1-publish-issues` for it before work can be grabbed.
 
 ## What to hand back
 

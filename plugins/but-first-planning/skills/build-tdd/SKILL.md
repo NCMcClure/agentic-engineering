@@ -22,7 +22,7 @@ issue's `Status:`, ticks its acceptance boxes, rolls the change up through the
 sprint/epic tables and fields and the plan index, and syncs the tracker, all in
 one step. Don't hand-edit any `Status` field. Then hand back to
 `build-next-issue` to verify completion and name what's next. If, mid-implementation, the spec turns out to be wrong or
-ambiguous, stop and route the change through `plan-6-edit` rather than quietly
+ambiguous, stop and route the change through `spec-4-edit` rather than quietly
 diverging from it — the spec stays the source of truth.
 
 When there's no `.plan/` workspace, ignore this section and use the plain
@@ -73,7 +73,7 @@ Before writing any code:
 
 - [ ] Confirm with user what interface changes are needed
 - [ ] Confirm with user which behaviors to test (prioritize)
-- [ ] Identify opportunities for **deep modules** — small interface, deep implementation; the suite's canonical architecture vocabulary lives in [plan-3-architect-spec's LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md), shared rather than duplicated here
+- [ ] Identify opportunities for **deep modules** — small interface, deep implementation; the suite's canonical architecture vocabulary lives in [spec-3-architect's LANGUAGE.md](../spec-3-architect/LANGUAGE.md), shared rather than duplicated here
 - [ ] Design interfaces for testability: **accept dependencies** (don't construct them inside), **return results** (don't mutate arguments as side effects), **small surface** (fewer methods and params = simpler tests)
 - [ ] List the behaviors to test (not implementation steps)
 - [ ] Get user approval on the plan

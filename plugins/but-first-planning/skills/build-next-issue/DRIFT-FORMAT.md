@@ -11,7 +11,7 @@ id: D1
 kind: defect | smell | checkpoint-bug | note
 surfaced: 2026-05-31 (01-03)
 where: <spec/plan/code location, e.g. spec/03-runtime/... or sprint 02-04>
-route: plan-6-edit | build-improve-architecture | follow-up issue #NNN
+route: spec-4-edit | build-improve-architecture | follow-up issue #NNN
 status: open | routed | resolved | by-design | human-or-future
 ---
 
@@ -29,7 +29,7 @@ already fixed), `by-design` (re-assessed as intentional — never a real defect)
 status may carry a trailing note of how/when it was settled, e.g.
 `resolved (drift-triage 2026-06-06, #376)` — tools classify on the leading keyword.
 
-Defects route to `plan-6-edit`; architecture smells route to
+Defects route to `spec-4-edit`; architecture smells route to
 `build-improve-architecture`. A `note` is an observation recorded for the record — not
 itself a defect or smell (e.g. "this is a fixture convenience, correct by design") — and
 usually settles straight to a terminal status rather than earning an issue. Flip

@@ -148,7 +148,7 @@ const record = await agent(
   `${CTX}\nYou are the reconciliation recorder — the ONLY agent in this run allowed to mutate state, and everything goes through the funnel or its owned files. Inputs below. Steps, in order:
 1. For each VERIFIED issue not already ledgered: python3 ${PLANDIR}/plan-status.py set <coords> done --evidence "<its evidence, one line>" (the --evidence flag is what appends the ledger row — use it only here, where verification actually happened this run).
 2. For each FAILED issue: python3 ${PLANDIR}/plan-status.py set <coords> in-progress (it claimed done but is not).
-3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/SKILL.md (kind: checkpoint-bug, route: plan-6-edit, status: open) — reuse an existing item's file (bump it) rather than duplicating.
+3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/SKILL.md (kind: checkpoint-bug, route: spec-4-edit, status: open) — reuse an existing item's file (bump it) rather than duplicating.
 4. Write this run's reconciliation narrative to a NEW ${PROG}/notes/<today>-<scope-or-all>-reconcile.md (derive today via date +%F): verification method, per-issue outcomes, plan/tracker disagreements you can see in the inputs, checkpoint health.
 5. Refresh the "## Status snapshot" and "## Open cross-cutting items" sections of ${PROG}/index.md from python3 ${PLANDIR}/plan-status.py check and python3 ${PROG}/drift-status.py --open.
 Do not run git. Report exactly what you ran and wrote.
@@ -219,7 +219,7 @@ const SELECT_SCHEMA = {
         coords: { type: 'string' }, title: { type: 'string' }, type: { type: 'string' }, ref: { type: 'string' },
         anchors: { type: 'array', items: { type: 'string' } },
         acceptanceCriteria: { type: 'array', items: { type: 'string' } },
-        unpublishedSprint: { type: 'boolean', description: 'true if its sprint still needs plan-5-publish-issues' },
+        unpublishedSprint: { type: 'boolean', description: 'true if its sprint still needs plan-1-publish-issues' },
       },
     },
     onDeck: { type: 'array', items: { type: 'object', required: ['coords', 'title'], properties: { coords: { type: 'string' }, title: { type: 'string' } } } },
@@ -231,7 +231,7 @@ const SELECT_SCHEMA = {
 const selection = await agent(
   `${CTX}\nYou are the next-issue selector${DISPATCH ? ' and dispatch planner' : ''}. Read ${SKILL}/NEXT-SELECTION.md${DISPATCH ? ` and ${SKILL}/DISPATCH-PLAN.md (including its JSON-contract section)` : ''} FIRST and apply them exactly. The freshly verified state: use the plan tree on disk (the Record step just reconciled it) plus these inputs — treat routed drift follow-up issues as buildable candidates alongside plan issues.
 Select the single next issue (lowest-numbered not-started whose blockers are ALL verified-complete, respecting sprint/epic order) with its anchors and acceptance criteria read from its file. List the 1-3 on-deck issues that unlock after it.${DISPATCH ? `
-Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies — read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map HITL gates, order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to plan-6-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
+Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies — read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map HITL gates, order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to spec-4-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
 INPUTS:\nVERIFIED THIS RUN: ${JSON.stringify(verified.map(v => v.coords))}\nSTILL FAILED: ${JSON.stringify(failed.map(v => v.coords))}\nOPEN DRIFT: ${JSON.stringify(progress.openDrift, null, 1)}\nDRIFT FOLLOW-UPS: ${JSON.stringify(progress.routedFollowUps)}\nCHECKPOINT HEALTH FROM VERIFY: ${JSON.stringify(brokenCheckpoints, null, 1)}\n${BRIEF}`,
   { label: DISPATCH ? 'select+dispatch' : 'select', phase: 'Select', effort: 'high', schema: SELECT_SCHEMA }
 )
@@ -245,7 +245,7 @@ return {
   },
   anythingOff: {
     claimedDoneButFailed: failed.map(v => ({ coords: v.coords, evidence: v.evidence })),
-    brokenCheckpoints: brokenCheckpoints.map(v => ({ coords: v.coords, evidence: v.evidence, route: 'plan-6-edit' })),
+    brokenCheckpoints: brokenCheckpoints.map(v => ({ coords: v.coords, evidence: v.evidence, route: 'spec-4-edit' })),
     verifyDeferredByLimit: deltaTruncated,
     openDrift: progress.openDrift,
     recordProblems: (record && record.problems) || [],

@@ -20,7 +20,7 @@ already verified in `.plan/progress/completed/`):
    some code was written.
 3. **Confirm the spec anchors still resolve.** If the anchor points at a spec file
    that has since moved or been deleted, the issue may have been built against a
-   design that's since changed — flag it for `plan-6-edit` rather than passing it.
+   design that's since changed — flag it for `spec-4-edit` rather than passing it.
 4. **Cross-check git.** Look for a merged branch or commits referencing the issue
    (its file, slug, or tracker number). Merged work with no status change is a
    bookkeeping miss to fix; a `done` flag with no corresponding change anywhere is
@@ -36,7 +36,7 @@ Distinguish three cases, because they route differently:
 
 - **Failed** — the command ran and the behaviour is genuinely absent. The issue is not done; send it back (see below).
 - **Not-yet-runnable** — the command names tooling a *later* issue builds (a script, binary, or fixture that doesn't exist yet). The `Blocked by` field probably lied; this is an implicit-dependency signal (see [DISPATCH-PLAN.md](DISPATCH-PLAN.md)). Verify against the acceptance criteria directly in the meantime and record the gap, rather than calling a genuinely-built slice "failed."
-- **Broken by construction** — the command can *never* pass even when the work is done (the classic, now fixed: a sprint-exit `grep -L "Status: done"` run against `**Status**: done` frontmatter — the pattern never matches the bold form, so the gate is a permanent false negative). The current templates use `plan-status.py check EE-SS` instead, which has no such blind spot; if you still meet a broken-by-construction checkpoint, flag it for `plan-6-edit` and don't let it block a genuinely-complete sprint.
+- **Broken by construction** — the command can *never* pass even when the work is done (the classic, now fixed: a sprint-exit `grep -L "Status: done"` run against `**Status**: done` frontmatter — the pattern never matches the bold form, so the gate is a permanent false negative). The current templates use `plan-status.py check EE-SS` instead, which has no such blind spot; if you still meet a broken-by-construction checkpoint, flag it for `spec-4-edit` and don't let it block a genuinely-complete sprint.
 
 ## Verify against the right ref, and only the delta
 

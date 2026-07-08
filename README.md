@@ -21,7 +21,7 @@ Then install whichever plugins you want:
 /plugin install but-first-planning@agentic-engineering
 ```
 
-Skills arrive namespaced: `/but-first-planning:plan-0-init`,
+Skills arrive namespaced: `/but-first-planning:spec-0-init`,
 `/agentic-teamwork:teamwork-init`, and so on.
 
 ## The plugins

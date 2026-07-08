@@ -7,11 +7,11 @@ description: Find deepening refactors in built code — shallow modules, missing
 
 Surface architectural friction in the **actual codebase** and propose **deepening opportunities** — refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
-This is the *post-code* counterpart to `plan-3-architect-spec`: that skill pressure-tests the designed system in the spec before code exists; this one works on what's been built. When a refactor reveals a decision worth keeping — or worth changing — it flows back into the same glossary and ADRs the planning skills maintain (see [§ Close the loop](#close-the-loop)).
+This is the *post-code* counterpart to `spec-3-architect`: that skill pressure-tests the designed system in the spec before code exists; this one works on what's been built. When a refactor reveals a decision worth keeping — or worth changing — it flows back into the same glossary and ADRs the planning skills maintain (see [§ Close the loop](#close-the-loop)).
 
 ## Glossary
 
-Use these terms exactly in every suggestion. Consistent language is the point — don't drift into "component," "service," "API," or "boundary." Full definitions in the canonical [LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md) (shared with `plan-3-architect-spec`).
+Use these terms exactly in every suggestion. Consistent language is the point — don't drift into "component," "service," "API," or "boundary." Full definitions in the canonical [LANGUAGE.md](../spec-3-architect/LANGUAGE.md) (shared with `spec-3-architect`).
 
 - **Module** — anything with an interface and an implementation (function, class, package, slice).
 - **Interface** — everything a caller must know to use the module: types, invariants, error modes, ordering, config. Not just the type signature.
@@ -22,7 +22,7 @@ Use these terms exactly in every suggestion. Consistent language is the point �
 - **Leverage** — what callers get from depth.
 - **Locality** — what maintainers get from depth: change, bugs, knowledge concentrated in one place.
 
-Key principles (see [LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md) for the full list):
+Key principles (see [LANGUAGE.md](../spec-3-architect/LANGUAGE.md) for the full list):
 
 - **Deletion test**: imagine deleting the module. If complexity vanishes, it was a pass-through. If complexity reappears across N callers, it was earning its keep.
 - **The interface is the test surface.**
@@ -63,11 +63,11 @@ For each candidate, render a card with:
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
 
-**Use the project glossary's vocabulary for the domain, and [LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md) vocabulary for the architecture.** If the glossary (`.plan/spec/reference/glossary.md`) defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
+**Use the project glossary's vocabulary for the domain, and [LANGUAGE.md](../spec-3-architect/LANGUAGE.md) vocabulary for the architecture.** If the glossary (`.plan/spec/reference/glossary.md`) defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
 
 **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007 — but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
 
-See the canonical [HTML-REPORT.md](../plan-3-architect-spec/HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance — its Framing section says how this skill's report differs from plan-3's (title "Architecture review"; Files means source files).
+See the canonical [HTML-REPORT.md](../spec-3-architect/HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance — its Framing section says how this skill's report differs from spec-3's (title "Architecture review"; Files means source files).
 
 Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
 
@@ -77,10 +77,10 @@ Once the user picks a candidate, drop into a grilling conversation. Walk the des
 
 Side effects happen inline as decisions crystallize:
 
-- **Naming a deepened module after a concept not in the glossary?** Add the term to `.plan/spec/reference/glossary.md` — same discipline as `plan-2-grill-spec` (see [its CONTEXT-FORMAT.md](../plan-2-grill-spec/CONTEXT-FORMAT.md)). Create the file lazily if no `.plan/` workspace exists.
+- **Naming a deepened module after a concept not in the glossary?** Add the term to `.plan/spec/reference/glossary.md` — same discipline as `spec-2-grill` (see [its CONTEXT-FORMAT.md](../spec-2-grill/CONTEXT-FORMAT.md)). Create the file lazily if no `.plan/` workspace exists.
 - **Sharpening a fuzzy term during the conversation?** Update the glossary right there.
-- **User rejects the candidate with a load-bearing reason?** Offer an ADR in `.plan/spec/reference/adr/`, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](../plan-2-grill-spec/ADR-FORMAT.md).
-- **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](../plan-3-architect-spec/INTERFACE-DESIGN.md).
+- **User rejects the candidate with a load-bearing reason?** Offer an ADR in `.plan/spec/reference/adr/`, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](../spec-2-grill/ADR-FORMAT.md).
+- **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](../spec-3-architect/INTERFACE-DESIGN.md).
 
 ## Close the loop
 
@@ -88,7 +88,7 @@ A refactor on built code often teaches you something the spec didn't capture. Fe
 
 - **The deepening sharpened or added a concept** → it's already in the glossary (above). Good.
 - **The deepening changed a load-bearing decision** → record or supersede an ADR in `.plan/spec/reference/adr/`.
-- **The code, as built, has drifted from what the spec describes** → don't silently "fix" the spec here. Surface the drift and route it through `plan-6-edit`, which updates the affected spec files and the plan issues anchored to them. That keeps spec ↔ plan ↔ code in agreement instead of letting three sources of truth diverge.
+- **The code, as built, has drifted from what the spec describes** → don't silently "fix" the spec here. Surface the drift and route it through `spec-4-edit`, which updates the affected spec files and the plan issues anchored to them. That keeps spec ↔ plan ↔ code in agreement instead of letting three sources of truth diverge.
 
 ## Autonomous mode
 
@@ -111,7 +111,7 @@ Workflow({
 
 **Report-only by design** — applying a refactor is test-gated implementation
 work that goes through the grilling loop and `build-tdd`, never auto-applied.
-The returned `specDriftFindings` route to `plan-6-edit`. **Converged when** the
+The returned `specDriftFindings` route to `spec-4-edit`. **Converged when** the
 ranked report is delivered; open it and walk the user through the top
 recommendation.
 
@@ -120,4 +120,4 @@ recommendation.
 The report is written and opened, and its absolute path told to the user; the
 chosen candidate ends in exactly one terminal state — refactor applied with
 tests green, or user rejection with an ADR offered and decided; and any spec
-drift found is routed to `plan-6-edit` or explicitly declined by the user.
+drift found is routed to `spec-4-edit` or explicitly declined by the user.

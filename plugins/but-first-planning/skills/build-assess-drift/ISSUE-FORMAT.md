@@ -7,7 +7,7 @@ acceptance criteria authored up front. It's a grabbable ticket that says *what d
 
 For the `gh` mechanics — `gh issue create`, reading the repo/labels/board from
 `.plan/tracker.md`, mirroring into the GitHub Project, and re-reading to stay idempotent
-— follow [plan-5-publish-issues/TRACKER-GITHUB.md](../plan-5-publish-issues/TRACKER-GITHUB.md).
+— follow [plan-1-publish-issues/TRACKER-GITHUB.md](../plan-1-publish-issues/TRACKER-GITHUB.md).
 This file only defines the **body shape** and the **label/route mapping**.
 
 ## Body template
@@ -24,7 +24,7 @@ present in the code today, not the stale original description>
 ## How to address it
 
 Use the **<route skill>** skill — <one line on why it's the right tool: e.g.
-"this is a spec/plan defect; plan-6-edit edits the affected spec files and keeps
+"this is a spec/plan defect; spec-4-edit edits the affected spec files and keeps
 spec ↔ plan ↔ tracker in sync">.
 
 ## Acceptance criteria
@@ -44,8 +44,8 @@ The route skill drives both the label and the "How to address it" line:
 
 | `kind`         | Route skill                  | Label            | Why |
 |----------------|------------------------------|------------------|-----|
-| `defect`       | `plan-6-edit`                | `ready-for-human`| Spec/plan change needs human design judgement. |
-| `checkpoint-bug`| `plan-6-edit`               | `ready-for-human`| Fixing a checkpoint is a plan edit. |
+| `defect`       | `spec-4-edit`                | `ready-for-human`| Spec/plan change needs human design judgement. |
+| `checkpoint-bug`| `spec-4-edit`               | `ready-for-human`| Fixing a checkpoint is a plan edit. |
 | `smell`        | `build-improve-architecture` | `ready-for-agent`| A bounded refactor an agent can drive and verify. |
 | `note`         | — (usually no issue)         | —                | An observation; settles to a terminal status. Only routes when it surfaced a latent defect — then route by what that defect *is*. |
 | concrete fix   | `build-tdd`                  | `ready-for-agent`| A scoped, test-first code change. |

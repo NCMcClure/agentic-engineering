@@ -11,7 +11,7 @@
     {
       "name": "but-first-planning",
       "source": "./plugins/but-first-planning",
-      "description": "A file-based planning + build workflow: author a language-agnostic spec, plan it, and build it with coordinated builder agents — the plan-0..plan-6 pipeline, the build loop, and an autopilot that chains it all, landing in a single .plan/ workspace.",
+      "description": "A file-based planning + build workflow: author a language-agnostic spec, plan it, and build it with coordinated builder agents — the spec-* authoring skills, the plan-* backlog skills, the build loop, and an autopilot that chains it all, landing in a single .plan/ workspace.",
       "category": "planning"
     },
     {

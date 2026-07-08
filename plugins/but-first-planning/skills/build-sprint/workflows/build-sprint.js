@@ -230,7 +230,7 @@ const integrateOne = async (u, builder) => {
   // stop the line: singleton failure diagnosis — inherits the session model
   const diagnosis = await agent(
     `${CTX}\nYou are the stop-the-line diagnostician. Integration of unit ${unitKey(u)} went red on ${BRANCH}: ${JSON.stringify(integration && integration.failure || 'integrator agent failed')}. Checkpoints run: ${JSON.stringify(integration && integration.checkpointsRun || [])}. Builder's report: ${JSON.stringify(builder)}.
-Diagnose the root cause. Then EITHER fix forward — only if the fix is surgical (a missed import, a test-ordering assumption, a stale fixture): make the fix, re-run the failing checkpoint AND every previously-landed checkpoint (${JSON.stringify(built.map(l => l.unit))}) to green, run the funnel set for ${JSON.stringify(u.coords)}, commit — OR revert: git revert (or merge -abort fallout cleanup) so ${BRANCH} is exactly at its last green state, and report the unit failed with a route: 'plan-6-edit' if the checkpoint/plan is defective, 'retry' if the builder's implementation is salvageable next run, 'spec' if the spec itself is wrong. A green branch is the invariant — never leave ${BRANCH} red. ${BRIEF}`,
+Diagnose the root cause. Then EITHER fix forward — only if the fix is surgical (a missed import, a test-ordering assumption, a stale fixture): make the fix, re-run the failing checkpoint AND every previously-landed checkpoint (${JSON.stringify(built.map(l => l.unit))}) to green, run the funnel set for ${JSON.stringify(u.coords)}, commit — OR revert: git revert (or merge -abort fallout cleanup) so ${BRANCH} is exactly at its last green state, and report the unit failed with a route: 'spec-4-edit' if the checkpoint/plan is defective, 'retry' if the builder's implementation is salvageable next run, 'spec' if the spec itself is wrong. A green branch is the invariant — never leave ${BRANCH} red. ${BRIEF}`,
     {
       label: `diagnose:${unitKey(u)}`, phase: 'Integrate', effort: 'high',
       schema: {
@@ -238,7 +238,7 @@ Diagnose the root cause. Then EITHER fix forward — only if the fix is surgical
         properties: {
           outcome: { enum: ['fixed-forward', 'reverted'] },
           summary: { type: 'string' },
-          route: { enum: ['plan-6-edit', 'retry', 'spec'] },
+          route: { enum: ['spec-4-edit', 'retry', 'spec'] },
         },
       },
     }
@@ -306,7 +306,7 @@ log(`Build: ${built.length} landed, ${failed.length} failed, ${excluded.size} no
 // ---------- Phase 5: sprint exit ----------
 phase('Exit')
 const sprintExit = await agent(
-  `${CTX}\nYou are the sprint-exit verifier. Run, from ${ROOT} on ${BRANCH}: (1) python3 ${PLANDIR}/plan-status.py check ${SPRINT}; (2) the sprint's own exit checkpoints from its sprint.md (read it — Layer-1 test suite, any sprint E2E); (3) python3 ${PLANDIR}/verify-plan-tree.py. These units were NOT built this run (do not count their absence as failure): ${JSON.stringify([...excluded])}. Classify every failure: genuine (work is wrong/missing) vs broken-by-construction (the checkpoint can never pass as written — an issue defect that routes to plan-6-edit; cross-check ${JSON.stringify(dispatch.checkpointHealth || [])}). Run checkpoints read-only — fix nothing. ${BRIEF}`,
+  `${CTX}\nYou are the sprint-exit verifier. Run, from ${ROOT} on ${BRANCH}: (1) python3 ${PLANDIR}/plan-status.py check ${SPRINT}; (2) the sprint's own exit checkpoints from its sprint.md (read it — Layer-1 test suite, any sprint E2E); (3) python3 ${PLANDIR}/verify-plan-tree.py. These units were NOT built this run (do not count their absence as failure): ${JSON.stringify([...excluded])}. Classify every failure: genuine (work is wrong/missing) vs broken-by-construction (the checkpoint can never pass as written — an issue defect that routes to spec-4-edit; cross-check ${JSON.stringify(dispatch.checkpointHealth || [])}). Run checkpoints read-only — fix nothing. ${BRIEF}`,
   {
     label: 'sprint-exit', phase: 'Exit', model: 'opus', effort: 'high',
     schema: {
@@ -325,7 +325,7 @@ const sprintExit = await agent(
 phase('Bookkeep')
 const allDriftFlags = built.flatMap(b => (b.builder.driftFlags || []).map(f => ({ unit: b.unit, flag: f })))
 const bookkeep = await agent(
-  `${CTX}\nYou are the bookkeeper. On ${BRANCH}: (1) Write this run's narrative to a NEW ${PROG}/notes/<today>-${SPRINT}-sprint-build.md (today via date +%F): per-unit outcomes with checkpoint evidence, failures with routes, HITL handling (policy ${HITL_POLICY}), sprint-exit results. (2) For each drift flag below, create or bump a ${PROG}/drift/drift-<slug>.md per the drift-file format in the build-next-issue skill (kind by content: checkpoint-bug -> route plan-6-edit; smell -> build-improve-architecture; status: open). (3) Commit ONLY these bookkeeping files in their own commit: "chore(${SPRINT}): build notes + drift". Do not push.
+  `${CTX}\nYou are the bookkeeper. On ${BRANCH}: (1) Write this run's narrative to a NEW ${PROG}/notes/<today>-${SPRINT}-sprint-build.md (today via date +%F): per-unit outcomes with checkpoint evidence, failures with routes, HITL handling (policy ${HITL_POLICY}), sprint-exit results. (2) For each drift flag below, create or bump a ${PROG}/drift/drift-<slug>.md per the drift-file format in the build-next-issue skill (kind by content: checkpoint-bug -> route spec-4-edit; smell -> build-improve-architecture; status: open). (3) Commit ONLY these bookkeeping files in their own commit: "chore(${SPRINT}): build notes + drift". Do not push.
 DRIFT FLAGS: ${JSON.stringify(allDriftFlags, null, 1)}
 SPRINT EXIT: ${JSON.stringify(sprintExit, null, 1)}
 FAILED: ${JSON.stringify(failed, null, 1)}

@@ -27,7 +27,7 @@ if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-improve-architecture skill dir>, areas?, context?, extraLenses?}')
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
-const CANON = `${SKILL}/../plan-3-architect-spec` // canonical LANGUAGE.md / DEEPENING.md / HTML-REPORT.md
+const CANON = `${SKILL}/../spec-3-architect` // canonical LANGUAGE.md / DEEPENING.md / HTML-REPORT.md
 const SPEC = `${ROOT}/.plan/spec` // may not exist — hunters check before reading
 
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
@@ -46,7 +46,7 @@ locality; NEVER "component", "service", or "boundary"). THEN, if a .plan/ worksp
 (check for ${SPEC}/), also read the project glossary (${SPEC}/reference/glossary.md), the
 ADRs (${SPEC}/reference/adr/), and the spec sections covering your area — the spec is the
 DESIGN INTENT. Where the code has drifted from what the spec describes, that is a FINDING
-to route to plan-6-edit, NOT a refactor candidate: report it in specDriftFindings (where =
+to route to spec-4-edit, NOT a refactor candidate: report it in specDriftFindings (where =
 code location, spec = the spec file, claim = what the spec says vs what the code does,
 evidence = paths + quotes) and leave it out of candidates.
 Hunt for: (a) shallow modules — interface nearly as complex as the implementation; apply
@@ -217,7 +217,7 @@ const rankedSlim = ranked.map(slim)
 // ---------- Phase 5: report (mechanical rendering — sonnet) ----------
 phase('Report')
 const rep = await agent(
-  `${CTX}\nYou are the report renderer. Read ${CANON}/HTML-REPORT.md FIRST and follow it exactly — scaffold, candidate cards, diagram patterns, tone. Per its Framing section this is the build-improve CODE-SIDE report: title "Architecture review" (you are visualising a codebase; Files means source files). Render one card per candidate below, in ranked order, plus the Top recommendation section${topRec ? ` (top: ${JSON.stringify(topRec.title)})` : ''}. Include each candidate's deletion-test outcome and any ADR callout.${specDriftFindings.length ? ' Add a compact "Spec drift" section after the candidates listing these findings (they route to plan-6-edit, not to refactoring): ' + JSON.stringify(specDriftFindings) + '.' : ''} Write the file to the OS temp dir — resolve $TMPDIR, falling back to /tmp — as architecture-review-<stamp>.html where <stamp> you generate yourself by running \`date +%s\` in Bash (this pipeline cannot generate timestamps). Do NOT open the file (the calling skill decides). Return the absolute path.\n\nRANKED CANDIDATES:\n${JSON.stringify(rankedSlim, null, 1)}\n${BRIEF}`,
+  `${CTX}\nYou are the report renderer. Read ${CANON}/HTML-REPORT.md FIRST and follow it exactly — scaffold, candidate cards, diagram patterns, tone. Per its Framing section this is the build-improve CODE-SIDE report: title "Architecture review" (you are visualising a codebase; Files means source files). Render one card per candidate below, in ranked order, plus the Top recommendation section${topRec ? ` (top: ${JSON.stringify(topRec.title)})` : ''}. Include each candidate's deletion-test outcome and any ADR callout.${specDriftFindings.length ? ' Add a compact "Spec drift" section after the candidates listing these findings (they route to spec-4-edit, not to refactoring): ' + JSON.stringify(specDriftFindings) + '.' : ''} Write the file to the OS temp dir — resolve $TMPDIR, falling back to /tmp — as architecture-review-<stamp>.html where <stamp> you generate yourself by running \`date +%s\` in Bash (this pipeline cannot generate timestamps). Do NOT open the file (the calling skill decides). Return the absolute path.\n\nRANKED CANDIDATES:\n${JSON.stringify(rankedSlim, null, 1)}\n${BRIEF}`,
   {
     label: 'report', phase: 'Report', model: 'sonnet', effort: 'medium',
     schema: { type: 'object', required: ['reportPath'], properties: { reportPath: { type: 'string' } } },

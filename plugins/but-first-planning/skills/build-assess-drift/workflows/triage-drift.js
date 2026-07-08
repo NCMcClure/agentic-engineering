@@ -85,7 +85,7 @@ const REASSESS_SCHEMA = {
       type: 'object', required: ['scope', 'routeSkill', 'acceptanceCriteria'],
       properties: {
         scope: { type: 'string', description: 'what actually needs to change, refreshed by the re-assessment' },
-        routeSkill: { enum: ['plan-6-edit', 'build-improve-architecture', 'build-tdd'] },
+        routeSkill: { enum: ['spec-4-edit', 'build-improve-architecture', 'build-tdd'] },
         acceptanceCriteria: { type: 'array', minItems: 2, maxItems: 4, items: { type: 'string' }, description: 'checkable bullets that say when the drift is gone' },
       },
       description: 'only for still-relevant/changed: the fix plan the eventual issue body will carry',
@@ -99,7 +99,7 @@ const REASSESS_SCHEMA = {
 // needs the full verdict set before it can start.
 const verdicts = (await parallel(items.map(i => () =>
   agent(
-    `${CTX}\nYou are the re-assessor for ONE drift item. Read ${SKILL}/REASSESS.md FIRST and follow its method — confirm the where: still exists, then judge by kind; demonstrate, don't assert. Then read the drift file ${i.file}. IDEMPOTENCY: if that file's status: line already carries an annotation naming drift-triage with today's date (compare against date +%F), a previous pass of this same run settled it — trust it and re-emit the matching verdict without re-investigating. Otherwise: walk the where: location ("${i.where}") against the live tree with Read/Grep/Glob, and use git history (git log --oneline -- <paths>; read-only, no git mutations) to distinguish fixed-since-surfaced from never-a-real-problem. Reach ONE verdict: still-relevant | already-resolved | changed | by-design | human-or-future, with evidence naming the paths/commands and what you saw. For still-relevant or changed (changed = re-scope against what's actually there now) ALSO emit the fix plan: scope, routeSkill by kind per ${SKILL}/SKILL.md (defect/checkpoint-bug -> plan-6-edit; architecture smell -> build-improve-architecture; a concrete bounded fix -> build-tdd), and 2-4 checkable acceptance criteria. Set id="${i.id}". ${BRIEF}`,
+    `${CTX}\nYou are the re-assessor for ONE drift item. Read ${SKILL}/REASSESS.md FIRST and follow its method — confirm the where: still exists, then judge by kind; demonstrate, don't assert. Then read the drift file ${i.file}. IDEMPOTENCY: if that file's status: line already carries an annotation naming drift-triage with today's date (compare against date +%F), a previous pass of this same run settled it — trust it and re-emit the matching verdict without re-investigating. Otherwise: walk the where: location ("${i.where}") against the live tree with Read/Grep/Glob, and use git history (git log --oneline -- <paths>; read-only, no git mutations) to distinguish fixed-since-surfaced from never-a-real-problem. Reach ONE verdict: still-relevant | already-resolved | changed | by-design | human-or-future, with evidence naming the paths/commands and what you saw. For still-relevant or changed (changed = re-scope against what's actually there now) ALSO emit the fix plan: scope, routeSkill by kind per ${SKILL}/SKILL.md (defect/checkpoint-bug -> spec-4-edit; architecture smell -> build-improve-architecture; a concrete bounded fix -> build-tdd), and 2-4 checkable acceptance criteria. Set id="${i.id}". ${BRIEF}`,
     { label: `reassess:${i.id}`, phase: 'Reassess', model: 'opus', effort: 'high', schema: REASSESS_SCHEMA }
   ).then(v => v && { ...i, ...v })
 ))).filter(Boolean)

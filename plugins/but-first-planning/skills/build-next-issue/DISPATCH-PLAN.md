@@ -27,7 +27,7 @@ issues that genuinely depend on each other. Recover the rest:
   in a later issue) depends on it, or needs a stub. Flag the forward-dependency.
 - **Declared-vs-implied mismatch is a finding.** When the two disagree, the
   implied graph wins for dispatch, and the `Blocked by` field should be corrected
-  via `plan-6-edit`. Surface it; don't silently route around it.
+  via `spec-4-edit`. Surface it; don't silently route around it.
 
 ## 2. Find file-overlaps (the *other* dependency)
 
@@ -71,7 +71,7 @@ Sprint NN-MM dispatch plan
   HITL gates:
     - 08 (#9) HITL ADR-001 layout decision          gates: sprint exit (pause for human)
   Checkpoint health:
-    - 07: checkpoint names scripts/package.py (unbuilt) → verify via acceptance; route to plan-6-edit
+    - 07: checkpoint names scripts/package.py (unbuilt) → verify via acceptance; route to spec-4-edit
     - sprint-exit uses plan-status.py check 01-01 (the old grep -L "Status: done" was broken-by-construction)
 ```
 
@@ -110,7 +110,7 @@ canonical schema; keep the prose plan and the JSON saying the same thing.
     { "coords": "EE-SS-II", "title": "…", "gatesWhat": "which AFK work stalls on it" }
   ],
   "checkpointHealth": [
-    { "coords": "EE-SS-II", "problem": "…", "route": "plan-6-edit" }
+    { "coords": "EE-SS-II", "problem": "…", "route": "spec-4-edit" }
   ],
   "declaredVsImpliedMismatches": [
     { "coords": "EE-SS-II", "declared": "None", "implied": "EE-SS-II", "why": "…" }

@@ -57,7 +57,7 @@ against the current tree before anything else:
   is **still-relevant**.
 - **smell (architecture)** — walk the modules under `where:` with an
   `subagent_type=Explore` agent and apply the **deletion test** from
-  the canonical [LANGUAGE.md](../plan-3-architect-spec/LANGUAGE.md):
+  the canonical [LANGUAGE.md](../spec-3-architect/LANGUAGE.md):
   imagine deleting the shallow module — does complexity concentrate (the smell is real
   and **still-relevant**) or just move (it was never load-bearing)? Use that skill's
   vocabulary — *module, interface, depth, seam, leverage, locality* — so the issue you

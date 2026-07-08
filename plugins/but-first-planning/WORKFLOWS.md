@@ -5,26 +5,26 @@ script under `workflows/`. Every script is **self-contained** — no imports, no
 shared module — so these conventions are duplicated per script *on purpose*;
 this file is the single place that says what they are. Drift between copies is
 caught by review. When writing or editing a script, copy from
-`plan-4-plan/workflows/build-plan-tree.js` (fan-out + pipeline + verify loop)
-or `plan-2-grill-spec/workflows/deep-review.js` (review + adversarial verify +
+`plan-0-decompose/workflows/build-plan-tree.js` (fan-out + pipeline + verify loop)
+or `spec-2-grill/workflows/deep-review.js` (review + adversarial verify +
 fix rounds) rather than inventing new shapes.
 
 ## Inventory
 
 | Script | meta.name | Skill's autonomous mode for |
 |---|---|---|
-| `plan-1-specify/workflows/author-spec.js` | `plan-1-author-spec` | authoring a spec from a brief |
-| `plan-2-grill-spec/workflows/deep-review.js` | `plan-2-deep-review` | grill-until-dry deep review |
-| `plan-3-architect-spec/workflows/deepening-review.js` | `plan-3-deepening-review` | spec-side deepening hunt (+apply) |
-| `plan-4-plan/workflows/build-plan-tree.js` | `plan-4-build-plan-tree` | spec → plan tree (+decide) |
-| `plan-6-edit/workflows/propagate.js` | `plan-6-propagate` | wide-blast-radius propagation |
+| `spec-1-specify/workflows/author-spec.js` | `spec-1-author-spec` | authoring a spec from a brief |
+| `spec-2-grill/workflows/deep-review.js` | `spec-2-deep-review` | grill-until-dry deep review |
+| `spec-3-architect/workflows/deepening-review.js` | `spec-3-deepening-review` | spec-side deepening hunt (+apply) |
+| `plan-0-decompose/workflows/build-plan-tree.js` | `plan-0-build-plan-tree` | spec → plan tree (+decide) |
+| `spec-4-edit/workflows/propagate.js` | `spec-4-propagate` | wide-blast-radius propagation |
 | `build-next-issue/workflows/reconcile.js` | `build-next-reconcile` | verification + dispatch JSON |
 | `build-sprint/workflows/build-sprint.js` | `build-sprint-run` | autonomous sprint build |
 | `build-assess-drift/workflows/triage-drift.js` | `build-drift-triage` | drift triage (+publish) |
 | `build-improve-architecture/workflows/deepening-hunt.js` | `build-improve-deepening-hunt` | code-side deepening hunt (report-only) |
 
-Deliberately **not** workflows: `plan-0-init` (a short interview + verbatim
-copy), `plan-5-publish-issues` (`publish-issues.py` is the automation),
+Deliberately **not** workflows: `spec-0-init` (a short interview + verbatim
+copy), `plan-1-publish-issues` (`publish-issues.py` is the automation),
 `build-tdd` (the leaf discipline builder agents execute — staging it would
 recreate the horizontal-slicing anti-pattern it forbids), `build-rubber-duck`
 (an ephemeral conversation).

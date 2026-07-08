@@ -15,7 +15,7 @@ survive, and turns them into grabbable GitHub issues that point the implementer 
 the right skill.
 
 It does not implement the fixes. It triages, plans, and tickets — then hands each
-item to its route skill (`plan-6-edit`, `build-improve-architecture`, `build-tdd`)
+item to its route skill (`spec-4-edit`, `build-improve-architecture`, `build-tdd`)
 via a GitHub issue. `build-next-issue` is the skill you run afterwards to actually
 build those issues.
 
@@ -55,9 +55,9 @@ table to decide which write-ups are worth opening, then read **only those**
 to look. This keeps the skill cheap even when the drift directory is large.
 
 > **Older workspace?** If `.plan/progress/drift-status.py` doesn't exist (the
-> workspace predates it), backfill it by copying `plan-0-init`'s
+> workspace predates it), backfill it by copying `spec-0-init`'s
 > `assets/drift-status.py` to `.plan/progress/drift-status.py` (the idempotent
-> backfill in `plan-0-init`'s "When NOT to scaffold"). As a one-off fallback you can
+> backfill in `spec-0-init`'s "When NOT to scaffold"). As a one-off fallback you can
 > grep instead: `grep -l 'status: \(open\|routed\)' .plan/progress/drift/drift-*.md`.
 
 ### 2. Re-assess each against the codebase
@@ -93,8 +93,8 @@ No issue is created for any of these. Annotating the status with how/when you se
 For each **still-relevant** (or **changed** — re-scoped) item, write a short fix plan:
 
 - **Scope** — what actually needs to change, refreshed by the re-assessment.
-- **Route skill** — by `kind`: `defect` → `plan-6-edit`, `checkpoint-bug` →
-  `plan-6-edit`, architecture `smell` → `build-improve-architecture`, a concrete
+- **Route skill** — by `kind`: `defect` → `spec-4-edit`, `checkpoint-bug` →
+  `spec-4-edit`, architecture `smell` → `build-improve-architecture`, a concrete
   bounded fix → `build-tdd`.
 - **Acceptance criteria** — 2-4 checkable bullets that say when the drift is gone.
 
@@ -104,9 +104,9 @@ get the user's approval before publishing anything.
 ### 5. Open a GitHub issue per survivor
 
 Publish one issue per surviving item, *inspired by* the recipe in
-[plan-5-publish-issues/TRACKER-GITHUB.md](../plan-5-publish-issues/TRACKER-GITHUB.md) —
+[plan-1-publish-issues/TRACKER-GITHUB.md](../plan-1-publish-issues/TRACKER-GITHUB.md) —
 read `.plan/tracker.md` for the repo/labels/board, don't hardcode them, and **don't
-invoke `plan-5-publish-issues`** (it's sprint/plan-tree-bound; drift items aren't).
+invoke `plan-1-publish-issues`** (it's sprint/plan-tree-bound; drift items aren't).
 
 - Build the body and pick the label per [ISSUE-FORMAT.md](ISSUE-FORMAT.md).
 - `gh issue create` with that label; capture the issue number from the printed URL.

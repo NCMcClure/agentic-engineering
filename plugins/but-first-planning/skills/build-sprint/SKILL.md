@@ -55,7 +55,7 @@ These are the user's calls, and they change the run. Surface them first:
    green sprint branch is the invariant you never break.
 6. **Run the sprint-exit checkpoints.** All issues `done`, the Layer-1 tests green,
    the plan-tree verifier green, plus any sprint-specific E2E. If a checkpoint is
-   *broken by construction*, say so and route it to `plan-6-edit` — don't let a
+   *broken by construction*, say so and route it to `spec-4-edit` — don't let a
    false-negative gate stall a genuinely-complete sprint.
 7. **Record and hand back to build-next-issue.** Run `plan-status.py set EE-SS-II done` per
    built issue (the sprint, epic, and index roll up automatically — no separate
@@ -132,7 +132,7 @@ walk the user through it in this order:
    issues built next run.
 2. **`autoDecisions`** (auto-implement) — every decision an agent made, each
    recorded as an ADR; review or reverse them deliberately.
-3. **`failed`** — each failed unit with its route (`plan-6-edit` for
+3. **`failed`** — each failed unit with its route (`spec-4-edit` for
    plan/checkpoint defects, `retry`, or `spec`).
 4. **`drift`**, **`sprintExit`**, and the **`prUrl`** — then hand back to
    `build-next-issue`, whose reconcile independently re-verifies everything
@@ -143,6 +143,6 @@ walk the user through it in this order:
 When the cadence says stop, report the sprint result and point back at
 `build-next-issue` to re-derive the next dispatch plan. If the build
 surfaced a *plan* problem — a broken checkpoint, an under-declared dependency, a
-spec anchor that no longer fits — route it to `plan-6-edit` rather than papering
+spec anchor that no longer fits — route it to `spec-4-edit` rather than papering
 over it in the build. If a slice needs deeper test-first work than a wave allows,
 that's `build-tdd` on its own.

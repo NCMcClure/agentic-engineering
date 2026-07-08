@@ -78,7 +78,7 @@ Brief every builder to:
 
 ## The scaffolded plan-tree integrity gate
 
-`plan-0-init` doesn't just *describe* a hook — it **scaffolds** one. It drops
+`spec-0-init` doesn't just *describe* a hook — it **scaffolds** one. It drops
 `plan-gate.py` into `.plan/plan/` and wires it into the project's
 `.claude/settings.json` on the `TaskCompleted` hook event (fires as a task is being
 marked done), blocking on exit code `2`.
@@ -129,7 +129,7 @@ decision where it belongs.
 - **A builder reports `blocked`/`partial`:** treat its prerequisite as unbuilt, pull
   the dependent issue back into a later wave, and finish the blocker first.
 - **A checkpoint is broken by construction** (can never pass): don't loop on it —
-  flag it for `plan-6-edit`, verify the slice against its acceptance criteria,
+  flag it for `spec-4-edit`, verify the slice against its acceptance criteria,
   and record the defect.
 
 ## The cadence is the user's, and it's a hard stop

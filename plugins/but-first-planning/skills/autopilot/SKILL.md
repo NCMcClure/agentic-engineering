@@ -29,19 +29,20 @@ only at the touchpoints the contract keeps.
 ## The pipeline
 
 Each stage is the named skill's Autonomous mode section, invoked exactly as
-documented there (the plan-2/3/4/5 skills are user-invoked — read and follow
-`../plan-X-*/SKILL.md` directly for anything their workflows leave to prose):
+documented there (the spec-2, spec-3, plan-0, and plan-1 skills are user-invoked
+— read and follow each one's `SKILL.md` directly for anything their workflows
+leave to prose):
 
-1. **Workspace** — if `.plan/` is absent, run `plan-0-init` (the one inherently
+1. **Workspace** — if `.plan/` is absent, run `spec-0-init` (the one inherently
    interactive step; keep its interview brief, feeding it the contract's tracker
    choice).
-2. **Spec** — `plan-1-specify` → `author-spec.js` with the brief. Carry its
+2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief. Carry its
    `openQuestions` forward.
-3. **Grill until dry** — `plan-2-grill-spec` → `deep-review.js`
+3. **Grill until dry** — `spec-2-grill` → `deep-review.js`
    `{applyFixes: true, rounds: 3}`.
-4. **Architect** — `plan-3-architect-spec` → `deepening-review.js`
+4. **Architect** — `spec-3-architect` → `deepening-review.js`
    `{apply: 'strong'}`.
-5. **Plan** — `plan-4-plan` → `build-plan-tree.js` `{decisionPolicy: decisions
+5. **Plan** — `plan-0-decompose` → `build-plan-tree.js` `{decisionPolicy: decisions
    === 'auto' ? 'decide' : 'route'}`.
 6. **Touchpoint 1 — the consolidated gate.** One message: the epic/sprint shape
    and counts, every `decisionsMade` ADR (if auto), the residual HITL decision

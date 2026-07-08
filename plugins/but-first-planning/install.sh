@@ -73,4 +73,4 @@ done
 
 echo ""
 echo "Installed $count skills into $dest"
-echo "Start a planning workspace with:  /plan-0-init   (run /context or restart the session if the skills don't appear yet)"
+echo "Start a planning workspace with:  /spec-0-init   (run /context or restart the session if the skills don't appear yet)"
