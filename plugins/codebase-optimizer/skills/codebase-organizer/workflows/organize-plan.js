@@ -16,6 +16,8 @@ if (typeof A === 'string') { try { A = JSON.parse(A) } catch (e) { A = {} } }
 if (!A || typeof A !== 'object') A = {}
 
 const ROOT = A.projectDir || ''
+// Portable interpreter: Windows/Git-Bash often ships `python`, not `python3`.
+const PY = '"$(command -v python3 || command -v python)"'
 const DATE = A.dateToday || 'unknown-date'
 const SKILL_DIR = A.skillDir || ''
 const DEPTH = A.depth === 'root-only' ? 'root-only' : 'recursive'
@@ -199,9 +201,9 @@ const scanRaw = await agent(
 
 Run exactly this (the script is stdlib-only Python):
 \`\`\`
-cd "${ROOT}" && python3 "${SKILL_DIR}/scripts/repo_scan.py" "${ROOT}"${EXCLUDE_FLAGS}
+cd "${ROOT}" && ${PY} "${SKILL_DIR}/scripts/repo_scan.py" "${ROOT}"${EXCLUDE_FLAGS}
 \`\`\`
-If python3 is unavailable, try python. Capture the script's STDOUT (it is a single JSON object) and return it verbatim in the json field. If the script errors, set json to {"error": "<the stderr>"}.`,
+Capture the script's STDOUT (it is a single JSON object) and return it verbatim in the json field. If the script errors, set json to {"error": "<the stderr>"}.`,
   { label: 'recon-scan', phase: 'Scan', schema: { type: 'object', required: ['json'], properties: { json: { type: 'string', description: "the script's raw stdout JSON, verbatim" } } } }
 )
 

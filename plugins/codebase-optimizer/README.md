@@ -96,6 +96,7 @@ skills/
 
 ## Changelog
 
+- **0.2.3**: emitted recon/verify commands resolve `python3` or `python` rather than hardcoding `python3`, matching the existing "python3 or python" availability check so a `python`-only box (e.g. Windows/Git-Bash) doesn't drop to degraded mode.
 - **0.2.2**: README reworded.
 - **0.2.1**: bundled CONTEXT-FORMAT.md/ADR-FORMAT.md (fixing links that escaped the plugin); always-on description footprint cut from ~574 to ~194 est tokens with distinct triggers per skill; HTML report skeleton ships as an asset; flat-max threshold single-sourced in repo_scan.py; workflow fixes (Measure phase in meta, schema'd recon-scan, real plan path in the verify prompt, soft-judgment panel lenses floored at sonnet).
 - **0.2.0**: language-agnostic engine: ecosystem profiles (Python, JS/TS, Go, Rust + `generic` fallback) detected at Setup drive the toolchain commands, shim strategy, seam census, and codemod guidance; host-repo leftovers removed from the defaults; ORGANIZE degrades gracefully when `python3` is absent.

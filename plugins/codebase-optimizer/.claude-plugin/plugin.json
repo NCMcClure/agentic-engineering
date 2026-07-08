@@ -1,7 +1,7 @@
 {
   "name": "codebase-optimizer",
   "displayName": "Codebase Optimizer",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Staged autonomous codebase optimizer \u2014 organize the file tree, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red. Language-aware engine (Python, JS/TS, Go, Rust detected; anything else via overrides) driven by a dynamic Workflow.",
   "author": {
     "name": "Nicholas McClure",

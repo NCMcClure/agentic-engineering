@@ -211,8 +211,11 @@ const ORG_AUDIT_ACTION = (A.orgAuditAction === 'feedback') ? 'feedback' : 'warn'
 // the cwd). runStructVerify still appends `--subtree <path>` after `--json` (argparse is order-free).
 const STRUCT_VERIFIER = A.structVerifier || 'dev/bin/verify_source_structure.py'
 const SCAN_SCRIPT = (typeof A.scanScript === 'string' && A.scanScript.trim()) ? A.scanScript.trim() : ''
+// Portable interpreter: PY3 detection already means "python3 OR python" is present,
+// so the emitted commands must not hardcode python3 or a python-only box fails.
+const PY = '"$(command -v python3 || command -v python)"'
 const STRUCT_VERIFY_CMD = A.structVerifyCmd
-  || ('python3 ' + STRUCT_VERIFIER + ' . ' + (SCAN_SCRIPT ? '--scan-script ' + SCAN_SCRIPT + ' ' : '') + '--json')
+  || (PY + ' ' + STRUCT_VERIFIER + ' . ' + (SCAN_SCRIPT ? '--scan-script ' + SCAN_SCRIPT + ' ' : '') + '--json')
 
 if (!ROOT) return { error: 'projectDir is required (absolute repo path)' }
 if (!SKILL_DIR) return { error: 'skillDir is required (path to the improve-codebase-architecture skill dir)' }
@@ -1508,7 +1511,7 @@ async function discover(processed, discoverPhase, threshold) {
     // threshold and a high --large-cap so a big worklist is never truncated.
     res = await agent(
       `Read-only — make NO edits. Run the deterministic repo scanner and relay its large-file list. Run EXACTLY this one command, synchronously in the foreground, and read its stdout directly:
-\`bash -c 'cd "${ROOT}" && python3 ${SCAN_SCRIPT} . --large-min ${TH} --large-cap 5000'\`
+\`bash -c 'cd "${ROOT}" && ${PY} ${SCAN_SCRIPT} . --large-min ${TH} --large-cap 5000'\`
 It prints a JSON object. Take its \`large_source_files\` array — each element is {path, lines} (path repo-relative, biggest first) — and transcribe EVERY element VERBATIM into the \`files\` array of your structured result as {path, lines}. Do NOT filter, re-sort, summarize, or truncate; do NOT add or invent entries. If \`large_source_files\` is empty, return files:[]. If the command errors or emits no JSON, return files:[] and explain in detail. Do NOT edit anything.`,
       { label: 'discover', phase: discoverPhase || 'Discover', agentType: 'Explore', schema: DISCOVER_SCHEMA, model: M_COORD }
     )
@@ -2495,7 +2498,7 @@ CHUNK_END
 3. Decode to the final plan. \`base64 -d\` is strict and will error on any corruption:
    \`base64 -d "${b64Path}" > "${planPath}"\` (use \`base64 --decode\` if \`-d\` is unsupported). If decode errors, set ok:false with the error.
 4. Verify the decoded plan parses as JSON and the move count matches — the authoritative integrity check:
-   \`python3 -c "import json; d=json.load(open('${planPath}')); print('moves', len(d.get('moves', [])))"\`
+   \`${PY} -c "import json; d=json.load(open('${planPath}')); print('moves', len(d.get('moves', [])))"\`
    It must print \`moves ${moveCount}\`. If it does not parse, or the count differs, set ok:false and report the error.
 5. Only if ALL checks pass, delete the scratch files: \`rm -f ${partList} "${b64Path}"\`
 6. Report ok:true ONLY when the base64 length is exactly ${planB64.length} AND base64 -d succeeds AND the JSON parses AND moves == ${moveCount}. Put the decoded plan's byte size (\`wc -c "${planPath}"\`) in the \`bytes\` field. Otherwise ok:false with the failing check in detail.`,
