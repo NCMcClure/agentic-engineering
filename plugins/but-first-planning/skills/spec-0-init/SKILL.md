@@ -20,13 +20,33 @@ point. By default the spec is language-agnostic (it describes systems, not
 code), but the **language posture** chosen in the interview — recorded as
 ADR-0001 so it outlives this session — can tie it to a specific language.
 
+## Before you scaffold — where does `.plan/` belong?
+
+`.plan/` lives at a **repo root**. In a single-repo session that's just the
+current directory, but in a multi-repo workspace the session's cwd may not be the
+repo that should own the plan (e.g. cwd is a tooling repo but the spec targets a
+sibling app repo). **Confirm the target repo first**, and `cd` there before
+scaffolding so `$CLAUDE_PROJECT_DIR` and every emitted path (the `plan-gate.py`
+hook command, verifier invocations, the `.gitignore` edit) resolve against the
+repo that actually holds `.plan/`.
+
 ## When NOT to scaffold
 
-If `.plan/` already exists, do **not** overwrite it. Tell the user it's already
-initialised and point them at `spec-1-specify` (to author) or `spec-4-edit` (to
-revise). Two narrow exceptions where a re-run touches only one thing: reconfiguring
-the tracker (touch only `tracker.md`), and backfilling a helper script into an
-older `.plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
+Decide "already initialised" on a **sentinel file**, not on the `.plan/` directory
+merely existing — an interrupted prior run can leave a hollow skeleton (the
+directory tree present, zero files in it), which a bare existence check would
+wrongly treat as done. Use `.plan/spec/scripts/verify-spec-tree.py` as the
+sentinel (the scaffold always writes it):
+
+- **Sentinel present** → `.plan/` is initialised. Do **not** overwrite it; tell the
+  user and point them at `spec-1-specify` (to author) or `spec-4-edit` (to revise).
+- **`.plan/` exists but the sentinel is missing** (or `find .plan -type f` shows an
+  essentially empty tree) → treat it as an **incomplete/aborted scaffold**. Say so,
+  and offer to finish/repair it by populating the missing files rather than bailing.
+
+Two narrow exceptions where a re-run touches only one thing: reconfiguring the
+tracker (touch only `tracker.md`), and backfilling a helper script into an older
+`.plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
 step 2a) or `drift-status.py` into place. These are idempotent, so they're safe if
 the file is already there.
 

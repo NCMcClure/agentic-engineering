@@ -41,8 +41,10 @@ const POSTURE_NOTE = postureMode === 'agnostic'
 
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
-// brief may be inline text or a file path; agents are told to Read a path themselves
-const briefIsPath = A.brief.startsWith('/') && !A.brief.includes('\n')
+// brief may be inline text or a file path; agents are told to Read a path themselves.
+// Detect by string shape (no fs here): POSIX/Git-Bash (/…, /c/…), Windows drive
+// (C:\… , C:/…), and relative (./ ../) paths all count as a path, not inline text.
+const briefIsPath = /^([A-Za-z]:[\\/]|[\\/]|\.{0,2}[\\/])/.test(A.brief) && !A.brief.includes('\n')
 const BRIEF_SRC = briefIsPath
   ? `the product brief at ${A.brief} (Read it first)`
   : `this product brief:\n<brief>\n${A.brief}\n</brief>`
@@ -139,20 +141,27 @@ const LENSES = [
   { key: 'behavior-flows', prompt: 'Organize around end-to-end behaviors and state: files follow the flows a user or component actually traverses (request paths, lifecycles, failure paths), each anchored by the mermaid diagram type that fits per DIAGRAMS.md — sequence for interactions, state for lifecycles, flowchart for pipelines. Mermaid-heavy by design.' },
 ]
 
-// barrier justified: the judge needs all three lens proposals before it can synthesize
+// barrier justified: the judge needs all three lens proposals before it can synthesize.
+// Tag each result with its lens key so alignment survives a failed lens (a bare
+// .filter(Boolean) then LENSES[i] would misattribute the survivors).
 const proposals = (await parallel(LENSES.map(l => () =>
   agent(
     `${CTX}\nYou are a spec-outline architect. Read ${SKILL}/PROGRESSIVE-DISCLOSURE.md and ${SKILL}/FILE-LAYOUT.md for the layout discipline (numbered categories, thin indexes, single-topic files under ~200 lines). Then read ${BRIEF_SRC}\n\nLens: ${l.prompt}\n\nDesign the complete category/file outline for specifying this product. Rules: 3-6 categories; every file one clear topic, scoped to stay under ~200 lines when written; every requirement in the brief maps to a named file; summaries are real frontmatter summaries (coverage + state); glossaryTerms are project-specific domain terms only (no general engineering vocabulary); openQuestions ONLY where the brief genuinely cannot answer — never invent product decisions.${EXTEND_NOTE} ${BRIEF}`,
     { label: `outline:${l.key}`, phase: 'Outline', schema: OUTLINE_SCHEMA, model: 'opus', effort: 'high' }
-  )
+  ).then(r => r && { key: l.key, outline: r })
 ))).filter(Boolean)
 if (!proposals.length) throw new Error('all outline lens proposals failed')
-log(`${proposals.length} outline proposals in — ${proposals.map((p, i) => `${LENSES[i] ? LENSES[i].key : i}:${p.categories.length}cat/${p.categories.reduce((n, c) => n + c.files.length, 0)}files`).join(', ')}; judging`)
+log(`${proposals.length} outline proposals in — ${proposals.map(p => `${p.key}:${p.outline.categories.length}cat/${p.outline.categories.reduce((n, c) => n + c.files.length, 0)}files`).join(', ')}; judging`)
+if (proposals.length < 2) log(`WARNING: only ${proposals.length} lens proposal(s) survived — judge synthesis is effectively single-source`)
 
 // ---------- Phase 2: judge (singleton judgment — inherits the session model) ----------
 phase('Judge')
+// The judge must actually SEE the proposals it scores — pass their structured
+// outlines in-prompt, not just the count/lens names.
+const PROPOSALS_BLOCK = proposals.map((p, i) =>
+  `### Proposal ${i + 1} — lens: ${p.key}\n${JSON.stringify(p.outline, null, 1)}`).join('\n\n')
 const judged = await agent(
-  `${CTX}\nYou are the spec-outline judge. Below are ${proposals.length} independent outline proposals (lenses: ${LENSES.map(l => l.key).join(', ')}) for the same product brief. Re-read ${BRIEF_SRC}\n\nScore each proposal on: progressive-disclosure cost (thin indexes, single-topic files), domain-vocabulary coherence, behavior/state coverage, and fidelity to the brief. Synthesize the WINNING outline — best proposal as the base, superior categories/files/terms grafted from the others. Enforce: 3-6 categories; one topic per file, each scoped to stay under ~200 lines; EVERY requirement in the brief maps to a named file (walk the brief requirement by requirement and check); glossaryTerms are the union of the proposals' terms, deduped to one canonical term per concept; openQuestions kept honest — keep only those genuinely unresolvable from the brief, drop any a careful read answers.${EXTEND_NOTE} ${BRIEF}`,
+  `${CTX}\nYou are the spec-outline judge. Below are ${proposals.length} independent outline proposals (lenses: ${proposals.map(p => p.key).join(', ')}) for the same product brief. Re-read ${BRIEF_SRC}\n\n${PROPOSALS_BLOCK}\n\nScore each proposal on: progressive-disclosure cost (thin indexes, single-topic files), domain-vocabulary coherence, behavior/state coverage, and fidelity to the brief. Synthesize the WINNING outline — best proposal as the base, superior categories/files/terms grafted from the others. Enforce: 3-6 categories; one topic per file, each scoped to stay under ~200 lines; EVERY requirement in the brief maps to a named file (walk the brief requirement by requirement and check); glossaryTerms are the union of the proposals' terms, deduped to one canonical term per concept; openQuestions kept honest — keep only those genuinely unresolvable from the brief, drop any a careful read answers.${EXTEND_NOTE} ${BRIEF}`,
   { label: 'outline:judge', phase: 'Judge', schema: OUTLINE_SCHEMA, effort: 'max' }
 )
 if (!judged || !judged.categories || !judged.categories.length) throw new Error('outline judge returned no categories')

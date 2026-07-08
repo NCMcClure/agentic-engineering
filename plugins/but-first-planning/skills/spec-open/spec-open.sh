@@ -6,7 +6,22 @@ set -euo pipefail
 PORT="${SPEC_PORT:-8000}"
 URL="http://127.0.0.1:${PORT}/"
 API="${URL}__spec_comments__"
-ROOT="${CLAUDE_PROJECT_DIR:-$PWD}"
+
+# Interpreter: prefer python3, fall back to python (Windows/Git-Bash has no python3).
+PY="$(command -v python3 || command -v python || true)"
+[ -n "$PY" ] || { echo "No python3/python on PATH." >&2; exit 1; }
+
+# Root: explicit override (SPEC_ROOT env or $1) wins, else $CLAUDE_PROJECT_DIR/$PWD.
+# If .plan/ isn't there, walk up from cwd to find the repo that owns it — covers
+# running from a subdir or a multi-repo workspace (SPEC_ROOT= is the escape hatch).
+ROOT="${SPEC_ROOT:-${1:-${CLAUDE_PROJECT_DIR:-$PWD}}}"
+if [ ! -f "$ROOT/.plan/spec/scripts/comments-server.py" ]; then
+  d="$PWD"
+  while [ "$d" != "/" ]; do
+    [ -d "$d/.plan" ] && { ROOT="$d"; break; }
+    d="$(dirname "$d")"
+  done
+fi
 SERVER="$ROOT/.plan/spec/scripts/comments-server.py"
 
 announce_and_open() {
@@ -30,8 +45,15 @@ if [ ! -f "$SERVER" ]; then
   exit 1
 fi
 
+# Fail fast with an actionable message if the docs toolchain is missing, rather
+# than waiting out the 30s cold-start timeout below.
+if ! "$PY" -c 'import mkdocs' >/dev/null 2>&1; then
+  echo "Docs toolchain missing: $PY -m pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin" >&2
+  exit 1
+fi
+
 echo "Starting the spec server…"
-nohup python3 "$SERVER" --port "$PORT" >"$ROOT/.plan/.comments.log" 2>&1 &
+nohup "$PY" "$SERVER" --port "$PORT" >"$ROOT/.plan/.comments.log" 2>&1 &
 
 # Wait until it responds (up to ~30s: MkDocs cold start behind the proxy).
 for _ in $(seq 1 60); do
