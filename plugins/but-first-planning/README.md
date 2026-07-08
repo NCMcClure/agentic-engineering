@@ -147,6 +147,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **2.6.0**: inline commenting on the spec site — highlight text, leave a note in a right-side rail, and it auto-saves to `.plan/spec-comments.json` (each with a `resolved` flag). Ships `comments-server.py`, a stdlib front door that serves the comment API on the same origin as the pages and reverse-proxies MkDocs behind it, so a single port covers both and it keeps working through a forwarded port (code-server / SSH tunnel). `plan-6-edit` now reads unresolved comments as requested spec edits and flips them resolved once addressed.
 - **2.5.3**: README reworded.
 - **2.5.2**: halved the always-on description footprint; deduplicated rules restated across skill/reference pairs; drift-file format disclosed to DRIFT-FORMAT.md; HTML report skeleton shipped as an asset; build-sprint workflow now prunes/cleans orphaned worktrees from blocked builders.
 - **2.5.1**: moved into the agentic-engineering marketplace; install paths updated. No skill changes.

@@ -7,6 +7,12 @@ file is the procedure for doing that without leaving drift behind.
 
 ## Finding the issues a spec change affects
 
+One common source of the changed-spec-file set is `.plan/spec-comments.json`: the
+`specFile` of each unresolved inline comment is a spec file the user wants
+changed, so those paths seed the grep below (and, for a wide blast radius, the
+`changedSpecFiles` arg to `workflows/propagate.js`) just like a hand-edited file
+would. Flip each comment to `resolved` once its edit has propagated.
+
 When one or more spec files change, find every plan issue anchored to them. Grep
 the plan tree for the spec path:
 

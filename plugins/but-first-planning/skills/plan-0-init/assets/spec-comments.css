@@ -1,0 +1,463 @@
+/*
+ * Inline commenting UI for the spec site (paired with spec-comments.js).
+ *
+ * Styled to sit inside the mkdocs-shadcn theme: it borrows the theme's own design
+ * tokens — `--radius`, the shadcn color variables, the Tailwind `shadow-lg` stack,
+ * and its button/input shapes — so the rail, cards, popover, and buttons read as
+ * part of the theme in both light and dark. Every token has a gruvbox-ish fallback
+ * so it still looks right if the theme's variables aren't present.
+ */
+
+:root {
+  /* Match the theme's radius scale (shadcn: --radius = 0.625rem, md = -2px, sm = -4px). */
+  --sc-radius: var(--radius, 0.625rem);
+  --sc-radius-md: calc(var(--radius, 0.625rem) - 2px);
+  --sc-radius-sm: calc(var(--radius, 0.625rem) - 4px);
+  /* Tailwind shadow-lg / shadow-md, as used by the theme's dialogs. */
+  --sc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --sc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sc-rail-width: 340px;
+  /* subtle tint for text with an open comment; applied only where color-mix works */
+  --sc-highlight: color-mix(in oklab, var(--primary, #d65d0e) 16%, transparent);
+}
+
+/* --- highlights in the prose ---------------------------------------------- */
+/* Only UNRESOLVED comments are highlighted (the JS doesn't wrap resolved ones,
+   so a resolved comment leaves the prose completely unmarked).
+
+   The SOLID accent underline is the reliable marker — it never depends on
+   color-mix, so it shows even on browsers (older Safari) that don't support
+   color-mix()/oklab. The tinted background is a progressive enhancement: a plain
+   rgba fallback first, then the theme-accurate color-mix where supported. This is
+   the two-declaration fallback pattern — an unsupported color-mix value is
+   invalid and the browser keeps the preceding rgba, so the mark is never blank. */
+
+mark.spec-comment-highlight {
+  /* !important so a theme's own `mark {…}` reset can't blank it out */
+  background-color: rgba(203, 143, 40, 0.16) !important; /* fallback tint (theme-neutral warm) */
+  background-color: var(--sc-highlight) !important; /* theme-accurate tint where color-mix works */
+  color: inherit !important;
+  border-bottom: 2px solid var(--primary, #d65d0e) !important; /* solid — always visible */
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0 1px;
+  transition: background-color 0.15s ease;
+}
+mark.spec-comment-highlight:hover {
+  background-color: rgba(203, 143, 40, 0.3);
+  background-color: color-mix(in oklab, var(--primary, #d65d0e) 28%, transparent);
+}
+mark.spec-comment-highlight.flash {
+  animation: sc-flash 0.9s ease;
+}
+
+@keyframes sc-flash {
+  0%,
+  100% {
+    background-color: var(--sc-highlight);
+  }
+  40% {
+    background-color: var(--primary, #d65d0e);
+  }
+}
+
+/* --- root / shared -------------------------------------------------------- */
+
+.spec-comments-root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 9000;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--foreground, #3c3836);
+  pointer-events: none;
+}
+.spec-comments-root > * {
+  pointer-events: auto;
+}
+
+/* Open/close toggle, integrated into the site header's actions group so it reads
+   as a native header action (shadcn ghost button: h-8, radius-md, hover bg-accent). */
+.sc-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  margin: 0;
+  background: transparent;
+  color: var(--foreground, #3c3836);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sc-header-btn:hover {
+  background: var(--accent, #ebdbb2);
+  color: var(--accent-foreground, #3c3836);
+}
+.sc-header-btn svg {
+  display: block;
+  opacity: 0.85;
+}
+.sc-header-btn:focus-visible,
+.sc-btn:focus-visible,
+.sc-add-btn:focus-visible,
+.sc-fab:focus-visible,
+.sc-rail-close:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--background, #fbf1c7), 0 0 0 4px var(--ring, #d65d0e);
+}
+
+/* Count of open (unresolved) comments — shadcn badge (rounded-full, primary). */
+.sc-badge {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--primary, #d65d0e);
+  color: var(--primary-foreground, #fbf1c7);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating fallback: only used if no site header is detected. */
+.sc-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9200;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary, #d65d0e);
+  color: var(--primary-foreground, #fbf1c7);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--sc-shadow-lg);
+}
+.sc-fab .sc-badge {
+  background: var(--primary-foreground, #fbf1c7);
+  color: var(--primary, #d65d0e);
+}
+
+/* On a cramped header, keep the icon + count and drop the word. */
+@media (max-width: 600px) {
+  .sc-header-btn .sc-btn-label {
+    display: none;
+  }
+}
+
+/* --- rail (a shadcn "sheet": bg-background, border-l, shadow-lg) ----------- */
+
+.sc-rail {
+  width: var(--sc-rail-width);
+  /* sit below the site header (height measured in JS) so the header + search stay
+     visible and usable while the panel is open */
+  margin-top: var(--sc-rail-top, 0px);
+  height: calc(100% - var(--sc-rail-top, 0px));
+  background: var(--background, #fbf1c7);
+  border-left: 1px solid var(--border, #bdae93);
+  box-shadow: var(--sc-shadow-lg);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease;
+}
+.spec-comments-root.collapsed .sc-rail {
+  transform: translateX(100%);
+}
+
+.sc-rail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border, #bdae93);
+}
+.sc-rail-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin-right: auto;
+}
+.sc-rail-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: var(--sc-radius-sm);
+  color: var(--muted-foreground, #7c6f64);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sc-rail-close:hover {
+  background: var(--accent, #ebdbb2);
+  color: var(--foreground, #3c3836);
+}
+.sc-show-resolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted-foreground, #7c6f64);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sc-rail-status {
+  padding: 0 16px;
+  color: var(--muted-foreground, #7c6f64);
+  font-size: 12px;
+}
+.sc-rail-status:not(:empty) {
+  padding: 8px 16px;
+}
+.sc-rail-status.offline {
+  color: var(--warning, #b57614);
+}
+
+.sc-rail-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-empty {
+  color: var(--muted-foreground, #7c6f64);
+  text-align: center;
+  padding: 28px 16px;
+  font-size: 13px;
+}
+
+/* --- comment cards (shadcn card: bg-card, border, radius-lg) --------------- */
+
+.sc-card {
+  background: var(--card, #f9f5d7);
+  border: 1px solid var(--border, #bdae93);
+  border-radius: var(--sc-radius);
+  box-shadow: var(--sc-shadow-md);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.sc-card.flash {
+  box-shadow: 0 0 0 2px var(--ring, #d65d0e), var(--sc-shadow-md);
+}
+.sc-card.resolved {
+  opacity: 0.55;
+}
+.sc-card.orphaned {
+  border-style: dashed;
+}
+
+.sc-card-quote {
+  border-left: 2px solid var(--primary, #d65d0e);
+  padding-left: 10px;
+  color: var(--muted-foreground, #7c6f64);
+  font-size: 13px;
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sc-card.resolved .sc-card-quote {
+  border-left-color: var(--border, #bdae93);
+}
+.sc-card-body {
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sc-card-meta {
+  display: flex;
+  gap: 6px;
+}
+.sc-orphan-tag {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--warning, #b57614);
+  border: 1px solid var(--warning, #b57614);
+  border-radius: var(--sc-radius-sm);
+  padding: 1px 6px;
+}
+
+.sc-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--border, #bdae93);
+  padding-top: 10px;
+}
+.sc-resolve {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--muted-foreground, #7c6f64);
+  cursor: pointer;
+  user-select: none;
+}
+.sc-resolve input,
+.sc-show-resolved input {
+  accent-color: var(--primary, #d65d0e);
+  cursor: pointer;
+}
+.sc-link {
+  background: none;
+  border: none;
+  color: var(--muted-foreground, #7c6f64);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  transition: color 0.15s ease;
+}
+.sc-link:hover {
+  color: var(--foreground, #3c3836);
+  text-decoration: underline;
+}
+.sc-link.sc-danger:hover {
+  color: var(--destructive, #9d0006);
+}
+
+/* --- selection "Add comment" button (shadcn primary, small) --------------- */
+
+.sc-add-btn {
+  position: absolute;
+  z-index: 9100;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  background: var(--primary, #d65d0e);
+  color: var(--primary-foreground, #fbf1c7);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--sc-shadow-md);
+}
+
+/* --- editor popover (matches the theme's search dialog) ------------------- */
+
+.sc-editor {
+  position: absolute;
+  z-index: 9100;
+  width: 320px;
+  background: var(--popover, var(--card, #f9f5d7));
+  color: var(--popover-foreground, #3c3836);
+  border: 1px solid var(--border, #bdae93);
+  border-radius: var(--sc-radius);
+  box-shadow: var(--sc-shadow-lg);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sc-editor-quote {
+  border-left: 2px solid var(--primary, #d65d0e);
+  padding-left: 10px;
+  color: var(--muted-foreground, #7c6f64);
+  font-size: 12px;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+.sc-textarea {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--foreground, #3c3836);
+  border: 1px solid var(--input, #bdae93);
+  border-radius: var(--sc-radius-md);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.sc-textarea::placeholder {
+  color: var(--muted-foreground, #7c6f64);
+}
+.sc-textarea:focus {
+  outline: none;
+  border-color: var(--ring, #d65d0e);
+  box-shadow: 0 0 0 3px rgba(214, 93, 14, 0.25);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring, #d65d0e) 35%, transparent);
+}
+
+.sc-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* shadcn buttons: h-9, radius-md, text-sm, font-medium. */
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--foreground, #3c3836);
+  border: 1px solid var(--border, #bdae93);
+  border-radius: var(--sc-radius-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+}
+.sc-btn:hover {
+  background: var(--accent, #ebdbb2);
+  color: var(--accent-foreground, #3c3836);
+}
+.sc-btn-primary {
+  background: var(--primary, #d65d0e);
+  color: var(--primary-foreground, #fbf1c7);
+  border-color: transparent;
+}
+.sc-btn-primary:hover {
+  background: var(--primary, #d65d0e);
+  color: var(--primary-foreground, #fbf1c7);
+  opacity: 0.9;
+}
+
+/* --- narrow screens: rail becomes a full-height slide-over ---------------- */
+
+@media (max-width: 900px) {
+  :root {
+    --sc-rail-width: 86vw;
+  }
+}

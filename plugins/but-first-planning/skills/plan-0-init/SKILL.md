@@ -71,9 +71,12 @@ glossary.
 │   │       └── index.md      # from stubs/adr-index.md
 │   ├── assets/
 │   │   ├── gruvbox.css        # from assets/gruvbox.css (verbatim)
-│   │   └── mermaid-init.js    # from assets/mermaid-init.js (verbatim)
+│   │   ├── mermaid-init.js    # from assets/mermaid-init.js (verbatim)
+│   │   ├── spec-comments.css  # from assets/spec-comments.css (verbatim)
+│   │   └── spec-comments.js   # from assets/spec-comments.js (verbatim)
 │   └── scripts/
-│       └── verify-spec-tree.py   # from assets/verify-spec-tree.py (verbatim)
+│       ├── verify-spec-tree.py   # from assets/verify-spec-tree.py (verbatim)
+│       └── comments-server.py    # from assets/comments-server.py (verbatim)
 └── plan/
     ├── index.md              # from stubs/plan-index.md
     ├── plan-status.py        # from assets/plan-status.py (verbatim)
@@ -85,9 +88,13 @@ glossary.
 The `.py`, `.css`, and `.js` files copy **verbatim** — do not hand-retype them.
 `verify-plan-tree.py`, `plan-status.py`, `publish-issues.py`, and `plan-gate.py`
 locate themselves by their own path / `$CLAUDE_PROJECT_DIR` (all root at `plan/`),
-as do `verify-spec-tree.py` (`spec/scripts/`) and `drift-status.py` (`progress/`),
+as do `verify-spec-tree.py` (`spec/scripts/`), `comments-server.py` (`spec/scripts/`,
+writes `.plan/spec-comments.json` two levels up), and `drift-status.py` (`progress/`),
 so they must land exactly where shown. (`publish-issues.py` is bundled with
 `plan-5-publish-issues`; resolve it relative to that sibling skill's directory.)
+`spec-comments.css` / `spec-comments.js` power inline commenting on the spec site
+(highlight text, leave a note; the notes auto-save to `.plan/spec-comments.json`
+and feed `plan-6-edit`) and are already registered in `mkdocs.yml`.
 
 Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).
@@ -137,7 +144,13 @@ trips it. No `chmod` is needed — it's invoked via `python3`.
 If the user wants to see the site, give them the install + serve commands (see
 `.plan/README.md`): `pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin`
 (or the `uv` equivalent), then `mkdocs serve -f .plan/mkdocs.yml`. Don't install
-doc dependencies unless asked.
+doc dependencies unless asked. To also leave inline comments on the spec, they run
+`python .plan/spec/scripts/comments-server.py` *instead of* `mkdocs serve`: it
+fronts MkDocs on a single port and serves the comment API on the same origin, so
+comments auto-save to `.plan/spec-comments.json` and it keeps working when the
+site is viewed through a forwarded port (VS Code / code-server / SSH tunnel), with
+no second port to forward. Plain `mkdocs serve` still works for a read-only view;
+comments just fall back to browser localStorage without the sidecar.
 
 ### 4. Hand off
 

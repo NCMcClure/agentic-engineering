@@ -29,6 +29,27 @@ mkdocs serve -f .plan/mkdocs.yml      # then open http://127.0.0.1:8000
 
 Edits to anything under `.plan/spec/` reload live.
 
+## Leaving inline comments on the spec
+
+The spec pages support inline commenting: select any text, type a note, and it
+shows in a rail on the right. Comments auto-save to `.plan/spec-comments.json`,
+each with a `resolved` flag. To persist them to disk, run the comments server
+(stdlib Python, no install) **instead of** `mkdocs serve`:
+
+```bash
+python .plan/spec/scripts/comments-server.py   # site + comments on http://127.0.0.1:8000
+```
+
+It fronts MkDocs on a single port and serves the comment API on the same origin,
+so it also works when the site is opened through a forwarded port (VS Code /
+code-server / SSH tunnel): forward the one port you already open for the site and
+comments persist, no second port needed.
+
+Then point `plan-6-edit` at the file when you want the changes made: it reads
+every unresolved comment as a requested spec edit and flips it to `resolved`
+once addressed. Plain `mkdocs serve` still works for a read-only view; comments
+just save to the browser's localStorage instead of the file.
+
 ## Verifying structure
 
 ```bash

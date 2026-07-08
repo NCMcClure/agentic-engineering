@@ -18,10 +18,12 @@ theme:
 
 extra_css:
   - assets/gruvbox.css
+  - assets/spec-comments.css
 
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
   - assets/mermaid-init.js
+  - assets/spec-comments.js
 
 markdown_extensions:
   - admonition

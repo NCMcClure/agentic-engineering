@@ -22,6 +22,25 @@ deliberate and consistent across all three layers.
 If not already in plan mode, enter it now: investigate, then propose — nothing
 is edited or created until the user approves.
 
+### 0a. Pick up inline spec comments
+
+Before anything else, check for `.plan/spec-comments.json` — the review queue the
+spec site writes when someone highlights text and leaves a comment. If it exists,
+read it and filter to the entries with `"resolved": false`; each unresolved
+comment is a requested change. The comment's `specFile` names the spec page it
+sits on, so it is exactly the changed-spec-file input the rest of this skill runs
+on: it drives **routing** (which owning skill below) and **propagation** (the
+spec-anchor grep in [SYNC.md](SYNC.md)). The `quote`/`body` say *what* on that
+page to change. (`specFile` is derived from the page URL; if it doesn't resolve
+on disk, try the section-index form — replace `<name>.md` with `<name>/index.md`.)
+
+Fold these into the same gated flow as any other change: surface the unresolved
+comments to the user before editing. **After** a comment's change lands and
+propagates, set that entry's `"resolved"` to `true` in `spec-comments.json` (edit
+the file directly — do **not** delete the entry; keeping it preserves the review
+trail, and the site reflects the flip on its next refresh). The file's own
+`_instructions` field restates this contract for any agent that opens it cold.
+
 ## Route the change
 
 Figure out what's really changing and reuse the skill that owns it — don't
