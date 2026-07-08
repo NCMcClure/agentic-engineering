@@ -16,7 +16,9 @@ it with `plan-0-decompose`, publishes with `plan-1-publish-issues`, and tracks w
 
 The whole workspace is plain markdown so it stays human-readable on disk,
 browsable as a website, and trivially editable by agents — that duality is the
-point. Keep it language-agnostic: the spec describes systems, not code.
+point. By default the spec is language-agnostic (it describes systems, not
+code), but the **language posture** chosen in the interview — recorded as
+ADR-0001 so it outlives this session — can tie it to a specific language.
 
 ## When NOT to scaffold
 
@@ -36,9 +38,14 @@ Ask only what you can't infer. Keep it to a few questions, one at a time:
 
 - **Project name + one-line description** — for the site title and spec index. Infer a sensible default from the repo if you can, and just confirm.
 - **Issue tracker** — default **GitHub** (the `gh` CLI + an optional GitHub Project board). Alternatives: **GitLab** (the `glab` CLI — epics as scoped labels, sprints as milestones; works on self-hosted instances and personal namespaces), another tracker, or **local-markdown only** (the plan tree is the only source of truth). If GitHub with a project board, ask for the board URL / owner / number; if GitLab, ask for the project path, numeric project ID, and host. Missing values can stay as placeholders to fill in before first publish.
-- **Target language** — default **language-agnostic** (pseudocode + diagrams). Only if the user insists on a specific language do you record it; even then, the spec stays mostly neutral and uses that language only where a concrete snippet genuinely encodes a decision.
+- **Language posture** — how every spec file expresses logic. Ask only if it isn't already obvious from the conversation. **Default is agnostic.** Three choices:
+  - **Agnostic** (default) — pseudocode and diagrams only, no real-language code; the spec survives whatever language eventually implements it.
+  - **Language-tied, minimal** — a named language (say Python), but a snippet appears *only* where a concrete one pins a decision better than prose; otherwise the file stays agnostic.
+  - **Language-tied, code-forward** — a named language, with idiomatic snippets used liberally alongside diagrams to illustrate behaviour and contracts.
 
-Record the language choice and tracker choice in the scaffold so later skills honour them.
+  This choice is **load-bearing**: it shapes every spec file and is expensive to reverse once the spec is written, which is exactly why it becomes ADR-0001 rather than a session-only preference.
+
+Record the tracker choice in `tracker.md`, and the language posture as **ADR-0001** plus the `spec/index.md` posture line (step 2), so every later skill honours it — not just this session.
 
 ### 2. Copy the scaffold into place
 
@@ -68,7 +75,8 @@ glossary.
 │   │   ├── index.md          # from stubs/reference-index.md
 │   │   ├── glossary.md       # from stubs/glossary.md  (fill {{MONTH}}!)
 │   │   └── adr/
-│   │       └── index.md      # from stubs/adr-index.md
+│   │       ├── index.md      # from stubs/adr-index.md
+│   │       └── 0001-language-posture.md  # from stubs/adr-0001-language-posture.md (fill posture tokens)
 │   ├── assets/
 │   │   ├── gruvbox.css        # from assets/gruvbox.css (verbatim)
 │   │   ├── mermaid-init.js    # from assets/mermaid-init.js (verbatim)
@@ -95,6 +103,22 @@ so they must land exactly where shown. (`publish-issues.py` is bundled with
 `spec-comments.css` / `spec-comments.js` power inline commenting on the spec site
 (highlight text, leave a note; the notes auto-save to `.plan/spec-comments.json`
 and feed `spec-4-edit`) and are already registered in `mkdocs.yml`.
+
+**Record the language posture** from step 1 in two places so downstream skills
+honour it. Author `adr/0001-language-posture.md` from its stub (the [ADR
+format](../spec-2-grill/ADR-FORMAT.md)) and set `spec/index.md`'s
+`{{LANGUAGE_POSTURE}}` line, matching the choice — where `L` is the chosen
+language:
+
+| Choice | `{{LANGUAGE_POSTURE}}` line | ADR summary / decision |
+|--------|------------------------------|------------------------|
+| Agnostic | "Every file is self-contained and language-agnostic: logic is expressed as pseudocode and diagrams, not code in any one language." | the spec stays language-agnostic (pseudocode + diagrams); no real-language code |
+| `L`, minimal | "Files are language-agnostic by default; where a concrete `L` snippet pins a decision better than prose, the spec uses one." | the spec targets `L`, using snippets only where one encodes a decision better than prose; otherwise agnostic |
+| `L`, code-forward | "The spec targets `L` and uses idiomatic `L` snippets liberally, alongside diagrams, to illustrate behaviour and contracts." | the spec targets `L`, code-forward: idiomatic snippets used liberally alongside diagrams |
+
+Then add the ADR's row to `adr/index.md`'s Records section. Write ADR-0001 even
+for the agnostic default — a recorded "we chose agnostic" is what stops a later
+skill from silently drifting into code.
 
 Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).
@@ -156,7 +180,7 @@ comments just fall back to browser localStorage without the sidecar.
 
 Tell the user the workspace is ready and that the next step is `spec-1-specify` to
 author the first part of the specification. Summarise the tracker they chose and
-the language posture (agnostic by default).
+the language posture recorded in ADR-0001 (agnostic unless they tied it to a language).
 
 ## Why this shape
 

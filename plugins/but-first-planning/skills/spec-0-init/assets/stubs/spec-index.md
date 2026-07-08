@@ -5,8 +5,7 @@
 This specification is a **knowledge base, not a single document**. It is
 organised for progressive disclosure: start here, descend into the categories
 you care about, and follow cross-links to the reference appendices when you need
-precise contracts. Every file is self-contained and language-agnostic — logic is
-expressed as pseudocode and diagrams, not code in any one language.
+precise contracts. {{LANGUAGE_POSTURE}}
 
 ## How to read this spec
 

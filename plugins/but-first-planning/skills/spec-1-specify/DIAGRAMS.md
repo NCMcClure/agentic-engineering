@@ -1,12 +1,24 @@
-# Diagrams and pseudocode — staying language-agnostic
+# Diagrams, pseudocode, and code snippets
 
-A specification describes a system, not an implementation. The same logic and
-structure exist no matter what language eventually realises them, so express
-them in forms that survive that choice: **diagrams** for structure, flow, and
-state; **pseudocode and numbered steps** for logic; **tables** for contracts and
-matrices. Only drop to a real language if `spec-0-init` recorded one *and* a concrete
-snippet pins down a decision better than prose (a state shape, a schema) — and
-even then, keep it to the decision-rich bits.
+A specification describes a system, not an implementation. Structure, flow, and
+state are always best as **diagrams**; contracts and matrices as **tables**. How
+you express *logic*, though, follows the project's recorded **language posture**
+(`reference/adr/0001-language-posture.md`):
+
+- **Agnostic** (default) — **pseudocode and numbered steps**, no real-language
+  code. The same logic exists no matter what language realises it, so keep it in
+  a form that survives the choice.
+- **Language-tied, minimal** — pseudocode by default, dropping to a short snippet
+  in the recorded language only where a concrete one pins a decision better than
+  prose (a state shape, a schema, a tricky invariant).
+- **Language-tied, code-forward** — idiomatic snippets in the recorded language
+  used **liberally**, alongside the diagrams, to illustrate behaviour and
+  contracts. Code is a first-class explanatory tool here, not a rare exception.
+
+Whichever posture, diagrams still carry structure/flow/state — a code-forward
+spec is snippets *and* diagrams, not a code dump. When you do write a snippet,
+keep it tight and illustrative: the decision-rich bit, not a full implementation
+with error handling and imports.
 
 ## Mermaid diagrams
 

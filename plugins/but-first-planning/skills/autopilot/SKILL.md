@@ -36,8 +36,9 @@ leave to prose):
 1. **Workspace** — if `.plan/` is absent, run `spec-0-init` (the one inherently
    interactive step; keep its interview brief, feeding it the contract's tracker
    choice).
-2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief. Carry its
-   `openQuestions` forward.
+2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief, passing
+   `languagePosture` read from `.plan/spec/reference/adr/0001-language-posture.md`
+   (spec-0-init recorded it). Carry its `openQuestions` forward.
 3. **Grill until dry** — `spec-2-grill` → `deep-review.js`
    `{applyFixes: true, rounds: 3}`.
 4. **Architect** — `spec-3-architect` → `deepening-review.js`

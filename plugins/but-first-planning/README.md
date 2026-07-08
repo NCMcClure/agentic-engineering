@@ -145,8 +145,10 @@ touchpoint after planning.
 
 Everything the skills produce lives under `.plan/` in the target project and is
 plain markdown: browsable as an MkDocs website, diffable in git, and editable by
-agents. The spec stays language-agnostic (pseudocode + diagrams) unless you opt
-into a language at `spec-0-init`.
+agents. The spec's **language posture** is your call at `spec-0-init` and is
+recorded as ADR-0001 so every spec skill honours it: language-agnostic
+(pseudocode + diagrams) by default, or tied to a language with snippets used
+sparingly or liberally.
 
 ## Releasing
 
@@ -157,6 +159,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **3.1.0**: the language posture chosen at `spec-0-init` is now actually honoured. It used to be asked and then dropped on the floor. Now it's a three-way choice (agnostic / language-tied-minimal / language-tied-code-forward), recorded as ADR-0001 plus the spec index, and read by every spec-writing skill (`spec-1-specify` and its `author-spec.js` workflow, `spec-2-grill`, `spec-3-architect`). A code-forward project gets a code-forward spec instead of a silently agnostic one. author-spec.js's `language` arg becomes `languagePosture` (bare `language` still accepted).
 - **3.0.1**: fixed `build-improve-architecture`'s frontmatter (a colon in the `description` broke YAML parsing, so the skill loaded with no metadata); its trigger description now registers.
 - **3.0.0**: split the planning skills by phase and renamed them (breaking — invocation names change): the spec-authoring skills are now `spec-0-init`, `spec-1-specify`, `spec-2-grill`, `spec-3-architect`, `spec-4-edit` (was `plan-6-edit`), plus `spec-open` (was `open-spec`); the backlog skills renumber to `plan-0-decompose` (was `plan-4-plan`) and `plan-1-publish-issues` (was `plan-5-publish-issues`). No behavior changes.
 - **2.7.0**: new `spec-open` skill — brings up the spec docs site (reusing a running server) and opens it in the browser in one step.

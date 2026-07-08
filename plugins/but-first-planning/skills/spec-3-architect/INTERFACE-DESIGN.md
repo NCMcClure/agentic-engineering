@@ -49,10 +49,12 @@ name things consistently. Each sub-agent outputs:
 4. Dependency strategy and adapters (see [DEEPENING.md](DEEPENING.md)).
 5. Trade-offs — where leverage is high, where it's thin.
 
-At the spec stage, keep each design language-agnostic unless the project has
-already chosen a language: express the interface as a contract (shapes +
-invariants), not a signature in one language. On built code, use the codebase's
-own language and idioms.
+At the spec stage, follow the recorded language posture
+(`reference/adr/0001-language-posture.md`). By default (agnostic, or
+language-tied-minimal) express the interface as a contract — shapes and
+invariants, not a signature in one language. Under a code-forward posture, a
+concrete signature or type in the chosen language is welcome alongside the
+contract. On built code, always use the codebase's own language and idioms.
 
 ### 3. Present, compare, recommend
 

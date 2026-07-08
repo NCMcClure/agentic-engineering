@@ -34,7 +34,9 @@ grow the existing file instead (updating beats creating; see why in
 [PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)).
 
 If terminology is in play, check `.plan/spec/reference/glossary.md` and use its
-canonical terms. If the user is fuzzy on a concept or you hit a real fork in the
+canonical terms. Read `.plan/spec/reference/adr/0001-language-posture.md` once so
+you write to the recorded posture (agnostic, or tied to a language) from the
+first file. If the user is fuzzy on a concept or you hit a real fork in the
 design, that's a signal to pause and hand off to `spec-2-grill` rather than
 guessing — say so.
 
@@ -53,7 +55,7 @@ For each content file:
 
 - **Frontmatter first.** `tags`, `summary`, `created`, `updated`, and optional `relates-to`. The summary is the most important hundred bytes in the file — it's what a reader uses to decide whether to open it. Full contract in [FRONTMATTER.md](FRONTMATTER.md).
 - **One clear topic per file**, under ~200 lines. If it's growing past that, it's two files.
-- **Language-agnostic by default.** Express logic as pseudocode or numbered steps; express structure, flow, and state as mermaid diagrams. Reach for a real language only if `spec-0-init` recorded one *and* a concrete snippet encodes a decision better than prose. Diagram and pseudocode patterns: [DIAGRAMS.md](DIAGRAMS.md).
+- **Honour the recorded language posture** ([`reference/adr/0001-language-posture.md`](../spec-0-init), echoed in the spec's root `index.md`). Structure, flow, and state are always mermaid diagrams. What changes is how logic reads: **agnostic** → pseudocode / numbered steps, no real-language code; **language-tied, minimal** → still pseudocode by default, with a real snippet only where one pins a decision better than prose; **language-tied, code-forward** → idiomatic snippets used liberally alongside the diagrams. When unsure, read the ADR; don't default to agnostic if the project chose a language. Diagram, pseudocode, and snippet patterns: [DIAGRAMS.md](DIAGRAMS.md).
 - **Self-contained.** A reader who lands here from a search hit should be able to use the file without opening another. Use `relates-to` for the sideways trail, not as a crutch for missing content.
 
 Update the category `index.md` (one line for the new file, at the right scope)
@@ -102,7 +104,8 @@ Workflow({
     root: "<absolute repo root>",
     skillDir: "${CLAUDE_PLUGIN_ROOT}/skills/spec-1-specify",
     brief: "<the product brief text, or an absolute path to it>",
-    // optional: context: "<project orientation>", sourcePaths: [...], language: "<from spec-0-init>"
+    // optional: context, sourcePaths: [...],
+    // languagePosture: "agnostic" | "<lang>:minimal" | "<lang>:code-forward" (read from ADR-0001)
   }
 })
 ```
