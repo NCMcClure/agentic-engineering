@@ -38,6 +38,8 @@ know whether Step 6 must delete a temp clone.*
 python3 "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin_scan.py" <plugin-root> > <outdir>/scan.json
 ```
 
+*(Use `python` if `python3` isn't on your PATH, e.g. on Windows — same for every `python3` command below.)*
+
 Read scan.json. It carries the component census, per-skill facts, footprint
 estimates, workflow/hook signals, lint results, the mechanical grades, the
 `na` set (checks and dimensions excluded from scoring), and any triggered

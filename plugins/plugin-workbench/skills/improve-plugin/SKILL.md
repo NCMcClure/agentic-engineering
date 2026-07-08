@@ -41,6 +41,8 @@ Always scan fresh — fixes to mechanical checks need a current scan anyway:
 python3 "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin_scan.py" <plugin-root> > <outdir>/scan.json
 ```
 
+*(Use `python` if `python3` isn't on your PATH, e.g. on Windows — same for every `python3` command below.)*
+
 Then get a baseline grades.json: if `--report` supplied one whose check set
 still matches scan.json's `applicable_judgment_checks`, reuse it; otherwise
 grade per the evaluate-plugin skill's Steps 3–4 (its autonomous mode for

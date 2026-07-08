@@ -428,6 +428,8 @@ Write `grades.json` next to `scan.json`, then run:
 python3 <skill>/scripts/plugin_scan.py <target> --score grades.json
 ```
 
+(Use `python` if `python3` isn't on your PATH, e.g. on Windows.)
+
 Shape:
 
 ```json

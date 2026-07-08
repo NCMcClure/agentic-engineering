@@ -74,6 +74,7 @@ score.json), which the report had flagged as the single biggest gap.
 
 ## Changelog
 
+- **0.1.1**: the create/evaluate workflows and their skill docs resolve `python3` or `python` instead of hardcoding `python3`, so the scan/scaffold/score commands run where only `python` is installed (e.g. Windows/Git-Bash).
 - **0.1.0**: initial release: the six-dimension measurement core (rubric,
   deterministic scanner/scorer, HTML scorecard), create-plugin with
   deterministic scaffolding and an autonomous authoring workflow,

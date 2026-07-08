@@ -27,6 +27,8 @@ const PLUGIN = A.pluginPath.replace(/\/$/, '')
 const CORE = A.coreDir.replace(/\/$/, '')
 const OUT = A.outDir.replace(/\/$/, '')
 const SCAN = `${OUT}/scan.json`
+// Portable interpreter: Windows/Git-Bash often ships `python`, not `python3`.
+const PY = '"$(command -v python3 || command -v python)"'
 
 const BRIEF = 'Your final message is machine-consumed via the structured output tool — no prose preamble.'
 
@@ -115,7 +117,7 @@ const FINDING_VERDICT = {
 // ---------- Phase 1: scan ----------
 phase('Scan')
 const scanned = await agent(
-  `Run: mkdir -p ${OUT} && python3 ${CORE}/scripts/plugin_scan.py ${PLUGIN} > ${SCAN} — then read ${SCAN} and report the fields below verbatim. Pure script driving and JSON reading; no judgment. If the script fails, set ok=false and put stderr in error. ${BRIEF}`,
+  `Run: mkdir -p ${OUT} && ${PY} ${CORE}/scripts/plugin_scan.py ${PLUGIN} > ${SCAN} — then read ${SCAN} and report the fields below verbatim. Pure script driving and JSON reading; no judgment. If the script fails, set ok=false and put stderr in error. ${BRIEF}`,
   {
     label: 'scan', phase: 'Scan', model: 'haiku', effort: 'low',
     schema: {
@@ -266,7 +268,7 @@ log(`Generosity critic: ${demoted}/${allGrades.length} grades demoted${critic &&
 // ---------- Phase 5: score (the script owns the arithmetic) ----------
 phase('Score')
 const scored = await agent(
-  `Write the following JSON verbatim to ${OUT}/grades.json, then run: python3 ${CORE}/scripts/plugin_scan.py ${PLUGIN} --score ${OUT}/grades.json > ${OUT}/score.json. If the script exits non-zero, set ok=false and put its stderr in error. Otherwise read ${OUT}/score.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
+  `Write the following JSON verbatim to ${OUT}/grades.json, then run: ${PY} ${CORE}/scripts/plugin_scan.py ${PLUGIN} --score ${OUT}/grades.json > ${OUT}/score.json. If the script exits non-zero, set ok=false and put its stderr in error. Otherwise read ${OUT}/score.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
   {
     label: 'score', phase: 'Score', model: 'haiku', effort: 'low',
     schema: {

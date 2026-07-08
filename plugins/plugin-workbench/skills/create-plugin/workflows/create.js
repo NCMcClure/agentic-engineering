@@ -31,6 +31,8 @@ const CREATE = A.createSkillDir.replace(/\/$/, '')
 const OUT = A.outDir.replace(/\/$/, '')
 const BAR = Number.isFinite(+A.bar) ? +A.bar : 85
 const MAXR = Number.isFinite(+A.maxRounds) ? Math.max(1, Math.floor(+A.maxRounds)) : 3
+// Portable interpreter: Windows/Git-Bash often ships `python`, not `python3`.
+const PY = '"$(command -v python3 || command -v python)"'
 
 const BRIEF = 'Your final message is machine-consumed via the structured output tool — no prose preamble.'
 
@@ -130,7 +132,7 @@ if (missingBriefs.length) log(`WARNING: no brief for ${missingBriefs.join(', ')}
 // ---------- Phase 2: scaffold (deterministic — the script owns it) ----------
 phase('Scaffold')
 const scaffolded = await agent(
-  `Run: mkdir -p ${OUT} — then write the following JSON verbatim to ${OUT}/spec.json and run: python3 ${CREATE}/scripts/plugin_scaffold.py ${TARGET} --spec ${OUT}/spec.json — read its JSON output and report the fields below. Pure file writing and script driving; no judgment. If it reports ok=false or exits non-zero, set ok=false and put the error/stderr in error. ${BRIEF}\n\nJSON:\n${JSON.stringify(SPEC, null, 1)}`,
+  `Run: mkdir -p ${OUT} — then write the following JSON verbatim to ${OUT}/spec.json and run: ${PY} ${CREATE}/scripts/plugin_scaffold.py ${TARGET} --spec ${OUT}/spec.json — read its JSON output and report the fields below. Pure file writing and script driving; no judgment. If it reports ok=false or exits non-zero, set ok=false and put the error/stderr in error. ${BRIEF}\n\nJSON:\n${JSON.stringify(SPEC, null, 1)}`,
   {
     label: 'scaffold', phase: 'Scaffold', model: 'haiku', effort: 'low',
     schema: {
@@ -184,7 +186,7 @@ let lastFindings = []
 for (let round = 1; round <= MAXR; round++) {
   // 4a. scan (deterministic)
   const scanned = await agent(
-    `Run: python3 ${CORE}/scripts/plugin_scan.py ${TARGET} > ${OUT}/scan-r${round}.json — then read it and report the fields below verbatim. Also run: grep -rn "TODO(author)" ${TARGET} | wc -l for todoCount. Pure script driving and JSON reading; no judgment. If the scan fails, set ok=false and put stderr in error. ${BRIEF}`,
+    `Run: ${PY} ${CORE}/scripts/plugin_scan.py ${TARGET} > ${OUT}/scan-r${round}.json — then read it and report the fields below verbatim. Also run: grep -rn "TODO(author)" ${TARGET} | wc -l for todoCount. Pure script driving and JSON reading; no judgment. If the scan fails, set ok=false and put stderr in error. ${BRIEF}`,
     {
       label: `scan:r${round}`, phase: 'Refine', model: 'haiku', effort: 'low',
       schema: {
@@ -237,7 +239,7 @@ for (let round = 1; round <= MAXR; round++) {
 
   // 4c. score (the script owns the arithmetic)
   const scored = await agent(
-    `Write the following JSON verbatim to ${OUT}/grades-r${round}.json, then run: python3 ${CORE}/scripts/plugin_scan.py ${TARGET} --score ${OUT}/grades-r${round}.json > ${OUT}/score-r${round}.json. If it exits non-zero, set ok=false with stderr in error; otherwise read score-r${round}.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
+    `Write the following JSON verbatim to ${OUT}/grades-r${round}.json, then run: ${PY} ${CORE}/scripts/plugin_scan.py ${TARGET} --score ${OUT}/grades-r${round}.json > ${OUT}/score-r${round}.json. If it exits non-zero, set ok=false with stderr in error; otherwise read score-r${round}.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
     {
       label: `score:r${round}`, phase: 'Refine', model: 'haiku', effort: 'low',
       schema: {

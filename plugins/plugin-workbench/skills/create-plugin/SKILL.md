@@ -51,6 +51,8 @@ invocation modes, components, target directory.*
 python3 "${CLAUDE_PLUGIN_ROOT}/skills/create-plugin/scripts/plugin_scaffold.py" <target-dir> --spec <spec.json>
 ```
 
+*(Use `python` if `python3` isn't on your PATH, e.g. on Windows — the same applies to every `python3` command below.)*
+
 The script validates the spec (name == dir basename, semver, slug rules),
 fills the bundled stubs, refuses to overwrite authored files, and prints the
 created tree as JSON. Don't hand-write boilerplate the scaffolder emits.
