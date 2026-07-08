@@ -10,7 +10,7 @@ in a single `.plan/` directory at the root of whatever project you install it in
 
 ## Install
 
-Two ways. Either gets you the same 14 skills.
+Two ways. Either gets you the same 15 skills.
 
 ### 1. Claude Code plugin (recommended)
 
@@ -113,6 +113,10 @@ discipline each builder agent executes), and `build-rubber-duck`
 | `build-rubber-duck` | An ephemeral thinking partner for working through a bug or approach. |
 | `autopilot` | Chain every skill's autonomous mode end-to-end (brief → spec → plan → published sprints → built PRs) behind one autonomy contract and one consolidated human touchpoint. |
 
+**Viewing:** `open-spec` serves the spec docs site (reusing a running server if
+there is one) and opens it in your browser in one step, so you can read it or
+leave inline comments without remembering the serve command.
+
 ## How it fits together
 
 ```
@@ -147,6 +151,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **2.7.0**: new `open-spec` skill — brings up the spec docs site (reusing a running server) and opens it in the browser in one step.
 - **2.6.0**: inline commenting on the spec site — highlight text, leave a note in a right-side rail, and it auto-saves to `.plan/spec-comments.json` (each with a `resolved` flag). Ships `comments-server.py`, a stdlib front door that serves the comment API on the same origin as the pages and reverse-proxies MkDocs behind it, so a single port covers both and it keeps working through a forwarded port (code-server / SSH tunnel). `plan-6-edit` now reads unresolved comments as requested spec edits and flips them resolved once addressed.
 - **2.5.3**: README reworded.
 - **2.5.2**: halved the always-on description footprint; deduplicated rules restated across skill/reference pairs; drift-file format disclosed to DRIFT-FORMAT.md; HTML report skeleton shipped as an asset; build-sprint workflow now prunes/cleans orphaned worktrees from blocked builders.
