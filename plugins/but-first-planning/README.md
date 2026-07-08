@@ -157,6 +157,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **3.0.1**: fixed `build-improve-architecture`'s frontmatter (a colon in the `description` broke YAML parsing, so the skill loaded with no metadata); its trigger description now registers.
 - **3.0.0**: split the planning skills by phase and renamed them (breaking — invocation names change): the spec-authoring skills are now `spec-0-init`, `spec-1-specify`, `spec-2-grill`, `spec-3-architect`, `spec-4-edit` (was `plan-6-edit`), plus `spec-open` (was `open-spec`); the backlog skills renumber to `plan-0-decompose` (was `plan-4-plan`) and `plan-1-publish-issues` (was `plan-5-publish-issues`). No behavior changes.
 - **2.7.0**: new `spec-open` skill — brings up the spec docs site (reusing a running server) and opens it in the browser in one step.
 - **2.6.0**: inline commenting on the spec site — highlight text, leave a note in a right-side rail, and it auto-saves to `.plan/spec-comments.json` (each with a `resolved` flag). Ships `comments-server.py`, a stdlib front door that serves the comment API on the same origin as the pages and reverse-proxies MkDocs behind it, so a single port covers both and it keeps working through a forwarded port (code-server / SSH tunnel). `spec-4-edit` now reads unresolved comments as requested spec edits and flips them resolved once addressed.

@@ -1,6 +1,6 @@
 ---
 name: build-improve-architecture
-description: Find deepening refactors in built code — shallow modules, missing seams — fed back into glossary and ADRs. Use for architecture improvement asks: "find refactors", "where are the seams".
+description: Find deepening refactors in built code — shallow modules, missing seams — fed back into glossary and ADRs. Use for architecture-improvement asks like "find refactors" or "where are the seams".
 ---
 
 # Improve Architecture (built code)
