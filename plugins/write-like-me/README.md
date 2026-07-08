@@ -67,6 +67,7 @@ rm ~/.claude/rules/write-like-me.md
 
 ## Changelog
 
+- **0.3.1**: the SessionStart / UserPromptSubmit / Stop hooks resolve `python3` or `python` at runtime instead of hardcoding `python3`, so they work on machines (e.g. Windows/Git-Bash) that ship only `python`.
 - **0.3.0**: feedback now folds into the profile as in-place revisions to the
   existing sections; the `## Learned` section is gone from the template, the
   refine hook, and the review/calibrate skills. The data-dir changelog's
