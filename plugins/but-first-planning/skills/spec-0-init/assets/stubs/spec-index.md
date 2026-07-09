@@ -5,7 +5,7 @@
 This specification is a **knowledge base, not a single document**. It is
 organised for progressive disclosure: start here, descend into the categories
 you care about, and follow cross-links to the reference appendices when you need
-precise contracts. {{LANGUAGE_POSTURE}}
+precise contracts. {{LANGUAGE_POSTURE}} {{UI_POSTURE}}
 
 ## How to read this spec
 

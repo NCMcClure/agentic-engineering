@@ -100,6 +100,7 @@ One or two sentences: the observable outcome that means this sprint is done.
 |---|------|-------|--------|--------|
 | 01 | AFK | [Project skeleton exists and the verifier passes on it](issues/01_issue_PROJECT-SKELETON-EXISTS-AND-VERIFIER-PASSES.md) | <unassigned> | not-started |
 | 02 | AFK | [Event type is defined and round-trips through the store](issues/02_issue_EVENT-TYPE-DEFINED-AND-ROUND-TRIPS.md) | <unassigned> | not-started |
+| 03 | REVIEW | [Event intake is visually verified on the dashboard](issues/03_issue_REVIEW-EVENT-INTAKE.md) | <unassigned> | not-started |
 
 ## Sprint dependency notes
 
@@ -170,9 +171,69 @@ Anchor: [spec/02-runtime/event-loop.md](../../../../spec/02-runtime/event-loop.m
 - None - can start immediately
 ```
 
+### REVIEW issue variant
+
+A `REVIEW` issue is a **human verification gate**, not implementation work. Same
+four bold fields and five sections (so the verifier stays green), but the
+content is observation-shaped and the filename slug starts `REVIEW-`
+(`NN_issue_REVIEW-<SLUG>.md`):
+
+```markdown
+# Event intake is visually verified on the dashboard
+
+**Sprint**: [01-scaffold](../sprint.md)
+**Epic**: [E01 Minimal Core](../../epic.md)
+**Type**: REVIEW
+**GitHub**: <unassigned>
+**Status**: not-started
+
+## Parent
+
+[Sprint 01-01: Scaffold](../sprint.md)
+
+## What to build
+
+Nothing — this is a **human verification gate**. A developer opens the surface
+named below and visually confirms the boundary under review matches the spec:
+event submission, storage, and read-back, as observable on the events panel.
+
+Anchor: [spec/03-ui/verification-surfaces.md](../../../../spec/03-ui/verification-surfaces.md)
+
+## Acceptance criteria
+
+- [ ] Every walkthrough step below was performed and the observed result matched
+- [ ] Anything off-spec was recorded (a drift file, or routed to spec-4-edit) — not waved through
+- [ ] The sign-off is recorded when status flips to done (who verified, on which branch/ref)
+
+## Testing checkpoint
+
+Manual walkthrough — a human performs each step and confirms what they see:
+
+| Step | Where | Do | Expect (per spec) |
+|------|-------|----|-------------------|
+| 1 | events panel (`make dev`, open `/events`) | submit a valid event via the form | it appears in the list with its id (spec §events-panel) |
+| 2 | same | submit an invalid event | rejection with the stated reason (spec §validation) |
+
+## Blocked by
+
+- [Event type is defined and round-trips through the store](./02_issue_EVENT-TYPE-DEFINED-AND-ROUND-TRIPS.md)
+```
+
+The `## Testing checkpoint` heading stays (the verifier checks section
+presence); its table columns change because no tool parses them. Cut REVIEW
+issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
+
+!!! warning "Older workspaces"
+    REVIEW plans need the ≥3.3 workspace scripts. On a workspace scaffolded by
+    an older plugin version, re-copy `verify-plan-tree.py` and
+    `publish-issues.py` into `.plan/plan/` (the spec-0-init backfill exception)
+    before publishing — an old `publish-issues.py` silently labels REVIEW
+    issues as agent-ready.
+
 ### Issue rules the verifier enforces
 
 - All four bold fields present: `**Sprint**`, `**Type**`, `**GitHub**`, `**Status**`.
+- `**Type**:` is exactly `AFK`, `HITL`, or `REVIEW` (the verifier rejects anything else).
 - All five sections present: `## Parent`, `## What to build`, `## Acceptance criteria`, `## Testing checkpoint`, `## Blocked by`.
 - `**GitHub**:` is exactly `<unassigned>` until published, then a real `#NNN` (or tracker reference).
 - Every markdown link in `## What to build` that contains `spec/` must resolve — that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `.plan/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).

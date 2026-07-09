@@ -15,6 +15,10 @@ you express *logic*, though, follows the project's recorded **language posture**
   used **liberally**, alongside the diagrams, to illustrate behaviour and
   contracts. Code is a first-class explanatory tool here, not a rare exception.
 
+Wireframes, mockups, and prototype conventions are scaled by the **UI/UX
+posture** (`reference/adr/0002-ui-posture.md`) and live in
+[UI-SPEC.md](UI-SPEC.md), not here.
+
 Whichever posture, diagrams still carry structure/flow/state — a code-forward
 spec is snippets *and* diagrams, not a code dump. When you do write a snippet,
 keep it tight and illustrative: the decision-rich bit, not a full implementation

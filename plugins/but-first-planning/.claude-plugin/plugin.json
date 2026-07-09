@@ -1,7 +1,7 @@
 {
   "name": "but-first-planning",
   "displayName": "But First, Planning",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "A file-based planning workflow for Claude Code: author a language-agnostic spec, plan it, and build it with coordinated builder agents \u2014 the spec-0..spec-4 spec-authoring skills (plus spec-open), the plan-0..plan-1 backlog skills, the build loop (build-next-issue, build-sprint, build-tdd, build-improve-architecture, build-assess-drift, build-rubber-duck) and an autopilot that chains every skill's autonomous workflow mode end-to-end \u2014 all landing in a single .plan/ workspace.",
   "author": {
     "name": "Nicholas McClure",

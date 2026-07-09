@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-1-author-spec',
   description: 'Author a complete spec from a product brief: three parallel outline lenses, a judge synthesis, a per-category planner->author pipeline, a verify loop, and a three-critic audit with a fixer',
-  whenToUse: "spec-1-specify's autonomous mode — authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, today?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). brief is inline text or an absolute file path.",
+  whenToUse: "spec-1-specify's autonomous mode — authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, uiPosture?, today?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). uiPosture is 'headless' | 'dev-dashboard' | 'existing-design-system' | 'greenfield-product' from ADR-0002 (default headless). brief is inline text or an absolute file path.",
   phases: [
     { title: 'Orient', detail: 'inventory existing spec categories/files/glossary', model: 'haiku' },
     { title: 'Outline', detail: 'three lens proposals: reader-cost, domain-model, behavior-flows', model: 'opus' },
@@ -22,7 +22,7 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir || !A.brief) {
-  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <spec-1-specify skill dir>, brief: <inline text or absolute path>, context?, sourcePaths?, languagePosture?, today?}')
+  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <spec-1-specify skill dir>, brief: <inline text or absolute path>, context?, sourcePaths?, languagePosture?, uiPosture?, today?}')
 }
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
@@ -38,6 +38,15 @@ const POSTURE_NOTE = postureMode === 'agnostic'
   : postureMode === 'code-forward'
     ? `The spec targets ${postureLang}, CODE-FORWARD: use idiomatic ${postureLang} snippets liberally alongside mermaid diagrams to illustrate behaviour and contracts — code is a first-class way to pin logic here, not a rare exception. Still reach for diagrams for structure/flow/state.`
     : `The project language is ${postureLang}: keep files language-agnostic by default (pseudocode + mermaid), dropping to a short ${postureLang} snippet only where a concrete one pins a decision better than prose.`
+
+// ---------- UI/UX posture (from ADR-0002) ----------
+const UI_POSTURES = {
+  'headless': 'UI posture: HEADLESS — no visual surfaces. Do not author UI/UX categories; every behaviour states its command/test verification in its own file.',
+  'dev-dashboard': "UI posture: DEV-DASHBOARD — end-users never see a UI, but the spec MUST include a minimal internal dashboard as the human verification surface: its screens/panels, plus a verification-surfaces file mapping each observable system behaviour to where a human sees it. See the skill's UI-SPEC.md.",
+  'existing-design-system': "UI posture: EXISTING-DESIGN-SYSTEM — the product has an established design system. The spec MUST capture its tokens/components/conventions as constraints (a design-constraints file, with sources), spec each new screen/flow in those terms, and carry a verification-surfaces mapping. See the skill's UI-SPEC.md.",
+  'greenfield-product': "UI posture: GREENFIELD-PRODUCT — polished UI/UX is a deliverable. The spec MUST include a UI/UX category: design system (tokens, core components, layout/interaction patterns), key screens/flows, and a verification-surfaces mapping; static HTML prototypes live under spec/prototypes/ (self-contained .html, linked/iframed from spec pages — throwaway design artifacts, not product code). See the skill's UI-SPEC.md.",
+}
+const UI_POSTURE_NOTE = UI_POSTURES[A.uiPosture] || UI_POSTURES['headless']
 
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
@@ -62,6 +71,7 @@ Structure is machine-enforced by python3 ${SPEC}/scripts/verify-spec-tree.py. Th
 rules live in the spec-1-specify skill at ${SKILL}/ (SKILL.md, PROGRESSIVE-DISCLOSURE.md,
 FILE-LAYOUT.md, FRONTMATTER.md, DIAGRAMS.md).
 ${POSTURE_NOTE}
+${UI_POSTURE_NOTE}
 ${Array.isArray(A.sourcePaths) && A.sourcePaths.length ? `SOURCE MATERIAL you may Read and cite: ${A.sourcePaths.join(', ')}` : ''}
 ${A.context ? `PROJECT NOTES: ${A.context}` : ''}
 `
@@ -69,7 +79,7 @@ ${A.context ? `PROJECT NOTES: ${A.context}` : ''}
 // ---------- Phase 0: orient (pure retrieval) ----------
 phase('Orient')
 const orient = await agent(
-  `List the current contents of the spec at ${SPEC}/: (a) category directory names (the numbered NN-slug dirs, not reference/assets/scripts); (b) every content .md file under them as paths relative to ${SPEC}/ (exclude index.md files); (c) the bold term names in ${SPEC}/reference/glossary.md (empty list if none defined yet); (d) isFresh=true only if there are no category dirs and no content beyond spec-0-init's scaffold stubs. Use ls/glob/grep, not judgment. ${BRIEF}`,
+  `List the current contents of the spec at ${SPEC}/: (a) category directory names (the numbered NN-slug dirs, not reference/prototypes/assets/scripts); (b) every content .md file under them as paths relative to ${SPEC}/ (exclude index.md files); (c) the bold term names in ${SPEC}/reference/glossary.md (empty list if none defined yet); (d) isFresh=true only if there are no category dirs and no content beyond spec-0-init's scaffold stubs. Use ls/glob/grep, not judgment. ${BRIEF}`,
   {
     label: 'orient:inventory', phase: 'Orient', model: 'haiku', effort: 'low',
     schema: {

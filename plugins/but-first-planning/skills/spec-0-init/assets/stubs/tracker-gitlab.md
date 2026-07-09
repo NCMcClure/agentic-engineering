@@ -30,10 +30,22 @@ do **not** rename it. In this project it holds the **GitLab** issue reference:
 | `status::blocked` | Blocked; the reason is posted as an issue **comment** |
 | `type::HITL` | Needs a human in the loop |
 | `type::AFK` | Agent-runnable without supervision |
+| `type::REVIEW` | Human visual-verification gate — a developer confirms the behaviour on a UI surface |
 | `decision` | Decision issue — applied **in addition to** `type::HITL` |
 
 Scoped labels (`::`) require instance support; verify once, and fall back to
 plain `epic-EE-<slug>` / `status-...` names if unsupported.
+
+## Gate notification
+
+- **Notify**: `{{NOTIFY_HANDLE}}`
+
+When an autonomous run defers on a human gate (a HITL issue it wasn't
+authorized to decide, or any REVIEW issue), it posts one **`Human gate`** note
+on the issue @mentioning this handle — GitLab emails mentions. Leave unset to
+disable. Caveat: GitLab never notifies you of your **own** actions, so if the
+agent's `glab` CLI is authenticated as this same account the note lands but no
+email is sent — use a bot/second account for the agent if you want real emails.
 
 ## Status vocabulary mapping
 

@@ -26,10 +26,24 @@ Default canonical vocabulary (edit the right column to match your repo):
 |------|-------|---------|
 | ready-for-agent | `ready-for-agent` | Fully specified, ready for an autonomous (AFK) agent |
 | ready-for-human | `ready-for-human` | Requires human implementation (HITL) |
+| ready-for-review | `ready-for-human` | Human visual-verification gate (REVIEW) — point at a dedicated label to distinguish it from HITL |
 | needs-info | `needs-info` | Waiting on more information |
 | wontfix | `wontfix` | Will not be actioned |
 
-Issues are published with `ready-for-agent` by default (override per issue for HITL slices → `ready-for-human`).
+Issues are published with `ready-for-agent` by default (override per issue for
+HITL slices → `ready-for-human`, REVIEW gates → the ready-for-review label).
+
+## Gate notification
+
+- **Notify**: `{{NOTIFY_HANDLE}}`
+
+When an autonomous run defers on a human gate (a HITL issue it wasn't
+authorized to decide, or any REVIEW issue), it posts one **`Human gate`**
+comment on the tracker issue @mentioning this handle — GitHub emails mentions.
+Leave unset to disable. Caveat: GitHub never notifies you of your **own**
+actions, so if the agent's `gh` CLI is authenticated as this same account the
+comment lands but no email is sent — use a bot/second account for the agent if
+you want real emails.
 
 ## GitHub Project (optional but recommended)
 
@@ -42,7 +56,7 @@ runtime: `gh project field-list <NUMBER> --owner <OWNER> --format json`.
 |--------|------|----------------|
 | Epic   | single-select | one per epic (e.g. `E01`, `E02`, …) |
 | Sprint | single-select | `NN-MM` (epic-sprint, e.g. `01-01`) |
-| Type   | single-select | `HITL`, `AFK` |
+| Type   | single-select | `HITL`, `AFK`, `REVIEW` |
 | Status | single-select (built-in) | `Todo`, `In Progress`, `Done` |
 
 Plan-tree `Status:` maps to project Status as `not-started → Todo`,

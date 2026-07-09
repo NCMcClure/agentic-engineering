@@ -11,8 +11,8 @@ sprint table immediately — an interrupted run leaves an accurate record.
 Tracker backend is read from `.plan/tracker.md`:
 
 - `# Issue tracker: GitHub` -> `gh issue create` with the ready-for-agent /
-  ready-for-human triage labels (Project-board field mirroring stays with the
-  skill; see TRACKER-GITHUB.md).
+  ready-for-human / ready-for-review triage labels (Project-board field
+  mirroring stays with the skill; see TRACKER-GITHUB.md).
 - `# Issue tracker: GitLab` -> `glab` against the `**Project**:` /
   `**Project ID**:` recorded there; epic labels and sprint milestones are
   created lazily (see TRACKER-GITLAB.md).
@@ -80,7 +80,14 @@ def tracker() -> dict:
         m = re.search(r"\|\s*ready-for-human\s*\|\s*`([^`]+)`", text)
         if m:
             human_lbl = m.group(1)
-        return {"mode": "github", "agent_label": agent_lbl, "human_label": human_lbl}
+        # REVIEW issues fall back to the human label when tracker.md predates
+        # (or doesn't define) a ready-for-review row.
+        review_lbl = human_lbl
+        m = re.search(r"\|\s*ready-for-review\s*\|\s*`([^`]+)`", text)
+        if m:
+            review_lbl = m.group(1)
+        return {"mode": "github", "agent_label": agent_lbl,
+                "human_label": human_lbl, "review_label": review_lbl}
     die("tracker.md declares a local (or unknown) tracker — nothing to publish to")
     return {}  # unreachable
 
@@ -251,7 +258,12 @@ def create_gitlab(cfg: dict, sprint: dict, issue: dict, body: str, state: dict) 
 
 
 def create_github(cfg: dict, sprint: dict, issue: dict, body: str, state: dict) -> str:
-    label = cfg["human_label"] if issue["type"] == "HITL" else cfg["agent_label"]
+    if issue["type"] == "REVIEW":
+        label = cfg["review_label"]
+    elif issue["type"] == "HITL":
+        label = cfg["human_label"]
+    else:
+        label = cfg["agent_label"]
     out = cli_run(["gh", "issue", "create", "--title", issue["title"],
                    "--label", label, "--body", body])
     m = re.search(r"/issues/(\d+)", out)

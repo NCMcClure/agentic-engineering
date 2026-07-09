@@ -1,0 +1,44 @@
+<!doctype html>
+<!-- Throwaway design prototype — a spec artifact, not product code.
+     Self-contained: CDN assets only, no build step, no imports from the repo.
+     Copy this file per prototype; link or iframe it from the spec page it
+     illustrates, and add one line to prototypes/index.md. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{prototype title}} — {{project}}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Design tokens under trial — mirror the spec's design-system page.
+         Keep them as CSS custom properties so the spec's token table and the
+         prototype can be compared line for line. */
+      :root {
+        --color-accent: {{accent}};
+        --radius: {{radius}};
+      }
+      /* Mark open design questions visibly so they can't be mistaken for
+         settled decisions. */
+      .annotation { outline: 2px dashed #d97706; outline-offset: 2px; }
+    </style>
+  </head>
+  <body class="bg-stone-50 text-slate-900 font-sans">
+    <main class="max-w-5xl mx-auto px-6 py-10 space-y-8">
+      <header class="border-b pb-4">
+        <h1 class="text-2xl font-semibold">{{screen name}}</h1>
+        <p class="text-sm text-slate-500">
+          Prototype of {{spec page}} §{{section}} — {{one-line intent}}
+        </p>
+      </header>
+
+      <section id="screen">
+        {{the screen — static markup with fake data inline; mark open design
+        questions with class="annotation" and a short caption}}
+      </section>
+
+      <footer class="text-xs text-slate-400 border-t pt-4">
+        Verification surface for: {{behaviours this screen makes observable}}
+      </footer>
+    </main>
+  </body>
+</html>

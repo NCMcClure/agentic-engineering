@@ -44,12 +44,13 @@ Horizontal (avoid)            Vertical (prefer)
 | Set up the API | The health endpoint returns OK and is covered by a smoke test |
 | Refactor the pipeline | The pipeline processes two events in arrival order, verified |
 
-## HITL vs AFK
+## HITL, AFK, and REVIEW
 
 Tag each slice by who must drive it:
 
 - **AFK** (autonomous) — fully specified; an agent can implement, test, and merge it without a human in the loop. Most slices should be AFK. The acceptance criteria and testing checkpoint must be concrete enough that "done" is unambiguous.
 - **HITL** (human-in-the-loop) — needs a human decision, a design review, a credential, or a judgement call mid-flight. Examples: choosing between two viable designs the spec left open, anything that signs off on a security boundary, a slice that needs production access.
+- **REVIEW** (human visual verification) — nothing is implemented; a developer opens a UI surface and confirms, by looking, that a spec'd capability works as designed. Never auto-built under any policy — unlike a HITL decision it cannot be drafted or auto-implemented; the observation *is* the deliverable.
 
 Prefer AFK where it's honest. If a slice is only HITL because it's underspecified,
 that's a signal to grill the spec (`spec-2-grill`) until it can be AFK — the
@@ -65,6 +66,25 @@ that need the answer — and its acceptance criteria are decision-shaped ("an AD
 records the choice and the spec note is updated"), not code-shaped. Example of
 builder latitude (the other route): "pick any stable sort" is an inline note in
 the implementing issue, not an issue of its own.
+
+## REVIEW issues (visual verification gates)
+
+Cut only when the recorded UI/UX posture
+(`spec/reference/adr/0002-ui-posture.md`) is not `headless`:
+
+- **One per verification boundary** — a user-visible feature or system
+  capability a human can confirm by looking — typically 1–3 per sprint. Not one
+  per slice (review fatigue), not one per epic (too coarse to localise a miss).
+- **Blocked by the implementing slices**, which still build AFK — the gate
+  follows the work, it doesn't stall it.
+- **Anchored to the spec's verification-surfaces / key-screens pages**
+  (greenfield: link the prototype the screen realises).
+- **Observation-shaped acceptance criteria** ("open X, do Y, see Z per
+  spec §…"); the testing checkpoint is a **manual walkthrough table**; the
+  filename slug starts `REVIEW-` (`NN_issue_REVIEW-<SLUG>.md`). Template in
+  [PLAN-FORMAT.md](PLAN-FORMAT.md).
+- **Not a substitute for AFK checkpoints.** Every implementing slice keeps its
+  own runnable checkpoint; REVIEW confirms the *assembled, visible* result.
 
 ## Sizing and dependencies
 

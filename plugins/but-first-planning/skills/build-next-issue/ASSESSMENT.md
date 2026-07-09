@@ -54,6 +54,7 @@ Match the issue's `Type`:
 
 - **AFK** issues were specified to be autonomously verifiable — hold them to their checkpoint command exactly. If it can't be run mechanically, that itself is a defect in the issue (note it).
 - **HITL** issues often end in a human judgement (a design accepted, a review passed). You can't re-run a judgement; instead confirm the artifact of the decision exists (the ADR was written, the spec section updated) and take the human's sign-off as the evidence.
+- **REVIEW** issues end in a human observation, which you can't re-run either. Verify the *record* of it: the sign-off evidence exists (a ledger `--evidence` line or a progress note naming who verified and on what ref) and the walkthrough's surface still exists. A REVIEW issue claimed done with no recorded human sign-off is **not** done — flip it back; an agent can never self-verify one.
 
 Don't gold-plate: you're confirming the slice does what it claimed, not re-
 reviewing its quality. Quality review is `code-review`'s job, not this skill's.

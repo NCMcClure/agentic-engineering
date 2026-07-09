@@ -22,8 +22,10 @@ python plan/plan-status.py set 01-03-07 done --evidence "checkpoint exits 0"
 ## Status vocabulary
 
 Plan-tree `Status:` uses `not-started` / `in-progress` / `blocked` / `done`.
-There is no separate "label" — the `Type` field (`HITL` / `AFK`) lives in the
-issue file itself.
+There is no separate "label" — the `Type` field (`HITL` / `AFK` / `REVIEW`)
+lives in the issue file itself. There is no notification channel either: when
+an autonomous run defers on a HITL or REVIEW gate, the gate surfaces in the
+run's report, not as a comment.
 
 ## Switching to an external tracker later
 

@@ -13,7 +13,7 @@ walk over the plan tree in order, gated by verified completion of dependencies.
 
 - If several issues are eligible (no blockers, same sprint), report the lowest-numbered as *the* next issue, but list the others as "also available now" — they can be grabbed in parallel by other contributors or agents. The plan marks issues parallelizable unless an explicit `Blocked by` says otherwise.
 - **For a parallel build, don't stop at "also available now."** The `Blocked by` field under-declares real ordering, and two logically-independent issues still collide if they edit the same files. Produce the full **dispatch plan** instead — the wave-ordered, file-disjoint frontier with its true (declared + implied) DAG. The method is in [DISPATCH-PLAN.md](DISPATCH-PLAN.md).
-- Prefer an **AFK** issue as the headline "next" when one is available and a human isn't waiting on a **HITL** decision that would unblock more — autonomous work can proceed without scheduling a person. But if a HITL issue is blocking a whole sprint, surface *that* as the real next action, because nothing else moves until it's resolved.
+- Prefer an **AFK** issue as the headline "next" when one is available and a human isn't waiting on a **HITL** decision that would unblock more — autonomous work can proceed without scheduling a person. But if a HITL issue is blocking a whole sprint, surface *that* as the real next action, because nothing else moves until it's resolved. Treat **REVIEW** like HITL for headline purposes — it's a human action — but note it rarely blocks: its implementing slices build AFK, so surface a REVIEW gate as *the* next action only when it's what actually stands between the sprint and its exit.
 
 ## When the frontier is fully blocked
 
@@ -36,8 +36,12 @@ run `plan-1-publish-issues` for it before work can be grabbed.
 For the selected issue, give the user everything needed to start without opening
 another file:
 
-- title and `Type` (HITL/AFK),
+- title and `Type` (HITL/AFK/REVIEW),
 - tracker reference (or `<unassigned>`, with a note to publish),
 - the spec anchors (so they can read the design it realises),
 - the acceptance criteria and the testing-checkpoint command (so "done" is unambiguous from the outset),
 - and the 1–3 issues that unlock once it lands, so the path forward is visible.
+
+For a **REVIEW** next issue, hand back the manual walkthrough table and the
+serve/open step instead of a checkpoint command — the human performs it, and
+their recorded sign-off is the evidence.

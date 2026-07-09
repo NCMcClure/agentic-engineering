@@ -206,8 +206,9 @@ editing the spec files directly (Read a file before you Edit it). Judgment rules
 - Match each file's existing conventions exactly: frontmatter shape, heading style,
   pseudocode/diagram style, relative link style, tone, line width — and the project's
   recorded language posture (reference/adr/0001-language-posture.md: agnostic, or tied to a
-  language). Bump each edited file's 'updated' frontmatter. Update the section's index.md
-  only if you add or remove a file.
+  language) and UI/UX posture (reference/adr/0002-ui-posture.md: what UI surfaces and
+  verification content the spec is expected to carry). Bump each edited file's 'updated'
+  frontmatter. Update the section's index.md only if you add or remove a file.
 - Never renumber an existing ADR or reverse its decision; clarifying ADR text is fine.
 - Do NOT run any git commands that mutate state (no add/commit/checkout). Leave all
   changes in the working tree.

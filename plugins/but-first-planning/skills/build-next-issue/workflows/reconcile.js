@@ -187,7 +187,7 @@ const DISPATCH_SCHEMA = {
               properties: {
                 coords: { type: 'array', items: { type: 'string' }, description: 'more than one = same-module cluster: one builder, one commit' },
                 refs: { type: 'array', items: { type: 'string' } },
-                type: { enum: ['AFK', 'HITL'] },
+                type: { enum: ['AFK', 'HITL', 'REVIEW'] },
                 title: { type: 'string' },
                 files: { type: 'array', items: { type: 'string' }, description: 'predicted file paths this unit touches' },
                 reason: { type: 'string' },
@@ -231,10 +231,32 @@ const SELECT_SCHEMA = {
 const selection = await agent(
   `${CTX}\nYou are the next-issue selector${DISPATCH ? ' and dispatch planner' : ''}. Read ${SKILL}/NEXT-SELECTION.md${DISPATCH ? ` and ${SKILL}/DISPATCH-PLAN.md (including its JSON-contract section)` : ''} FIRST and apply them exactly. The freshly verified state: use the plan tree on disk (the Record step just reconciled it) plus these inputs — treat routed drift follow-up issues as buildable candidates alongside plan issues.
 Select the single next issue (lowest-numbered not-started whose blockers are ALL verified-complete, respecting sprint/epic order) with its anchors and acceptance criteria read from its file. List the 1-3 on-deck issues that unlock after it.${DISPATCH ? `
-Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies — read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map HITL gates, order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to spec-4-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
+Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies — read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map the human gates (HITL and REVIEW — REVIEW issues are human visual-verification gates: list them in hitlGates and never place them in a wave an agent would build), order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to spec-4-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
 INPUTS:\nVERIFIED THIS RUN: ${JSON.stringify(verified.map(v => v.coords))}\nSTILL FAILED: ${JSON.stringify(failed.map(v => v.coords))}\nOPEN DRIFT: ${JSON.stringify(progress.openDrift, null, 1)}\nDRIFT FOLLOW-UPS: ${JSON.stringify(progress.routedFollowUps)}\nCHECKPOINT HEALTH FROM VERIFY: ${JSON.stringify(brokenCheckpoints, null, 1)}\n${BRIEF}`,
   { label: DISPATCH ? 'select+dispatch' : 'select', phase: 'Select', effort: 'high', schema: SELECT_SCHEMA }
 )
+
+// ---------- Phase 4b: notify on a human-gated "next" (headless runs) ----------
+// The developer isn't in this loop — if the frontier now waits on a human, say so
+// where they'll hear it: an @mention comment on the tracker issue.
+let notify = null
+const gated = selection && selection.nextIssue && ['HITL', 'REVIEW'].includes(selection.nextIssue.type)
+if (gated && selection.nextIssue.ref && selection.nextIssue.ref !== '<unassigned>') {
+  notify = await agent(
+    `${CTX}\nYou are the gate notifier. Read ${ROOT}/.plan/tracker.md. If it is local-mode, or has no "**Notify**:" field, or the handle is unset/a {{PLACEHOLDER}} — do nothing and report skipped with the reason. Otherwise the next actionable issue is a human gate: ${selection.nextIssue.type} ${selection.nextIssue.coords} "${selection.nextIssue.title}" (ref ${selection.nextIssue.ref}). IDEMPOTENCY FIRST: view the tracker issue's comments (gh issue view <n> --comments / glab issue note list equivalent); if any comment already contains "Human gate", report skipped=already-notified. Otherwise post ONE comment on it (gh issue comment / glab issue note) shaped: "**Human gate** — @<handle>: this ${selection.nextIssue.type} issue is now the frontier — ${selection.nextIssue.type === 'REVIEW' ? 'the walkthrough in the issue needs a human to perform it' : 'it needs a human decision before dependent work can proceed'}." Do not run git; touch nothing but the tracker CLI. ${BRIEF}`,
+    {
+      label: 'notify:gate', phase: 'Select', model: 'sonnet', effort: 'low',
+      schema: {
+        type: 'object', required: ['posted'],
+        properties: {
+          posted: { type: 'boolean' },
+          ref: { type: 'string' },
+          skippedReason: { type: 'string' },
+        },
+      },
+    }
+  )
+}
 
 return {
   whereWeAre: {
@@ -253,6 +275,7 @@ return {
   nextIssue: selection ? selection.nextIssue : null,
   onDeck: selection ? selection.onDeck : [],
   frontierBlocked: selection ? selection.frontierBlocked : 'selection agent failed',
+  gateNotified: notify,
   dispatch: DISPATCH && selection ? selection.dispatch : null,
   dispatchFile: DISPATCH && planState.currentSprint ? `${PROG}/dispatch/${planState.currentSprint}.json` : null,
   record,

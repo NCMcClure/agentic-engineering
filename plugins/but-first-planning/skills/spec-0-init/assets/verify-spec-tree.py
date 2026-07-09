@@ -13,7 +13,8 @@ Exits 0 clean, 1 on warnings only, 2 on any critical violation.
 Reports the actual discovered counts, e.g.:
     OK: 4 categories, 17 content files, 6 index hubs, 0 broken links
 
-The `assets/` and `scripts/` directories are skipped (site chrome, not docs).
+The `assets/` and `scripts/` directories are skipped (site chrome, not docs),
+as is `prototypes/` (throwaway HTML design artifacts, not docs).
 """
 from __future__ import annotations
 import re
@@ -22,7 +23,7 @@ from pathlib import Path
 
 SPEC_ROOT = Path(__file__).resolve().parent.parent   # .plan/spec/  (script is in spec/scripts/)
 
-SKIP_DIRS = {"assets", "scripts", ".site"}
+SKIP_DIRS = {"assets", "scripts", ".site", "prototypes"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?$")
 RELATES_LINE_RE = re.compile(r"^\s*-\s*(.+?)\s*$")
 SIZE_WARN_LINES = 200

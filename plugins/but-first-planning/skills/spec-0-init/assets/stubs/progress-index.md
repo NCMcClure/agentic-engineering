@@ -36,7 +36,8 @@ restated every run. Top open items:
   durable audit trail. Rows are appended by `plan-status.py set … done --evidence`.
 - **`notes/`** — one file per sprint-build-run (`YYYY-MM-DD-NN-MM-slug.md`): build
   method, scope/deferrals, drift, architecture smells, checkpoint health, test
-  totals, HITL sign-offs. Newest run is a new file, so you never scroll past old epics.
+  totals, HITL/REVIEW sign-offs (for REVIEW: who verified, on which ref). Newest
+  run is a new file, so you never scroll past old epics.
 - **`drift/`** — one `drift-<slug>.md` file per cross-cutting defect or smell, each
   with `id`/`kind`/`surfaced`/`where`/`route`/`status` frontmatter and a short
   write-up. List them with `python progress/drift-status.py` (add `--open` for just

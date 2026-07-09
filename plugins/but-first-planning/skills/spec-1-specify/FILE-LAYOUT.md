@@ -23,6 +23,7 @@ verifier (`.plan/spec/scripts/verify-spec-tree.py`) enforces the mechanical ones
 │   └── adr/
 │       ├── index.md
 │       └── 0001-slug.md
+├── prototypes/              # reserved: throwaway HTML design prototypes (see UI-SPEC.md; posture-dependent)
 ├── assets/                  # gruvbox.css, mermaid-init.js (site chrome — not docs)
 └── scripts/                 # verify-spec-tree.py (excluded from the site)
 ```
@@ -64,7 +65,7 @@ indexes.
 Top-level categories use a numeric prefix (`01-`, `02-`, …) so the site and the
 file host order them deterministically. Don't put content files directly at the
 spec root — the root holds only `index.md`, the category directories, and the
-reserved `reference/`, `assets/`, `scripts/`.
+reserved `reference/`, `prototypes/`, `assets/`, `scripts/`.
 
 Start with a few categories (three is plenty). Add a category only when an
 existing one starts holding files that obviously don't belong together — not

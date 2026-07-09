@@ -38,13 +38,17 @@ file sets are **disjoint** are safe to batch; overlapping ones must serialise
 (or run in genuinely isolated worktrees). When unsure, treat them as overlapping
 — a wrong "disjoint" guess causes merge tangles.
 
-## 3. Map the HITL gates
+## 3. Map the human gates (HITL + REVIEW)
 
-For the current and next sprint, list the **HITL** issues and, for each, whether
-any AFK issue depends on it (logically or implicitly). This yields the one fact a
-sprint coordinator most wants up front: **is this sprint autonomous-able, or will it
-stall at issue #N waiting on a human?** A HITL issue that gates the frontier is
-the real next action even if AFK issues sit "available" behind it.
+For the current and next sprint, list the **HITL** and **REVIEW** issues and,
+for each, whether any AFK issue depends on it (logically or implicitly). This
+yields the one fact a sprint coordinator most wants up front: **is this sprint
+autonomous-able, or will it stall at issue #N waiting on a human?** A HITL
+issue that gates the frontier is the real next action even if AFK issues sit
+"available" behind it. REVIEW issues differ in one way: unlike a HITL decision
+they can never be drafted or auto-implemented — they always wait for a human —
+but since their implementing slices still build AFK, a REVIEW gate at a
+sprint's tail never stalls the frontier; it just stays open in the report.
 
 ## 4. Order into waves
 
@@ -121,3 +125,6 @@ canonical schema; keep the prose plan and the JSON saying the same thing.
 A unit whose `coords` lists more than one issue is a **same-module cluster**:
 one builder, one commit, built together on purpose. `type` is `HITL` only when
 every issue in the unit is HITL; a mixed cluster is a planning smell — split it.
+A unit's `type` may also be `REVIEW` (always its own single-issue unit), and
+`hitlGates` carries **both** gate kinds: REVIEW units are listed there too,
+with `gatesWhat` "human walkthrough — never auto-built".

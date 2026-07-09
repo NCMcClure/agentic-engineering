@@ -64,7 +64,7 @@ mechanically. This table is *what* to do; those are *how*:
 | Issue re-cut (split / merge / replace) | Close the old ticket with a comment linking its replacement(s); publish the new issue(s); backfill the new refs |
 | Issue obsolete (spec section gone) | Close the ticket with the reason; mark the plan issue |
 | New issue added to an **already-published sprint** | Publish it immediately — a plan-only issue in a live sprint is invisible to whoever works the board |
-| `Type` changed (HITL ↔ AFK) | Swap the type label |
+| `Type` changed (HITL ↔ AFK ↔ REVIEW) | Swap the type label |
 | Issue moved to another sprint | Update the ticket's sprint assignment (milestone / board field) |
 | `## Blocked by` changed | Update the ticket **body's** Blocked-by list too — published bodies cite blockers by their real refs (e.g. `#41`), so a dependency re-cut stales the body even when nothing else about the issue changed |
 

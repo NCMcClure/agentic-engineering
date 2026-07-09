@@ -23,6 +23,11 @@ questions" honest rather than presumptuous.
 workflow cannot pause. If the user wants real mid-sprint pauses, that stage runs
 interactively, not on autopilot.)
 
+`REVIEW` issues are outside this policy entirely: under every setting they
+defer to the human — an agent can't draft or auto-implement an act of looking.
+Their implementing slices still build AFK; the sprint report lists the pending
+walkthroughs (`reviewPending`) and the run continues past them.
+
 ## 3. scope — how far does this run go?
 
 One sprint, epic NN, or the whole backlog. Scope is also the failure budget's
@@ -33,9 +38,12 @@ early regardless of scope — report, don't push through.
 
 Which tracker (from `.plan/tracker.md`), whether each sprint opens a PR
 (`openPr`), the PR base branch, and whether `triage-drift.js` may publish drift
-issues (`publish: true`) or must batch them. Publishing tickets and pushing
-branches are the run's outward-facing actions — they are exactly what the
-contract's approval covers, and nothing else is.
+issues (`publish: true`) or must batch them. Publishing tickets, pushing
+branches, and **gate-notification comments** (a `Human gate` @mention posted on
+each HITL/REVIEW issue the run defers on, whenever `tracker.md` names a
+`**Notify**` handle — unsetting the handle is the only off switch) are the
+run's outward-facing actions — they are exactly what the contract's approval
+covers, and nothing else is.
 
 ## Permissions to pre-approve
 

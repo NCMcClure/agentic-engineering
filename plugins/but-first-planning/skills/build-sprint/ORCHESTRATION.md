@@ -120,6 +120,25 @@ Instead:
 This keeps autonomous work moving up to the gate while still putting the human
 decision where it belongs.
 
+## REVIEW gates: prepare, don't perform
+
+The draft → sign-off pattern does **not** fit `REVIEW` issues — there is
+nothing to draft; the human's observation *is* the deliverable. What an agent
+may do is **prepare the walkthrough**: confirm the surface serves (the issue's
+serve/open step works on the sprint branch), seed any data the steps need, and
+restate the walkthrough table with the branch/URL filled in. The human walks
+it; the coordinator flips status through the funnel only after the sign-off,
+recording who verified and on what ref in the run's progress note — that record
+is what `build-next-issue`'s verifier later checks. Auto-implement never
+applies.
+
+When the run is headless and `tracker.md` names a `**Notify**` handle, each
+deferred gate issue (REVIEW, and HITL under skip/draft policies) gets one
+`**Human gate**` @mention comment on the tracker — idempotent (an existing
+`Human gate` comment means skip), and skipped entirely in local mode or when
+the handle is unset. The self-notification caveat (your own account's actions
+don't email you) is documented in the tracker stub.
+
 ## Failure recovery
 
 - **Stacked/cross-contaminated commits** (isolation misfired): if each commit still

@@ -57,15 +57,22 @@ the file is already there.
 Ask only what you can't infer. Keep it to a few questions, one at a time:
 
 - **Project name + one-line description** — for the site title and spec index. Infer a sensible default from the repo if you can, and just confirm.
-- **Issue tracker** — default **GitHub** (the `gh` CLI + an optional GitHub Project board). Alternatives: **GitLab** (the `glab` CLI — epics as scoped labels, sprints as milestones; works on self-hosted instances and personal namespaces), another tracker, or **local-markdown only** (the plan tree is the only source of truth). If GitHub with a project board, ask for the board URL / owner / number; if GitLab, ask for the project path, numeric project ID, and host. Missing values can stay as placeholders to fill in before first publish.
+- **Issue tracker** — default **GitHub** (the `gh` CLI + an optional GitHub Project board). Alternatives: **GitLab** (the `glab` CLI — epics as scoped labels, sprints as milestones; works on self-hosted instances and personal namespaces), another tracker, or **local-markdown only** (the plan tree is the only source of truth). If GitHub with a project board, ask for the board URL / owner / number; if GitLab, ask for the project path, numeric project ID, and host. Missing values can stay as placeholders to fill in before first publish. For GitHub/GitLab, also ask for an optional **notify handle** — the username to @mention in an issue comment when an autonomous run defers on a human gate (a HITL or REVIEW issue it wasn't authorized to decide). Fills `{{NOTIFY_HANDLE}}` in the tracker stub; leave unset to disable notifications. Skip this question entirely for local-markdown mode.
 - **Language posture** — how every spec file expresses logic. Ask only if it isn't already obvious from the conversation. **Default is agnostic.** Three choices:
   - **Agnostic** (default) — pseudocode and diagrams only, no real-language code; the spec survives whatever language eventually implements it.
   - **Language-tied, minimal** — a named language (say Python), but a snippet appears *only* where a concrete one pins a decision better than prose; otherwise the file stays agnostic.
   - **Language-tied, code-forward** — a named language, with idiomatic snippets used liberally alongside diagrams to illustrate behaviour and contracts.
 
   This choice is **load-bearing**: it shapes every spec file and is expensive to reverse once the spec is written, which is exactly why it becomes ADR-0001 rather than a session-only preference.
+- **UI/UX posture** — how a human will *visually* verify the system. Ask only if it isn't obvious from the conversation. **Default is headless** for CLI tools and libraries. Four choices:
+  - **headless** — no visual surfaces; every behaviour is verified by commands and tests.
+  - **dev-dashboard** — end-users never see a UI, but a minimal internal dashboard is spec'd and built as the human verification surface.
+  - **existing-design-system** — a feature/integration in an established product; new UI is spec'd into the existing design system, whose tokens/components/conventions the spec captures as constraints.
+  - **greenfield-product** — polished UI/UX is a deliverable: full design-system spec, key screens, and HTML prototypes under `spec/prototypes/`.
 
-Record the tracker choice in `tracker.md`, and the language posture as **ADR-0001** plus the `spec/index.md` posture line (step 2), so every later skill honours it — not just this session.
+  Like the language posture, this is **load-bearing**: it decides what UI/UX content `spec-1-specify` authors, whether a `prototypes/` playground is scaffolded, and whether `plan-0-decompose` cuts `REVIEW` (human visual-verification) issues — so it becomes ADR-0002.
+
+Record the tracker choice in `tracker.md`, the language posture as **ADR-0001** plus the `spec/index.md` posture line, and the UI/UX posture as **ADR-0002** plus the `spec/index.md` `{{UI_POSTURE}}` line (step 2), so every later skill honours them — not just this session.
 
 ### 2. Copy the scaffold into place
 
@@ -96,7 +103,11 @@ glossary.
 │   │   ├── glossary.md       # from stubs/glossary.md  (fill {{MONTH}}!)
 │   │   └── adr/
 │   │       ├── index.md      # from stubs/adr-index.md
-│   │       └── 0001-language-posture.md  # from stubs/adr-0001-language-posture.md (fill posture tokens)
+│   │       ├── 0001-language-posture.md  # from stubs/adr-0001-language-posture.md (fill posture tokens)
+│   │       └── 0002-ui-posture.md        # from stubs/adr-0002-ui-posture.md (fill posture tokens)
+│   ├── prototypes/            # ONLY when the UI posture is greenfield-product (or the user opts in)
+│   │   ├── index.md           # from stubs/prototypes-index.md
+│   │   └── prototype-skeleton.html  # from assets/prototype-skeleton.html (verbatim)
 │   ├── assets/
 │   │   ├── gruvbox.css        # from assets/gruvbox.css (verbatim)
 │   │   ├── mermaid-init.js    # from assets/mermaid-init.js (verbatim)
@@ -139,6 +150,24 @@ language:
 Then add the ADR's row to `adr/index.md`'s Records section. Write ADR-0001 even
 for the agnostic default — a recorded "we chose agnostic" is what stops a later
 skill from silently drifting into code.
+
+**Record the UI/UX posture** the same way: author `adr/0002-ui-posture.md` from
+its stub and set `spec/index.md`'s `{{UI_POSTURE}}` line, matching the choice:
+
+| Choice | `{{UI_POSTURE}}` line | ADR summary / decision |
+|--------|------------------------|------------------------|
+| headless | "The system is headless: there are no visual surfaces; every behaviour is verified by commands and tests." | headless — no UI surfaces, no prototypes, no REVIEW issues |
+| dev-dashboard | "End-users never see a UI; a minimal internal dashboard is spec'd and built as the human verification surface." | dev-dashboard — a minimal internal dashboard is spec'd and built early (ordinary AFK slices); REVIEW issues verify against it |
+| existing-design-system | "New UI/UX is spec'd into the existing design system, whose tokens, components, and conventions the spec captures as constraints." | existing-design-system — existing conventions captured as spec constraints; REVIEW issues verify new UI against them |
+| greenfield-product | "Polished UI/UX is a deliverable: the spec carries a full design system, key screens, and HTML prototypes under `prototypes/`." | greenfield-product — full design-system spec, key screens, verification surfaces, and a `prototypes/` playground; REVIEW issues per verification boundary |
+
+Add the ADR-0002 row to `adr/index.md`'s Records section too. Write ADR-0002
+even for the headless default — a recorded "we chose headless" is what stops a
+later skill from inventing UI work nobody asked for. Scaffold `spec/prototypes/`
+(the stub hub page plus `prototype-skeleton.html` verbatim) when the posture is
+**greenfield-product**; under any other posture offer it as an opt-in. When
+scaffolded, add one line to `spec/index.md`'s reference links:
+`- [`prototypes/`](prototypes/index.md) — throwaway HTML design prototypes linked from the spec pages.`
 
 Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).
@@ -199,8 +228,10 @@ comments just fall back to browser localStorage without the sidecar.
 ### 4. Hand off
 
 Tell the user the workspace is ready and that the next step is `spec-1-specify` to
-author the first part of the specification. Summarise the tracker they chose and
-the language posture recorded in ADR-0001 (agnostic unless they tied it to a language).
+author the first part of the specification. Summarise the tracker they chose,
+the language posture recorded in ADR-0001 (agnostic unless they tied it to a
+language), and the UI/UX posture recorded in ADR-0002 (headless unless they
+chose a UI tier).
 
 ## Why this shape
 

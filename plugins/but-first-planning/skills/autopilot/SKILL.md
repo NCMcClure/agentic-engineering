@@ -38,7 +38,8 @@ leave to prose):
    choice).
 2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief, passing
    `languagePosture` read from `.plan/spec/reference/adr/0001-language-posture.md`
-   (spec-0-init recorded it). Carry its `openQuestions` forward.
+   and `uiPosture` read from `adr/0002-ui-posture.md` (spec-0-init recorded
+   both). Carry its `openQuestions` forward.
 3. **Grill until dry** — `spec-2-grill` → `deep-review.js`
    `{applyFixes: true, rounds: 3}`.
 4. **Architect** — `spec-3-architect` → `deepening-review.js`
@@ -58,9 +59,10 @@ leave to prose):
    - `build-next-issue` → `reconcile.js` `{dispatch: true}`.
    - `build-sprint` → `build-sprint.js` with the contract's `hitlPolicy` and the
      dispatch JSON.
-   - Surface the returned `drafts` / `autoDecisions` / `failed` lists per the
-     contract's cadence (touchpoint 2); under full-auto, append them to the run
-     ledger and continue.
+   - Surface the returned `drafts` / `reviewPending` / `autoDecisions` /
+     `failed` lists per the contract's cadence (touchpoint 2); under full-auto,
+     append them to the run ledger and continue (`notified` says which gate
+     issues already carry a `Human gate` @mention comment).
    - `reconcile.js` again — the independent re-verification that writes the
      `--evidence` ledger rows. Then the next sprint.
 8. **Every 2 sprints** — `build-assess-drift` → `triage-drift.js` (publish per
@@ -81,6 +83,6 @@ foundation.
 
 The contracted scope is built and PR'd, every sprint's ledger rows were written
 by an independent reconcile, the run ledger (a `.plan/progress/notes/` file per
-sprint plus your final summary) accounts for every draft, auto-decision,
-failure, and drift item — and the user got exactly the touchpoints the
-contract promised, no more.
+sprint plus your final summary) accounts for every draft, pending REVIEW
+walkthrough, auto-decision, failure, and drift item — and the user got exactly
+the touchpoints the contract promised, no more.

@@ -52,7 +52,9 @@ EOF
 The command prints the new issue URL; capture the number from it.
 
 Label by type: `AFK` → the ready-for-agent label, `HITL` → the ready-for-human
-label (exact strings from `tracker.md`).
+label, `REVIEW` → the ready-for-review label (exact strings from `tracker.md`;
+when tracker.md predates a ready-for-review row, REVIEW falls back to the
+ready-for-human string).
 
 ## Mirror into the GitHub Project (if configured)
 
@@ -80,7 +82,7 @@ gh project item-edit --id "$item_id" --project-id "$PROJ_ID" \
 ```
 
 The Epic option is the issue's epic (e.g. `E01`); Sprint is `NN-MM` (epic-sprint,
-e.g. `01-01`); Type is `HITL`/`AFK`.
+e.g. `01-01`); Type is `HITL`/`AFK`/`REVIEW`.
 
 ### Auto-add workflow
 

@@ -1,6 +1,6 @@
 export const meta = {
   name: 'build-sprint-run',
-  description: 'Autonomously build one sprint from a dispatch plan: preflight, HITL triage by policy, wave-by-wave TDD builders (serial on the sprint branch by default, git-worktree isolation opt-in), strictly serial integration with full re-checkpointing and a stop-the-line diagnostician, sprint-exit verification, bookkeeping, and one PR',
+  description: 'Autonomously build one sprint from a dispatch plan: preflight, HITL triage by policy (REVIEW units are never built under any policy — surfaced as pending human walkthroughs), wave-by-wave TDD builders (serial on the sprint branch by default, git-worktree isolation opt-in), strictly serial integration with full re-checkpointing and a stop-the-line diagnostician, sprint-exit verification, bookkeeping, and one PR with gate notification',
   whenToUse: "build-sprint's autonomous mode — the user approved an AFK sprint build and its policies in plan mode. One run = one sprint; epic/backlog scope is a loop in the caller (re-run build-next-issue's reconcile between sprints). Args: {root, skillDir, tddSkillPath, sprint, dispatch, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?}. dispatch is the JSON contract from build-next-issue's reconcile.js (object, or path to .plan/progress/dispatch/EE-SS.json). hitlPolicy: 'skip-and-flag' (default) | 'draft-and-defer' | 'auto-implement' — pause-and-ask is the interactive skill's cadence, not a workflow option. parallelism: 'serial' (default, robust) | 'worktree' (parallel file-disjoint units in real git worktrees).",
   phases: [
     { title: 'Preflight', detail: 'clean tree, sprint branch, tooling spot-check', model: 'sonnet' },
@@ -88,14 +88,17 @@ const preflight = await agent(
 if (!preflight || !preflight.clean) throw new Error('preflight failed: working tree not clean (or preflight agent failed) — commit or stash first')
 if (!preflight.planTreeGreen) throw new Error('preflight failed: verify-plan-tree.py is red — fix the plan tree before building')
 
-// ---------- Phase 2: HITL triage per policy ----------
+// ---------- Phase 2: HITL/REVIEW triage per policy ----------
 phase('Triage')
 const isHitl = u => u.type === 'HITL'
+const isReview = u => u.type === 'REVIEW'
 const allUnits = dispatch.waves.flatMap(w => w.units)
 const hitlUnits = allUnits.filter(isHitl)
+const reviewUnits = allUnits.filter(isReview)
 const drafts = []
 const skippedHitl = []
 const autoImplemented = new Set()
+if (reviewUnits.length) log(`REVIEW gates (never auto-built): ${reviewUnits.map(unitKey).join(', ')}`)
 
 if (hitlUnits.length) {
   log(`HITL policy=${HITL_POLICY}: ${hitlUnits.length} HITL unit(s) — ${hitlUnits.map(unitKey).join(', ')}`)
@@ -120,8 +123,13 @@ if (hitlUnits.length) {
 
 // Units that will not be BUILT this run: HITL units under skip-and-flag and draft-and-defer
 // (a draft is not a committed deliverable), plus — computed as failures occur — their
-// transitive dependents via the dispatch edges.
-const excluded = new Set(HITL_POLICY === 'auto-implement' ? [] : hitlUnits.map(unitKey))
+// transitive dependents via the dispatch edges. REVIEW units are ALWAYS excluded —
+// hitlPolicy (even auto-implement) never applies: a human walkthrough cannot be
+// drafted or auto-implemented.
+const excluded = new Set([
+  ...(HITL_POLICY === 'auto-implement' ? [] : hitlUnits.map(unitKey)),
+  ...reviewUnits.map(unitKey),
+])
 const coordsToUnit = new Map()
 allUnits.forEach(u => u.coords.forEach(c => coordsToUnit.set(c, unitKey(u))))
 const dependentsOf = failedCoordsSet => {
@@ -141,8 +149,9 @@ const dependentsOf = failedCoordsSet => {
 const excludedCoords = new Set(allUnits.filter(u => excluded.has(unitKey(u))).flatMap(u => u.coords))
 for (const dep of dependentsOf(excludedCoords)) excluded.add(dep)
 allUnits.filter(u => excluded.has(unitKey(u))).forEach(u => {
-  if (isHitl(u)) skippedHitl.push({ coords: unitKey(u), why: `hitlPolicy=${HITL_POLICY}` })
-  else skippedHitl.push({ coords: unitKey(u), why: 'transitively gated by a HITL unit not built this run' })
+  if (isReview(u)) skippedHitl.push({ coords: unitKey(u), why: 'REVIEW — human visual verification; never auto-built' })
+  else if (isHitl(u)) skippedHitl.push({ coords: unitKey(u), why: `hitlPolicy=${HITL_POLICY}` })
+  else skippedHitl.push({ coords: unitKey(u), why: 'transitively gated by a HITL/REVIEW unit not built this run' })
 })
 if (excluded.size) log(`Not building this run: ${[...excluded].join(', ')}`)
 
@@ -344,9 +353,14 @@ phase('PR')
 let pr = null
 if (OPEN_PR && built.length) {
   pr = await agent(
-    `${CTX}\nYou are the PR opener. Read ${ROOT}/.plan/tracker.md for the backend. Push ${BRANCH} and open ONE pull/merge request against ${PR_BASE} (gh pr create / glab mr create; local-mode tracker: skip with pushed=false and say so). Title: "${SPRINT}: <sprint title from its sprint.md>". Body: a per-issue table (coords, ref, title, checkpoint command, exit code) from BUILT below; a "Not built this run" section from SKIPPED (HITL policy ${HITL_POLICY}) and FAILED (with routes); drift flags; the sprint-exit summary. Do not merge it.
+    `${CTX}\nYou are the PR opener and gate notifier. Read ${ROOT}/.plan/tracker.md for the backend. Push ${BRANCH} and open ONE pull/merge request against ${PR_BASE} (gh pr create / glab mr create; local-mode tracker: skip with pushed=false and say so). Title: "${SPRINT}: <sprint title from its sprint.md>". Body: a per-issue table (coords, ref, title, checkpoint command, exit code) from BUILT below; a "Not built this run" section from SKIPPED (HITL policy ${HITL_POLICY}) and FAILED (with routes); drift flags; the sprint-exit summary. Do not merge it.
+THEN notify the developer of the deferred human gates. GATES below lists them (the gate issues themselves, not transitive dependents). Skip this step entirely — reporting notified=[] and why in note — when the tracker is local-mode, GATES is empty, or tracker.md has no "**Notify**:" field / the handle is unset or still a {{PLACEHOLDER}}. Otherwise, for each gate: read its plan issue file to get the "**GitHub**:" ref (skip <unassigned> ones); IDEMPOTENCY: view the tracker issue's comments first and skip it if one already contains "Human gate"; else post ONE comment (gh issue comment NNN / glab issue note) shaped: "**Human gate** — @<handle>: <why: REVIEW walkthrough pending, or HITL deferred under policy ${HITL_POLICY}><draft path if GATES lists one><PR link>". List the refs you commented on in notified.
 BUILT: ${JSON.stringify(built.map(b => ({ unit: b.unit, refs: b.refs, checkpoint: b.builder.checkpointCommand, exit: b.builder.checkpointExit })), null, 1)}
 SKIPPED: ${JSON.stringify(skippedHitl, null, 1)}
+GATES: ${JSON.stringify([
+  ...(HITL_POLICY === 'auto-implement' ? [] : hitlUnits.map(u => ({ unit: unitKey(u), title: u.title, kind: 'HITL', draft: (drafts.find(d => d.coords === unitKey(u)) || {}).draftPath || null }))),
+  ...reviewUnits.map(u => ({ unit: unitKey(u), title: u.title, kind: 'REVIEW' })),
+], null, 1)}
 FAILED: ${JSON.stringify(failed, null, 1)}
 DRIFT: ${JSON.stringify(allDriftFlags)}
 SPRINT EXIT: ${JSON.stringify(sprintExit)}
@@ -355,7 +369,7 @@ ${BRIEF}`,
       label: 'pr', phase: 'PR', model: 'sonnet', effort: 'low',
       schema: {
         type: 'object', required: ['pushed'],
-        properties: { pushed: { type: 'boolean' }, prUrl: { type: 'string' }, note: { type: 'string' } },
+        properties: { pushed: { type: 'boolean' }, prUrl: { type: 'string' }, notified: { type: 'array', items: { type: 'string' } }, note: { type: 'string' } },
       },
     }
   )
@@ -373,10 +387,12 @@ return {
   failed,
   skippedHitl,
   drafts,                        // draft-and-defer: paths + judgement calls awaiting human sign-off
+  reviewPending: reviewUnits.map(u => ({ unit: unitKey(u), title: u.title })),  // REVIEW gates awaiting a human walkthrough
   autoDecisions: built.filter(b => autoImplemented.has(b.unit)).map(b => ({ unit: b.unit, evidence: b.builder.evidence })),
   drift: allDriftFlags,
   sprintExit,
   bookkeep,
   prUrl: pr ? pr.prUrl : null,
+  notified: pr && pr.notified ? pr.notified : [],   // tracker issues that got a Human-gate @mention comment
   stoppedEarly,
 }

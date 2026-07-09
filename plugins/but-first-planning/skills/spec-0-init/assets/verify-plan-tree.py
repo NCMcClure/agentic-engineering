@@ -89,6 +89,10 @@ def verify() -> int:
             if required not in text:
                 fail(failures, issue_md, f"missing required field/section: {required}")
 
+        type_m = re.search(r"\*\*Type\*\*:\s*(\S+)", text)
+        if type_m and type_m.group(1) not in {"AFK", "HITL", "REVIEW"}:
+            fail(failures, issue_md, f"Type must be AFK, HITL, or REVIEW (got '{type_m.group(1)}')")
+
         if "GitHub**:" in text and "<unassigned>" not in text and not re.search(r"#\d+", text):
             fail(failures, issue_md, "GitHub field is neither '<unassigned>' nor a '#NNN' reference")
 

@@ -27,7 +27,7 @@ approves the cadence, then build.
 
 These are the user's calls, and they change the run. Surface them first:
 
-- **HITL issues** — pause and ask, auto-implement, or skip-and-flag? (Default: pause and ask — HITL issues were flagged for a human on purpose.)
+- **HITL issues** — pause and ask, auto-implement, or skip-and-flag? (Default: pause and ask — HITL issues were flagged for a human on purpose.) `REVIEW` issues sit outside this policy: they are never built or drafted by agents under any setting — they surface as pending human walkthroughs in the sprint report.
 - **Git discipline** — commit per issue with a PR per sprint, leave uncommitted, push as you go? (Default: commit per issue, one PR per sprint.)
 - **Cadence** — stop at each sprint boundary for go-ahead, run to epic completion, or one issue at a time? (Default: stop at each sprint boundary.)
 - **Parallelism** — how aggressively to fan out (see the file-overlap rule below).
@@ -38,11 +38,15 @@ These are the user's calls, and they change the run. Surface them first:
    current sprint: the wave-ordered frontier, the true DAG, file-overlaps, HITL
    gates, and checkpoint health. If there is no dispatch plan, you are not ready —
    produce one first.
-2. **Gate on HITL.** If the frontier's lead is a HITL issue, or an AFK issue
-   implicitly depends on one, handle it per the chosen policy *before* fanning out.
-   The reliable pattern for "pause and ask" — draft → review → sign-off → commit,
-   with factual claims grounded before sign-off — is in
-   [ORCHESTRATION.md](ORCHESTRATION.md).
+2. **Gate on HITL/REVIEW.** If the frontier's lead is a HITL issue, or an AFK
+   issue implicitly depends on one, handle it per the chosen policy *before*
+   fanning out. The reliable pattern for "pause and ask" — draft → review →
+   sign-off → commit, with factual claims grounded before sign-off — is in
+   [ORCHESTRATION.md](ORCHESTRATION.md), along with the REVIEW-gate pattern
+   (prepare the walkthrough, never perform it). In an interactive run you tell
+   the human directly; when a *headless* run defers a gate it wasn't authorized
+   to decide and `tracker.md` names a `**Notify**` handle, the gate issues get
+   a `Human gate` @mention comment on the tracker instead.
 3. **Open a sprint branch** off the integration branch (usually `main`).
 4. **Dispatch wave by wave.** For each wave, dispatch the parallel-safe, file-disjoint
    issues to builders; cluster issues that touch the same module into one builder /
@@ -130,11 +134,15 @@ walk the user through it in this order:
 1. **`drafts`** (draft-and-defer) — each drafted artifact's path and its
    judgement calls; the human signs off, then the drafts are committed and their
    issues built next run.
-2. **`autoDecisions`** (auto-implement) — every decision an agent made, each
+2. **`reviewPending`** — the REVIEW gates awaiting a human walkthrough; the
+   human walks each issue's walkthrough table on the sprint branch, records the
+   sign-off (who, ref), and flips it through the funnel. **`notified`** lists
+   the tracker issues that already got a `Human gate` @mention comment.
+3. **`autoDecisions`** (auto-implement) — every decision an agent made, each
    recorded as an ADR; review or reverse them deliberately.
-3. **`failed`** — each failed unit with its route (`spec-4-edit` for
+4. **`failed`** — each failed unit with its route (`spec-4-edit` for
    plan/checkpoint defects, `retry`, or `spec`).
-4. **`drift`**, **`sprintExit`**, and the **`prUrl`** — then hand back to
+5. **`drift`**, **`sprintExit`**, and the **`prUrl`** — then hand back to
    `build-next-issue`, whose reconcile independently re-verifies everything
    before any ledger row is written.
 

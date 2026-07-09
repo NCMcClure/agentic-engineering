@@ -100,7 +100,7 @@ concurrently, without colliding**, plus the dependency edges and file-overlaps
 among the rest, so an orchestrator (`build-sprint`) can fan out without
 tripping over undeclared dependencies. The method — recovering implicit
 dependencies (the `Blocked by: None` that lies), file-overlap batching, the
-per-sprint HITL gate map, and the wave-ordered output shape — is in
+per-sprint human-gate (HITL/REVIEW) map, and the wave-ordered output shape — is in
 [DISPATCH-PLAN.md](DISPATCH-PLAN.md). Skip this step when you're only answering
 "what's the one next thing" for a human.
 
@@ -110,10 +110,10 @@ Give the user a tight status read:
 
 - **Where we are** — issues complete vs total, current sprint, % through the current epic.
 - **Anything off** — issues that claimed done but failed verification; plan/tracker drift (point at `spec-4-edit` if the *plan* is wrong, not just the bookkeeping); open cross-cutting drift items (point at `build-assess-drift` to triage them into issues, and list any drift-derived `follow-up issue #NNN` in the buildable set).
-- **Next issue** — its title, type (HITL/AFK), tracker reference (or `<unassigned>`), spec anchors, and acceptance criteria, so the user (or an agent) can start immediately without opening anything else.
+- **Next issue** — its title, type (HITL/AFK/REVIEW), tracker reference (or `<unassigned>`), spec anchors, and acceptance criteria, so the user (or an agent) can start immediately without opening anything else.
 - **On deck** — the 1–3 issues that unlock after the next one, so the path is visible.
 - **Dispatch plan** *(parallel builds)* — the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
-- **HITL gates** — the HITL issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
+- **Human gates** — the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
 - **Checkpoint health** — any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures — route them to `spec-4-edit`.
 
 If the next issue is `<unassigned>` (its sprint hasn't been published), note that

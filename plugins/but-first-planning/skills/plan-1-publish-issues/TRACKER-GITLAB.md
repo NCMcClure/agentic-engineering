@@ -27,7 +27,7 @@ unavailable:
 | Epic | scoped label `epic::EE-<slug>` (one hue per epic; created lazily at first publish of the epic) |
 | Sprint | milestone titled `EE-SS <sprint-slug>` (created lazily when the sprint is published) |
 | Issue | issue (iid = the `#NNN` ref) |
-| Type | `type::HITL` / `type::AFK`; decision issues also get `decision` |
+| Type | `type::HITL` / `type::AFK` / `type::REVIEW`; decision issues also get `decision` |
 | Status | open/closed + `status::in-progress` / `status::blocked` labels (owned by `plan-status.py`, never by publish) |
 
 Scoped labels (`::`) need a GitLab tier that supports them — verify on the

@@ -22,7 +22,7 @@ Every issue is a **thin vertical slice that cuts end-to-end** through whatever
 layers the system has — not a horizontal slice of one layer. A completed slice is
 demoable or verifiable on its own. Prefer many thin slices over few thick ones.
 This is the single most important idea in the skill; the full rationale, the
-HITL/AFK distinction, and worked good/bad examples are in
+HITL/AFK/REVIEW distinction, and worked good/bad examples are in
 [VERTICAL-SLICES.md](VERTICAL-SLICES.md). Read it before drafting.
 
 ## Process
@@ -54,7 +54,7 @@ Present this as a tree and iterate with the user until the shape feels right.
 For each sprint, draft its issues as tracer-bullet slices. For each, decide:
 
 - **Title** — the observable behaviour, in domain language.
-- **Type** — `HITL` (needs a human decision/review) or `AFK` (an agent can implement and merge it autonomously). Prefer AFK where honest.
+- **Type** — `HITL` (needs a human decision/review), `AFK` (an agent can implement and merge it autonomously), or `REVIEW` (a human opens a UI surface and visually confirms spec'd behaviour — see below). Prefer AFK where honest.
 - **Blocked by** — which sibling issues must land first.
 - **Spec anchors** — the spec file(s) this slice realises. Every issue carries at least one. See [SPEC-ANCHORS.md](SPEC-ANCHORS.md) for why and how (the relative-path shape matters — the verifier checks it).
 
@@ -73,6 +73,16 @@ inline `**Open question:**` blocks — each one is routed **exactly once**:
 An unrouted open question is a planning bug: it resurfaces mid-build as an
 improvised decision nobody approved.
 
+**Cut the REVIEW gates.** Read `.plan/spec/reference/adr/0002-ui-posture.md`.
+Under `headless`, cut none. Otherwise add one `REVIEW` issue per **verification
+boundary** — a user-visible feature or system capability a human can confirm by
+looking — typically 1–3 per sprint, `Blocked by` the slices that implement it,
+anchored to the spec's verification-surfaces / UI pages. Under `dev-dashboard`,
+the dashboard itself is spec'd work: cut it as **ordinary AFK slices, scheduled
+early** (its walking skeleton belongs in an early sprint — REVIEW issues need a
+surface to open). Shape, granularity, and the template are in
+[VERTICAL-SLICES.md](VERTICAL-SLICES.md) and [PLAN-FORMAT.md](PLAN-FORMAT.md).
+
 ### 4. Quiz the user
 
 Present the breakdown as a numbered list per sprint, showing title, type,
@@ -82,6 +92,7 @@ blocked-by, and the spec anchors. Ask:
 - Are the dependency relationships correct?
 - Should any slice be split or merged?
 - Are HITL vs AFK assignments honest?
+- Are the REVIEW gates at the right verification boundaries (not one per slice, not one per epic)?
 
 Iterate until approved. Don't write files until the shape is settled.
 
