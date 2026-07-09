@@ -3,11 +3,13 @@
 
 The spec site is a static MkDocs build served read-only by `mkdocs serve`, so the
 browser can't write files. This server is the write-back path AND the front door:
-it serves the comments API on the same origin as the pages and reverse-proxies
-everything else to MkDocs behind it. One origin, one port — which matters the
-moment the site is viewed through a forwarded port (VS Code / code-server, SSH
-tunnels, Codespaces): whatever forwarding exposes the page exposes the API too,
-with no second port to forward and no cross-origin URL to configure.
+it serves two same-origin endpoints — the comments API (`/__spec_comments__`,
+GET/POST) and a read-only plan-tree status feed (`/__plan_status__`, GET only,
+consumed by the site's Plan page) — and reverse-proxies everything else to MkDocs
+behind it. One origin, one port — which matters the moment the site is viewed
+through a forwarded port (VS Code / code-server, SSH tunnels, Codespaces):
+whatever forwarding exposes the page exposes the API too, with no second port to
+forward and no cross-origin URL to configure.
 
 Run it from the repo root, in place of `mkdocs serve`:
 
@@ -36,11 +38,13 @@ import argparse
 import atexit
 import http.client
 import json
+import re
 import shutil
 import subprocess
 import sys
 import time
 import urllib.request
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -49,9 +53,12 @@ from pathlib import Path
 PLAN_DIR = Path(__file__).resolve().parents[2]
 COMMENTS_FILE = PLAN_DIR / "spec-comments.json"
 MKDOCS_YML = PLAN_DIR / "mkdocs.yml"
+PLAN_TREE_DIR = PLAN_DIR / "plan"
+TRACKER_MD_FILE = PLAN_DIR / "tracker.md"
 
 HOST = "127.0.0.1"
-API_PATH = "/__spec_comments__"  # same-origin endpoint the client talks to
+API_PATH = "/__spec_comments__"  # same-origin endpoint the comments client talks to
+PLAN_API_PATH = "/__plan_status__"  # read-only plan-tree JSON for the Plan page
 
 # hop-by-hop headers must not be forwarded by a proxy
 HOP_BY_HOP = {
@@ -114,6 +121,294 @@ def write_comments(comments: list) -> dict:
     return doc
 
 
+# --- plan-tree status (read-only) --------------------------------------------
+# Serves the site's Plan page. Parses .plan/plan/ fresh on every GET (the tree
+# is tens of files; a re-parse per 15s poll is negligible and needs no cache).
+# Deliberately self-contained rather than importing plan-status.py: that script
+# sys.exit(2)s on structural oddities (fatal in a threaded server) and the two
+# files are backfilled independently, so a cross-file import can break on a
+# partially-updated workspace. Here every anomaly becomes a `warnings` entry.
+# Regexes and _rollup() mirror .plan/plan/plan-status.py — keep in sync.
+
+PLAN_STATUSES = ("not-started", "in-progress", "blocked", "done")
+ISSUE_TYPES = ("AFK", "HITL", "REVIEW")
+ISSUE_FILE_RE = re.compile(r"^([0-9]{2})_issue_[A-Z][A-Z0-9-]+\.md$")
+STATUS_FIELD_RE = re.compile(r"\*\*Status\*\*:[ \t]*(\S+)")
+TYPE_FIELD_RE = re.compile(r"\*\*Type\*\*:[ \t]*(\S+)")
+TRACKER_FIELD_RE = re.compile(r"\*\*GitHub\*\*:[ \t]*(\S+)")  # field name is GitHub in every tracker mode
+H1_RE = re.compile(r"^#\s+(.*?)\s*$", re.MULTILINE)
+ACCEPTANCE_SECTION_RE = re.compile(
+    r"(^## Acceptance criteria\s*$)(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
+)
+BLOCKED_SECTION_RE = re.compile(
+    r"(^## Blocked by\s*$)(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
+)
+MD_LINK_RE = re.compile(r"\]\(([^)]+)\)")
+NN_DIR_RE = re.compile(r"^\d{2}-")
+
+
+def _rollup(children: list) -> str:
+    """Derive a parent's status from its children's statuses (deterministic).
+
+    `in-progress` is evaluated BEFORE `blocked`, so a node with any active work
+    reads in-progress rather than being mislabeled blocked; `blocked` is reserved
+    for "something is blocked and nothing is moving."
+    """
+    if not children:
+        return "not-started"
+    if all(c == "done" for c in children):
+        return "done"
+    if all(c == "not-started" for c in children):
+        return "not-started"
+    if any(c == "in-progress" for c in children):
+        return "in-progress"
+    if any(c == "done" for c in children) and all(
+        c in ("done", "not-started") for c in children
+    ):
+        return "in-progress"
+    if any(c == "blocked" for c in children):
+        return "blocked"
+    return "in-progress"
+
+
+def _tracker_mode_name() -> str:
+    """`local` | `github` | `github+board` | `gitlab` — from .plan/tracker.md."""
+    if not TRACKER_MD_FILE.exists():
+        return "local"
+    try:
+        text = TRACKER_MD_FILE.read_text(encoding="utf-8")
+    except OSError:
+        return "local"
+    if re.search(r"#\s*Issue tracker:\s*local", text, re.IGNORECASE):
+        return "local"
+    if re.search(r"#\s*Issue tracker:\s*GitLab", text, re.IGNORECASE):
+        return "gitlab"
+    if not re.search(r"#\s*Issue tracker:\s*GitHub", text, re.IGNORECASE):
+        return "local"
+    owner_m = re.search(r"\*\*Owner\*\*:\s*`?([^`\s]+)`?", text)
+    number_m = re.search(r"\*\*Number\*\*:\s*`?([^`\s]+)`?", text)
+    owner = owner_m.group(1) if owner_m else None
+    number = number_m.group(1) if number_m else None
+
+    def filled(v) -> bool:
+        return bool(v) and "{{" not in v and v not in ("<unset>", "-")
+
+    if filled(owner) and filled(number) and re.fullmatch(r"\d+", number or ""):
+        return "github+board"
+    return "github"
+
+
+def _read_text(path: Path, rel: str, warnings: list) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
+        warnings.append(f"{rel}: unreadable ({type(exc).__name__})")
+        return None
+
+
+def _h1_title(text: str, fallback: str) -> str:
+    m = H1_RE.search(text)
+    return m.group(1).strip() if m else fallback
+
+
+def _section_body(regex: re.Pattern, text: str) -> str:
+    m = regex.search(text)
+    return m.group(2) if m else ""
+
+
+def _blocked_issue_ids(text: str, sprint_id: str) -> list:
+    """Sibling-issue ids from an issue's `## Blocked by` links, e.g.
+    `(./02_issue_FOO.md)` under sprint 01-01 -> '01-01-02'."""
+    ids = []
+    for link in MD_LINK_RE.findall(_section_body(BLOCKED_SECTION_RE, text)):
+        m = re.search(r"(\d{2})_issue_", link)
+        if m:
+            ids.append(f"{sprint_id}-{m.group(1)}")
+    return ids
+
+
+def _blocked_dir_ids(text: str, kind: str, prefix: str = "") -> list:
+    """Sibling epic/sprint ids from a Blocked-by section, e.g.
+    `(../02-persistence/epic.md)` -> '02' (prefixed for sprints)."""
+    ids = []
+    for link in MD_LINK_RE.findall(_section_body(BLOCKED_SECTION_RE, text)):
+        m = re.search(rf"(?:^|/)(\d{{2}})-[^/]*/{kind}\.md$", link)
+        if m:
+            ids.append(prefix + m.group(1))
+    return ids
+
+
+def _parse_issue(f: Path, sprint_id: str, rel: str, warnings: list) -> dict | None:
+    text = _read_text(f, rel, warnings)
+    if text is None:
+        return None
+    m = STATUS_FIELD_RE.search(text)
+    status = m.group(1) if m else None
+    if status not in PLAN_STATUSES:
+        warnings.append(
+            f"{rel}: missing or invalid **Status** field"
+            + (f" ('{status}')" if status else "")
+        )
+        status = "not-started"
+    m = TYPE_FIELD_RE.search(text)
+    itype = m.group(1) if m else None
+    if itype not in ISSUE_TYPES:
+        warnings.append(
+            f"{rel}: missing or invalid **Type** field"
+            + (f" ('{itype}')" if itype else "")
+        )
+        itype = None
+    m = TRACKER_FIELD_RE.search(text)
+    tracker_ref = m.group(1) if m else None
+    if tracker_ref == "<unassigned>":
+        tracker_ref = None
+    ac_body = _section_body(ACCEPTANCE_SECTION_RE, text)
+    return {
+        "id": f"{sprint_id}-{f.name[:2]}",
+        "file": f.name,
+        "path": rel,
+        "title": _h1_title(text, f.stem),
+        "type": itype,
+        "status": status,
+        "tracker": tracker_ref,
+        "blockedBy": _blocked_issue_ids(text, sprint_id),
+        "acceptance": {
+            "done": len(re.findall(r"-\s\[[xX]\]", ac_body)),
+            "total": len(re.findall(r"-\s\[[ xX]\]", ac_body)),
+        },
+        "actionable": False,  # derived after the whole tree is parsed
+    }
+
+
+def build_plan_status() -> dict:
+    """Assemble the /__plan_status__ document. Never raises for content problems —
+    malformed files become `warnings` entries; only a genuine bug escapes (and the
+    handler turns that into a 500)."""
+    warnings: list = []
+    counts = {
+        "epics": 0,
+        "sprints": 0,
+        "issues": 0,
+        "byStatus": {s: 0 for s in PLAN_STATUSES},
+        "byType": {t: 0 for t in ISSUE_TYPES},
+    }
+    doc = {
+        "generated": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "planExists": PLAN_TREE_DIR.is_dir(),
+        "tracker": _tracker_mode_name(),
+        "status": "not-started",
+        "counts": counts,
+        "next": [],
+        "epics": [],
+        "warnings": warnings,
+    }
+    if not doc["planExists"]:
+        warnings.append("no plan tree yet — run plan-0-decompose")
+        return doc
+
+    for ed in sorted(
+        d for d in PLAN_TREE_DIR.iterdir() if d.is_dir() and NN_DIR_RE.match(d.name)
+    ):
+        epic_id = ed.name[:2]
+        epic_md = ed / "epic.md"
+        e_text = (
+            _read_text(epic_md, f"plan/{ed.name}/epic.md", warnings)
+            if epic_md.exists()
+            else None
+        )
+        if e_text is None and not epic_md.exists():
+            warnings.append(f"plan/{ed.name}: missing epic.md")
+
+        sprints = []
+        for sd in sorted(
+            d for d in ed.iterdir() if d.is_dir() and NN_DIR_RE.match(d.name)
+        ):
+            sprint_id = f"{epic_id}-{sd.name[:2]}"
+            sprint_md = sd / "sprint.md"
+            s_rel = f"plan/{ed.name}/{sd.name}/sprint.md"
+            s_text = (
+                _read_text(sprint_md, s_rel, warnings) if sprint_md.exists() else None
+            )
+            if s_text is None and not sprint_md.exists():
+                warnings.append(f"plan/{ed.name}/{sd.name}: missing sprint.md")
+
+            issues = []
+            issues_dir = sd / "issues"
+            if issues_dir.is_dir():
+                for f in sorted(issues_dir.iterdir()):
+                    if not (f.is_file() and ISSUE_FILE_RE.match(f.name)):
+                        continue
+                    rel = f"plan/{ed.name}/{sd.name}/issues/{f.name}"
+                    issue = _parse_issue(f, sprint_id, rel, warnings)
+                    if issue is None:
+                        continue
+                    issues.append(issue)
+                    counts["issues"] += 1
+                    counts["byStatus"][issue["status"]] += 1
+                    if issue["type"]:
+                        counts["byType"][issue["type"]] += 1
+
+            s_rollup = _rollup([i["status"] for i in issues])
+            m = STATUS_FIELD_RE.search(s_text) if s_text else None
+            sprints.append({
+                "id": sprint_id,
+                "dir": sd.name,
+                "title": _h1_title(s_text, sd.name) if s_text else sd.name,
+                "status": m.group(1) if m else s_rollup,
+                "rollup": s_rollup,
+                "blockedBy": _blocked_dir_ids(s_text or "", "sprint", f"{epic_id}-"),
+                "issues": issues,
+            })
+            counts["sprints"] += 1
+
+        e_rollup = _rollup([s["rollup"] for s in sprints])
+        m = STATUS_FIELD_RE.search(e_text) if e_text else None
+        doc["epics"].append({
+            "id": epic_id,
+            "dir": ed.name,
+            "title": _h1_title(e_text, ed.name) if e_text else ed.name,
+            "status": m.group(1) if m else e_rollup,
+            "rollup": e_rollup,
+            "blockedBy": _blocked_dir_ids(e_text or "", "epic"),
+            "sprints": sprints,
+        })
+        counts["epics"] += 1
+
+    doc["status"] = _rollup([e["status"] for e in doc["epics"]])
+
+    # Actionable = not-started with every blocker (issue, sprint, epic) done.
+    epic_done = {e["id"]: e["status"] == "done" for e in doc["epics"]}
+    sprint_done = {
+        s["id"]: s["status"] == "done" for e in doc["epics"] for s in e["sprints"]
+    }
+    issue_done = {
+        i["id"]: i["status"] == "done"
+        for e in doc["epics"]
+        for s in e["sprints"]
+        for i in s["issues"]
+    }
+    for e in doc["epics"]:
+        epic_clear = all(epic_done.get(b, False) for b in e["blockedBy"])
+        for s in e["sprints"]:
+            sprint_clear = epic_clear and all(
+                sprint_done.get(b, False) for b in s["blockedBy"]
+            )
+            for i in s["issues"]:
+                i["actionable"] = (
+                    sprint_clear
+                    and i["status"] == "not-started"
+                    and all(issue_done.get(b, False) for b in i["blockedBy"])
+                )
+                if i["actionable"] and len(doc["next"]) < 5:
+                    doc["next"].append({
+                        "id": i["id"],
+                        "title": i["title"],
+                        "type": i["type"],
+                        "path": i["path"],
+                    })
+    return doc
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "spec-comments/2.0"
     protocol_version = "HTTP/1.1"
@@ -138,6 +433,9 @@ class Handler(BaseHTTPRequestHandler):
     def _is_api(self) -> bool:
         return self.path.split("?", 1)[0].rstrip("/") == API_PATH
 
+    def _is_plan_api(self) -> bool:
+        return self.path.split("?", 1)[0].rstrip("/") == PLAN_API_PATH
+
     def _read_body(self) -> bytes:
         try:
             length = int(self.headers.get("Content-Length", 0))
@@ -159,6 +457,12 @@ class Handler(BaseHTTPRequestHandler):
             self._send_json({"error": "expected a comments array"}, status=400)
             return
         self._send_json(write_comments(comments))
+
+    def _plan_api_get(self) -> None:
+        try:
+            self._send_json(build_plan_status())
+        except Exception as exc:  # noqa: BLE001 — a parser bug must not kill the thread
+            self._send_json({"error": f"{type(exc).__name__}: {exc}"}, status=500)
 
     # --- reverse proxy to MkDocs --------------------------------------------
 
@@ -190,7 +494,7 @@ class Handler(BaseHTTPRequestHandler):
     # --- verbs ---------------------------------------------------------------
 
     def do_OPTIONS(self) -> None:  # noqa: N802
-        if self._is_api():
+        if self._is_api() or self._is_plan_api():
             self.send_response(204)
             self._cors()
             self.send_header("Content-Length", "0")
@@ -201,6 +505,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         if self._is_api():
             self._api_get()
+        elif self._is_plan_api():
+            self._plan_api_get()
         else:
             self._proxy()
 
@@ -210,6 +516,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:  # noqa: N802
         if self._is_api():
             self._api_post()
+        elif self._is_plan_api():
+            self._send_json({"error": "plan status is read-only"}, status=405)
         else:
             self._proxy()
 

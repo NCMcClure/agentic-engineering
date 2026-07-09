@@ -44,11 +44,16 @@ sentinel (the scaffold always writes it):
   essentially empty tree) → treat it as an **incomplete/aborted scaffold**. Say so,
   and offer to finish/repair it by populating the missing files rather than bailing.
 
-Two narrow exceptions where a re-run touches only one thing: reconfiguring the
-tracker (touch only `tracker.md`), and backfilling a helper script into an older
+Three narrow exceptions where a re-run touches only one thing: reconfiguring the
+tracker (touch only `tracker.md`); backfilling a helper script into an older
 `.plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
-step 2a) or `drift-status.py` into place. These are idempotent, so they're safe if
-the file is already there.
+step 2a) or `drift-status.py` into place; and backfilling the **Plan page** into
+a workspace scaffolded before 3.4 — copy `stubs/plan-page.md` → `spec/plan.md`
+(fill `{{MONTH}}`), `plan-view.js` / `plan-view.css` → `spec/assets/`, re-copy
+`comments-server.py` → `spec/scripts/` (it carries the `/__plan_status__`
+endpoint), add the two `plan-view` lines to `mkdocs.yml`'s `extra_css` /
+`extra_javascript` if absent, and restart the comments server. These are
+idempotent, so they're safe if the file is already there.
 
 ## Process
 
@@ -98,6 +103,7 @@ glossary.
 │       └── .gitkeep
 ├── spec/
 │   ├── index.md              # from stubs/spec-index.md
+│   ├── plan.md               # from stubs/plan-page.md  (fill {{MONTH}}!)
 │   ├── reference/
 │   │   ├── index.md          # from stubs/reference-index.md
 │   │   ├── glossary.md       # from stubs/glossary.md  (fill {{MONTH}}!)
@@ -112,7 +118,9 @@ glossary.
 │   │   ├── gruvbox.css        # from assets/gruvbox.css (verbatim)
 │   │   ├── mermaid-init.js    # from assets/mermaid-init.js (verbatim)
 │   │   ├── spec-comments.css  # from assets/spec-comments.css (verbatim)
-│   │   └── spec-comments.js   # from assets/spec-comments.js (verbatim)
+│   │   ├── spec-comments.js   # from assets/spec-comments.js (verbatim)
+│   │   ├── plan-view.css      # from assets/plan-view.css (verbatim)
+│   │   └── plan-view.js       # from assets/plan-view.js (verbatim)
 │   └── scripts/
 │       ├── verify-spec-tree.py   # from assets/verify-spec-tree.py (verbatim)
 │       └── comments-server.py    # from assets/comments-server.py (verbatim)
@@ -134,6 +142,11 @@ so they must land exactly where shown. (`publish-issues.py` is bundled with
 `spec-comments.css` / `spec-comments.js` power inline commenting on the spec site
 (highlight text, leave a note; the notes auto-save to `.plan/spec-comments.json`
 and feed `spec-4-edit`) and are already registered in `mkdocs.yml`.
+`plan-view.css` / `plan-view.js` power the live **Plan** page (`spec/plan.md`):
+it renders the plan tree — epics, sprints, and issues with statuses, blockers,
+acceptance progress, and the next unblocked issue — from the read-only
+`/__plan_status__` endpoint in `comments-server.py`, and is the issue board for
+local-tracker projects.
 
 **Record the language posture** from step 1 in two places so downstream skills
 honour it. Author `adr/0001-language-posture.md` from its stub (the [ADR
@@ -223,7 +236,9 @@ fronts MkDocs on a single port and serves the comment API on the same origin, so
 comments auto-save to `.plan/spec-comments.json` and it keeps working when the
 site is viewed through a forwarded port (VS Code / code-server / SSH tunnel), with
 no second port to forward. Plain `mkdocs serve` still works for a read-only view;
-comments just fall back to browser localStorage without the sidecar.
+comments just fall back to browser localStorage without the sidecar, and the
+**Plan** page shows its static fallback text instead of live plan-tree status
+(the `/__plan_status__` endpoint lives in the sidecar).
 
 ### 4. Hand off
 

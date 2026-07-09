@@ -1,0 +1,280 @@
+/*
+ * Plan page rendering (paired with plan-view.js).
+ *
+ * Same token strategy as spec-comments.css: borrow the mkdocs-shadcn theme's
+ * design tokens (--radius, the shadcn color variables) with gruvbox-ish literal
+ * fallbacks, so the board reads as part of the theme in both light and dark.
+ * Where color-mix() is used, a plain rgba declaration precedes it — the
+ * two-declaration fallback pattern — so nothing goes blank on older browsers.
+ */
+
+:root {
+  --pv-radius: var(--radius, 0.625rem);
+  --pv-radius-sm: calc(var(--radius, 0.625rem) - 4px);
+  --pv-border: var(--border, #d5c4a1);
+  --pv-muted: var(--muted-foreground, #7c6f64);
+  --pv-done: #689d6a; /* gruvbox aqua — the theme has no success token */
+  --pv-progress: var(--primary, #d65d0e);
+  --pv-blocked: var(--destructive, #cc241d);
+}
+
+/* --- badges ---------------------------------------------------------------- */
+
+.pv-badge {
+  display: inline-block;
+  padding: 0.1em 0.55em;
+  border-radius: 999px;
+  font-size: 0.78em;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+  border: 1px solid var(--pv-border);
+  color: var(--pv-muted);
+}
+.pv-badge--done {
+  color: var(--pv-done);
+  border-color: var(--pv-done);
+  background: rgba(104, 157, 106, 0.12);
+}
+.pv-badge--in-progress {
+  color: var(--pv-progress);
+  border-color: var(--pv-progress);
+  background: rgba(214, 93, 14, 0.1);
+  background: color-mix(in oklab, var(--pv-progress) 12%, transparent);
+}
+.pv-badge--blocked {
+  color: var(--pv-blocked);
+  border-color: var(--pv-blocked);
+  background: rgba(204, 36, 29, 0.1);
+  background: color-mix(in oklab, var(--pv-blocked) 12%, transparent);
+}
+.pv-badge--not-started {
+  /* base .pv-badge look — kept as a class so JS can style every status uniformly */
+  color: var(--pv-muted);
+}
+
+.pv-type {
+  display: inline-block;
+  padding: 0.05em 0.5em;
+  border-radius: var(--pv-radius-sm);
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  border: 1px solid var(--pv-border);
+  color: var(--pv-muted);
+}
+.pv-type--hitl,
+.pv-type--review {
+  color: var(--pv-progress);
+  border-color: var(--pv-progress);
+}
+
+/* --- summary strip ---------------------------------------------------------- */
+
+.pv-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75em;
+  margin: 1em 0;
+}
+.pv-summary .pv-counts {
+  color: var(--pv-muted);
+  font-size: 0.9em;
+}
+.pv-tracker-note {
+  color: var(--pv-muted);
+  font-size: 0.85em;
+  font-style: italic;
+}
+
+.pv-progressbar {
+  flex: 1 1 160px;
+  min-width: 120px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(124, 111, 100, 0.2);
+  overflow: hidden;
+}
+.pv-progressbar > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--pv-done);
+  transition: width 0.4s ease;
+}
+
+/* --- "next up" callout ------------------------------------------------------ */
+
+.pv-next {
+  border: 1px solid var(--pv-border);
+  border-left: 3px solid var(--pv-progress);
+  border-radius: var(--pv-radius);
+  padding: 0.75em 1em;
+  margin: 1em 0 1.5em;
+}
+.pv-next h3 {
+  margin: 0 0 0.4em;
+  font-size: 1em;
+}
+.pv-next ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+.pv-next li {
+  margin: 0.25em 0;
+}
+.pv-next .pv-gate {
+  display: inline-block;
+  margin-left: 0.4em;
+  padding: 0.05em 0.5em;
+  border-radius: 999px;
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--pv-blocked);
+  border: 1px solid var(--pv-blocked);
+}
+.pv-next code {
+  font-size: 0.82em;
+  color: var(--pv-muted);
+}
+
+/* --- tree ------------------------------------------------------------------- */
+
+details.pv-epic,
+details.pv-sprint {
+  border: 1px solid var(--pv-border);
+  border-radius: var(--pv-radius);
+  margin: 0.6em 0;
+  padding: 0;
+}
+details.pv-sprint {
+  margin: 0.5em 0.75em;
+}
+details.pv-epic > summary,
+details.pv-sprint > summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.55em 0.9em;
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+}
+details.pv-epic > summary::-webkit-details-marker,
+details.pv-sprint > summary::-webkit-details-marker {
+  display: none;
+}
+details.pv-epic > summary::before,
+details.pv-sprint > summary::before {
+  content: "▸";
+  color: var(--pv-muted);
+  transition: transform 0.15s ease;
+}
+details[open].pv-epic > summary::before,
+details[open].pv-sprint > summary::before {
+  transform: rotate(90deg);
+}
+.pv-node-id {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85em;
+  color: var(--pv-muted);
+}
+.pv-chip {
+  font-size: 0.78em;
+  color: var(--pv-muted);
+}
+
+/* stored status disagrees with the computed rollup */
+.pv-drift {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--pv-blocked);
+  display: inline-block;
+}
+
+/* --- issue table ------------------------------------------------------------ */
+
+.pv-issues-wrap {
+  overflow-x: auto; /* long titles scroll instead of clipping the trailing columns */
+  margin: 0.25em 0.9em 0.75em;
+}
+.pv-issues {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 560px;
+  font-size: 0.88em;
+}
+.pv-issues th,
+.pv-issues td {
+  white-space: normal; /* the shadcn theme nowraps table cells; titles must wrap */
+}
+.pv-issues td:nth-child(6),
+.pv-issues td:nth-child(7) {
+  white-space: nowrap;
+}
+.pv-issues th,
+.pv-issues td {
+  text-align: left;
+  padding: 0.35em 0.6em;
+  border-bottom: 1px solid var(--pv-border);
+  vertical-align: top;
+}
+.pv-issues th {
+  color: var(--pv-muted);
+  font-weight: 600;
+  font-size: 0.85em;
+}
+.pv-issues tr:last-child td {
+  border-bottom: none;
+}
+.pv-blocker {
+  display: inline-block;
+  margin-right: 0.3em;
+  padding: 0 0.4em;
+  border-radius: var(--pv-radius-sm);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.85em;
+  border: 1px solid var(--pv-border);
+  color: var(--pv-muted);
+}
+.pv-blocker--done {
+  color: var(--pv-done);
+  border-color: var(--pv-done);
+  text-decoration: line-through;
+}
+
+/* --- misc ------------------------------------------------------------------- */
+
+.pv-warnings {
+  margin-top: 1.5em;
+  padding: 0.75em 1em;
+  border: 1px solid var(--pv-blocked);
+  border-radius: var(--pv-radius);
+  font-size: 0.88em;
+}
+.pv-warnings h3 {
+  margin: 0 0 0.4em;
+  font-size: 1em;
+  color: var(--pv-blocked);
+}
+.pv-warnings ul {
+  margin: 0;
+  padding-left: 1.2em;
+}
+
+.pv-meta {
+  margin-top: 1em;
+  color: var(--pv-muted);
+  font-size: 0.8em;
+}
+.pv-offline-note {
+  color: var(--pv-muted);
+  font-style: italic;
+}
+.pv-empty {
+  color: var(--pv-muted);
+  font-style: italic;
+}
