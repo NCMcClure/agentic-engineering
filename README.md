@@ -76,6 +76,17 @@ your style feedback back into the profile.
 Prose only: code and commit messages stay out of scope.
 [Read more →](plugins/write-like-me/README.md)
 
+### code-diet
+
+Every line an agent writes gets paid for more than once: at generation, at
+review, and in every future session that loads it as context. code-diet makes
+the agent build at the lowest rung that works (a 7-rung ladder with hard
+safety carve-outs, injected as a token-budgeted kernel), reviews diffs with
+script-located candidates and cuts applied behind revert-on-red, and tracks
+every deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved
+from the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
+[Read more →](plugins/code-diet/README.md)
+
 ### plugin-workbench
 
 A plugin's true cost is invisible until it's installed, and authoring a good

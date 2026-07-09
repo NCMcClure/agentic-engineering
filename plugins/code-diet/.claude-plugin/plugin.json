@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "code-diet",
+  "displayName": "Code Diet",
+  "version": "0.1.0",
+  "description": "Your agent's code is tomorrow's context: code-diet makes the agent write only what the task needs, deletes what it didn't behind revert-on-red, and prices its own instructions like it prices your code.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": ["code-diet", "yagni", "simplicity", "over-engineering", "token-cost"]
+}

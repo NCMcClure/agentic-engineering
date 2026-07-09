@@ -45,6 +45,12 @@
       "category": "writing"
     },
     {
+      "name": "code-diet",
+      "source": "./plugins/code-diet",
+      "description": "Your agent's code is tomorrow's context: code-diet makes the agent write only what the task needs, deletes what it didn't behind revert-on-red, and prices its own instructions like it prices your code.",
+      "category": "code-quality"
+    },
+    {
       "name": "plugin-workbench",
       "source": "./plugins/plugin-workbench",
       "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta.",

@@ -1,0 +1,40 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "timeout": 5,
+            "statusMessage": "Loading the code-diet kernel"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/debt_nudge.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
