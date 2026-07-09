@@ -33,7 +33,7 @@ def main() -> None:
             "session_id": data.get("session_id", ""),
             "label": label,
             "phrase": phrase,
-            "prompt_excerpt": prompt[:300],
+            "prompt_excerpt": feedback.strip_harness_noise(prompt).strip()[:300],
         }
     )
 

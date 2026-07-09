@@ -1,7 +1,7 @@
 {
   "name": "write-like-me",
   "displayName": "Write Like Me",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Reshapes how Claude writes human-facing prose \u2014 emails, docs, READMEs, posts, chat replies \u2014 so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
   "author": {
     "name": "Nicholas McClure",

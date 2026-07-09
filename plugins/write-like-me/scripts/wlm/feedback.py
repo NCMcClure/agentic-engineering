@@ -1,10 +1,25 @@
 """Detect style feedback about prose in a user prompt.
 
 Patterns are deliberately scoped to voice/style corrections so ordinary
-code-review feedback ("this function is too slow") never matches.
+code-review feedback ("this function is too slow") never matches. Harness
+injections (task notifications, system reminders) are stripped before
+matching — trigger words quoted inside a background-task report are not
+the user talking about voice.
 """
 
 import re
+
+# Harness-injected content that rides along in the "prompt" but is not user
+# input: <task-notification>/<system-reminder> blocks, plus any stray
+# "[SYSTEM NOTIFICATION - NOT USER INPUT]" line outside those tags.
+_HARNESS_BLOCK = re.compile(
+    r"<(task-notification|system-reminder)>.*?</\1>",
+    re.IGNORECASE | re.DOTALL,
+)
+_HARNESS_MARKER_LINE = re.compile(
+    r"^.*\[SYSTEM NOTIFICATION - NOT USER INPUT\].*$",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 _PATTERNS = [
     ("tone", r"\btoo (formal|stiff|corporate|robotic|wordy|flowery|verbose|casual|chirpy|salesy|enthusiastic)\b"),
@@ -28,8 +43,15 @@ _PATTERNS = [
 _COMPILED = [(label, re.compile(rx, re.IGNORECASE)) for label, rx in _PATTERNS]
 
 
+def strip_harness_noise(prompt: str) -> str:
+    """Drop harness-injected blocks so only the user's own words remain."""
+    prompt = _HARNESS_BLOCK.sub("", prompt)
+    return _HARNESS_MARKER_LINE.sub("", prompt)
+
+
 def detect(prompt: str):
     """Return (label, matched_text) for the first style-feedback match, else None."""
+    prompt = strip_harness_noise(prompt)
     for label, rx in _COMPILED:
         m = rx.search(prompt)
         if m:
