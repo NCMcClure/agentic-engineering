@@ -4,7 +4,7 @@
 // the `input` node's OUT pins are the function's inputs; the `output` node's IN
 // pins are its outputs. The function's external pins derive from them (catalog).
 
-import { FN_IN_PREFIX, FN_OUT_PREFIX, pinOf } from './catalog';
+import { fnInputPinId, fnOutputPinId, pinOf } from './catalog';
 import type { DiagramEdge, DiagramNode, Pin, PinRef, PinRole, SubGraph } from './types';
 
 const rand = () => Math.random().toString(36).slice(2, 8);
@@ -70,7 +70,7 @@ export function collapseToFunction(
       innerWires.push({ id: `e-${rand()}`, source: { node: inputId, pin: pid }, target: e.target, role: e.role });
       inByKey.set(key, pid);
     }
-    rewired.push({ ...e, id: `e-${rand()}`, target: { node: fnId, pin: `${FN_IN_PREFIX}${pid}` } });
+    rewired.push({ ...e, id: `e-${rand()}`, target: { node: fnId, pin: fnInputPinId(pid) } });
   }
 
   // crossing-out: the inner source wired to an Output-node IN pin; the function
@@ -86,7 +86,7 @@ export function collapseToFunction(
       innerWires.push({ id: `e-${rand()}`, source: e.source, target: { node: outputId, pin: pid }, role: e.role });
       outByKey.set(key, pid);
     }
-    rewired.push({ ...e, id: `e-${rand()}`, source: { node: fnId, pin: `${FN_OUT_PREFIX}${pid}` } });
+    rewired.push({ ...e, id: `e-${rand()}`, source: { node: fnId, pin: fnOutputPinId(pid) } });
   }
 
   // Always give the boundary an exec pin so the function has an exec spine.

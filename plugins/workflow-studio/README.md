@@ -71,6 +71,17 @@ authoring protocol was rewritten for the studio layout in 0.1.1.)
 
 ## Changelog
 
+- **0.5.0**: Architecture + polish release. Canvas logic decomposed into deep,
+  unit-testable modules: `graph/document.ts` (pure node/edge operations),
+  `palette-logic.ts`, `hooks/useSelection`, `hooks/useSubgraphNav` (joining the
+  0.3.0 persistence/history hooks); the function-boundary id rule now lives
+  only in the catalog. New: copy/paste/duplicate (Ctrl+C/V/D, in-app
+  clipboard), structural changes commit as individual undo steps (typing still
+  coalesces), toolbar Add spawns at the viewport centre, canvas empty-state
+  hint, inline create/rename in the launcher (no more window.prompt), palette
+  listbox ARIA + labelled icon buttons. Perf: memoized nodes, stable React
+  Flow handlers via a nodes ref, connected-pin set keeps identity when
+  membership is unchanged.
 - **0.4.0**: Codegen-correctness release. `compileChecked` adds a diagnostics
   channel: errors block Compile/Publish and open a clickable diagnostics panel
   (click focuses the node; nodes get ⛔/⚠ badges). Diamond control flow is now

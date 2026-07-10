@@ -25,6 +25,9 @@ const dOut = (id: string, name: string, dataType: DataType): Pin => ({ id, name,
 // output pin may share a base id like 'exec'). codegen + collapse use these.
 export const FN_IN_PREFIX = 'i_';
 export const FN_OUT_PREFIX = 'o_';
+/** The single owners of the boundary-id composition rule. */
+export const fnInputPinId = (innerPin: string): string => `${FN_IN_PREFIX}${innerPin}`;
+export const fnOutputPinId = (innerPin: string): string => `${FN_OUT_PREFIX}${innerPin}`;
 
 // ── the registry ──────────────────────────────────────────────────────────
 
@@ -427,8 +430,8 @@ export const CATALOG: Record<string, NodeDef> = {
       if (!sg) return [];
       const inNode = sg.nodes.find((n) => n.kind === 'input');
       const outNode = sg.nodes.find((n) => n.kind === 'output');
-      const inPins = inNode ? pinsOf(inNode).map((p) => ({ ...p, id: `${FN_IN_PREFIX}${p.id}`, direction: 'in' as const })) : [];
-      const outPins = outNode ? pinsOf(outNode).map((p) => ({ ...p, id: `${FN_OUT_PREFIX}${p.id}`, direction: 'out' as const })) : [];
+      const inPins = inNode ? pinsOf(inNode).map((p) => ({ ...p, id: fnInputPinId(p.id), direction: 'in' as const })) : [];
+      const outPins = outNode ? pinsOf(outNode).map((p) => ({ ...p, id: fnOutputPinId(p.id), direction: 'out' as const })) : [];
       if (inPins.length || outPins.length) return [...inPins, ...outPins];
       return sg.boundary?.map((b) => b.pin) ?? []; // legacy, pre-normalization
     },

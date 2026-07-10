@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react';
+import { memo, type CSSProperties } from 'react';
 import { type NodeProps } from '@xyflow/react';
 import { defOf, footprint, pinsOf, ROW_H } from '../catalog';
 import { useConnected, pinKey } from '../connected';
@@ -17,8 +17,10 @@ export const nodeOf = (data: unknown): DiagramNode => (data as WfNodeData).node;
 
 /** Shared node shell, driven entirely by the catalog. Renders a header (tag +
  *  label + subtitle) and two pin columns whose handles are aligned per row. The
- *  accent comes from a per-kind CSS variable so the theme flips for free. */
-export function BaseNode({ data, selected }: NodeProps) {
+ *  accent comes from a per-kind CSS variable so the theme flips for free.
+ *  Memoized: on large graphs, unrelated node updates must not re-render every
+ *  node (drags stream position changes through the whole array). */
+export const BaseNode = memo(function BaseNode({ data, selected }: NodeProps) {
   const node = nodeOf(data);
   const def = defOf(node.kind);
   const connected = useConnected();
@@ -61,4 +63,4 @@ export function BaseNode({ data, selected }: NodeProps) {
       </div>
     </div>
   );
-}
+});

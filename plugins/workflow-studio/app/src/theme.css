@@ -757,6 +757,28 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* ── canvas empty-state hint ─────────────────────────────────────────────── */
+
+.canvas-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px dashed var(--border);
+  color: var(--fg-dim);
+  font-size: 13px;
+  background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+}
+
+.launcher__name-input {
+  width: 100%;
+  font-size: 13px;
+}
+
 /* ── compile diagnostics ─────────────────────────────────────────────────── */
 
 .diag-panel {

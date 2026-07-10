@@ -4,7 +4,7 @@
 // remapping parent edges to the prefixed function pins. Used by the loader AND
 // by importGraph, so a v2 sidecar round-trips through current codegen.
 
-import { FN_IN_PREFIX, FN_OUT_PREFIX } from './catalog';
+import { fnInputPinId, fnOutputPinId } from './catalog';
 import { normalizeFunction } from './collapse';
 import { SCHEMA_VERSION, type Diagram, type DiagramNode } from './types';
 
@@ -22,7 +22,7 @@ export function migrateDiagram(d: Diagram): Diagram {
   const nodes = renamed.map((n) => {
     if (n.kind === 'function' && n.subgraph?.boundary && !n.subgraph.nodes.some((x) => x.kind === 'input' || x.kind === 'output')) {
       const m = new Map<string, string>();
-      n.subgraph.boundary.forEach((b) => m.set(b.pin.id, (b.pin.direction === 'in' ? FN_IN_PREFIX : FN_OUT_PREFIX) + b.pin.id));
+      n.subgraph.boundary.forEach((b) => m.set(b.pin.id, (b.pin.direction === 'in' ? fnInputPinId : fnOutputPinId)(b.pin.id)));
       remaps.set(n.id, m);
       return normalizeFunction(n);
     }

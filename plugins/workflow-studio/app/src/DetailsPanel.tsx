@@ -47,9 +47,9 @@ function TypeSelect({ value, types, onChange }: { value: DataType; types: Struct
 function Stepper({ value, min, onChange }: { value: number; min: number; onChange: (n: number) => void }) {
   return (
     <span className="stepper">
-      <button className="icon-btn" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
+      <button className="icon-btn" aria-label="Decrease" onClick={() => onChange(Math.max(min, value - 1))}>−</button>
       <span className="stepper__value">{value}</span>
-      <button className="icon-btn" onClick={() => onChange(value + 1)}>+</button>
+      <button className="icon-btn" aria-label="Increase" onClick={() => onChange(value + 1)}>+</button>
     </span>
   );
 }

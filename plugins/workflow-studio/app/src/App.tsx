@@ -26,56 +26,47 @@ import { compileChecked, stableStringify } from './codegen';
 import { migrateDiagram } from './migrate';
 import { usePersistence } from './hooks/usePersistence';
 import { useHistory, type HistorySnapshot } from './hooks/useHistory';
-import { Palette, type PaletteItem } from './Palette';
+import { useSelection } from './hooks/useSelection';
+import { useSubgraphNav } from './hooks/useSubgraphNav';
+import {
+  applyShifts,
+  buildEdge,
+  clonePayload,
+  commentDragShifts,
+  copySelection,
+  isComment,
+  makeNode,
+  pruneDanglingEdges,
+  removeElements,
+  shortId,
+  toRFNode,
+  type ClipboardPayload,
+} from './graph/document';
+import { filterCompatible, firstCompatPin, paletteCatalog, probeFor, type DragOrigin } from './palette-logic';
+import { Palette } from './Palette';
 import { DetailsPanel, type DetailsHandlers, type Selection } from './DetailsPanel';
 import { VariablesPanel } from './VariablesPanel';
 import { Launcher } from './Launcher';
 import { ProjectSwitcher } from './ProjectSwitcher';
-import { catalogList, defOf, pinsOf } from './catalog';
-import { canConnect, edgeClass, edgeRoleOf, fromRFEdge, toRFEdge, typeCompatible } from './edges';
+import { catalogList, pinsOf } from './catalog';
+import { canConnect, edgeRoleOf, fromRFEdge, toRFEdge } from './edges';
 import { groupFromSelection } from './groups';
-import { collapseToFunction, emptyFunctionSubgraph, normalizeFunction } from './collapse';
-import { makeVariable, snapshotOf } from './variables';
+import { collapseToFunction } from './collapse';
+import { makeVariable } from './variables';
 import {
   SCHEMA_VERSION,
-  type DataType,
   type Diagnostic,
   type Diagram,
   type DiagramEdge,
   type DiagramNode,
   type Group,
-  type PinDirection,
-  type PinRole,
   type Project,
   type StructDef,
-  type SubGraph,
   type Variable,
   type WorkflowSummary,
 } from './types';
 
-function shortId() {
-  return Math.random().toString(36).slice(2, 8);
-}
-
-/** A fresh node of the given kind, seeded from the catalog. A function gets an
- *  empty Input/Output subgraph so it's valid and enterable immediately. */
-function makeNode(kind: string, position: { x: number; y: number }): DiagramNode {
-  const def = defOf(kind);
-  const node: DiagramNode = { id: `n-${shortId()}`, kind, label: def.tag || kind, position };
-  if (kind === 'function') node.subgraph = emptyFunctionSubgraph();
-  return node;
-}
-
 // ── Diagram <-> React Flow mappers ──────────────────────────────────────
-
-function diagramNodesToRF(nodes: DiagramNode[]): Node[] {
-  return nodes.map((n) => ({
-    id: n.id,
-    type: n.kind,
-    position: n.position,
-    data: { node: n } as WfNodeData,
-  }));
-}
 
 function groupsToRF(groups: Group[]): Node[] {
   return groups.map((gr) => ({
@@ -90,25 +81,12 @@ function groupsToRF(groups: Group[]): Node[] {
   }));
 }
 
-const isComment = (n: Node) => n.type === 'comment';
 const diagramNodesOf = (nodes: Node[]): DiagramNode[] => nodes.filter((n) => !isComment(n)).map((n) => nodeOf(n.data));
 
 function clientXY(event: MouseEvent | TouchEvent): { x: number; y: number } {
   if ('clientX' in event) return { x: event.clientX, y: event.clientY };
   const t = event.changedTouches[0];
   return { x: t.clientX, y: t.clientY };
-}
-
-/** Where a drag-off-a-pin started, so the palette can filter to compatible kinds
- *  and auto-wire the spawned node. */
-interface DragOrigin {
-  node: string;
-  pin: string;
-  role: PinRole;
-  dataType: DataType;
-  /** the handle we dragged FROM: 'source' needs a compatible 'in' on the new
-   *  node, 'target' needs a compatible 'out'. */
-  from: 'source' | 'target';
 }
 
 interface PaletteState {
@@ -138,22 +116,19 @@ function Canvas({
   const { fitView, screenToFlowPosition } = useReactFlow();
   const [nodes, setNodes, onNodesChange] = useNodesState([
     ...groupsToRF(initial.groups),
-    ...diagramNodesToRF(initial.nodes),
+    ...initial.nodes.map(toRFNode),
   ]);
   const [edges, setEdges, onEdgesChange] = useEdgesState(
     initial.edges.map((e) => toRFEdge(e, initial.nodes)),
   );
-  // Selection: React Flow's onSelectionChange is the single source for canvas
-  // elements (rfSelection mirrors it); `sel` is the details-panel focus, derived
-  // from rfSelection when exactly one canvas item is selected, and panel-driven
-  // for variables/structs (which aren't canvas elements).
-  const [sel, setSel] = useState<{ kind: Selection['kind']; id: string } | null>(null);
+  // Live mirror of `nodes` so hot callbacks handed to React Flow can read the
+  // current graph without re-identifying on every node change.
+  const nodesRef = useRef(nodes);
+  nodesRef.current = nodes;
+
+  const { sel, setSel, rfSelection, setRfSelection, onSelectionChange, clearSelection, hasCanvasSelection } =
+    useSelection();
   const selectedNodeId = sel?.kind === 'node' ? sel.id : null;
-  const [rfSelection, setRfSelection] = useState<{ nodes: string[]; comments: string[]; edges: string[] }>({
-    nodes: [],
-    comments: [],
-    edges: [],
-  });
   const selectedIds = rfSelection.nodes; // non-comment node ids (Group/Collapse)
   const [conflict, setConflict] = useState(false);
   const [variables, setVariables] = useState<Variable[]>(initial.variables);
@@ -161,15 +136,22 @@ function Canvas({
   const [exportPath, setExportPath] = useState<string>(initial.exportPath ?? '');
   const [addKind, setAddKind] = useState<string>('agent');
   const [palette, setPalette] = useState<PaletteState | null>(null);
-  const [breadcrumb, setBreadcrumb] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimer = useRef<number | null>(null);
+  const clipboard = useRef<ClipboardPayload | null>(null);
 
-  // Stack of parent graphs while inside collapsed-function subgraphs. Held in a
-  // ref so enter/exit don't fight React state batching; breadcrumb mirrors it
-  // for the UI. While nested (depth > 0), disk save is paused until you exit.
-  const viewStack = useRef<Array<{ fnId: string; label: string; nodes: Node[]; edges: Edge[] }>>([]);
-  const nested = breadcrumb.length > 0;
+  // Subgraph navigation (collapsed functions). onNavigate resets per-view
+  // history and edit tracking; it's bound via ref because history/persistence
+  // are declared below.
+  const onNavigateRef = useRef<(direction: 'enter' | 'exit') => void>(() => {});
+  const onNavigate = useCallback((d: 'enter' | 'exit') => onNavigateRef.current(d), []);
+  const {
+    nested,
+    breadcrumb,
+    enter: enterFunction,
+    exit: exitFunction,
+  } = useSubgraphNav({ nodes, edges, setNodes, setEdges, diagramNodesOf, onNavigate });
+
   const commentPos = useRef<Map<string, { x: number; y: number }>>(new Map());
   // A pin drag that ends on empty pane opens the palette via onConnectEnd, but the
   // browser then fires a pane `click` that would close it. This one-shot guard
@@ -210,12 +192,18 @@ function Canvas({
   }, [sel, nodes, edges, variables, types]);
 
   // Which pins currently carry a wire — drives the filled/hollow pin rendering.
+  // Identity is stable while the membership is unchanged, so the context
+  // doesn't re-render every pin on edge-array churn that didn't rewire anything.
+  const connectedRef = useRef<Set<string>>(new Set());
   const connected = useMemo(() => {
     const s = new Set<string>();
     edges.forEach((e) => {
       if (e.sourceHandle) s.add(`${e.source}:${e.sourceHandle}`);
       if (e.targetHandle) s.add(`${e.target}:${e.targetHandle}`);
     });
+    const prev = connectedRef.current;
+    if (prev.size === s.size && [...s].every((k) => prev.has(k))) return prev;
+    connectedRef.current = s;
     return s;
   }, [edges]);
 
@@ -275,10 +263,9 @@ function Canvas({
       setEdges(s.edges);
       setVariables(s.variables);
       setTypes(s.types);
-      setSel(null);
-      setRfSelection({ nodes: [], comments: [], edges: [] });
+      clearSelection();
     },
-    [setNodes, setEdges],
+    [setNodes, setEdges, clearSelection],
   );
   const history = useHistory({ restore: restoreSnapshot });
 
@@ -300,13 +287,18 @@ function Canvas({
   // The single state-watch seam: every mutation of the graph state flows
   // through here — dirty tracking + debounced autosave (usePersistence) and
   // history commits. Mid-drag ticks don't schedule; a subgraph-nav tick seeds
-  // the new view's history baseline but never counts as an edit.
+  // the new view's history baseline but never counts as an edit. Structural
+  // changes (node/edge count) commit immediately so each add/delete/paste is
+  // its own undo step; in-place edits (typing) coalesce on the debounce.
   const histSeeded = useRef(false);
+  const prevShape = useRef({ n: 0, e: 0 });
   useEffect(() => {
     const navTick = skipNextChange.current;
     skipNextChange.current = false;
     const settled = !dragging.current;
     if (!navTick) persistence.noteChange(settled);
+    const structural = prevShape.current.n !== nodes.length || prevShape.current.e !== edges.length;
+    prevShape.current = { n: nodes.length, e: edges.length };
     if (!settled) return;
     const snap: HistorySnapshot = { nodes, edges, variables, types };
     const key = stableStringify(serialize());
@@ -316,11 +308,29 @@ function Canvas({
       return;
     }
     if (navTick) return;
+    if (structural) {
+      flushHistory(); // seal whatever preceded this as its own step
+      history.commit(key, snap);
+      return;
+    }
     pendingCommit.current = { key, snap };
     if (commitTimer.current) window.clearTimeout(commitTimer.current);
     commitTimer.current = window.setTimeout(flushHistory, 500);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [nodes, edges, variables, types, exportPath]);
+
+  // Bind subgraph-nav side effects now that history/persistence exist: history
+  // is per-view; entering is a view swap (not an edit), exiting folds sub-edits
+  // into the root state where the next state-watch tick autosaves them.
+  onNavigateRef.current = (direction) => {
+    if (direction === 'enter') skipNextChange.current = true;
+    else persistence.clearNestedEdited();
+    history.reset();
+    histSeeded.current = false;
+    pendingCommit.current = null;
+    setSel(null);
+    window.requestAnimationFrame(() => fitView({ duration: 300 }));
+  };
 
   // Live sync: when this workflow's diagram.json changes on disk, fetch it and
   // compare canonically — our own write is ignored (echo), a clean editor
@@ -374,40 +384,6 @@ function Canvas({
     }
   }, [compileCore, showToast]);
 
-  // Single selection source. MUST be referentially stable and must bail out
-  // when nothing changed: React Flow's SelectionListener re-fires when the
-  // handler identity changes, so an inline handler that always sets fresh
-  // state objects loops the render forever.
-  const onSelectionChange = useCallback(
-    ({ nodes: selNodes, edges: selEdges }: { nodes: Node[]; edges: Edge[] }) => {
-      const comments = selNodes.filter(isComment).map((n) => n.id);
-      const plain = selNodes.filter((n) => !isComment(n)).map((n) => n.id);
-      const edgeIds = selEdges.map((e) => e.id);
-      setRfSelection((cur) =>
-        cur.nodes.join('\n') === plain.join('\n') &&
-        cur.comments.join('\n') === comments.join('\n') &&
-        cur.edges.join('\n') === edgeIds.join('\n')
-          ? cur
-          : { nodes: plain, comments, edges: edgeIds },
-      );
-      const total = plain.length + comments.length + edgeIds.length;
-      if (total === 1) {
-        // exactly one canvas item → focus the details panel on it
-        const next = plain.length
-          ? { kind: 'node' as const, id: plain[0] }
-          : comments.length
-            ? { kind: 'comment' as const, id: comments[0] }
-            : { kind: 'edge' as const, id: edgeIds[0] };
-        setSel((cur) => (cur && cur.kind === next.kind && cur.id === next.id ? cur : next));
-      } else {
-        // multi or none: close the panel, but never clobber a panel-driven
-        // variable/struct selection (those aren't canvas elements)
-        setSel((cur) => (cur === null || cur.kind === 'variable' || cur.kind === 'struct' ? cur : null));
-      }
-    },
-    [],
-  );
-
   // Node badge map: worst severity per node, for the canvas overlay.
   const nodeDiagMap = useMemo(() => {
     const m = new Map<string, NodeSeverity>();
@@ -421,14 +397,14 @@ function Canvas({
 
   const focusDiagnostic = useCallback(
     (d: Diagnostic) => {
-      const id = d.nodeIds.find((nid) => nodes.some((n) => n.id === nid));
+      const id = d.nodeIds.find((nid) => nodesRef.current.some((n) => n.id === nid));
       if (!id) return; // not in this view (e.g. inside a collapsed function)
       // Drive the selection through React Flow so onSelectionChange (the single
       // selection source) opens the panel and keeps everything consistent.
       setNodes((nds) => nds.map((n) => (n.selected !== (n.id === id) ? { ...n, selected: n.id === id } : n)));
       fitView({ nodes: [{ id }], duration: 300, maxZoom: 1.2 });
     },
-    [nodes, setNodes, fitView],
+    [setNodes, fitView],
   );
 
   // Publish = save + compile + promote to the export target, so the published
@@ -454,43 +430,21 @@ function Canvas({
   }, [nested, exportPath, serialize, compileCore, showToast]);
 
   // Track drag state for the state-watch effect (save on settle, not per pixel).
-  // Dragging a comment frame translates its member nodes with it.
+  // Dragging a comment frame translates its member nodes with it. Stable: reads
+  // the graph through nodesRef so React Flow keeps one handler identity.
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
       for (const c of changes) {
         if (c.type === 'position') dragging.current = c.dragging === true;
       }
       onNodesChange(changes);
-      const shifts: Array<{ members: string[]; dx: number; dy: number }> = [];
-      for (const c of changes) {
-        if (c.type !== 'position' || !c.position) continue;
-        const cn = nodes.find((n) => n.id === c.id);
-        if (!cn || !isComment(cn)) continue;
-        const prev = commentPos.current.get(c.id) ?? cn.position;
-        const dx = c.position.x - prev.x;
-        const dy = c.position.y - prev.y;
-        commentPos.current.set(c.id, c.position);
-        if (dx || dy) {
-          shifts.push({
-            members: nodes.filter((n) => !isComment(n) && nodeOf(n.data).group === c.id).map((n) => n.id),
-            dx,
-            dy,
-          });
-        }
-      }
-      if (shifts.length) {
-        setNodes((nds) =>
-          nds.map((n) => {
-            const s = shifts.find((sh) => sh.members.includes(n.id));
-            return s ? { ...n, position: { x: n.position.x + s.dx, y: n.position.y + s.dy } } : n;
-          }),
-        );
-      }
+      const shifts = commentDragShifts(nodesRef.current, changes, commentPos.current);
+      if (shifts.length) setNodes((nds) => applyShifts(nds, shifts));
     },
-    [nodes, onNodesChange, setNodes],
+    [onNodesChange, setNodes],
   );
 
-  const isValid = useCallback((c: Connection | Edge) => canConnect(c, diagramNodesOf(nodes)), [nodes]);
+  const isValid = useCallback((c: Connection | Edge) => canConnect(c, diagramNodesOf(nodesRef.current)), []);
 
   // Add a validated, typed edge. A data-in accepts a single wire (replace on
   // reconnect); exec-ins merge freely. Shared by manual connect + drag-to-create.
@@ -502,22 +456,24 @@ function Canvas({
         const kept = role === 'data'
           ? eds.filter((e) => !(e.target === c.target && e.targetHandle === c.targetHandle))
           : eds;
-        return kept.concat({
-          id: `e-${shortId()}`,
-          source: c.source as string,
-          sourceHandle: c.sourceHandle as string,
-          target: c.target as string,
-          targetHandle: c.targetHandle as string,
-          data: { role },
-          className: edgeClass(role, dataType),
-          type: 'default',
-        });
+        return kept.concat(
+          buildEdge(
+            {
+              source: c.source as string,
+              sourceHandle: c.sourceHandle as string,
+              target: c.target as string,
+              targetHandle: c.targetHandle as string,
+            },
+            role,
+            dataType,
+          ),
+        );
       });
     },
     [setEdges],
   );
 
-  const onConnect = useCallback((c: Connection) => addConnection(c, diagramNodesOf(nodes)), [addConnection, nodes]);
+  const onConnect = useCallback((c: Connection) => addConnection(c, diagramNodesOf(nodesRef.current)), [addConnection]);
 
   // Right-click empty canvas → open the palette at the cursor (unfiltered).
   const onPaneContextMenu = useCallback(
@@ -537,7 +493,7 @@ function Canvas({
   const onConnectEnd = useCallback(
     (event: MouseEvent | TouchEvent, conn: { isValid: boolean | null; fromHandle: { nodeId: string; id?: string | null; type: 'source' | 'target' } | null }) => {
       if (conn.isValid || !conn.fromHandle || !conn.fromHandle.id) return;
-      const fromNode = diagramNodesOf(nodes).find((n) => n.id === conn.fromHandle!.nodeId);
+      const fromNode = diagramNodesOf(nodesRef.current).find((n) => n.id === conn.fromHandle!.nodeId);
       const pin = fromNode && pinsOf(fromNode).find((p) => p.id === conn.fromHandle!.id);
       if (!fromNode || !pin) return;
       const xy = clientXY(event);
@@ -548,53 +504,16 @@ function Canvas({
         origin: { node: fromNode.id, pin: pin.id, role: pin.role, dataType: pin.dataType, from: conn.fromHandle.type },
       });
     },
-    [nodes, screenToFlowPosition],
+    [screenToFlowPosition],
   );
 
-  type SpawnAction = { type: 'catalog'; kind: string } | { type: 'getVar' | 'setVar'; varId: string };
-
-  // The first pin on a node that can connect back to the drag origin.
-  const firstCompatPin = (n: DiagramNode, origin: DragOrigin): string | undefined => {
-    const want: PinDirection = origin.from === 'source' ? 'in' : 'out';
-    return pinsOf(n).find(
-      (p) => p.direction === want && p.role === origin.role && (origin.role === 'exec' || typeCompatible(origin.dataType, p.dataType)),
-    )?.id;
-  };
-
-  // A throwaway node for an action, used to test pin compatibility.
-  const probeFor = useCallback(
-    (action: SpawnAction): DiagramNode => {
-      if (action.type === 'catalog') {
-        return { id: '_', kind: action.kind, label: '', position: { x: 0, y: 0 }, data: palette?.origin ? { role: palette.origin.role } : undefined };
-      }
-      const v = variables.find((x) => x.id === action.varId);
-      return { id: '_', kind: action.type, label: '', position: { x: 0, y: 0 }, data: v ? { ...snapshotOf(v) } : undefined };
-    },
-    [palette, variables],
+  // The finder list (catalog + Get/Set per variable), narrowed to compatible
+  // items when opened by a drag off a pin. Logic lives in palette-logic.ts.
+  const paletteAll = useMemo(() => paletteCatalog(variables), [variables]);
+  const paletteItems = useMemo(
+    () => filterCompatible(paletteAll, variables, palette?.origin),
+    [paletteAll, variables, palette],
   );
-
-  // The full finder list: catalog nodes + Get/Set for each declared variable.
-  const paletteAll = useMemo<Array<PaletteItem & { action: SpawnAction }>>(() => {
-    const cat = catalogList().map((d) => ({ key: d.kind, label: d.kind, category: d.category, blurb: d.blurb, action: { type: 'catalog' as const, kind: d.kind } }));
-    const vars = variables.flatMap((v) => [
-      { key: `get:${v.id}`, label: `Get ${v.name}`, category: 'variable', blurb: `Read ${v.name} · ${v.type}`, action: { type: 'getVar' as const, varId: v.id } },
-      { key: `set:${v.id}`, label: `Set ${v.name}`, category: 'variable', blurb: `Assign ${v.name} · ${v.type}`, action: { type: 'setVar' as const, varId: v.id } },
-    ]);
-    return [...cat, ...vars];
-  }, [variables]);
-
-  // Narrowed to compatible items when opened by a drag off a pin.
-  const paletteItems = useMemo<PaletteItem[]>(() => {
-    const origin = palette?.origin;
-    if (!origin) return paletteAll;
-    const want: PinDirection = origin.from === 'source' ? 'in' : 'out';
-    return paletteAll.filter((it) => {
-      if (it.action.type === 'catalog' && it.action.kind === 'reroute') return true;
-      return pinsOf(probeFor(it.action)).some(
-        (p) => p.direction === want && p.role === origin.role && (origin.role === 'exec' || typeCompatible(origin.dataType, p.dataType)),
-      );
-    });
-  }, [paletteAll, palette, probeFor]);
 
   const spawnFromPalette = useCallback(
     (key: string) => {
@@ -610,11 +529,11 @@ function Canvas({
         const v = variables.find((x) => x.id === action.varId);
         if (!v) return;
         node = makeNode(action.type, palette.flow);
-        node.data = { ...snapshotOf(v) };
+        node.data = { ...probeFor(action, variables).data };
         node.label = (action.type === 'getVar' ? 'Get ' : 'Set ') + v.name;
       }
       const spawned = node;
-      setNodes((nds) => nds.concat({ id: spawned.id, type: spawned.kind, position: spawned.position, data: { node: spawned } as WfNodeData }));
+      setNodes((nds) => nds.concat(toRFNode(spawned)));
       if (palette.origin) {
         const pinId = firstCompatPin(spawned, palette.origin);
         if (pinId) {
@@ -622,20 +541,28 @@ function Canvas({
           const c: Connection = o.from === 'source'
             ? { source: o.node, sourceHandle: o.pin, target: spawned.id, targetHandle: pinId }
             : { source: spawned.id, sourceHandle: pinId, target: o.node, targetHandle: o.pin };
-          addConnection(c, [...diagramNodesOf(nodes), spawned]);
+          addConnection(c, [...diagramNodesOf(nodesRef.current), spawned]);
         }
       }
       setSel({ kind: 'node', id: spawned.id });
       setPalette(null);
     },
-    [palette, paletteAll, variables, nodes, setNodes, addConnection],
+    [palette, paletteAll, variables, setNodes, setSel, addConnection],
   );
 
+  // Toolbar Add drops the node at the viewport centre (with a small stagger so
+  // repeated adds don't stack), not at a fixed corner offset.
   const addNode = useCallback(() => {
-    const node = makeNode(addKind, { x: 80, y: 80 });
-    setNodes((nds) => nds.concat({ id: node.id, type: node.kind, position: node.position, data: { node } as WfNodeData }));
+    const wrap = document.querySelector('.canvas-wrap');
+    const r = wrap?.getBoundingClientRect();
+    const centre = r
+      ? screenToFlowPosition({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+      : { x: 80, y: 80 };
+    const stagger = (nodesRef.current.length % 5) * 24;
+    const node = makeNode(addKind, { x: centre.x + stagger, y: centre.y + stagger });
+    setNodes((nds) => nds.concat(toRFNode(node)));
     setSel({ kind: 'node', id: node.id });
-  }, [addKind, setNodes]);
+  }, [addKind, setNodes, setSel, screenToFlowPosition]);
 
   // Delete everything selected on the canvas (multi-select aware): edges,
   // nodes + their incident edges, comment frames (clearing membership). Falls
@@ -648,27 +575,41 @@ function Canvas({
       else if (sel.kind === 'edge') edgeIds.add(sel.id);
     }
     if (!nodeIds.size && !edgeIds.size) return;
-    setEdges((eds) => eds.filter((e) => !edgeIds.has(e.id) && !nodeIds.has(e.source) && !nodeIds.has(e.target)));
-    setNodes((nds) =>
-      nds
-        .filter((n) => !nodeIds.has(n.id))
-        .map((n) => {
-          if (isComment(n)) return n;
-          const dn = nodeOf(n.data);
-          return dn.group && nodeIds.has(dn.group)
-            ? { ...n, data: { node: { ...dn, group: undefined } } as WfNodeData }
-            : n;
-        }),
-    );
-    setSel(null);
-    setRfSelection({ nodes: [], comments: [], edges: [] });
-  }, [rfSelection, sel, setNodes, setEdges]);
+    const kept = removeElements(nodesRef.current, edges, nodeIds, edgeIds);
+    setNodes(kept.nodes);
+    setEdges(kept.edges);
+    clearSelection();
+  }, [rfSelection, sel, edges, setNodes, setEdges, clearSelection]);
 
-  const hasCanvasSelection =
-    rfSelection.nodes.length > 0 ||
-    rfSelection.comments.length > 0 ||
-    rfSelection.edges.length > 0 ||
-    (sel !== null && (sel.kind === 'node' || sel.kind === 'comment' || sel.kind === 'edge'));
+  // In-app clipboard: copy the selected nodes + their internal wires; paste
+  // clones them (fresh ids, offset, selected). Duplicate = copy + paste.
+  // Selection is read from the live nodes array (`n.selected`), not rfSelection
+  // state — a fast click→Ctrl+C would otherwise race the selection listener.
+  const copyableIds = useCallback(() => {
+    const ids = new Set(rfSelection.nodes);
+    for (const n of nodesRef.current) if (n.selected && !isComment(n)) ids.add(n.id);
+    if (!ids.size && sel?.kind === 'node') ids.add(sel.id);
+    return [...ids];
+  }, [rfSelection.nodes, sel]);
+  const copySel = useCallback(() => {
+    const payload = copySelection(nodesRef.current, edges, copyableIds());
+    if (payload) {
+      clipboard.current = payload;
+      showToast(`Copied ${payload.nodes.length} node${payload.nodes.length > 1 ? 's' : ''}`);
+    }
+  }, [edges, copyableIds, showToast]);
+  const paste = useCallback(() => {
+    if (!clipboard.current) return;
+    const { nodes: cloned, edges: clonedEdges } = clonePayload(clipboard.current, { x: 48, y: 48 });
+    setNodes((nds) => nds.map((n) => (n.selected ? { ...n, selected: false } : n)).concat(cloned));
+    setEdges((eds) => eds.concat(clonedEdges));
+  }, [setNodes, setEdges]);
+  const duplicateSel = useCallback(() => {
+    const payload = copySelection(nodesRef.current, edges, copyableIds());
+    if (!payload) return;
+    clipboard.current = payload;
+    paste();
+  }, [edges, copyableIds, paste]);
 
   // Flush the pending (debounced) commit first so a quick Ctrl+Z after an edit
   // undoes that edit, not the one before it.
@@ -698,6 +639,13 @@ function Canvas({
       } else if (mod && e.key.toLowerCase() === 'y') {
         e.preventDefault();
         redoAction();
+      } else if (mod && e.key.toLowerCase() === 'c') {
+        copySel();
+      } else if (mod && e.key.toLowerCase() === 'v') {
+        paste();
+      } else if (mod && e.key.toLowerCase() === 'd') {
+        e.preventDefault();
+        duplicateSel();
       } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
         deleteSelected();
@@ -705,7 +653,7 @@ function Canvas({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undoAction, redoAction, deleteSelected]);
+  }, [undoAction, redoAction, deleteSelected, copySel, paste, duplicateSel]);
 
   const autoArrange = useCallback(() => {
     setNodes((nds) => layout(nds, edges));
@@ -754,69 +702,21 @@ function Canvas({
     setRfSelection({ nodes: [res.fn.id], comments: [], edges: [] });
   }, [nodes, edges, selectedIds, setNodes, setEdges]);
 
-  // Double-click a function node → descend into its subgraph (parent snapshotted).
-  const enterFunction = useCallback(
-    (n: Node) => {
-      if (isComment(n)) return;
-      const fn = normalizeFunction(nodeOf(n.data));
-      if (fn.kind !== 'function' || !fn.subgraph) return;
-      viewStack.current.push({ fnId: n.id, label: fn.label, nodes, edges });
-      setBreadcrumb(viewStack.current.map((v) => v.label));
-      skipNextChange.current = true; // a view swap, not an edit
-      history.reset(); // history is per-view
-      histSeeded.current = false;
-      setNodes(diagramNodesToRF(fn.subgraph.nodes));
-      setEdges(fn.subgraph.edges.map((e) => toRFEdge(e, fn.subgraph!.nodes)));
-      setSel(null);
-      window.requestAnimationFrame(() => fitView({ duration: 300 }));
-    },
-    [nodes, edges, setNodes, setEdges, fitView, history],
-  );
-
-  // Pop one level, writing the edited subgraph back into its function node.
-  const exitFunction = useCallback(() => {
-    const frame = viewStack.current.pop();
-    if (!frame) return;
-    const subNodes = diagramNodesOf(nodes);
-    const subEdges = edges.map(fromRFEdge);
-    const parentNodes = frame.nodes.map((n) => {
-      if (n.id !== frame.fnId) return n;
-      const fn = nodeOf(n.data);
-      const sg = (fn.subgraph ?? { boundary: [] }) as SubGraph;
-      return { ...n, data: { node: { ...fn, subgraph: { ...sg, nodes: subNodes, edges: subEdges } } } as WfNodeData };
-    });
-    setBreadcrumb(viewStack.current.map((v) => v.label));
-    history.reset(); // back to the parent view's (fresh) history
-    histSeeded.current = false;
-    persistence.clearNestedEdited(); // sub-edits are now in the root state
-    setNodes(parentNodes);
-    setEdges(frame.edges);
-    setSel(null);
-    window.requestAnimationFrame(() => fitView({ duration: 300 }));
-  }, [nodes, edges, setNodes, setEdges, fitView, history, persistence]);
-
   // Apply an arbitrary update to the selected node's DiagramNode, then prune
   // edges whose pins no longer exist (kind change, variadic count lowered,
   // function I/O pin removed) so no dangling wires survive.
   const mutateSelected = useCallback(
     (fn: (node: DiagramNode) => DiagramNode) => {
       if (!selectedNodeId) return;
-      const cur = nodes.find((n) => n.id === selectedNodeId && !isComment(n));
+      const cur = nodesRef.current.find((n) => n.id === selectedNodeId && !isComment(n));
       if (!cur) return;
       const next = fn(nodeOf(cur.data));
       setNodes((nds) =>
         nds.map((n) => (n.id === selectedNodeId && !isComment(n) ? { ...n, type: next.kind, data: { node: next } as WfNodeData } : n)),
       );
-      const valid = new Set(pinsOf(next).map((p) => p.id));
-      setEdges((eds) =>
-        eds.filter(
-          (e) =>
-            (e.source !== selectedNodeId || (e.sourceHandle != null && valid.has(e.sourceHandle))) &&
-            (e.target !== selectedNodeId || (e.targetHandle != null && valid.has(e.targetHandle))),
-        ),
-      );
+      setEdges((eds) => pruneDanglingEdges(selectedNodeId, next, eds));
     },
-    [selectedNodeId, nodes, setNodes, setEdges],
+    [selectedNodeId, setNodes, setEdges],
   );
 
   const patchSelected = useCallback(
@@ -1081,6 +981,12 @@ function Canvas({
         ) : null}
 
         {toast ? <div className="toast">{toast}</div> : null}
+
+        {!nested && nodes.filter((n) => !isComment(n)).length <= 1 ? (
+          <div className="canvas-hint">
+            Right-click the canvas to add a node · drag off a pin to spawn a compatible one, auto-wired
+          </div>
+        ) : null}
 
         {diagnostics.length ? (
           <div className="diag-panel">

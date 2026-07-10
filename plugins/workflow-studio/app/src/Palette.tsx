@@ -48,6 +48,10 @@ export function Palette({
         ref={inputRef}
         className="palette__search"
         placeholder="Search nodes…"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="palette-listbox"
+        aria-activedescendant={results[active] ? `palette-opt-${results[active].key}` : undefined}
         value={q}
         onChange={(e) => setQ(e.target.value)}
         onKeyDown={(e) => {
@@ -65,11 +69,14 @@ export function Palette({
           }
         }}
       />
-      <div className="palette__list">
+      <div className="palette__list" id="palette-listbox" role="listbox" aria-label="Node kinds">
         {results.length === 0 ? <div className="palette__empty">No matches</div> : null}
         {results.map((d, i) => (
           <button
             key={d.key}
+            id={`palette-opt-${d.key}`}
+            role="option"
+            aria-selected={i === active}
             className={`palette__item${i === active ? ' is-active' : ''}`}
             onMouseEnter={() => setActive(i)}
             onClick={() => onPick(d.key)}
