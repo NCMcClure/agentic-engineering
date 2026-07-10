@@ -71,6 +71,19 @@ authoring protocol was rewritten for the studio layout in 0.1.1.)
 
 ## Changelog
 
+- **0.4.0**: Codegen-correctness release. `compileChecked` adds a diagnostics
+  channel: errors block Compile/Publish and open a clickable diagnostics panel
+  (click focuses the node; nodes get ⛔/⚠ badges). Diamond control flow is now
+  compiled correctly for branch/switch/gate/verify (arms stop at their shared
+  post-dominator; the join emits once after the if/else — previously one arm
+  silently skipped it); irreducible joins, data-wire cycles, invalid/duplicate
+  variable names error out; multi-exit loops, loop-node back-edge headers, and
+  approximation nodes (multiGate/flipFlop/timeout/doN/retryUntil) warn.
+  `getField` bracket-escapes non-identifier fields. Import migrates v2 sidecars
+  to v3, and the staleness check ignores pure reformatting. Also fixes a React
+  Flow selection-listener render loop introduced in 0.3.0. Note: the join fix
+  changes emitted output for diamond-shaped graphs, so their pre-0.4.0
+  compiled.js will read as hand-edited (stale) on first import.
 - **0.3.0**: Data-safety release. Every mutation now autosaves (debounced;
   config edits, adds, deletes, and connects previously never saved), with a
   dirty/saving/failed status chip, retryable save errors, and a

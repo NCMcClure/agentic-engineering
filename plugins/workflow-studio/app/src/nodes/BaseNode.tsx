@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { type NodeProps } from '@xyflow/react';
 import { defOf, footprint, pinsOf, ROW_H } from '../catalog';
 import { useConnected, pinKey } from '../connected';
+import { useNodeDiagnostic } from '../diagnostics';
 import { PinRow } from './Pin';
 import type { DiagramNode } from '../types';
 
@@ -21,6 +22,7 @@ export function BaseNode({ data, selected }: NodeProps) {
   const node = nodeOf(data);
   const def = defOf(node.kind);
   const connected = useConnected();
+  const diagnostic = useNodeDiagnostic(node.id);
   const pins = pinsOf(node);
   const ins = pins.filter((p) => p.direction === 'in');
   const outs = pins.filter((p) => p.direction === 'out');
@@ -38,6 +40,11 @@ export function BaseNode({ data, selected }: NodeProps) {
       <div className="wf-node__head">
         <span className="wf-node__tag">{def.tag}</span>
         <div className="wf-node__label">{node.label}</div>
+        {diagnostic ? (
+          <span className={`wf-node__diag wf-node__diag--${diagnostic}`} title="See compile diagnostics">
+            {diagnostic === 'error' ? '⛔' : '⚠'}
+          </span>
+        ) : null}
         {node.note ? <div className="wf-node__subtitle">{node.note}</div> : null}
       </div>
       <div className="wf-node__pins">

@@ -1,10 +1,12 @@
 // Read a workflow .js back into a graph. The honest boundary: this does NOT
 // reverse-parse arbitrary JS into typed pins. If codegen's `@workflow-graph`
-// sidecar is present, the graph is recovered losslessly from it. Otherwise
-// (a hand-written script) we return a scaffold for the agent to rebuild by hand
-// — exactly the v1 "you read the script and translate" workflow.
+// sidecar is present, the graph is recovered losslessly from it (v2 sidecars
+// are migrated to the current schema first). Otherwise (a hand-written script)
+// we return a scaffold for the agent to rebuild by hand — exactly the v1 "you
+// read the script and translate" workflow.
 
 import { compile } from './codegen';
+import { migrateDiagram } from './migrate';
 import { SCHEMA_VERSION, type Diagram, type DiagramNode } from './types';
 
 const FENCE = /\/\* @workflow-graph:v[23]\n([\s\S]*?)\n\*\//;
@@ -25,7 +27,8 @@ export function importJs(src: string, source = ''): ImportResult {
       const parsed = JSON.parse(m[1]) as Diagram;
       const ver = (parsed as { schemaVersion?: number }).schemaVersion;
       if (ver === 2 || ver === SCHEMA_VERSION) {
-        return { diagram: parsed, lossless: true, stale: fenceLooksStale(src, parsed) };
+        const diagram = migrateDiagram(parsed);
+        return { diagram, lossless: true, stale: fenceLooksStale(src, diagram) };
       }
     } catch {
       // malformed fence — fall through to the scaffold
@@ -36,11 +39,21 @@ export function importJs(src: string, source = ''): ImportResult {
 
 const stripFence = (src: string) => src.replace(FENCE, '').trim();
 
-/** Exact drift check: recompile the recovered graph and compare its body to the
- *  file's body. If they differ, someone hand-edited the .js away from the fence,
- *  so trusting the fence would drop those edits — the agent should reconcile. */
+/** Whitespace-insensitive so a reformat (indentation, blank lines) doesn't
+ *  count as drift — only content differences do. */
+const normalizeBody = (src: string) =>
+  stripFence(src)
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join('\n');
+
+/** Drift check: recompile the recovered graph and compare its body to the
+ *  file's body. If the content differs, someone hand-edited the .js away from
+ *  the fence, so trusting the fence would drop those edits — the agent should
+ *  reconcile. */
 function fenceLooksStale(src: string, diagram: Diagram): boolean {
-  return stripFence(src) !== stripFence(compile(diagram));
+  return normalizeBody(src) !== normalizeBody(compile(diagram));
 }
 
 /** A minimal placeholder graph: Start → a log explaining the situation → End.

@@ -2,6 +2,7 @@
 // / struct / edge / comment). Absorbs the old Inspector as NodeDetails.
 
 import { catalogList, pinsOf } from './catalog';
+import { variableNameProblem } from './identifiers';
 import { dataTypeOptions, defaultValueFor, typeColorKey } from './types-registry';
 import { ValueEditor } from './value/ValueEditor';
 import type { DataType, DiagramEdge, DiagramNode, Group, NodeParam, Pin, StructDef, StructField, Variable } from './types';
@@ -217,11 +218,13 @@ export function NodeDetails({ node, h }: { node: DiagramNode; h: DetailsHandlers
 
 function VariableDetails({ variable, h }: { variable: Variable; h: DetailsHandlers }) {
   const { types, onPatchVariable, onDeleteVariable } = h;
+  const nameProblem = variableNameProblem(variable.name);
   return (
     <>
       <label>
         name
         <input value={variable.name} onChange={(e) => onPatchVariable({ name: e.target.value })} />
+        {nameProblem ? <span className="field-error">{nameProblem} — the compiled const would break</span> : null}
       </label>
       <label>
         type

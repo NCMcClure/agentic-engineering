@@ -19,9 +19,11 @@ import './theme.css';
 import { nodeTypes } from './nodes';
 import { nodeOf, type WfNodeData } from './nodes/BaseNode';
 import { ConnectedContext } from './connected';
+import { DiagnosticsContext, type NodeSeverity } from './diagnostics';
 import { layout } from './layout';
 import { compileWorkflow, publishWorkflow, loadWorkflow } from './api';
-import { compile, stableStringify } from './codegen';
+import { compileChecked, stableStringify } from './codegen';
+import { migrateDiagram } from './migrate';
 import { usePersistence } from './hooks/usePersistence';
 import { useHistory, type HistorySnapshot } from './hooks/useHistory';
 import { Palette, type PaletteItem } from './Palette';
@@ -29,7 +31,7 @@ import { DetailsPanel, type DetailsHandlers, type Selection } from './DetailsPan
 import { VariablesPanel } from './VariablesPanel';
 import { Launcher } from './Launcher';
 import { ProjectSwitcher } from './ProjectSwitcher';
-import { catalogList, defOf, pinsOf, FN_IN_PREFIX, FN_OUT_PREFIX } from './catalog';
+import { catalogList, defOf, pinsOf } from './catalog';
 import { canConnect, edgeClass, edgeRoleOf, fromRFEdge, toRFEdge, typeCompatible } from './edges';
 import { groupFromSelection } from './groups';
 import { collapseToFunction, emptyFunctionSubgraph, normalizeFunction } from './collapse';
@@ -37,6 +39,7 @@ import { makeVariable, snapshotOf } from './variables';
 import {
   SCHEMA_VERSION,
   type DataType,
+  type Diagnostic,
   type Diagram,
   type DiagramEdge,
   type DiagramNode,
@@ -61,45 +64,6 @@ function makeNode(kind: string, position: { x: number; y: number }): DiagramNode
   const node: DiagramNode = { id: `n-${shortId()}`, kind, label: def.tag || kind, position };
   if (kind === 'function') node.subgraph = emptyFunctionSubgraph();
   return node;
-}
-
-/** Normalize a loaded diagram: v2→v3 (rename `subtitle`→`note`, default the new
- *  `variables`/`types` arrays) and upgrade iteration-1 functions (boundary
- *  mapping, no Input/Output nodes) to the node-based model, remapping parent
- *  edges to the prefixed function pins. */
-function migrateDiagram(d: Diagram): Diagram {
-  const renamed = d.nodes.map((n) => {
-    const legacy = (n as { subtitle?: string }).subtitle;
-    if (legacy === undefined) return n;
-    const rest = { ...n } as DiagramNode & { subtitle?: string };
-    delete rest.subtitle;
-    rest.note = rest.note ?? legacy;
-    return rest as DiagramNode;
-  });
-
-  const remaps = new Map<string, Map<string, string>>();
-  const nodes = renamed.map((n) => {
-    if (n.kind === 'function' && n.subgraph?.boundary && !n.subgraph.nodes.some((x) => x.kind === 'input' || x.kind === 'output')) {
-      const m = new Map<string, string>();
-      n.subgraph.boundary.forEach((b) => m.set(b.pin.id, (b.pin.direction === 'in' ? FN_IN_PREFIX : FN_OUT_PREFIX) + b.pin.id));
-      remaps.set(n.id, m);
-      return normalizeFunction(n);
-    }
-    return n;
-  });
-
-  const base: Diagram = { ...d, nodes, variables: d.variables ?? [], types: d.types ?? [] };
-  if (!remaps.size) return base;
-  const edges = d.edges.map((e) => {
-    const sm = remaps.get(e.source.node);
-    const tm = remaps.get(e.target.node);
-    return {
-      ...e,
-      source: sm?.has(e.source.pin) ? { ...e.source, pin: sm.get(e.source.pin)! } : e.source,
-      target: tm?.has(e.target.pin) ? { ...e.target, pin: tm.get(e.target.pin)! } : e.target,
-    };
-  });
-  return { ...base, edges };
 }
 
 // ── Diagram <-> React Flow mappers ──────────────────────────────────────
@@ -383,14 +347,23 @@ function Canvas({
   // Compile the graph to its runnable workflow .js (exec wires → order, data
   // wires → bindings). Writes ONLY the studio's core copy — nothing outside the
   // studio root changes until Publish. Only from the root.
+  const [diagnostics, setDiagnostics] = useState<Diagnostic[]>([]);
+
   const compileCore = useCallback(async (): Promise<string | null> => {
     if (nested) return null;
     const diagram = serialize();
     if (!diagram.projectId || !diagram.id) return null;
+    const { code, diagnostics: diags } = compileChecked(diagram);
+    setDiagnostics(diags);
+    const errors = diags.filter((d) => d.severity === 'error').length;
+    if (errors) {
+      showToast(`Compile blocked: ${errors} error${errors > 1 ? 's' : ''} — see diagnostics`);
+      return null;
+    }
     // Persist the diagram first so the saved graph matches the output.
     await persistence.saveNow();
-    return compileWorkflow(diagram.projectId, diagram.id, compile(diagram));
-  }, [nested, serialize, persistence]);
+    return compileWorkflow(diagram.projectId, diagram.id, code);
+  }, [nested, serialize, persistence, showToast]);
 
   const compileOnly = useCallback(async () => {
     try {
@@ -400,6 +373,63 @@ function Canvas({
       showToast(`Compile failed: ${err instanceof Error ? err.message : String(err)}`);
     }
   }, [compileCore, showToast]);
+
+  // Single selection source. MUST be referentially stable and must bail out
+  // when nothing changed: React Flow's SelectionListener re-fires when the
+  // handler identity changes, so an inline handler that always sets fresh
+  // state objects loops the render forever.
+  const onSelectionChange = useCallback(
+    ({ nodes: selNodes, edges: selEdges }: { nodes: Node[]; edges: Edge[] }) => {
+      const comments = selNodes.filter(isComment).map((n) => n.id);
+      const plain = selNodes.filter((n) => !isComment(n)).map((n) => n.id);
+      const edgeIds = selEdges.map((e) => e.id);
+      setRfSelection((cur) =>
+        cur.nodes.join('\n') === plain.join('\n') &&
+        cur.comments.join('\n') === comments.join('\n') &&
+        cur.edges.join('\n') === edgeIds.join('\n')
+          ? cur
+          : { nodes: plain, comments, edges: edgeIds },
+      );
+      const total = plain.length + comments.length + edgeIds.length;
+      if (total === 1) {
+        // exactly one canvas item → focus the details panel on it
+        const next = plain.length
+          ? { kind: 'node' as const, id: plain[0] }
+          : comments.length
+            ? { kind: 'comment' as const, id: comments[0] }
+            : { kind: 'edge' as const, id: edgeIds[0] };
+        setSel((cur) => (cur && cur.kind === next.kind && cur.id === next.id ? cur : next));
+      } else {
+        // multi or none: close the panel, but never clobber a panel-driven
+        // variable/struct selection (those aren't canvas elements)
+        setSel((cur) => (cur === null || cur.kind === 'variable' || cur.kind === 'struct' ? cur : null));
+      }
+    },
+    [],
+  );
+
+  // Node badge map: worst severity per node, for the canvas overlay.
+  const nodeDiagMap = useMemo(() => {
+    const m = new Map<string, NodeSeverity>();
+    for (const d of diagnostics) {
+      for (const id of d.nodeIds) {
+        if (d.severity === 'error' || !m.has(id)) m.set(id, d.severity);
+      }
+    }
+    return m;
+  }, [diagnostics]);
+
+  const focusDiagnostic = useCallback(
+    (d: Diagnostic) => {
+      const id = d.nodeIds.find((nid) => nodes.some((n) => n.id === nid));
+      if (!id) return; // not in this view (e.g. inside a collapsed function)
+      // Drive the selection through React Flow so onSelectionChange (the single
+      // selection source) opens the panel and keeps everything consistent.
+      setNodes((nds) => nds.map((n) => (n.selected !== (n.id === id) ? { ...n, selected: n.id === id } : n)));
+      fitView({ nodes: [{ id }], duration: 300, maxZoom: 1.2 });
+    },
+    [nodes, setNodes, fitView],
+  );
 
   // Publish = save + compile + promote to the export target, so the published
   // file can never be stale. The server confines the target to the project dir.
@@ -414,7 +444,8 @@ function Canvas({
     const diagram = serialize();
     if (!diagram.projectId || !diagram.id) return;
     try {
-      await compileCore();
+      const core = await compileCore();
+      if (!core) return; // compile errors block publish (toast already shown)
       const written = await publishWorkflow(diagram.projectId, diagram.id, target);
       showToast(`Published → ${written}`);
     } catch (err) {
@@ -1005,6 +1036,7 @@ function Canvas({
 
       <div className="canvas-wrap">
         <ConnectedContext.Provider value={connected}>
+        <DiagnosticsContext.Provider value={nodeDiagMap}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -1017,23 +1049,7 @@ function Canvas({
           isValidConnection={isValid}
           deleteKeyCode={null}
           onNodeDoubleClick={(_, n) => enterFunction(n)}
-          onSelectionChange={({ nodes: selNodes, edges: selEdges }) => {
-            const comments = selNodes.filter(isComment).map((n) => n.id);
-            const plain = selNodes.filter((n) => !isComment(n)).map((n) => n.id);
-            const edgeIds = selEdges.map((e) => e.id);
-            setRfSelection({ nodes: plain, comments, edges: edgeIds });
-            const total = plain.length + comments.length + edgeIds.length;
-            if (total === 1) {
-              // exactly one canvas item → focus the details panel on it
-              if (plain.length) setSel({ kind: 'node', id: plain[0] });
-              else if (comments.length) setSel({ kind: 'comment', id: comments[0] });
-              else setSel({ kind: 'edge', id: edgeIds[0] });
-            } else {
-              // multi or none: close the panel, but never clobber a panel-driven
-              // variable/struct selection (those aren't canvas elements)
-              setSel((cur) => (cur && (cur.kind === 'variable' || cur.kind === 'struct') ? cur : null));
-            }
-          }}
+          onSelectionChange={onSelectionChange}
           onPaneClick={() => {
             if (suppressPaneClick.current) {
               suppressPaneClick.current = false;
@@ -1049,6 +1065,7 @@ function Canvas({
           <Controls />
           <MiniMap pannable zoomable />
         </ReactFlow>
+        </DiagnosticsContext.Provider>
         </ConnectedContext.Provider>
 
         {palette ? (
@@ -1064,6 +1081,25 @@ function Canvas({
         ) : null}
 
         {toast ? <div className="toast">{toast}</div> : null}
+
+        {diagnostics.length ? (
+          <div className="diag-panel">
+            <div className="diag-panel__head">
+              <span>Compile diagnostics</span>
+              <button className="icon-btn" title="Dismiss" onClick={() => setDiagnostics([])}>
+                ✕
+              </button>
+            </div>
+            <div className="diag-panel__list">
+              {diagnostics.map((d, i) => (
+                <button key={i} className={`diag-item diag-item--${d.severity}`} onClick={() => focusDiagnostic(d)}>
+                  <span className="diag-item__sev">{d.severity === 'error' ? '⛔' : '⚠'}</span>
+                  <span className="diag-item__msg">{d.message}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {conflict ? (
           <div className="conflict-bar">

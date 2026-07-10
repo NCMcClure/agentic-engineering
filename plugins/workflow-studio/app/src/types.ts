@@ -225,6 +225,26 @@ export interface SubGraph {
   boundary?: Array<{ pin: Pin; inner: PinRef }>;
 }
 
+// ── Compile diagnostics ────────────────────────────────────────────────────
+
+/** A finding from compileChecked. Errors mean the emitted code is wrong or
+ *  broken for this graph (compile/publish should be blocked); warnings mean
+ *  the emission is a documented approximation the author should know about. */
+export interface Diagnostic {
+  severity: 'error' | 'warning';
+  code:
+    | 'diamond-join'
+    | 'multi-exit-loop'
+    | 'double-loop-header'
+    | 'data-cycle'
+    | 'bad-identifier'
+    | 'ident-collision'
+    | 'approx-node';
+  message: string;
+  /** the offending nodes, when the finding is node-anchored (else empty) */
+  nodeIds: string[];
+}
+
 // ── Studio: projects & workflows ───────────────────────────────────────────
 
 /** A studio project — a named folder on disk that holds many workflows. */

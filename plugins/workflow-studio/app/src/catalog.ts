@@ -406,7 +406,15 @@ export const CATALOG: Record<string, NodeDef> = {
     size: { w: 170, h: 64 }, blurb: 'Read a named field from an object/struct value (e.g. args.root).',
     pins: [dIn('object', 'Object', 'any'), dOut('value', 'value', 'any')],
     derivePins: (node) => [dIn('object', 'Object', 'any'), dOut('value', String(node.data?.field ?? 'field'), 'any')],
-    codegen: { emit: () => [], outExpr: (ctx) => `(${ctx.dataIn('object')}).${String(ctx.node.data?.field ?? 'field')}` },
+    codegen: {
+      emit: () => [],
+      // Bracket-index any field that isn't a clean identifier ("foo-bar", "2x").
+      outExpr: (ctx) => {
+        const f = String(ctx.node.data?.field ?? 'field');
+        const obj = `(${ctx.dataIn('object')})`;
+        return /^[A-Za-z_$][A-Za-z0-9_$]*$/.test(f) ? `${obj}.${f}` : `${obj}[${JSON.stringify(f)}]`;
+      },
+    },
   },
   function: {
     kind: 'function', category: 'util', tag: 'fn', accentVar: '--accent-function',
