@@ -20,8 +20,10 @@ import { nodeTypes } from './nodes';
 import { nodeOf, type WfNodeData } from './nodes/BaseNode';
 import { ConnectedContext } from './connected';
 import { layout } from './layout';
-import { saveWorkflow, compileWorkflow, publishWorkflow, loadWorkflow } from './api';
-import { compile } from './codegen';
+import { compileWorkflow, publishWorkflow, loadWorkflow } from './api';
+import { compile, stableStringify } from './codegen';
+import { usePersistence } from './hooks/usePersistence';
+import { useHistory, type HistorySnapshot } from './hooks/useHistory';
 import { Palette, type PaletteItem } from './Palette';
 import { DetailsPanel, type DetailsHandlers, type Selection } from './DetailsPanel';
 import { VariablesPanel } from './VariablesPanel';
@@ -157,14 +159,15 @@ function Canvas({
   initial,
   project,
   workflows,
-  markSaving,
+  onExternalReload,
   onBack,
   onSwitch,
 }: {
   initial: Diagram;
   project: Project;
   workflows: WorkflowSummary[];
-  markSaving: () => void;
+  /** discard editor state and reload the diagram from disk (App remounts us) */
+  onExternalReload: () => void;
   onBack: () => void;
   onSwitch: (wf: WorkflowSummary) => void;
 }) {
@@ -176,11 +179,19 @@ function Canvas({
   const [edges, setEdges, onEdgesChange] = useEdgesState(
     initial.edges.map((e) => toRFEdge(e, initial.nodes)),
   );
-  // Unified single-selection: a {kind, id} ref resolved against live state into a
-  // Selection for the details panel. `selectedIds` (multi) stays separate.
+  // Selection: React Flow's onSelectionChange is the single source for canvas
+  // elements (rfSelection mirrors it); `sel` is the details-panel focus, derived
+  // from rfSelection when exactly one canvas item is selected, and panel-driven
+  // for variables/structs (which aren't canvas elements).
   const [sel, setSel] = useState<{ kind: Selection['kind']; id: string } | null>(null);
   const selectedNodeId = sel?.kind === 'node' ? sel.id : null;
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [rfSelection, setRfSelection] = useState<{ nodes: string[]; comments: string[]; edges: string[] }>({
+    nodes: [],
+    comments: [],
+    edges: [],
+  });
+  const selectedIds = rfSelection.nodes; // non-comment node ids (Group/Collapse)
+  const [conflict, setConflict] = useState(false);
   const [variables, setVariables] = useState<Variable[]>(initial.variables);
   const [types, setTypes] = useState<StructDef[]>(initial.types);
   const [exportPath, setExportPath] = useState<string>(initial.exportPath ?? '');
@@ -200,6 +211,12 @@ function Canvas({
   // browser then fires a pane `click` that would close it. This one-shot guard
   // lets the palette survive that trailing click.
   const suppressPaneClick = useRef(false);
+  // True while a node/frame drag is in flight — the state-watch effect skips
+  // scheduling saves per pixel and fires once on the settled position.
+  const dragging = useRef(false);
+  // Entering/exiting a subgraph rewrites nodes/edges without user edits; skip
+  // that one state-watch tick so it isn't miscounted as a nested edit.
+  const skipNextChange = useRef(false);
 
   // Resolve the selection ref into a live Selection for the details panel.
   const selection = useMemo<Selection | null>(() => {
@@ -279,17 +296,89 @@ function Canvas({
     toastTimer.current = window.setTimeout(() => setToast(null), 3200);
   }, []);
 
-  const save = useCallback(
-    async (announce = false) => {
-      if (nested) return; // editing a subgraph — persisted into its function on exit
-      const diagram = serialize();
-      if (!diagram.projectId || !diagram.id) return;
-      markSaving();
-      await saveWorkflow(diagram.projectId, diagram.id, diagram);
+  const persistence = usePersistence({
+    serialize,
+    enabled: Boolean(initial.projectId && initial.id),
+    nested,
+    onSaved: (announce) => {
       if (announce) showToast('Saved');
     },
-    [nested, markSaving, serialize, showToast],
+  });
+
+  const restoreSnapshot = useCallback(
+    (s: HistorySnapshot) => {
+      setNodes(s.nodes);
+      setEdges(s.edges);
+      setVariables(s.variables);
+      setTypes(s.types);
+      setSel(null);
+      setRfSelection({ nodes: [], comments: [], edges: [] });
+    },
+    [setNodes, setEdges],
   );
+  const history = useHistory({ restore: restoreSnapshot });
+
+  // Coalesce history commits so DetailsPanel typing lands as one entry; flushed
+  // before undo/redo so a quick Ctrl+Z never skips the freshest state.
+  const pendingCommit = useRef<{ key: string; snap: HistorySnapshot } | null>(null);
+  const commitTimer = useRef<number | null>(null);
+  const flushHistory = useCallback(() => {
+    if (commitTimer.current) {
+      window.clearTimeout(commitTimer.current);
+      commitTimer.current = null;
+    }
+    if (pendingCommit.current) {
+      history.commit(pendingCommit.current.key, pendingCommit.current.snap);
+      pendingCommit.current = null;
+    }
+  }, [history]);
+
+  // The single state-watch seam: every mutation of the graph state flows
+  // through here — dirty tracking + debounced autosave (usePersistence) and
+  // history commits. Mid-drag ticks don't schedule; a subgraph-nav tick seeds
+  // the new view's history baseline but never counts as an edit.
+  const histSeeded = useRef(false);
+  useEffect(() => {
+    const navTick = skipNextChange.current;
+    skipNextChange.current = false;
+    const settled = !dragging.current;
+    if (!navTick) persistence.noteChange(settled);
+    if (!settled) return;
+    const snap: HistorySnapshot = { nodes, edges, variables, types };
+    const key = stableStringify(serialize());
+    if (!histSeeded.current) {
+      histSeeded.current = true;
+      history.commit(key, snap); // view baseline: the floor undo returns to
+      return;
+    }
+    if (navTick) return;
+    pendingCommit.current = { key, snap };
+    if (commitTimer.current) window.clearTimeout(commitTimer.current);
+    commitTimer.current = window.setTimeout(flushHistory, 500);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, edges, variables, types, exportPath]);
+
+  // Live sync: when this workflow's diagram.json changes on disk, fetch it and
+  // compare canonically — our own write is ignored (echo), a clean editor
+  // reloads, a dirty editor gets an explicit conflict choice.
+  useEffect(() => {
+    if (!import.meta.hot) return;
+    const handler = async (data: { projectId: string; workflowId: string }) => {
+      if (data.projectId !== initial.projectId || data.workflowId !== initial.id) return;
+      try {
+        const disk = await loadWorkflow(initial.projectId!, initial.id!);
+        if (persistence.isEcho(disk)) return;
+      } catch {
+        // unreadable/deleted on disk — fall through to the explicit paths below
+      }
+      if (persistence.dirty || persistence.saving) setConflict(true);
+      else onExternalReload();
+    };
+    import.meta.hot.on('studio:changed', handler);
+    return () => {
+      import.meta.hot?.off('studio:changed', handler);
+    };
+  }, [initial.projectId, initial.id, persistence, onExternalReload]);
 
   // Compile the graph to its runnable workflow .js (exec wires → order, data
   // wires → bindings). Writes ONLY the studio's core copy — nothing outside the
@@ -298,11 +387,10 @@ function Canvas({
     if (nested) return null;
     const diagram = serialize();
     if (!diagram.projectId || !diagram.id) return null;
-    markSaving();
     // Persist the diagram first so the saved graph matches the output.
-    await saveWorkflow(diagram.projectId, diagram.id, diagram);
+    await persistence.saveNow();
     return compileWorkflow(diagram.projectId, diagram.id, compile(diagram));
-  }, [nested, serialize, markSaving]);
+  }, [nested, serialize, persistence]);
 
   const compileOnly = useCallback(async () => {
     try {
@@ -334,10 +422,13 @@ function Canvas({
     }
   }, [nested, exportPath, serialize, compileCore, showToast]);
 
-  // Persist only when a drag completes — not on every pixel, and never on load.
+  // Track drag state for the state-watch effect (save on settle, not per pixel).
   // Dragging a comment frame translates its member nodes with it.
   const handleNodesChange = useCallback(
     (changes: NodeChange[]) => {
+      for (const c of changes) {
+        if (c.type === 'position') dragging.current = c.dragging === true;
+      }
       onNodesChange(changes);
       const shifts: Array<{ members: string[]; dx: number; dy: number }> = [];
       for (const c of changes) {
@@ -364,9 +455,8 @@ function Canvas({
           }),
         );
       }
-      if (changes.some((c) => c.type === 'position' && c.dragging === false)) void save();
     },
-    [nodes, onNodesChange, setNodes, save],
+    [nodes, onNodesChange, setNodes],
   );
 
   const isValid = useCallback((c: Connection | Edge) => canConnect(c, diagramNodesOf(nodes)), [nodes]);
@@ -516,26 +606,80 @@ function Canvas({
     setSel({ kind: 'node', id: node.id });
   }, [addKind, setNodes]);
 
-  // Delete the selected node (+ its edges), or the selected edge, or comment.
+  // Delete everything selected on the canvas (multi-select aware): edges,
+  // nodes + their incident edges, comment frames (clearing membership). Falls
+  // back to the panel focus; variables/structs delete from their panel only.
   const deleteSelected = useCallback(() => {
-    if (!sel) return;
-    const id = sel.id;
-    if (sel.kind === 'edge') {
-      setEdges((eds) => eds.filter((e) => e.id !== id));
-    } else if (sel.kind === 'node' || sel.kind === 'comment') {
-      setEdges((eds) => eds.filter((e) => e.source !== id && e.target !== id));
-      setNodes((nds) => nds.filter((n) => n.id !== id));
-    } else {
-      return;
+    const nodeIds = new Set([...rfSelection.nodes, ...rfSelection.comments]);
+    const edgeIds = new Set(rfSelection.edges);
+    if (!nodeIds.size && !edgeIds.size && sel) {
+      if (sel.kind === 'node' || sel.kind === 'comment') nodeIds.add(sel.id);
+      else if (sel.kind === 'edge') edgeIds.add(sel.id);
     }
+    if (!nodeIds.size && !edgeIds.size) return;
+    setEdges((eds) => eds.filter((e) => !edgeIds.has(e.id) && !nodeIds.has(e.source) && !nodeIds.has(e.target)));
+    setNodes((nds) =>
+      nds
+        .filter((n) => !nodeIds.has(n.id))
+        .map((n) => {
+          if (isComment(n)) return n;
+          const dn = nodeOf(n.data);
+          return dn.group && nodeIds.has(dn.group)
+            ? { ...n, data: { node: { ...dn, group: undefined } } as WfNodeData }
+            : n;
+        }),
+    );
     setSel(null);
-  }, [sel, setNodes, setEdges]);
+    setRfSelection({ nodes: [], comments: [], edges: [] });
+  }, [rfSelection, sel, setNodes, setEdges]);
+
+  const hasCanvasSelection =
+    rfSelection.nodes.length > 0 ||
+    rfSelection.comments.length > 0 ||
+    rfSelection.edges.length > 0 ||
+    (sel !== null && (sel.kind === 'node' || sel.kind === 'comment' || sel.kind === 'edge'));
+
+  // Flush the pending (debounced) commit first so a quick Ctrl+Z after an edit
+  // undoes that edit, not the one before it.
+  const undoAction = useCallback(() => {
+    flushHistory();
+    history.undo();
+  }, [flushHistory, history]);
+  const redoAction = useCallback(() => {
+    flushHistory();
+    history.redo();
+  }, [flushHistory, history]);
+
+  // Editor keyboard shortcuts. React Flow's native Backspace delete is disabled
+  // (deleteKeyCode={null}) so deletion has exactly one path: deleteSelected.
+  useEffect(() => {
+    const isEditable = (t: EventTarget | null) => {
+      if (!(t instanceof HTMLElement)) return false;
+      return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable;
+    };
+    const handler = (e: KeyboardEvent) => {
+      if (isEditable(e.target)) return;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redoAction();
+        else undoAction();
+      } else if (mod && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redoAction();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        e.preventDefault();
+        deleteSelected();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undoAction, redoAction, deleteSelected]);
 
   const autoArrange = useCallback(() => {
     setNodes((nds) => layout(nds, edges));
     window.requestAnimationFrame(() => fitView({ duration: 300 }));
-    void save();
-  }, [edges, setNodes, fitView, save]);
+  }, [edges, setNodes, fitView]);
 
   // Wrap the current selection in a comment frame; members carry its id so the
   // frame drags them along.
@@ -561,8 +705,7 @@ function Canvas({
       };
       return [frame, ...withGroup];
     });
-    void save();
-  }, [nodes, selectedIds, setNodes, save]);
+  }, [nodes, selectedIds, setNodes]);
 
   // Collapse the selection into a single function node with derived boundary pins.
   const collapseSelection = useCallback(() => {
@@ -577,9 +720,8 @@ function Canvas({
     );
     setEdges((eds) => eds.filter((e) => !res.droppedIds.includes(e.id)).concat(res.rewired.map((e) => toRFEdge(e, lookup))));
     setSel({ kind: 'node', id: res.fn.id });
-    setSelectedIds([res.fn.id]);
-    void save();
-  }, [nodes, edges, selectedIds, setNodes, setEdges, save]);
+    setRfSelection({ nodes: [res.fn.id], comments: [], edges: [] });
+  }, [nodes, edges, selectedIds, setNodes, setEdges]);
 
   // Double-click a function node → descend into its subgraph (parent snapshotted).
   const enterFunction = useCallback(
@@ -589,12 +731,15 @@ function Canvas({
       if (fn.kind !== 'function' || !fn.subgraph) return;
       viewStack.current.push({ fnId: n.id, label: fn.label, nodes, edges });
       setBreadcrumb(viewStack.current.map((v) => v.label));
+      skipNextChange.current = true; // a view swap, not an edit
+      history.reset(); // history is per-view
+      histSeeded.current = false;
       setNodes(diagramNodesToRF(fn.subgraph.nodes));
       setEdges(fn.subgraph.edges.map((e) => toRFEdge(e, fn.subgraph!.nodes)));
       setSel(null);
       window.requestAnimationFrame(() => fitView({ duration: 300 }));
     },
-    [nodes, edges, setNodes, setEdges, fitView],
+    [nodes, edges, setNodes, setEdges, fitView, history],
   );
 
   // Pop one level, writing the edited subgraph back into its function node.
@@ -610,25 +755,37 @@ function Canvas({
       return { ...n, data: { node: { ...fn, subgraph: { ...sg, nodes: subNodes, edges: subEdges } } } as WfNodeData };
     });
     setBreadcrumb(viewStack.current.map((v) => v.label));
+    history.reset(); // back to the parent view's (fresh) history
+    histSeeded.current = false;
+    persistence.clearNestedEdited(); // sub-edits are now in the root state
     setNodes(parentNodes);
     setEdges(frame.edges);
     setSel(null);
     window.requestAnimationFrame(() => fitView({ duration: 300 }));
-  }, [nodes, edges, setNodes, setEdges, fitView]);
+  }, [nodes, edges, setNodes, setEdges, fitView, history, persistence]);
 
-  // Apply an arbitrary update to the selected node's DiagramNode.
+  // Apply an arbitrary update to the selected node's DiagramNode, then prune
+  // edges whose pins no longer exist (kind change, variadic count lowered,
+  // function I/O pin removed) so no dangling wires survive.
   const mutateSelected = useCallback(
     (fn: (node: DiagramNode) => DiagramNode) => {
       if (!selectedNodeId) return;
+      const cur = nodes.find((n) => n.id === selectedNodeId && !isComment(n));
+      if (!cur) return;
+      const next = fn(nodeOf(cur.data));
       setNodes((nds) =>
-        nds.map((n) => {
-          if (n.id !== selectedNodeId || isComment(n)) return n;
-          const next = fn(nodeOf(n.data));
-          return { ...n, type: next.kind, data: { node: next } as WfNodeData };
-        }),
+        nds.map((n) => (n.id === selectedNodeId && !isComment(n) ? { ...n, type: next.kind, data: { node: next } as WfNodeData } : n)),
+      );
+      const valid = new Set(pinsOf(next).map((p) => p.id));
+      setEdges((eds) =>
+        eds.filter(
+          (e) =>
+            (e.source !== selectedNodeId || (e.sourceHandle != null && valid.has(e.sourceHandle))) &&
+            (e.target !== selectedNodeId || (e.targetHandle != null && valid.has(e.targetHandle))),
+        ),
       );
     },
-    [selectedNodeId, setNodes],
+    [selectedNodeId, nodes, setNodes, setEdges],
   );
 
   const patchSelected = useCallback(
@@ -730,9 +887,9 @@ function Canvas({
       onDeleteStruct: deleteStruct,
       onPatchEdge: patchEdge,
       onPatchComment: patchComment,
-      onSave: () => void save(true),
+      onSave: () => void persistence.saveNow(true),
     }),
-    [types, connected, patchSelected, patchData, patchPinDefault, patchVariable, deleteVariable, patchStruct, deleteStruct, patchEdge, patchComment, save],
+    [types, connected, patchSelected, patchData, patchPinDefault, patchVariable, deleteVariable, patchStruct, deleteStruct, patchEdge, patchComment, persistence],
   );
 
   const addVariable = useCallback(() => {
@@ -766,10 +923,17 @@ function Canvas({
         <button className="btn" onClick={addNode}>
           + Add
         </button>
+        <button className="btn" onClick={undoAction} disabled={!history.canUndo} title="Undo (Ctrl+Z)">
+          ↩ Undo
+        </button>
+        <button className="btn" onClick={redoAction} disabled={!history.canRedo} title="Redo (Ctrl+Shift+Z / Ctrl+Y)">
+          ↪ Redo
+        </button>
         <button
           className="btn btn--danger"
           onClick={deleteSelected}
-          disabled={!sel || sel.kind === 'variable' || sel.kind === 'struct'}
+          disabled={!hasCanvasSelection}
+          title="Delete selection (Del / Backspace)"
         >
           Delete
         </button>
@@ -818,9 +982,25 @@ function Canvas({
         >
           Publish ↑
         </button>
-        <button className="btn btn--accent" onClick={() => void save(true)} disabled={nested}>
+        <button className="btn btn--accent" onClick={() => void persistence.saveNow(true)} disabled={nested}>
           Save
         </button>
+        {persistence.lastError ? (
+          <button
+            className="save-status save-status--error"
+            onClick={() => void persistence.saveNow()}
+            title={`${persistence.lastError} — click to retry`}
+          >
+            ⚠ Save failed — retry
+          </button>
+        ) : (
+          <span
+            className={`save-status${persistence.dirty || persistence.saving ? ' save-status--dirty' : ''}`}
+            title={persistence.saving ? 'Writing to disk…' : persistence.dirty ? 'Unsaved changes (autosaves shortly)' : 'All changes saved'}
+          >
+            {persistence.saving ? 'Saving…' : persistence.dirty ? '● Unsaved' : '✓ Saved'}
+          </span>
+        )}
       </header>
 
       <div className="canvas-wrap">
@@ -835,10 +1015,25 @@ function Canvas({
           onConnectEnd={onConnectEnd}
           onPaneContextMenu={onPaneContextMenu}
           isValidConnection={isValid}
-          onNodeClick={(_, n) => setSel(isComment(n) ? { kind: 'comment', id: n.id } : { kind: 'node', id: n.id })}
+          deleteKeyCode={null}
           onNodeDoubleClick={(_, n) => enterFunction(n)}
-          onEdgeClick={(_, e) => setSel({ kind: 'edge', id: e.id })}
-          onSelectionChange={({ nodes: selNodes }) => setSelectedIds(selNodes.filter((n) => !isComment(n)).map((n) => n.id))}
+          onSelectionChange={({ nodes: selNodes, edges: selEdges }) => {
+            const comments = selNodes.filter(isComment).map((n) => n.id);
+            const plain = selNodes.filter((n) => !isComment(n)).map((n) => n.id);
+            const edgeIds = selEdges.map((e) => e.id);
+            setRfSelection({ nodes: plain, comments, edges: edgeIds });
+            const total = plain.length + comments.length + edgeIds.length;
+            if (total === 1) {
+              // exactly one canvas item → focus the details panel on it
+              if (plain.length) setSel({ kind: 'node', id: plain[0] });
+              else if (comments.length) setSel({ kind: 'comment', id: comments[0] });
+              else setSel({ kind: 'edge', id: edgeIds[0] });
+            } else {
+              // multi or none: close the panel, but never clobber a panel-driven
+              // variable/struct selection (those aren't canvas elements)
+              setSel((cur) => (cur && (cur.kind === 'variable' || cur.kind === 'struct') ? cur : null));
+            }
+          }}
           onPaneClick={() => {
             if (suppressPaneClick.current) {
               suppressPaneClick.current = false;
@@ -870,6 +1065,32 @@ function Canvas({
 
         {toast ? <div className="toast">{toast}</div> : null}
 
+        {conflict ? (
+          <div className="conflict-bar">
+            <span className="conflict-bar__msg">
+              This workflow changed on disk while you have unsaved edits.
+            </span>
+            <button
+              className="btn"
+              onClick={() => {
+                setConflict(false);
+                onExternalReload(); // discard editor state, reload from disk
+              }}
+            >
+              Reload (discard my edits)
+            </button>
+            <button
+              className="btn btn--accent"
+              onClick={() => {
+                setConflict(false);
+                void persistence.saveNow(); // our state overwrites the disk
+              }}
+            >
+              Keep mine
+            </button>
+          </div>
+        ) : null}
+
         <VariablesPanel
           variables={variables}
           types={types}
@@ -896,9 +1117,6 @@ export default function App() {
   const [diagram, setDiagram] = useState<Diagram | null>(null);
   const [loading, setLoading] = useState(false);
   const [reloadNonce, setReloadNonce] = useState(0);
-  // Suppress the live-sync reload that our own save triggers (the watcher sees
-  // the file we just wrote). A timestamp tolerates chokidar's duplicate events.
-  const lastSaveRef = useRef(0);
 
   const projectId = activeProject?.id ?? null;
   const workflowId = activeWf?.id ?? null;
@@ -926,20 +1144,8 @@ export default function App() {
     };
   }, [projectId, workflowId, reloadNonce]);
 
-  // Live sync: refresh when the open workflow changes on disk out-of-band.
-  useEffect(() => {
-    if (!import.meta.hot) return;
-    const handler = (data: { projectId: string; workflowId: string }) => {
-      if (data.projectId !== projectId || data.workflowId !== workflowId) return;
-      if (Date.now() - lastSaveRef.current < 1500) return; // our own write
-      setReloadNonce((n) => n + 1);
-    };
-    import.meta.hot.on('studio:changed', handler);
-    return () => {
-      import.meta.hot?.off('studio:changed', handler);
-    };
-  }, [projectId, workflowId]);
-
+  // Live sync (echo detection, conflict handling) lives in Canvas, which owns
+  // the dirty state; it calls onExternalReload to remount from disk.
   const openWorkflow = useCallback((project: Project, wf: WorkflowSummary, wfList: WorkflowSummary[]) => {
     setActiveProject(project);
     setActiveWf(wf);
@@ -962,9 +1168,7 @@ export default function App() {
         initial={diagram}
         project={activeProject}
         workflows={workflows}
-        markSaving={() => {
-          lastSaveRef.current = Date.now();
-        }}
+        onExternalReload={() => setReloadNonce((n) => n + 1)}
         onBack={() => setView('launcher')}
         onSwitch={(wf) => setActiveWf(wf)}
       />

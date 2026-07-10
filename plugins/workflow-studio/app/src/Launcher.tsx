@@ -52,49 +52,66 @@ export function Launcher({
     else setWorkflows([]);
   }, [selectedId, refreshWorkflows]);
 
-  // ── project actions ──────────────────────────────────────────────────
-  const onNewProject = async () => {
-    const name = window.prompt('New project name:')?.trim();
-    if (!name) return;
-    const p = await createProject(name);
-    await refreshProjects();
-    setSelectedId(p.id);
-  };
-  const onRenameProject = async (p: Project) => {
-    const name = window.prompt('Rename project:', p.name)?.trim();
-    if (!name || name === p.name) return;
-    await renameProject(p.id, name);
-    await refreshProjects();
-  };
-  const onDeleteProject = async (p: Project) => {
-    if (!window.confirm(`Delete project "${p.name}" and all its workflows? This cannot be undone.`)) return;
-    await deleteProject(p.id);
-    setSelectedId(null);
-    await refreshProjects();
+  // Every mutation reports failure into the error banner instead of vanishing
+  // into an unhandled rejection.
+  const guarded = async (fn: () => Promise<void>) => {
+    try {
+      await fn();
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
   };
 
+  // ── project actions ──────────────────────────────────────────────────
+  const onNewProject = () =>
+    guarded(async () => {
+      const name = window.prompt('New project name:')?.trim();
+      if (!name) return;
+      const p = await createProject(name);
+      await refreshProjects();
+      setSelectedId(p.id);
+    });
+  const onRenameProject = (p: Project) =>
+    guarded(async () => {
+      const name = window.prompt('Rename project:', p.name)?.trim();
+      if (!name || name === p.name) return;
+      await renameProject(p.id, name);
+      await refreshProjects();
+    });
+  const onDeleteProject = (p: Project) =>
+    guarded(async () => {
+      if (!window.confirm(`Delete project "${p.name}" and all its workflows? This cannot be undone.`)) return;
+      await deleteProject(p.id);
+      setSelectedId(null);
+      await refreshProjects();
+    });
+
   // ── workflow actions ─────────────────────────────────────────────────
-  const onNewWorkflow = async () => {
-    if (!selected) return;
-    const name = window.prompt('New workflow name:')?.trim();
-    if (!name) return;
-    const wf = await createWorkflow(selected.id, name);
-    await refreshWorkflows(selected.id);
-    onOpen(selected, wf, await listWorkflows(selected.id));
-  };
-  const onRenameWorkflow = async (wf: WorkflowSummary) => {
-    if (!selected) return;
-    const name = window.prompt('Rename workflow:', wf.name)?.trim();
-    if (!name || name === wf.name) return;
-    await renameWorkflow(selected.id, wf.id, name);
-    await refreshWorkflows(selected.id);
-  };
-  const onDeleteWorkflow = async (wf: WorkflowSummary) => {
-    if (!selected) return;
-    if (!window.confirm(`Delete workflow "${wf.name}"? This cannot be undone.`)) return;
-    await deleteWorkflow(selected.id, wf.id);
-    await refreshWorkflows(selected.id);
-  };
+  const onNewWorkflow = () =>
+    guarded(async () => {
+      if (!selected) return;
+      const name = window.prompt('New workflow name:')?.trim();
+      if (!name) return;
+      const wf = await createWorkflow(selected.id, name);
+      await refreshWorkflows(selected.id);
+      onOpen(selected, wf, await listWorkflows(selected.id));
+    });
+  const onRenameWorkflow = (wf: WorkflowSummary) =>
+    guarded(async () => {
+      if (!selected) return;
+      const name = window.prompt('Rename workflow:', wf.name)?.trim();
+      if (!name || name === wf.name) return;
+      await renameWorkflow(selected.id, wf.id, name);
+      await refreshWorkflows(selected.id);
+    });
+  const onDeleteWorkflow = (wf: WorkflowSummary) =>
+    guarded(async () => {
+      if (!selected) return;
+      if (!window.confirm(`Delete workflow "${wf.name}"? This cannot be undone.`)) return;
+      await deleteWorkflow(selected.id, wf.id);
+      await refreshWorkflows(selected.id);
+    });
   const openWorkflow = async (wf: WorkflowSummary) => {
     if (!selected) return;
     onOpen(selected, wf, workflows);
@@ -106,7 +123,14 @@ export function Launcher({
         <h1 className="launcher__brand">Workflow Studio</h1>
       </header>
 
-      {error ? <div className="launcher__error">{error}</div> : null}
+      {error ? (
+        <div className="launcher__error">
+          {error}
+          <button className="launcher__icon-btn" title="Dismiss" onClick={() => setError(null)}>
+            ✕
+          </button>
+        </div>
+      ) : null}
 
       <div className="launcher__body">
         {/* Projects */}

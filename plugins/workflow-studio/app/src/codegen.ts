@@ -313,7 +313,9 @@ function canonical(d: Diagram): Diagram {
   };
 }
 
-function stableStringify(value: unknown): string {
+/** Deterministic JSON: object keys sorted recursively (arrays keep order).
+ *  Also the editor's canonical-string primitive for dirty/echo detection. */
+export function stableStringify(value: unknown): string {
   const seen = (v: unknown): unknown => {
     if (Array.isArray(v)) return v.map(seen);
     if (v && typeof v === 'object') {

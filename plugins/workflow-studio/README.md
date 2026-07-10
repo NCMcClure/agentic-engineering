@@ -71,6 +71,17 @@ authoring protocol was rewritten for the studio layout in 0.1.1.)
 
 ## Changelog
 
+- **0.3.0**: Data-safety release. Every mutation now autosaves (debounced;
+  config edits, adds, deletes, and connects previously never saved), with a
+  dirty/saving/failed status chip, retryable save errors, and a
+  close-tab guard. Undo/redo (Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y, capped snapshot
+  history per view) with toolbar buttons. Deletion unified into one
+  multi-select-aware path (Del/Backspace included; React Flow's native
+  Backspace bypass disabled) that clears group membership; changing a node's
+  kind or shrinking variadic pins now prunes dangling edges. Live-sync echo
+  detection is content-based (no more 1.5 s window): clean editors reload
+  external edits, dirty editors get an explicit Reload / Keep-mine conflict
+  choice. Launcher mutations surface errors in a dismissible banner.
 - **0.2.0**: Security + robustness release. The `/api` backend now rejects
   non-local Host/Origin (blocks CSRF/DNS-rebinding drive-bys), caps request
   bodies, and validates saved diagrams. Compile & Export split into **Compile**

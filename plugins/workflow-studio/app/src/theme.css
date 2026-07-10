@@ -757,6 +757,48 @@ body {
   overflow-wrap: anywhere;
 }
 
+/* ── save status chip + disk-conflict bar ────────────────────────────────── */
+
+.save-status {
+  font-size: 11.5px;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  background: none;
+}
+.save-status--dirty {
+  color: var(--fg);
+}
+.save-status--error {
+  cursor: pointer;
+  color: var(--red);
+  border-color: var(--red);
+}
+
+.conflict-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--red);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+}
+.conflict-bar__msg {
+  font-size: 12.5px;
+  color: var(--fg);
+}
+
 /* ── Studio: shared input ─────────────────────────────────────────────── */
 
 .input {
@@ -910,6 +952,10 @@ body {
   color: var(--red);
   font-size: 13px;
   font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 .launcher__body {
   flex: 1;
