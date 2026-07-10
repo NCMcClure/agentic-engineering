@@ -21,13 +21,17 @@ restarts and plugin updates.
 ## Launch procedure
 
 1. Run this exact command with the Bash tool and `run_in_background: true` —
-   the first line computes the studio root, falling back to `$HOME` when there
-   is no project directory:
+   the first lines compute the studio root and the Publish containment root,
+   falling back to `$HOME` when there is no project directory:
 
    ```bash
    STUDIO_ROOT="${CLAUDE_PROJECT_DIR:-$HOME}/.claude/workflow-studio"
-   bash "${CLAUDE_PLUGIN_ROOT}/scripts/launch-studio.sh" "${CLAUDE_PLUGIN_ROOT}" "$STUDIO_ROOT" "${CLAUDE_PLUGIN_DATA}"
+   WORKFLOW_EXPORT_ROOT="${CLAUDE_PROJECT_DIR:-$HOME}" \
+     bash "${CLAUDE_PLUGIN_ROOT}/scripts/launch-studio.sh" "${CLAUDE_PLUGIN_ROOT}" "$STUDIO_ROOT" "${CLAUDE_PLUGIN_DATA}"
    ```
+
+   If a studio is already running for this studio root, the script prints its
+   `Local:` URL and exits 0 — treat that exactly like a fresh launch.
 
 2. First run: the script copies the app into `${CLAUDE_PLUGIN_DATA}/app` and
    runs `npm ci` — expect ~30–60 seconds and note that it needs network access
@@ -40,10 +44,11 @@ restarts and plugin updates.
 
 The canonical path tree lives in the plugin README's "Storage layout" section
 (project metadata, per-workflow `diagram.json` and compiled output under the
-studio root; Publish exports to `.claude/workflows/*.js`). Two operational
-facts to act on: a live file-watcher hot-syncs on-disk `diagram.json` edits
-into the open canvas (hand-editing while the studio is open is safe), and
-nothing outside the studio root changes until the user hits Publish.
+studio root; Publish exports to `.claude/workflows/*.js`, confined to the
+project directory). Two operational facts to act on: a live file-watcher
+hot-syncs on-disk `diagram.json` edits into the open canvas (hand-editing
+while the studio is open is safe), and nothing outside the studio root changes
+until the user hits Publish — Compile only writes the studio-internal copy.
 
 ## Stopping and troubleshooting
 

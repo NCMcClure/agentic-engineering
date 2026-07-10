@@ -54,18 +54,11 @@ export const renameWorkflow = (projectId: string, workflowId: string, name: stri
 export const deleteWorkflow = (projectId: string, workflowId: string): Promise<void> =>
   post<{ ok: boolean }>('/api/workflows/delete', { projectId, workflowId }).then(() => undefined);
 
-/** Compile result: the studio core copy is always written; exportPath only when set. */
-export interface CompileResult {
-  corePath: string;
-  exportPath?: string;
-}
+/** Write the compiled workflow to the studio-internal core copy only. */
+export const compileWorkflow = (projectId: string, workflowId: string, code: string): Promise<string> =>
+  post<{ corePath: string }>('/api/compile', { projectId, workflowId, code }).then((r) => r.corePath);
 
-/** Write the compiled workflow to the studio core copy AND, if `exportPath` is
- *  set, to that target. */
-export const compileAndExport = (
-  projectId: string,
-  workflowId: string,
-  exportPath: string,
-  code: string,
-): Promise<CompileResult> =>
-  post<{ corePath: string; exportPath?: string }>('/api/compile', { projectId, workflowId, exportPath, code });
+/** Promote the core compiled copy to the export target. The server resolves
+ *  relative paths against the project dir and refuses anything outside it. */
+export const publishWorkflow = (projectId: string, workflowId: string, exportPath: string): Promise<string> =>
+  post<{ path: string }>('/api/publish', { projectId, workflowId, exportPath }).then((r) => r.path);

@@ -132,11 +132,13 @@ The canvas writes it on **Save**; it writes `compiled.js` next to it on
 **Compile**.
 
 **Compile writes INSIDE the workflow's studio directory; Publish promotes to
-the workflows root.** **Compile** writes `compiled.js` beside the graph, never
+the project.** **Compile** writes `compiled.js` beside the graph, never
 touching a hand-written workflow. When the user is ready, the **Publish ↑**
-button copies the compiled `.js` up to `.claude/workflows/<workflow>.js`
-(overwrites, with a confirm) — only the user's explicit Publish moves it to
-the root. The diagram→`.js` codegen is a faithful
+button re-compiles and copies the `.js` to the workflow's publish path
+(default `.claude/workflows/<workflow>.js`, editable in the toolbar; overwrites,
+with a confirm). The server resolves relative paths against the project dir and
+refuses any target outside it — only the user's explicit Publish writes beyond
+the studio root. The diagram→`.js` codegen is a faithful
 structural *map*, not a reconstruction (it can't recover rich prompts,
 schemas-as-objects, or helper functions from arbitrary JS); the loaded graph is
 deterministic from the compiled file's embedded sidecar.

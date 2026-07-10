@@ -20,7 +20,7 @@ import { nodeTypes } from './nodes';
 import { nodeOf, type WfNodeData } from './nodes/BaseNode';
 import { ConnectedContext } from './connected';
 import { layout } from './layout';
-import { saveWorkflow, compileAndExport, loadWorkflow } from './api';
+import { saveWorkflow, compileWorkflow, publishWorkflow, loadWorkflow } from './api';
 import { compile } from './codegen';
 import { Palette, type PaletteItem } from './Palette';
 import { DetailsPanel, type DetailsHandlers, type Selection } from './DetailsPanel';
@@ -292,20 +292,47 @@ function Canvas({
   );
 
   // Compile the graph to its runnable workflow .js (exec wires → order, data
-  // wires → bindings). Always writes the studio's core copy, and — when an
-  // export path is set — that target too. Only from the root.
-  const compileExport = useCallback(async () => {
+  // wires → bindings). Writes ONLY the studio's core copy — nothing outside the
+  // studio root changes until Publish. Only from the root.
+  const compileCore = useCallback(async (): Promise<string | null> => {
+    if (nested) return null;
+    const diagram = serialize();
+    if (!diagram.projectId || !diagram.id) return null;
+    markSaving();
+    // Persist the diagram first so the saved graph matches the output.
+    await saveWorkflow(diagram.projectId, diagram.id, diagram);
+    return compileWorkflow(diagram.projectId, diagram.id, compile(diagram));
+  }, [nested, serialize, markSaving]);
+
+  const compileOnly = useCallback(async () => {
+    try {
+      const corePath = await compileCore();
+      if (corePath) showToast(`Compiled → ${corePath}`);
+    } catch (err) {
+      showToast(`Compile failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [compileCore, showToast]);
+
+  // Publish = save + compile + promote to the export target, so the published
+  // file can never be stale. The server confines the target to the project dir.
+  const publish = useCallback(async () => {
     if (nested) return;
+    const target = exportPath.trim();
+    if (!target) {
+      showToast('Set an export path first (e.g. .claude/workflows/my-workflow.js)');
+      return;
+    }
+    if (!window.confirm(`Publish the compiled workflow to ${target}?`)) return;
     const diagram = serialize();
     if (!diagram.projectId || !diagram.id) return;
-    markSaving();
-    // Persist the diagram first so the saved export path matches the output.
-    await saveWorkflow(diagram.projectId, diagram.id, diagram);
-    const r = await compileAndExport(diagram.projectId, diagram.id, exportPath, compile(diagram));
-    showToast(
-      r.exportPath ? `Compiled → studio + ${r.exportPath}` : `Compiled → ${r.corePath} (no export path set)`,
-    );
-  }, [nested, serialize, exportPath, markSaving, showToast]);
+    try {
+      await compileCore();
+      const written = await publishWorkflow(diagram.projectId, diagram.id, target);
+      showToast(`Published → ${written}`);
+    } catch (err) {
+      showToast(`Publish failed: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }, [nested, exportPath, serialize, compileCore, showToast]);
 
   // Persist only when a drag completes — not on every pixel, and never on load.
   // Dragging a comment frame translates its member nodes with it.
@@ -764,24 +791,32 @@ function Canvas({
           </span>
         ) : null}
         <div className="toolbar__spacer" />
-        <label className="export-field" title="Compiled .js is written here in addition to the studio's core copy">
-          <span className="export-field__label">Export →</span>
+        <label className="export-field" title="Publish target, relative to the project dir (must stay inside it)">
+          <span className="export-field__label">Publish →</span>
           <input
             className="input export-field__input"
             type="text"
             value={exportPath}
-            placeholder="path/to/workflow.js"
+            placeholder={`.claude/workflows/${initial.workflow.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'workflow'}.js`}
             onChange={(e) => setExportPath(e.target.value)}
             disabled={nested}
           />
         </label>
         <button
           className="btn"
-          onClick={() => void compileExport()}
+          onClick={() => void compileOnly()}
           disabled={nested}
-          title="Compile and write to the studio copy + export path"
+          title="Compile to the studio's internal copy — writes nothing outside the studio root"
         >
-          Compile &amp; Export
+          Compile
+        </button>
+        <button
+          className="btn"
+          onClick={() => void publish()}
+          disabled={nested}
+          title="Save, compile, and write the result to the publish path (confined to the project dir)"
+        >
+          Publish ↑
         </button>
         <button className="btn btn--accent" onClick={() => void save(true)} disabled={nested}>
           Save

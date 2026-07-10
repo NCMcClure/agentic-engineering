@@ -38,9 +38,14 @@ Workflow projects persist under the current project's
         compiled.js                       # compiled output
 ```
 
-Compiled workflows export to `.claude/workflows/*.js`, where Claude Code runs
-them. A live file-watcher syncs on-disk `diagram.json` edits into an open
-canvas, so hand edits and the GUI coexist peacefully.
+**Compile** writes only the studio-internal `compiled.js`; **Publish** promotes
+it to the workflow's publish path (default `.claude/workflows/<workflow>.js`,
+where Claude Code runs it), confirmed first and confined to the project
+directory — the server rejects any target outside it. A live file-watcher syncs
+on-disk `diagram.json` edits into an open canvas, so hand edits and the GUI
+coexist peacefully. A `.studio.lock` under the studio root lets the launcher
+detect an already-running instance and hand back its URL instead of starting a
+second one.
 
 ## Manual fallback
 
@@ -54,22 +59,29 @@ STUDIO_ROOT=/path/to/your/.claude/workflow-studio npm run dev
 
 ## Provenance
 
-The `app/` directory is vendored from
+The `app/` directory was vendored from
 [github.com/NCMcClure/workflow-editor](https://github.com/NCMcClure/workflow-editor)
-@ `studio-overhaul`, commit `8c65333534077e44cced1bc37beb3fc937512195`.
+@ `studio-overhaul`, commit `8c65333534077e44cced1bc37beb3fc937512195`, and
+**has since diverged**: as of 0.2.0 this plugin is the primary home of the app
+code (security hardening, Publish flow, launcher lock), and upstream sync is a
+manual, by-hand merge in whichever direction is wanted — never a blind re-copy.
 
-To refresh: re-copy `src/ index.html vite.config.ts tsconfig*.json
-package.json package-lock.json LICENSE README.md .gitignore` from the source
-repo into `app/` (excluding `node_modules/`, `dist/`, `.git/`, `studio/`),
-update the commit SHA above, and bump the plugin version.
-
-**Exception: `app/docs/` is maintained in this plugin**, not re-copied: as of
-0.1.1 its authoring protocol was rewritten to match the plugin's studio layout.
-When refreshing, diff the upstream docs for genuinely new protocol content and
-fold it in by hand instead of overwriting.
+(`app/docs/` was already plugin-maintained before the divergence — its
+authoring protocol was rewritten for the studio layout in 0.1.1.)
 
 ## Changelog
 
+- **0.2.0**: Security + robustness release. The `/api` backend now rejects
+  non-local Host/Origin (blocks CSRF/DNS-rebinding drive-bys), caps request
+  bodies, and validates saved diagrams. Compile & Export split into **Compile**
+  (studio-internal only) and **Publish** (confirmed, and confined to the
+  project directory — the old endpoint could write any absolute path, and
+  resolved relative paths against the app install dir). Launcher now retries a
+  failed `npm ci` (success-stamped installs) and detects an already-running
+  studio via `.studio.lock` + `/api/health` instead of starting a duplicate.
+  Codegen guards data-wire cycles (previously infinite recursion) and memoizes
+  data-pull resolution. Docs: diagram-schema v3 headline/examples fixed,
+  provenance marked as diverged from upstream.
 - **0.1.2**: README reworded.
 - **0.1.1**: studio-root fallback now actually applied in the launch command; storage layout single-sourced in this README; AUTHORING.md de-sedimented (workspace model replaced with the studio layout, dead references/ paths fixed, stale skill notes removed); compilation routed to the studio's codegen instead of hand-emulation; trimmed skill descriptions (~219 → ~138 est passive tokens).
 - **0.1.0**: Initial release: vendored studio app (workflow-editor @

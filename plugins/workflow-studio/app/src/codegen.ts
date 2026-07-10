@@ -103,15 +103,34 @@ export function compile(diagram: Diagram): string {
       return map;
     }
 
+    // Data-pull resolution is recursive (outExpr may pull its own data-ins), so a
+    // cycle of data wires (reroute → reroute) would recurse forever, and a deep
+    // shared chain would recompute exponentially. `visiting` breaks cycles;
+    // `memo` collapses re-pulls (skipped for function outputs, whose value only
+    // exists after the function inlines).
+    const dataVisiting = new Set<string>();
+    const dataMemo = new Map<string, string>();
+
     function dataInExpr(node: DiagramNode, pinId: string): string {
-      const e = dataEdges.find((d) => d.target.node === node.id && d.target.pin === pinId);
-      if (!e) return pinOf(node, pinId)?.default ?? 'undefined';
-      const src = byId.get(e.source.node);
-      if (!src) return 'undefined';
-      if (src.kind === 'input') return inputExpr(e.source.pin);
-      if (src.kind === 'function') return funcOutVars.get(`${src.id}:${e.source.pin}`) ?? 'undefined';
-      const def = defOf(src.kind);
-      return def.codegen.outExpr ? def.codegen.outExpr(makeCtx(src), e.source.pin) : varOf(src);
+      const key = `${node.id}:${pinId}`;
+      const cached = dataMemo.get(key);
+      if (cached !== undefined) return cached;
+      if (dataVisiting.has(key)) return 'undefined /* data cycle */';
+      dataVisiting.add(key);
+      try {
+        const e = dataEdges.find((d) => d.target.node === node.id && d.target.pin === pinId);
+        if (!e) return pinOf(node, pinId)?.default ?? 'undefined';
+        const src = byId.get(e.source.node);
+        if (!src) return 'undefined';
+        if (src.kind === 'input') return inputExpr(e.source.pin);
+        if (src.kind === 'function') return funcOutVars.get(`${src.id}:${e.source.pin}`) ?? 'undefined';
+        const def = defOf(src.kind);
+        const expr = def.codegen.outExpr ? def.codegen.outExpr(makeCtx(src), e.source.pin) : varOf(src);
+        dataMemo.set(key, expr);
+        return expr;
+      } finally {
+        dataVisiting.delete(key);
+      }
     }
 
     // Follow one exec edge, honoring the innermost loop frame: a back-edge to the

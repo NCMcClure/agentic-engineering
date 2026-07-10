@@ -8,8 +8,11 @@ import {
   existsSync,
   rmSync,
   statSync,
+  realpathSync,
+  copyFileSync,
+  unlinkSync,
 } from 'node:fs';
-import { dirname, resolve, isAbsolute, join } from 'node:path';
+import { basename, dirname, resolve, isAbsolute, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 
@@ -33,12 +36,52 @@ const studioRoot = process.env.STUDIO_ROOT
   ? resolve(process.env.STUDIO_ROOT)
   : resolve(here, 'studio');
 
+/** The only directory Publish may write into. Prefer the explicit env from the
+ *  launcher (the user's project dir); otherwise derive it from the studio root
+ *  (`<project>/.claude/workflow-studio` → `<project>`), falling back to the
+ *  studio root itself. Never the app install dir. */
+function computeExportRoot(): string {
+  const env = process.env.WORKFLOW_EXPORT_ROOT;
+  let root: string;
+  if (env && env.trim()) root = resolve(env.trim());
+  else if (basename(dirname(studioRoot)) === '.claude') root = resolve(studioRoot, '../..');
+  else root = studioRoot;
+  try {
+    return realpathSync(root);
+  } catch {
+    return root;
+  }
+}
+const exportRoot = computeExportRoot();
+
 const ID_RE = /^[a-zA-Z0-9_-]+$/;
+const MAX_BODY_BYTES = 10 * 1024 * 1024;
+
+/** Local-origin gate. The dev server binds localhost, but a hostile web page can
+ *  still POST here (CSRF) or use DNS rebinding — so every /api request must carry
+ *  a local Host, and mutating requests may only carry a local Origin (absent
+ *  Origin passes: curl and agents don't send one). */
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+function isLocalHost(value: string | undefined): boolean {
+  if (!value) return false;
+  try {
+    const u = new URL(value.includes('://') ? value : `http://${value}`);
+    return LOCAL_HOSTNAMES.has(u.hostname);
+  } catch {
+    return false;
+  }
+}
 
 function readBody(req: IncomingMessage): Promise<string> {
-  return new Promise((resolveBody) => {
+  return new Promise((resolveBody, rejectBody) => {
     let body = '';
-    req.on('data', (chunk) => (body += chunk));
+    req.on('data', (chunk) => {
+      body += chunk;
+      if (body.length > MAX_BODY_BYTES) {
+        req.destroy();
+        rejectBody(new Error('request body too large'));
+      }
+    });
     req.on('end', () => resolveBody(body));
   });
 }
@@ -209,6 +252,28 @@ function studioPlugin(): Plugin {
     configureServer(server: ViteDevServer) {
       ensureSeed();
 
+      // Instance lock: record this server's port so launch-studio.sh can detect
+      // an already-running studio (via /api/health) instead of starting a second
+      // one with a duplicate watcher. Removed on close; stale locks are cleaned
+      // by the launcher when the health check fails.
+      const lockPath = join(studioRoot, '.studio.lock');
+      const removeLock = () => {
+        try {
+          unlinkSync(lockPath);
+        } catch {
+          /* already gone */
+        }
+      };
+      server.httpServer?.once('listening', () => {
+        const addr = server.httpServer?.address();
+        if (addr && typeof addr === 'object') {
+          mkdirSync(studioRoot, { recursive: true });
+          writeFileSync(lockPath, JSON.stringify({ port: addr.port, pid: process.pid }) + '\n', 'utf8');
+        }
+      });
+      server.httpServer?.once('close', removeLock);
+      process.once('exit', removeLock);
+
       // Live-sync: when any diagram.json under the studio changes on disk,
       // tell the client which workflow so it can refresh if it's the open one.
       const notify = (file: string) => {
@@ -233,8 +298,22 @@ function studioPlugin(): Plugin {
         const [path, query = ''] = url.split('?');
         const params = new URLSearchParams(query);
 
+        // Local-origin gate (see isLocalHost): non-local Host = DNS rebinding,
+        // non-local Origin on a mutation = CSRF from another site's page.
+        if (!isLocalHost(req.headers.host)) {
+          res.statusCode = 403;
+          return res.end('Forbidden: non-local Host');
+        }
+        if (req.method !== 'GET' && !isLocalHost(req.headers.origin ?? undefined) && req.headers.origin) {
+          res.statusCode = 403;
+          return res.end('Forbidden: cross-origin request');
+        }
+
         const handle = async () => {
           try {
+            if (req.method === 'GET' && path === '/api/health') {
+              return sendJson(res, 200, { ok: true, app: 'workflow-studio', studioRoot });
+            }
             if (req.method === 'GET' && path === '/api/projects') {
               return sendJson(res, 200, { ok: true, projects: listProjects() });
             }
@@ -283,7 +362,11 @@ function studioPlugin(): Plugin {
               case '/api/workflows/save': {
                 const pid = safeId(body.projectId);
                 const wid = safeId(body.workflowId);
-                if (typeof body.diagram !== 'object' || body.diagram === null) throw new Error('diagram required');
+                const d = body.diagram as { schemaVersion?: unknown; nodes?: unknown; edges?: unknown } | null;
+                if (typeof d !== 'object' || d === null) throw new Error('diagram required');
+                if (typeof d.schemaVersion !== 'number' || !Array.isArray(d.nodes) || !Array.isArray(d.edges)) {
+                  throw new Error('invalid diagram: schemaVersion/nodes/edges malformed');
+                }
                 if (!existsSync(workflowDir(pid, wid))) throw new Error('workflow not found');
                 writeJson(diagramPath(pid, wid), { ...body.diagram, id: wid, projectId: pid });
                 touchProject(pid);
@@ -306,6 +389,8 @@ function studioPlugin(): Plugin {
                 touchProject(pid);
                 return sendJson(res, 200, { ok: true });
               }
+              // Compile writes ONLY the studio-internal core copy. Getting the
+              // output outside the studio root is Publish's job.
               case '/api/compile': {
                 const pid = safeId(body.projectId);
                 const wid = safeId(body.workflowId);
@@ -313,14 +398,25 @@ function studioPlugin(): Plugin {
                 const corePath = compiledPath(pid, wid);
                 mkdirSync(workflowDir(pid, wid), { recursive: true });
                 writeFileSync(corePath, body.code, 'utf8');
-                let exportPath: string | undefined;
-                if (typeof body.exportPath === 'string' && body.exportPath.trim()) {
-                  const p = body.exportPath.trim();
-                  exportPath = isAbsolute(p) ? p : resolve(here, p);
-                  mkdirSync(dirname(exportPath), { recursive: true });
-                  writeFileSync(exportPath, body.code, 'utf8');
+                return sendJson(res, 200, { ok: true, corePath });
+              }
+              // Promote the core copy to the user's export target. Relative paths
+              // resolve against exportRoot (the project dir); the resolved path
+              // must stay inside it — no writes anywhere else on the machine.
+              case '/api/publish': {
+                const pid = safeId(body.projectId);
+                const wid = safeId(body.workflowId);
+                if (typeof body.exportPath !== 'string' || !body.exportPath.trim()) throw new Error('exportPath required');
+                const core = compiledPath(pid, wid);
+                if (!existsSync(core)) throw new Error('nothing compiled yet — compile first');
+                const p = body.exportPath.trim();
+                const resolved = resolve(isAbsolute(p) ? p : join(exportRoot, p));
+                if (resolved !== exportRoot && !resolved.startsWith(exportRoot + sep)) {
+                  throw new Error(`export path escapes the allowed root (${exportRoot})`);
                 }
-                return sendJson(res, 200, { ok: true, corePath, exportPath });
+                mkdirSync(dirname(resolved), { recursive: true });
+                copyFileSync(core, resolved);
+                return sendJson(res, 200, { ok: true, path: resolved });
               }
               default:
                 res.statusCode = 404;

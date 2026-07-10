@@ -1,4 +1,4 @@
-# `diagram.json` schema (v2)
+# `diagram.json` schema (v3)
 
 The backing file is the contract between you (the agent) and the canvas. Its
 TypeScript source of truth is `src/types.ts`; this restates it.
@@ -7,7 +7,7 @@ TypeScript source of truth is `src/types.ts`; this restates it.
 {
   "schemaVersion": 3,
   "workflow": "deep-research",          // usually meta.name
-  "source": "../deep-research.js",      // path to the .js, relative to the workspace
+  "source": "deep-research.js",         // back-compat name of the source .js; the studio uses exportPath
   "nodes": [ /* DiagramNode[] */ ],
   "edges": [ /* DiagramEdge[] */ ],
   "groups": [ /* Group[] */ ],
@@ -29,7 +29,7 @@ sidecar fence is `@workflow-graph:v3` (import still accepts `v2`).
   "id": "verify",            // unique, stable, slug-ish; reuse across regenerations
   "kind": "verify",          // a catalog key (see primitive-vocabulary.md)
   "label": "refute panel",   // the headline on the node
-  "subtitle": "schema: VERDICT", // optional one-liner
+  "note": "schema: VERDICT", // optional freeform annotation
   "position": { "x": 540, "y": 90 }, // free-drag — author a sensible position
   "data": { "thenCount": 3 },        // optional kind-specific extras (variadic pins, etc.)
   "pinOverrides": { "cond": { "name": "ready?" } }, // optional: rename/retype a pin
@@ -114,8 +114,8 @@ hold a JS/JSON literal). Its data-out feeds wherever it's wired.
 When the canvas compiles the graph, it appends a fence to the `.js`:
 
 ```js
-/* @workflow-graph:v2
-{ "schemaVersion": 2, "nodes": [...], "edges": [...], "groups": [...] }
+/* @workflow-graph:v3
+{ "schemaVersion": 3, "nodes": [...], "edges": [...], "groups": [...], "variables": [...], "types": [...] }
 */
 ```
 
@@ -126,4 +126,4 @@ rebuild the graph by hand (see the mapping guide). If the fence is **present but
 the body was hand-edited away from it**, import flags the graph as *stale* —
 reconcile the body's changes rather than trusting the fence.
 
-A complete, valid v2 example ships at `src/diagram.json`.
+A complete, valid v3 example ships at `src/diagram.json`.
