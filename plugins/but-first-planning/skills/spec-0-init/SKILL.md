@@ -180,7 +180,7 @@ later skill from inventing UI work nobody asked for. Scaffold `spec/prototypes/`
 (the stub hub page plus `prototype-skeleton.html` verbatim) when the posture is
 **greenfield-product**; under any other posture offer it as an opt-in. When
 scaffolded, add one line to `spec/index.md`'s reference links:
-`- [`prototypes/`](prototypes/index.md) — throwaway HTML design prototypes linked from the spec pages.`
+`- [`prototypes/`](prototypes/index.md) — throwaway HTML design prototypes and signed-off design captures, linked from the spec pages.`
 
 Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).

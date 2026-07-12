@@ -12,7 +12,7 @@ readable on disk, browsable as a website, and editable by agents.
 | `spec/` | The specification, as a progressive-disclosure docs website | `spec-1-specify` |
 | `spec/reference/glossary.md` | Domain glossary | `spec-2-grill`, `spec-3-architect` |
 | `spec/reference/adr/` | Architecture decision records | `spec-2-grill`, `spec-3-architect` |
-| `spec/prototypes/` | Throwaway HTML design prototypes (greenfield-product posture, or opt-in) | `spec-1-specify` |
+| `spec/prototypes/` | Throwaway HTML design prototypes + signed-off design captures (greenfield-product posture, or opt-in) | `spec-1-specify` |
 | `plan/` | Epic → sprint → issue implementation backlog | `plan-0-decompose` |
 | `plan/plan-status.py` | The single status funnel — set/check status across every surface + the tracker | all build/assess skills |
 | `tracker.md` | Where issues get published, and how | `spec-0-init`, `plan-1-publish-issues` |

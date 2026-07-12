@@ -23,7 +23,7 @@ verifier (`.plan/spec/scripts/verify-spec-tree.py`) enforces the mechanical ones
 │   └── adr/
 │       ├── index.md
 │       └── 0001-slug.md
-├── prototypes/              # reserved: throwaway HTML design prototypes (see UI-SPEC.md; posture-dependent)
+├── prototypes/              # reserved: HTML design prototypes + signed-off captures (see UI-SPEC.md; posture-dependent)
 ├── assets/                  # gruvbox.css, mermaid-init.js (site chrome — not docs)
 └── scripts/                 # verify-spec-tree.py (excluded from the site)
 ```

@@ -95,6 +95,28 @@ compare against.
           style="width:100%;height:480px;border:1px solid #d1d5db"></iframe>
   ```
 
+### Iterate with your eyes open
+
+A prototype's source doesn't tell you what it looks like — when authoring or
+revising one, **render it to an image and look**: capture the design as a human
+would see it (a headless-browser screenshot for HTML; terminal-capture-to-image
+for a TUI), read the image back, judge it against the design intent, and
+iterate. A visual change is not done until it has been looked at, and every
+state/surface the change touches gets a capture — not just the default view.
+Working captures are throwaway: keep them in a tmp directory, never committed.
+
+### Sign-off promotes the capture
+
+When the human finalizes a prototype, its capture stops being throwaway — it
+becomes the durable record of exactly what was approved, and what a later
+`REVIEW` issue compares the built product against:
+
+- Save the approved image(s) under `prototypes/assets/`.
+- Add a `prototypes/<slug>.md` page embedding them — frontmatter like any
+  content file ([FRONTMATTER.md](FRONTMATTER.md)), one line in
+  `prototypes/index.md`'s sign-off section, linked from the spec page(s) the
+  prototype illustrates.
+
 ## The test
 
 A UI/UX spec is done when a stranger could open each surface in
