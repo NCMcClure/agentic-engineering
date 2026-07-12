@@ -24,6 +24,7 @@ also includes a **dispatch plan** — the parallel-safe build frontier — that
 - The tracker itself — closed issues / a Done column (GitHub: `gh issue list --state closed`; local mode: there's no remote, so lean on the plan + git).
 - Git history — merged branches and commits that reference an issue file or slug.
 - `.plan/progress/completed/` — what was already verified-complete in past runs (per-epic ledgers); `.plan/progress/notes/` — past reconciliation narrative.
+- `.plan/progress/docs.md` — which verified sprints have end-user docs (read-only; `build-user-docs` owns it, and it may not exist yet on a workspace where that skill hasn't run).
 - `.plan/progress/drift/` — open cross-cutting items (`status: open` or `routed`) and any `route: follow-up issue #NNN` they've been ticketed as. Untriaged drift (`open`) is work waiting to be turned into issues by `build-assess-drift`; routed drift points at a real follow-up issue you can build.
 - **Implicit dependencies** — derived, not declared: artifacts an issue's *checkpoint command* or *What to build* needs that another issue produces. A `Blocked by: None` routinely hides a real ordering; see [DISPATCH-PLAN.md](DISPATCH-PLAN.md).
 
@@ -114,6 +115,7 @@ Give the user a tight status read:
 - **On deck** — the 1–3 issues that unlock after the next one, so the path is visible.
 - **Dispatch plan** *(parallel builds)* — the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
 - **Human gates** — the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
+- **Docs freshness** — one line: verified sprints (in `completed/`) with no row in `.plan/progress/docs.md` have undocumented user-facing work — recommend `build-user-docs`. Skip the line when everything verified is documented (or nothing is verified yet).
 - **Checkpoint health** — any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures — route them to `spec-4-edit`.
 
 If the next issue is `<unassigned>` (its sprint hasn't been published), note that

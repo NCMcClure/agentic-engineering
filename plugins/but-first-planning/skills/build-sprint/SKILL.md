@@ -73,7 +73,10 @@ These are the user's calls, and they change the run. Surface them first:
    whether the next leg is autonomous. Make sure no builder subagent is still
    running at the stop point — wait for (or stop) stragglers before reporting.
 
-Then loop: re-assess with `build-next-issue` and build the next sprint.
+Then loop: re-assess with `build-next-issue`, and once its verification has
+written the sprint's ledger rows, run `build-user-docs` — the end-user docs
+commit lands on the still-open sprint PR, so docs are reviewed with the code —
+before merging and building the next sprint.
 
 ## The coordination model
 
@@ -145,11 +148,16 @@ walk the user through it in this order:
 5. **`drift`**, **`sprintExit`**, and the **`prUrl`** — then hand back to
    `build-next-issue`, whose reconcile independently re-verifies everything
    before any ledger row is written.
+6. Once the reconcile has written the ledger rows, run **`build-user-docs`** —
+   end-user docs for the verified work, committed onto the still-open sprint
+   PR (per the run's docs posture) before it merges.
 
 ## Hand off
 
 When the cadence says stop, report the sprint result and point back at
-`build-next-issue` to re-derive the next dispatch plan. If the build
+`build-next-issue` to re-derive the next dispatch plan; once its verification
+has written the sprint's ledger rows, `build-user-docs` writes the end-user
+docs for that verified work onto the open sprint PR before merge. If the build
 surfaced a *plan* problem — a broken checkpoint, an under-declared dependency, a
 spec anchor that no longer fits — route it to `spec-4-edit` rather than papering
 over it in the build. If a slice needs deeper test-first work than a wave allows,

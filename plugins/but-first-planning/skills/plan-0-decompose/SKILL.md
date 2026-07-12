@@ -57,6 +57,7 @@ For each sprint, draft its issues as tracer-bullet slices. For each, decide:
 - **Type** — `HITL` (needs a human decision/review), `AFK` (an agent can implement and merge it autonomously), or `REVIEW` (a human opens a UI surface and visually confirms spec'd behaviour — see below). Prefer AFK where honest.
 - **Blocked by** — which sibling issues must land first.
 - **Spec anchors** — the spec file(s) this slice realises. Every issue carries at least one. See [SPEC-ANCHORS.md](SPEC-ANCHORS.md) for why and how (the relative-path shape matters — the verifier checks it).
+- **User-facing?** — one optional, link-free line at the end of `## What to build`: `**User-facing**: yes — <the surface>` or `no — internal`. It costs a moment now and saves `build-user-docs` from guessing later which slices need end-user documentation.
 
 **Route every open question.** Sweep the spec for "Open questions" sections and
 inline `**Open question:**` blocks — each one is routed **exactly once**:

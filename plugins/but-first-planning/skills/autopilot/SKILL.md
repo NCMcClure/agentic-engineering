@@ -64,7 +64,10 @@ leave to prose):
      append them to the run ledger and continue (`notified` says which gate
      issues already carry a `Human gate` @mention comment).
    - `reconcile.js` again — the independent re-verification that writes the
-     `--evidence` ledger rows. Then the next sprint.
+     `--evidence` ledger rows.
+   - `build-user-docs` — end-user docs for the ledger-verified work, grounded
+     by running the built commands and committed onto the still-open sprint PR,
+     per the contract's docs posture. Then the next sprint.
 8. **Every 2 sprints** — `build-assess-drift` → `triage-drift.js` (publish per
    contract), and optionally `build-improve-architecture` → `deepening-hunt.js`;
    route survivors on the next loop.
@@ -82,7 +85,9 @@ foundation.
 ## Done when
 
 The contracted scope is built and PR'd, every sprint's ledger rows were written
-by an independent reconcile, the run ledger (a `.plan/progress/notes/` file per
+by an independent reconcile, end-user docs are current through the built scope
+(`.plan/progress/docs.md` covers every verified sprint, unless the contract
+turned the docs pass off), the run ledger (a `.plan/progress/notes/` file per
 sprint plus your final summary) accounts for every draft, pending REVIEW
 walkthrough, auto-decision, failure, and drift item — and the user got exactly
 the touchpoints the contract promised, no more.

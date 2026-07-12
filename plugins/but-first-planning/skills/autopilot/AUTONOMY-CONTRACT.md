@@ -38,9 +38,13 @@ early regardless of scope — report, don't push through.
 
 Which tracker (from `.plan/tracker.md`), whether each sprint opens a PR
 (`openPr`), the PR base branch, and whether `triage-drift.js` may publish drift
-issues (`publish: true`) or must batch them. Publishing tickets, pushing
-branches, and **gate-notification comments** (a `Human gate` @mention posted on
-each HITL/REVIEW issue the run defers on, whenever `tracker.md` names a
+issues (`publish: true`) or must batch them. Also the **docs posture**: whether
+each sprint runs the `build-user-docs` pass after its reconcile (default
+**on**), and where its commit lands — appended to the still-open sprint PR
+(default; docs reviewed with the code) or left uncommitted for the human.
+Publishing tickets, pushing branches (the docs commit included), and
+**gate-notification comments** (a `Human gate` @mention posted on each
+HITL/REVIEW issue the run defers on, whenever `tracker.md` names a
 `**Notify**` handle — unsetting the handle is the only off switch) are the
 run's outward-facing actions — they are exactly what the contract's approval
 covers, and nothing else is.

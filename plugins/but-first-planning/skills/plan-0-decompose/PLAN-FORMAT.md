@@ -154,6 +154,8 @@ and verifiable on its own.
 
 Anchor: [spec/02-runtime/event-loop.md](../../../../spec/02-runtime/event-loop.md)
 
+**User-facing**: yes — the `mytool export` CLI command
+
 ## Acceptance criteria
 
 - [ ] The behaviour in the title is implemented end-to-end
@@ -170,6 +172,12 @@ Anchor: [spec/02-runtime/event-loop.md](../../../../spec/02-runtime/event-loop.m
 
 - None - can start immediately
 ```
+
+The `**User-facing**` line is **optional** and the verifier ignores it — it
+names the user-visible surface this slice adds (`yes — <the surface>`) or marks
+the slice internal (`no — internal`), so `build-user-docs` knows what to
+document without guessing. Keep it link-free: a markdown link containing
+`spec/` on this line would be picked up by the verifier's spec-anchor check.
 
 ### REVIEW issue variant
 

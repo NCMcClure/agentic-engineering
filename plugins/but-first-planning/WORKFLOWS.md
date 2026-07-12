@@ -26,8 +26,9 @@ fix rounds) rather than inventing new shapes.
 Deliberately **not** workflows: `spec-0-init` (a short interview + verbatim
 copy), `plan-1-publish-issues` (`publish-issues.py` is the automation),
 `build-tdd` (the leaf discipline builder agents execute — staging it would
-recreate the horizontal-slicing anti-pattern it forbids), `build-rubber-duck`
-(an ephemeral conversation).
+recreate the horizontal-slicing anti-pattern it forbids), `build-user-docs`
+(serial grounded writing — a fan-out would fragment doc coherence),
+`build-rubber-duck` (an ephemeral conversation).
 
 ## The model-tier policy
 

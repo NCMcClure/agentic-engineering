@@ -45,3 +45,6 @@ restated every run. Top open items:
   against the live code and turns the real ones into issues.
 - **`drift-status.py`** — read-only index of the `drift/` items for triage; never
   writes. Scaffolded here so it roots itself at `progress/drift/`.
+- **`docs.md`** — created by `build-user-docs` on its first run: which verified
+  sprints have end-user documentation, and which doc files in the target
+  project that skill manages. Absent until the first docs pass.
