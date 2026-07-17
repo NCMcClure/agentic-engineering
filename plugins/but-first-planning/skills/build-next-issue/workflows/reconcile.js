@@ -46,17 +46,19 @@ phase('Gather')
 // barrier justified: the verification delta is a set computation over all four signals
 const [planState, trackerState, gitState, progressState] = await parallel([
   () => agent(
-    `${CTX}\nRead plan-tree state, mechanically. Run: python3 ${PLANDIR}/plan-status.py check${SCOPE ? ' ' + SCOPE : ''} (report exit code + rolled-up line). Then grep the issue files${SCOPE ? ` under the ${SCOPE} subtree` : ''} for their bold fields: report every issue whose Status is NOT not-started as {coords, ref (#NNN or <unassigned>), status, title(H1)}, and separately EVERY published issue (ref != <unassigned>) as a {ref, coords} map entry regardless of status. Also name the first sprint (EE-SS) that still has not-started issues. Pure retrieval — no judgment. ${BRIEF}`,
+    `${CTX}\nRead plan-tree state, mechanically. Run: python3 ${PLANDIR}/plan-status.py check${SCOPE ? ' ' + SCOPE : ''} (report exit code + rolled-up line). Then grep the issue files${SCOPE ? ` under the ${SCOPE} subtree` : ''} for their bold fields: report every issue whose Status is NOT not-started as {coords, ref (#NNN or <unassigned>), status, title(H1)}, and separately EVERY published issue (ref != <unassigned>) as a {ref, coords} map entry regardless of status. Also name the first sprint (EE-SS) that still has not-started issues. If ${PLANDIR}/verify-agents-tree.py exists, run it too (cwd ${ROOT}) and report its exit code + first 3 WARN/FAIL lines; if absent report agentsExit=-1. Pure retrieval — no judgment. ${BRIEF}`,
     {
       label: 'gather:plan', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
-        type: 'object', required: ['issues', 'refMap', 'currentSprint', 'checkExit'],
+        type: 'object', required: ['issues', 'refMap', 'currentSprint', 'checkExit', 'agentsExit'],
         properties: {
           issues: { type: 'array', items: { type: 'object', required: ['coords', 'ref', 'status', 'title'], properties: { coords: { type: 'string' }, ref: { type: 'string' }, status: { type: 'string' }, title: { type: 'string' } } } },
           refMap: { type: 'array', items: { type: 'object', required: ['ref', 'coords'], properties: { ref: { type: 'string' }, coords: { type: 'string' } } } },
           currentSprint: { type: 'string', description: 'first sprint with not-started issues, EE-SS' },
           checkExit: { type: 'integer' },
           checkSummary: { type: 'string' },
+          agentsExit: { type: 'integer', description: 'verify-agents-tree.py exit code, -1 when the script is absent' },
+          agentsFirstWarnings: { type: 'string', description: 'first WARN/FAIL lines, empty when clean/absent' },
         },
       },
     }
@@ -272,6 +274,9 @@ return {
     openDrift: progress.openDrift,
     recordProblems: (record && record.problems) || [],
   },
+  agentsTree: planState.agentsExit === -1 || planState.agentsExit === undefined
+    ? null
+    : { exit: planState.agentsExit, firstWarnings: planState.agentsFirstWarnings || '' },
   nextIssue: selection ? selection.nextIssue : null,
   onDeck: selection ? selection.onDeck : [],
   frontierBlocked: selection ? selection.frontierBlocked : 'selection agent failed',

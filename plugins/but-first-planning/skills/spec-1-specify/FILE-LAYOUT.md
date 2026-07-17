@@ -72,7 +72,16 @@ existing one starts holding files that obviously don't belong together — not
 preemptively. A category with a single content file is a smell: fold it into a
 sibling.
 
-### 4. Content files: named, sized, self-contained
+### 4. Two mandatory content pages
+
+Every spec carries a `repository-layout.md` (agent-optimized source-tree
+organization — [CODEBASE-LAYOUT.md](CODEBASE-LAYOUT.md)) and a
+`user-docs-plan.md` (end-user docs stack + page map —
+[USER-DOCS-SPEC.md](USER-DOCS-SPEC.md)), each in whichever category fits. The
+exact filenames are the machine contract; `verify-spec-tree.py` warns while
+either is missing.
+
+### 5. Content files: named, sized, self-contained
 
 - **Named descriptively.** `event-ordering.md`, not `notes.md` or `stuff.md`.
 - **Sized under ~200 lines.** The verifier warns past that. An oversized file's summary stops describing its contents accurately, which breaks search. Split it.

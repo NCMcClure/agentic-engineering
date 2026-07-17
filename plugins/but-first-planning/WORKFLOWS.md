@@ -88,3 +88,10 @@ a comment header in each script.
 - **The evidence rule** — checkpoint evidence is re-derived at each layer
   (builder → integrator → reconcile), never forwarded; only `reconcile.js`
   writes `--evidence` ledger rows.
+- **The `**User-facing**` line** — required on every AFK/HITL issue a script
+  authors or edits; format owned by `skills/plan-0-decompose/PLAN-FORMAT.md`.
+  Scripts that touch issue bodies preserve it; `build-plan-tree.js` fills it.
+- **Codebase hubs** — the AGENTS.md rules and `verify-agents-tree.py` are
+  owned by `skills/spec-1-specify/CODEBASE-LAYOUT.md`. Scripts that run
+  verifiers include it when `.plan/plan/verify-agents-tree.py` exists;
+  builder prompts carry its update-on-change duty.

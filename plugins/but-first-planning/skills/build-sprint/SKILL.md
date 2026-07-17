@@ -58,9 +58,11 @@ These are the user's calls, and they change the run. Surface them first:
    sprint branch one at a time and re-run the full checkpoint suite after each. A
    green sprint branch is the invariant you never break.
 6. **Run the sprint-exit checkpoints.** All issues `done`, the Layer-1 tests green,
-   the plan-tree verifier green, plus any sprint-specific E2E. If a checkpoint is
-   *broken by construction*, say so and route it to `spec-4-edit` — don't let a
-   false-negative gate stall a genuinely-complete sprint.
+   the plan-tree verifier green, `verify-agents-tree.py` reporting no new
+   violations (the hub row in the sprint's checkpoint table), plus any
+   sprint-specific E2E. If a checkpoint is *broken by construction*, say so and
+   route it to `spec-4-edit` — don't let a false-negative gate stall a
+   genuinely-complete sprint.
 7. **Record and hand back to build-next-issue.** Run `plan-status.py set EE-SS-II done` per
    built issue (the sprint, epic, and index roll up automatically — no separate
    "mark the sprint done" step). Write the per-run narrative to

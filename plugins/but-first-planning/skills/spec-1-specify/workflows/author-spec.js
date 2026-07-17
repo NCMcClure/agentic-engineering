@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-1-author-spec',
   description: 'Author a complete spec from a product brief: three parallel outline lenses, a judge synthesis, a per-category planner->author pipeline, a verify loop, and a three-critic audit with a fixer',
-  whenToUse: "spec-1-specify's autonomous mode — authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, uiPosture?, today?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). uiPosture is 'headless' | 'dev-dashboard' | 'existing-design-system' | 'greenfield-product' from ADR-0002 (default headless). brief is inline text or an absolute file path.",
+  whenToUse: "spec-1-specify's autonomous mode — authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, uiPosture?, docsPosture?, agentsPosture?, today?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). uiPosture is 'headless' | 'dev-dashboard' | 'existing-design-system' | 'greenfield-product' from ADR-0002 (default headless). docsPosture is 'docs-site' | 'readme-only' | 'existing-convention' from ADR-0003 (default docs-site). agentsPosture is 'claude-code' | 'agents-only' from ADR-0004 (default claude-code). brief is inline text or an absolute file path.",
   phases: [
     { title: 'Orient', detail: 'inventory existing spec categories/files/glossary', model: 'haiku' },
     { title: 'Outline', detail: 'three lens proposals: reader-cost, domain-model, behavior-flows', model: 'opus' },
@@ -48,6 +48,16 @@ const UI_POSTURES = {
 }
 const UI_POSTURE_NOTE = UI_POSTURES[A.uiPosture] || UI_POSTURES['headless']
 
+// ---------- user-docs posture (ADR-0003) + agent-context posture (ADR-0004) ----------
+const DOCS_POSTURES = {
+  'docs-site': 'User-docs posture: DOCS-SITE — end-user docs are a structured multi-page site (MkDocs unless the brief names another generator).',
+  'readme-only': 'User-docs posture: README-ONLY — a single README carries install + usage; the page map is a section map.',
+  'existing-convention': "User-docs posture: EXISTING-CONVENTION — the project's existing docs layout is the constraint; plan pages in its terms.",
+}
+const MANDATORY_PAGES_NOTE = `${DOCS_POSTURES[A.docsPosture] || DOCS_POSTURES['docs-site']}
+Agent-context posture: ${A.agentsPosture === 'agents-only' ? 'AGENTS-ONLY — AGENTS.md hubs, no CLAUDE.md siblings.' : 'CLAUDE-CODE — AGENTS.md hubs each with a sibling CLAUDE.md containing @AGENTS.md.'}
+TWO MANDATORY CONTENT PAGES (exact filenames; verify-spec-tree.py warns until they exist): 'repository-layout.md' — the agent-optimized source tree per the skill's CODEBASE-LAYOUT.md (organizing rules incl. source-tree-mirrors-the-spec, top-level tree with AGENTS.md hub placement, module map back to spec categories, thin entrypoints); and 'user-docs-plan.md' — the end-user docs plan per the skill's USER-DOCS-SPEC.md (the stack per the posture above, the logically-paced page map install -> quickstart -> topics, epic contributions). Slot each into whichever category fits.`
+
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 // brief may be inline text or a file path; agents are told to Read a path themselves.
@@ -72,6 +82,7 @@ rules live in the spec-1-specify skill at ${SKILL}/ (SKILL.md, PROGRESSIVE-DISCL
 FILE-LAYOUT.md, FRONTMATTER.md, DIAGRAMS.md).
 ${POSTURE_NOTE}
 ${UI_POSTURE_NOTE}
+${MANDATORY_PAGES_NOTE}
 ${Array.isArray(A.sourcePaths) && A.sourcePaths.length ? `SOURCE MATERIAL you may Read and cite: ${A.sourcePaths.join(', ')}` : ''}
 ${A.context ? `PROJECT NOTES: ${A.context}` : ''}
 `
@@ -156,7 +167,7 @@ const LENSES = [
 // .filter(Boolean) then LENSES[i] would misattribute the survivors).
 const proposals = (await parallel(LENSES.map(l => () =>
   agent(
-    `${CTX}\nYou are a spec-outline architect. Read ${SKILL}/PROGRESSIVE-DISCLOSURE.md and ${SKILL}/FILE-LAYOUT.md for the layout discipline (numbered categories, thin indexes, single-topic files under ~200 lines). Then read ${BRIEF_SRC}\n\nLens: ${l.prompt}\n\nDesign the complete category/file outline for specifying this product. Rules: 3-6 categories; every file one clear topic, scoped to stay under ~200 lines when written; every requirement in the brief maps to a named file; summaries are real frontmatter summaries (coverage + state); glossaryTerms are project-specific domain terms only (no general engineering vocabulary); openQuestions ONLY where the brief genuinely cannot answer — never invent product decisions.${EXTEND_NOTE} ${BRIEF}`,
+    `${CTX}\nYou are a spec-outline architect. Read ${SKILL}/PROGRESSIVE-DISCLOSURE.md and ${SKILL}/FILE-LAYOUT.md for the layout discipline (numbered categories, thin indexes, single-topic files under ~200 lines). Then read ${BRIEF_SRC}\n\nLens: ${l.prompt}\n\nDesign the complete category/file outline for specifying this product. Rules: 3-6 categories; every file one clear topic, scoped to stay under ~200 lines when written; every requirement in the brief maps to a named file; the outline includes the two mandatory pages 'repository-layout.md' and 'user-docs-plan.md' (exact filenames, per the CTX note); summaries are real frontmatter summaries (coverage + state); glossaryTerms are project-specific domain terms only (no general engineering vocabulary); openQuestions ONLY where the brief genuinely cannot answer — never invent product decisions.${EXTEND_NOTE} ${BRIEF}`,
     { label: `outline:${l.key}`, phase: 'Outline', schema: OUTLINE_SCHEMA, model: 'opus', effort: 'high' }
   ).then(r => r && { key: l.key, outline: r })
 ))).filter(Boolean)
@@ -171,7 +182,7 @@ phase('Judge')
 const PROPOSALS_BLOCK = proposals.map((p, i) =>
   `### Proposal ${i + 1} — lens: ${p.key}\n${JSON.stringify(p.outline, null, 1)}`).join('\n\n')
 const judged = await agent(
-  `${CTX}\nYou are the spec-outline judge. Below are ${proposals.length} independent outline proposals (lenses: ${proposals.map(p => p.key).join(', ')}) for the same product brief. Re-read ${BRIEF_SRC}\n\n${PROPOSALS_BLOCK}\n\nScore each proposal on: progressive-disclosure cost (thin indexes, single-topic files), domain-vocabulary coherence, behavior/state coverage, and fidelity to the brief. Synthesize the WINNING outline — best proposal as the base, superior categories/files/terms grafted from the others. Enforce: 3-6 categories; one topic per file, each scoped to stay under ~200 lines; EVERY requirement in the brief maps to a named file (walk the brief requirement by requirement and check); glossaryTerms are the union of the proposals' terms, deduped to one canonical term per concept; openQuestions kept honest — keep only those genuinely unresolvable from the brief, drop any a careful read answers.${EXTEND_NOTE} ${BRIEF}`,
+  `${CTX}\nYou are the spec-outline judge. Below are ${proposals.length} independent outline proposals (lenses: ${proposals.map(p => p.key).join(', ')}) for the same product brief. Re-read ${BRIEF_SRC}\n\n${PROPOSALS_BLOCK}\n\nScore each proposal on: progressive-disclosure cost (thin indexes, single-topic files), domain-vocabulary coherence, behavior/state coverage, and fidelity to the brief. Synthesize the WINNING outline — best proposal as the base, superior categories/files/terms grafted from the others. Enforce: 3-6 categories; one topic per file, each scoped to stay under ~200 lines; EVERY requirement in the brief maps to a named file (walk the brief requirement by requirement and check); the two mandatory pages 'repository-layout.md' and 'user-docs-plan.md' each appear exactly once (add them if every proposal dropped them); glossaryTerms are the union of the proposals' terms, deduped to one canonical term per concept; openQuestions kept honest — keep only those genuinely unresolvable from the brief, drop any a careful read answers.${EXTEND_NOTE} ${BRIEF}`,
   { label: 'outline:judge', phase: 'Judge', schema: OUTLINE_SCHEMA, effort: 'max' }
 )
 if (!judged || !judged.categories || !judged.categories.length) throw new Error('outline judge returned no categories')
@@ -280,7 +291,7 @@ const AUDIT_SCHEMA = {
   },
 }
 const CRITICS = [
-  { key: 'coverage-vs-brief', prompt: `Audit COVERAGE of the spec at ${SPEC}/ against ${BRIEF_SRC}\nWalk the brief requirement by requirement: each must be findable in some content file — grep ${SPEC} for its key terms BEFORE claiming a gap. Also: every open question in this judged ledger must appear as a "**Open question:**" block in some file (grep for it); flag any silently resolved or dropped:\n${JSON.stringify(judged.openQuestions, null, 1)}\n` },
+  { key: 'coverage-vs-brief', prompt: `Audit COVERAGE of the spec at ${SPEC}/ against ${BRIEF_SRC}\nWalk the brief requirement by requirement: each must be findable in some content file — grep ${SPEC} for its key terms BEFORE claiming a gap. The two mandatory pages must exist as content files (find them by exact name): repository-layout.md (with organizing rules, a top-level tree, and a module map back to spec categories) and user-docs-plan.md (with a docs stack and a page map) — a missing or hollow one is a critical finding. Also: every open question in this judged ledger must appear as a "**Open question:**" block in some file (grep for it); flag any silently resolved or dropped:\n${JSON.stringify(judged.openQuestions, null, 1)}\n` },
   { key: 'disclosure-discipline', prompt: `Audit PROGRESSIVE-DISCLOSURE DISCIPLINE per ${SKILL}/PROGRESSIVE-DISCLOSURE.md and ${SKILL}/FILE-LAYOUT.md (read both first) across ${SPEC}/: indexes are thin navigation-only hubs (no frontmatter, no content, no index reaching two levels deep); every content file stays under ~200 lines (wc -l them all); frontmatter summaries accurately describe their bodies (sample broadly — open the file, compare); tags are lowercase-hyphenated project vocabulary.\n` },
   { key: 'coherence', prompt: `Audit COHERENCE across ${SPEC}/: no two content files contradict each other (compare files whose topics touch); every glossary term in reference/glossary.md is used consistently by the files that use it (and files don't coin competing synonyms the glossary lists as avoid-aliases); every relates-to link resolves to a real file; category index one-liners still match their children.\n` },
 ]

@@ -37,9 +37,11 @@ leave to prose):
    interactive step; keep its interview brief, feeding it the contract's tracker
    choice).
 2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief, passing
-   `languagePosture` read from `.plan/spec/reference/adr/0001-language-posture.md`
-   and `uiPosture` read from `adr/0002-ui-posture.md` (spec-0-init recorded
-   both). Carry its `openQuestions` forward.
+   `languagePosture` read from `.plan/spec/reference/adr/0001-language-posture.md`,
+   `uiPosture` from `adr/0002-ui-posture.md`, `docsPosture` from
+   `adr/0003-user-docs-posture.md`, and `agentsPosture` from
+   `adr/0004-agent-context-files.md` (spec-0-init recorded all four). Carry its
+   `openQuestions` forward.
 3. **Grill until dry** — `spec-2-grill` → `deep-review.js`
    `{applyFixes: true, rounds: 3}`.
 4. **Architect** — `spec-3-architect` → `deepening-review.js`

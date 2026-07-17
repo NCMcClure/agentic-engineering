@@ -30,6 +30,12 @@ REQUIRED_ISSUE_FIELDS = [
     "## Blocked by",
 ]
 MD_LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
+# `yes — <surface>` or `no — internal` (em dash or hyphen accepted)
+USER_FACING_RE = re.compile(
+    r"^\*\*User-facing\*\*:\s*(yes\s*[—-]\s*\S.*|no\s*[—-]\s*internal)\s*$",
+    re.MULTILINE,
+)
+PLAN_FORMAT_RE = re.compile(r"plan-format:\s*(\d+)\.(\d+)")
 SECTION_BLOCKED_BY_RE = re.compile(
     r"^## Blocked by\s*$(.*?)(?=^## |\Z)", re.MULTILINE | re.DOTALL
 )
@@ -42,8 +48,26 @@ def fail(failures: list[str], path: Path, msg: str) -> None:
     failures.append(f"{path.relative_to(REPO_ROOT)}: {msg}")
 
 
+def strict_format() -> bool:
+    """True when the plan root index carries a `plan-format: 3.7` (or later)
+    marker — scaffolded by spec-0-init >= 3.7. Marked trees hard-fail the
+    User-facing rule; unmarked legacy trees only warn."""
+    index_md = PLAN_ROOT / "index.md"
+    if not index_md.exists():
+        return False
+    m = PLAN_FORMAT_RE.search(index_md.read_text())
+    return bool(m) and (int(m.group(1)), int(m.group(2))) >= (3, 7)
+
+
 def verify() -> int:
     failures: list[str] = []
+    warnings: list[str] = []   # exit 1 if no failures
+    strict = strict_format()
+
+    def report(path: Path, msg: str, critical: bool) -> None:
+        (failures if critical else warnings).append(
+            f"{path.relative_to(REPO_ROOT)}: {msg}"
+        )
 
     epic_dirs = sorted(
         p for p in PLAN_ROOT.iterdir() if p.is_dir() and re.match(r"^\d{2}-", p.name)
@@ -92,6 +116,17 @@ def verify() -> int:
         type_m = re.search(r"\*\*Type\*\*:\s*(\S+)", text)
         if type_m and type_m.group(1) not in {"AFK", "HITL", "REVIEW"}:
             fail(failures, issue_md, f"Type must be AFK, HITL, or REVIEW (got '{type_m.group(1)}')")
+
+        # User-facing line: required on AFK/HITL issues (REVIEW issues build
+        # nothing). CRITICAL on plan-format >= 3.7 trees, WARN on legacy ones.
+        if type_m and type_m.group(1) in {"AFK", "HITL"}:
+            if not USER_FACING_RE.search(text):
+                report(
+                    issue_md,
+                    "missing or malformed **User-facing** line "
+                    "(expected 'yes — <surface>' or 'no — internal')",
+                    critical=strict,
+                )
 
         if "GitHub**:" in text and "<unassigned>" not in text and not re.search(r"#\d+", text):
             fail(failures, issue_md, "GitHub field is neither '<unassigned>' nor a '#NNN' reference")
@@ -142,17 +177,20 @@ def verify() -> int:
             if extra:
                 fail(failures, epic_md, f"sprint dirs on disk not listed in epic.md: {extra}")
 
+    for w in warnings:
+        print(f"WARN: {w}")
     if failures:
         for f in failures:
             print(f"FAIL: {f}")
-        print(f"\n{len(failures)} failure(s)")
+        print(f"\n{len(failures)} failure(s), {len(warnings)} warning(s)")
         return 2
 
     print(
         f"OK: {len(epic_mds)} epics, {len(sprint_mds)} sprints, "
         f"{len(issue_mds)} issues, 0 broken links, 0 missing fields"
+        + (f", {len(warnings)} warning(s)" if warnings else "")
     )
-    return 0
+    return 1 if warnings else 0
 
 
 if __name__ == "__main__":

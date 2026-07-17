@@ -51,6 +51,11 @@ Brief every builder to:
    tooling that doesn't exist yet, build the behaviour, verify against the
    acceptance criteria + the structural verifiers, and **flag the drift** — don't
    invent the missing tooling, and don't fake a pass.
+3b. Keep the AGENTS.md hubs current (`build-tdd`'s codebase-organization
+   duties): a new non-leaf directory gets a hub (+ sibling `CLAUDE.md` when the
+   root chain exists), a changed directory's hub is updated in the same commit,
+   and no source file lands beside an `AGENTS.md`. The rules live in the root
+   `AGENTS.md` / `spec-1-specify`'s CODEBASE-LAYOUT.md.
 4. Flip status via the funnel — `python .plan/plan/plan-status.py set EE-SS-II done`
    (no `--evidence`; the verified ledger row is build-next-issue's to add). This updates the
    issue file (status + acceptance boxes) and rolls up the sprint/epic/index; never

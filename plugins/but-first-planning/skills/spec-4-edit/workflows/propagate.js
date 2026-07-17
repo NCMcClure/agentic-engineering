@@ -34,11 +34,11 @@ CHANGED SPEC FILES (relative to ${SPEC}/): ${A.changedSpecFiles.join(', ')}
 // ---------- Phase 1: find affected issues ----------
 phase('Find')
 const found = await agent(
-  `${CTX}\nFind every plan issue affected by the change. For each changed spec file, grep the plan tree for its path (anchors embed "spec/<path>"): grep -rl "spec/<path>" ${PLANDIR} — check issue files AND the **Spec anchors** lines in epic.md/sprint.md for coarser ripples. For each affected ISSUE file report: its path, which changed spec file(s) it anchors, its **GitHub** ref (<unassigned> or #NNN), and its H1 title. ${BRIEF}`,
+  `${CTX}\nFind every plan issue affected by the change. For each changed spec file, grep the plan tree for its path (anchors embed "spec/<path>"): grep -rl "spec/<path>" ${PLANDIR} — check issue files AND the **Spec anchors** lines in epic.md/sprint.md for coarser ripples. For each affected ISSUE file report: its path, which changed spec file(s) it anchors, its **GitHub** ref (<unassigned> or #NNN), and its H1 title. Also report two booleans: layoutTouched=true if any changed spec file is repository-layout.md (the AGENTS.md hubs need review); docsPlanTouched=true if any is user-docs-plan.md (the end-user docs plan changed). ${BRIEF}`,
   {
     label: 'find:affected', phase: 'Find', model: 'haiku', effort: 'low',
     schema: {
-      type: 'object', required: ['issues'],
+      type: 'object', required: ['issues', 'layoutTouched', 'docsPlanTouched'],
       properties: {
         issues: {
           type: 'array',
@@ -52,13 +52,17 @@ const found = await agent(
             },
           },
         },
+        layoutTouched: { type: 'boolean' },
+        docsPlanTouched: { type: 'boolean' },
       },
     },
   }
 )
 const affected = (found && found.issues) || []
+const layoutTouched = !!(found && found.layoutTouched)
+const docsPlanTouched = !!(found && found.docsPlanTouched)
 log(`${affected.length} affected issues (${affected.filter(i => i.ref !== '<unassigned>').length} published)`)
-if (!affected.length) return { affected: [], note: 'no plan issues anchor the changed spec files' }
+if (!affected.length && !layoutTouched && !docsPlanTouched) return { affected: [], note: 'no plan issues anchor the changed spec files' }
 
 // ---------- Phase 2: classify each affected issue ----------
 phase('Classify')
@@ -70,12 +74,13 @@ const CLASSIFY_SCHEMA = {
     verdict: { enum: ['still-valid', 'update', 're-cut', 'obsolete'] },
     reasoning: { type: 'string' },
     editInstruction: { type: 'string', description: "for 'update': the concrete edit to the issue's What to build / Acceptance criteria; for 'obsolete': the closure reason" },
+    docsImpact: { type: 'string', description: "when the issue's **User-facing** line says yes AND the change alters that surface's behaviour: one line naming what the end-user docs must now say differently; else omit" },
   },
 }
 // classification is parallel-heavy judgment work — opus per the model-tier policy
 const classified = (await parallel(affected.map(i => () =>
   agent(
-    `${CTX}\nYou are the impact classifier for one plan issue. Read the issue file ${i.path} and the changed spec file(s) it anchors (${i.anchors.map(a => `${SPEC}/${a}`).join(', ')}). Classify the impact of THE CHANGE on this issue:\n- still-valid: the change doesn't touch what the issue builds\n- update: the behaviour changed but the slice is still one slice — give the concrete edit\n- re-cut: the slice is now too big/too small/wrongly shaped (split, merge, or replace needed)\n- obsolete: the spec section this realises is gone — give the closure reason\nSet path="${i.path}". ${BRIEF}`,
+    `${CTX}\nYou are the impact classifier for one plan issue. Read the issue file ${i.path} and the changed spec file(s) it anchors (${i.anchors.map(a => `${SPEC}/${a}`).join(', ')}). Classify the impact of THE CHANGE on this issue:\n- still-valid: the change doesn't touch what the issue builds\n- update: the behaviour changed but the slice is still one slice — give the concrete edit\n- re-cut: the slice is now too big/too small/wrongly shaped (split, merge, or replace needed)\n- obsolete: the spec section this realises is gone — give the closure reason\nAlso: if the issue's **User-facing** line says yes and the change alters that surface's behaviour, set docsImpact to one line naming what the end-user docs must now say differently.\nSet path="${i.path}". ${BRIEF}`,
     { label: `classify:${i.path.split('/').pop()}`, phase: 'Classify', schema: CLASSIFY_SCHEMA, model: 'opus', effort: 'medium' }
   ).then(v => v && { ...i, ...v })
 ))).filter(Boolean)
@@ -94,7 +99,7 @@ const APPLY_SCHEMA = {
 const applied = (await parallel([...updates, ...obsolete].map(c => () =>
   agent(
     `${CTX}\nYou are a plan-file editor for exactly one issue file: ${c.path}. ${c.verdict === 'update'
-      ? `Apply this edit to its ## What to build and/or ## Acceptance criteria, keeping every verifier contract intact (bold fields, section headings, anchor link shapes ../../../../spec/<path>): ${c.editInstruction}`
+      ? `Apply this edit to its ## What to build and/or ## Acceptance criteria, keeping every verifier contract intact (bold fields, section headings, anchor link shapes ../../../../spec/<path>, and the link-free **User-facing** line at the end of What to build — preserve it, or add it as 'yes — <surface>' / 'no — internal' if the file predates it): ${c.editInstruction}`
       : `The issue is OBSOLETE (${c.editInstruction || c.reasoning}). Do NOT delete the file: append a "> **Obsolete**: <reason>" blockquote under the H1 and leave everything else intact — the coordinator closes its ticket separately and status stays funnel-owned.`}\nDo not touch any other file (sprint tables are not affected by body edits). Do not run git. Set path="${c.path}". ${BRIEF}`,
     { label: `apply:${c.path.split('/').pop()}`, phase: 'Apply', model: 'sonnet', effort: 'medium', schema: APPLY_SCHEMA }
   )
@@ -123,19 +128,29 @@ if (publishedChanged.length) {
 // ---------- Phase 5: verify ----------
 phase('Verify')
 const verify = await agent(
-  `Run both verifiers from ${ROOT}: python3 ${SPEC}/scripts/verify-spec-tree.py and python3 ${PLANDIR}/verify-plan-tree.py. If either fails on a file this propagation touched, fix the mechanical fallout (broken anchor, table mismatch) and re-run; report anything you can't fix. ${BRIEF}`,
+  `Run both verifiers from ${ROOT}: python3 ${SPEC}/scripts/verify-spec-tree.py and python3 ${PLANDIR}/verify-plan-tree.py${layoutTouched ? `, plus python3 ${PLANDIR}/verify-agents-tree.py if that file exists (repository-layout.md changed — the hub structure needs re-checking)` : ''}. If a verifier fails on a file this propagation touched, fix the mechanical fallout (broken anchor, table mismatch) and re-run; report anything you can't fix. ${BRIEF}`,
   {
     label: 'verify:both', phase: 'Verify', model: 'sonnet', effort: 'medium',
     schema: {
       type: 'object', required: ['specExit0', 'planExit0', 'notes'],
-      properties: { specExit0: { type: 'boolean' }, planExit0: { type: 'boolean' }, notes: { type: 'string' } },
+      properties: { specExit0: { type: 'boolean' }, planExit0: { type: 'boolean' }, agentsExit: { type: 'integer', description: 'verify-agents-tree.py exit code, when run' }, notes: { type: 'string' } },
     },
   }
 )
 
+const docsRipples = [
+  ...(docsPlanTouched ? [{ kind: 'docs-plan', note: 'user-docs-plan.md itself changed — the docs stack/page map moved; build-user-docs realigns the managed set on its next pass' }] : []),
+  ...classified.filter(c => c.docsImpact).map(c => ({ kind: 'issue', path: c.path, ref: c.ref, note: c.docsImpact })),
+]
+const agentsRipples = layoutTouched
+  ? { note: 'repository-layout.md changed — review the AGENTS.md hubs of the affected source directories and re-run verify-agents-tree.py (see spec-4-edit SYNC.md)' }
+  : undefined
+
 return {
   affected: classified.map(c => ({ path: c.path, ref: c.ref, verdict: c.verdict, reasoning: c.reasoning })),
   applied,
+  docsRipples, // route through build-user-docs — spec-4-edit never writes product docs
+  agentsRipples,
   // anchors included so an autonomous caller can feed re-cuts straight into a scoped
   // build-plan-tree.js run (pages: union of the affected anchors)
   recutsNeedingSkill: recuts.map(c => ({ path: c.path, ref: c.ref, anchors: c.anchors, reasoning: c.reasoning })),

@@ -125,6 +125,16 @@ def verify() -> int:
         if text.count("\n") > SIZE_WARN_LINES:
             warnings.append(f"spec/{rel}: oversized (> {SIZE_WARN_LINES} lines) — consider splitting")
 
+    # Mandatory contract pages (exact filenames; owned by spec-1-specify's
+    # CODEBASE-LAYOUT.md and USER-DOCS-SPEC.md). Warn-level: legacy specs pass.
+    content_names = {p.name for p in content_files}
+    for required_page in ("repository-layout.md", "user-docs-plan.md"):
+        if required_page not in content_names:
+            warnings.append(
+                f"spec/: no content file named {required_page} "
+                f"(mandatory page — see spec-1-specify)"
+            )
+
     for w in warnings:
         print(f"WARN: {w}")
     if failures:

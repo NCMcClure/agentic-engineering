@@ -121,6 +121,26 @@ After all tests pass, look for [refactor candidates](REFACTORING.md):
 
 **Never refactor while RED.** Get to GREEN first.
 
+## Codebase organization
+
+When a `.plan/` workspace (or a root `AGENTS.md`) exists, the source tree
+carries AGENTS.md orientation hubs — the rules live in the root `AGENTS.md`
+and in [spec-1-specify's CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md),
+shared rather than duplicated here. Your two duties while building:
+
+- **New directory** → place it per the spec's `repository-layout.md`, and if
+  it makes a parent non-leaf (subdirectories now contain code), give that
+  parent an `AGENTS.md` hub — one line per direct child. When the repo has a
+  root `CLAUDE.md` containing `@AGENTS.md`, create the sibling `CLAUDE.md`
+  (content exactly `@AGENTS.md`) with every hub you create.
+- **Changed a directory's content** — files added, moved, renamed, a child's
+  purpose shifted — update its governing `AGENTS.md` **in the same change**,
+  not as follow-up.
+
+Never put source files in a directory that carries an `AGENTS.md` — code
+lives in subdirectories (hub isolation). `python
+.plan/plan/verify-agents-tree.py` checks the structure when it exists.
+
 ## Checklist per cycle
 
 ```
@@ -134,8 +154,11 @@ After all tests pass, look for [refactor candidates](REFACTORING.md):
 ## Done when
 
 For a plan issue: every acceptance criterion maps to a named passing test; the
-issue's testing-checkpoint command exits 0; status was flipped through
-`plan-status.py set EE-SS-II done` (never hand-edited); and control is handed
-back to `build-next-issue` to verify completion and name what's next. Without a
-`.plan/` workspace: every behaviour agreed in Planning has a passing test and
-the refactor pass left the suite green.
+issue's testing-checkpoint command exits 0; if
+`.plan/plan/verify-agents-tree.py` exists it reports no violations your change
+introduced (hubs created/updated per the codebase-organization duties above);
+status was flipped through `plan-status.py set EE-SS-II done` (never
+hand-edited); and control is handed back to `build-next-issue` to verify
+completion and name what's next. Without a `.plan/` workspace: every behaviour
+agreed in Planning has a passing test and the refactor pass left the suite
+green.

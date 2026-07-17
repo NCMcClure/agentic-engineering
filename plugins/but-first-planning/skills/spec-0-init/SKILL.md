@@ -44,15 +44,23 @@ sentinel (the scaffold always writes it):
   essentially empty tree) → treat it as an **incomplete/aborted scaffold**. Say so,
   and offer to finish/repair it by populating the missing files rather than bailing.
 
-Three narrow exceptions where a re-run touches only one thing: reconfiguring the
+Narrow exceptions where a re-run touches only one thing: reconfiguring the
 tracker (touch only `tracker.md`); backfilling a helper script into an older
 `.plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
-step 2a) or `drift-status.py` into place; and backfilling the **Plan page** into
+step 2a) or `drift-status.py` into place; backfilling the **Plan page** into
 a workspace scaffolded before 3.4 — copy `stubs/plan-page.md` → `spec/plan.md`
 (fill `{{MONTH}}`), `plan-view.js` / `plan-view.css` → `spec/assets/`, re-copy
 `comments-server.py` → `spec/scripts/` (it carries the `/__plan_status__`
 endpoint), add the two `plan-view` lines to `mkdocs.yml`'s `extra_css` /
-`extra_javascript` if absent, and restart the comments server. These are
+`extra_javascript` if absent, and restart the comments server; and backfilling
+the **3.7 docs/hub machinery** into an older workspace — copy
+`verify-agents-tree.py` → `.plan/plan/`, re-copy `verify-plan-tree.py`, ask
+the two 3.7 interview questions (user-docs posture, Claude Code support) and
+record them as ADRs at the **next free numbers** (0003/0004 are only
+guaranteed on fresh scaffolds), and scaffold the root `AGENTS.md` (+
+`CLAUDE.md`) per step 2b. Do *not* add the `plan-format: 3.7` marker to a
+legacy plan tree until its issues carry `**User-facing**` lines — the marker
+flips the verifier's new checks from warning to critical. These are all
 idempotent, so they're safe if the file is already there.
 
 ## Process
@@ -77,7 +85,15 @@ Ask only what you can't infer. Keep it to a few questions, one at a time:
 
   Like the language posture, this is **load-bearing**: it decides what UI/UX content `spec-1-specify` authors, whether a `prototypes/` playground is scaffolded, and whether `plan-0-decompose` cuts `REVIEW` (human visual-verification) issues — so it becomes ADR-0002.
 
-Record the tracker choice in `tracker.md`, the language posture as **ADR-0001** plus the `spec/index.md` posture line, and the UI/UX posture as **ADR-0002** plus the `spec/index.md` `{{UI_POSTURE}}` line (step 2), so every later skill honours them — not just this session.
+- **User-docs posture** — the shape of the *end-user* documentation (the product docs, not the spec site). Ask only if it isn't obvious. **Default is docs-site.** Three choices:
+  - **docs-site** (default) — a structured multi-page site: `docs/` pages plus a static-site config (MkDocs unless the user names another generator).
+  - **readme-only** — a single README carries install + usage; for tiny tools where a second page would be padding.
+  - **existing-convention** — a brownfield project already has a docs convention; the spec captures it as the constraint.
+
+  Load-bearing: it shapes `spec-1-specify`'s mandatory `user-docs-plan.md` page ([USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)), the docs-skeleton issue `plan-0-decompose` cuts, and where `build-user-docs` writes after every verified sprint — so it becomes ADR-0003.
+- **Claude Code support** — asked **exactly once**, here. AGENTS.md orientation hubs are unconditional (root + every non-leaf code directory; rules in [CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)); this question only decides whether every AGENTS.md also gets a sibling `CLAUDE.md` containing exactly `@AGENTS.md`, so Claude Code sessions load the hubs natively. Default **yes** when the interview happens inside Claude Code. Recorded as ADR-0004.
+
+Record the tracker choice in `tracker.md`, the language posture as **ADR-0001**, the UI/UX posture as **ADR-0002**, the user-docs posture as **ADR-0003**, and the agent-context choice as **ADR-0004** — each plus its `spec/index.md` posture line (step 2) — so every later skill honours them, not just this session.
 
 ### 2. Copy the scaffold into place
 
@@ -110,7 +126,9 @@ glossary.
 │   │   └── adr/
 │   │       ├── index.md      # from stubs/adr-index.md
 │   │       ├── 0001-language-posture.md  # from stubs/adr-0001-language-posture.md (fill posture tokens)
-│   │       └── 0002-ui-posture.md        # from stubs/adr-0002-ui-posture.md (fill posture tokens)
+│   │       ├── 0002-ui-posture.md        # from stubs/adr-0002-ui-posture.md (fill posture tokens)
+│   │       ├── 0003-user-docs-posture.md    # from stubs/adr-0003-user-docs-posture.md (fill posture tokens)
+│   │       └── 0004-agent-context-files.md  # from stubs/adr-0004-agent-context-files.md (fill posture tokens)
 │   ├── prototypes/            # ONLY when the UI posture is greenfield-product (or the user opts in)
 │   │   ├── index.md           # from stubs/prototypes-index.md
 │   │   └── prototype-skeleton.html  # from assets/prototype-skeleton.html (verbatim)
@@ -129,6 +147,7 @@ glossary.
     ├── plan-status.py        # from assets/plan-status.py (verbatim)
     ├── publish-issues.py     # from ../plan-1-publish-issues/assets/publish-issues.py (verbatim)
     ├── verify-plan-tree.py   # from assets/verify-plan-tree.py (verbatim)
+    ├── verify-agents-tree.py # from assets/verify-agents-tree.py (verbatim)
     └── plan-gate.py          # from assets/plan-gate.py (verbatim)
 ```
 
@@ -182,8 +201,56 @@ later skill from inventing UI work nobody asked for. Scaffold `spec/prototypes/`
 scaffolded, add one line to `spec/index.md`'s reference links:
 `- [`prototypes/`](prototypes/index.md) — throwaway HTML design prototypes and signed-off design captures, linked from the spec pages.`
 
+**Record the user-docs posture** the same way: author
+`adr/0003-user-docs-posture.md` from its stub and set `spec/index.md`'s
+`{{DOCS_POSTURE}}` line, matching the choice:
+
+| Choice | `{{DOCS_POSTURE}}` line | ADR summary / decision |
+|--------|--------------------------|------------------------|
+| docs-site | "End-user docs are a structured multi-page site (MkDocs unless stated otherwise), planned in `user-docs-plan.md` and grown per verified sprint." | docs-site — MkDocs-style `docs/` + site config; `user-docs-plan.md` pins the page map; `build-user-docs` writes into it per verified sprint |
+| readme-only | "End-user docs are a single README (install + usage), planned as a section map in `user-docs-plan.md`." | readme-only — one README, kept tight; the page map collapses to a section map |
+| existing-convention | "End-user docs follow the project's existing convention, captured as the constraint in `user-docs-plan.md`." | existing-convention — the detected existing docs layout is the constraint; pages are planned in its terms |
+
+**Record the agent-context choice**: author `adr/0004-agent-context-files.md`
+from its stub and set `spec/index.md`'s `{{AGENTS_POSTURE}}` line. AGENTS.md
+hubs are unconditional either way; only the CLAUDE.md siblings vary:
+
+| Choice | `{{AGENTS_POSTURE}}` line | ADR decision |
+|--------|----------------------------|--------------|
+| Claude Code support: yes | "The source tree carries AGENTS.md orientation hubs with sibling CLAUDE.md imports for Claude Code." | on — every AGENTS.md gets a sibling CLAUDE.md containing exactly `@AGENTS.md` |
+| Claude Code support: no | "The source tree carries AGENTS.md orientation hubs." | off — AGENTS.md only; no CLAUDE.md files |
+
+Add both ADR rows to `adr/index.md`'s Records section. Write them even when
+the defaults were taken — the recorded posture is what stops a later skill
+(or a long collaborative editing session) from silently drifting.
+
 Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).
+
+### 2b. Scaffold the root agent hub into the target repo
+
+The one piece that lives *outside* `.plan/` (precedent: the settings hook in
+step 2a). From `stubs/agents-root.md`, create the repo-root `AGENTS.md` —
+fill `{{PROJECT_NAME}}` / `{{ONE_LINE_DESCRIPTION}}`. It is the owning home of
+the repo's durable agentic-development rules (hub isolation, hub scope,
+update-on-change, docs currency); per-subdirectory hubs are **not** created
+now — builders add them as directories appear (`build-tdd`'s codebase-
+organization duty), guided by the spec's `repository-layout.md`.
+
+When ADR-0004 says Claude Code support is on, also create the repo-root
+`CLAUDE.md` containing exactly:
+
+```
+@AGENTS.md
+```
+
+Merge, don't clobber — brownfield repos may already have either file:
+
+- An existing `AGENTS.md`: append the stub's "Rules for working in this repo"
+  section (and the Layout section header) rather than replacing the file;
+  leave the owner's prose untouched.
+- An existing `CLAUDE.md`: add the `@AGENTS.md` line at the top if it isn't
+  already there; never delete its other content.
 
 ### 2a. Wire the plan-tree integrity gate
 
@@ -211,14 +278,20 @@ is already wired (a re-scaffold, or the tracker-only re-run path), leave it as i
 
 ### 3. Verify and offer to serve
 
-Run both verifiers — a fresh scaffold must pass:
+Run the verifiers — a fresh scaffold produces no CRITICAL findings (warnings
+below are the expected ramp-in state):
 
 ```bash
-python .plan/spec/scripts/verify-spec-tree.py   # expect: OK: ... (exit 0)
+python .plan/spec/scripts/verify-spec-tree.py   # expect: WARN on the two mandatory pages (they don't exist yet), exit 1
 python .plan/plan/verify-plan-tree.py           # expect: OK: 0 epics, 0 sprints, 0 issues ...
+python .plan/plan/verify-agents-tree.py         # greenfield: OK ... (exit 0); brownfield: WARNs for missing hubs (exit 1) — expected, builders ramp them in
 python .plan/plan/plan-status.py check          # expect: "plan tree: not-started" (exit 1 — nothing built yet)
 python .plan/progress/drift-status.py           # expect: "No drift items." (exit 0 — none recorded yet)
 ```
+
+The spec verifier's two mandatory-page warnings (`repository-layout.md`,
+`user-docs-plan.md`) are the expected fresh-scaffold state — `spec-1-specify`
+authors those pages; the warnings are the reminder, not a scaffold failure.
 
 `plan-status.py check` exits 1 on a fresh, all-not-started tree — that's expected,
 not a scaffold failure; it only confirms the funnel runs and roots itself correctly.
@@ -245,8 +318,10 @@ comments just fall back to browser localStorage without the sidecar, and the
 Tell the user the workspace is ready and that the next step is `spec-1-specify` to
 author the first part of the specification. Summarise the tracker they chose,
 the language posture recorded in ADR-0001 (agnostic unless they tied it to a
-language), and the UI/UX posture recorded in ADR-0002 (headless unless they
-chose a UI tier).
+language), the UI/UX posture recorded in ADR-0002 (headless unless they chose
+a UI tier), the user-docs posture recorded in ADR-0003 (docs-site unless they
+chose otherwise), and whether Claude Code support is on (ADR-0004 — root
+AGENTS.md scaffolded either way).
 
 ## Why this shape
 

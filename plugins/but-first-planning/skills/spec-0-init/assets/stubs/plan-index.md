@@ -1,5 +1,9 @@
 # {{PROJECT_NAME}} Implementation Plan
 
+<!-- plan-format: 3.7 — do not remove: verify-plan-tree.py reads this marker
+     to enforce the 3.7 issue rules (e.g. the **User-facing** line) at
+     CRITICAL level rather than warning. -->
+
 This tree decomposes the specification at [`../spec/`](../spec/index.md) into an
 executable backlog of **tracer-bullet vertical-slice** issues. Its shape mirrors
 the spec's progressive-disclosure structure so a reader can descend from this

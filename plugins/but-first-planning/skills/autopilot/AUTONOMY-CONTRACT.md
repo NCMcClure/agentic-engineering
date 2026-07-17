@@ -40,8 +40,12 @@ Which tracker (from `.plan/tracker.md`), whether each sprint opens a PR
 (`openPr`), the PR base branch, and whether `triage-drift.js` may publish drift
 issues (`publish: true`) or must batch them. Also the **docs posture**: whether
 each sprint runs the `build-user-docs` pass after its reconcile (default
-**on**), and where its commit lands — appended to the still-open sprint PR
-(default; docs reviewed with the code) or left uncommitted for the human.
+**on**; the docs *shape* was already settled at init as ADR-0003 — this call is
+only whether/where the pass runs), and where its commit lands — appended to the
+still-open sprint PR (default; docs reviewed with the code) or left
+uncommitted for the human. Agent-context files (AGENTS.md hubs, CLAUDE.md
+siblings) are settled at init as ADR-0004, not per run — builders just honour
+it.
 Publishing tickets, pushing branches (the docs commit included), and
 **gate-notification comments** (a `Human gate` @mention posted on each
 HITL/REVIEW issue the run defers on, whenever `tracker.md` names a

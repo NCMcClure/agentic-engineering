@@ -60,6 +60,7 @@ friction:
 - Where does a single responsibility leak across several modules with no clear owner (no **locality**)?
 - Where do two designed modules leak across their seam — each needing to know the other's internals?
 - Which parts of the design would be hard to test through the interface as drawn? Where is there no seam to substitute a dependency?
+- Does `repository-layout.md` hold up under the same pressure? Each spec module gets a directory with locality (one place per concern), the AGENTS.md hub rules hold on the drawn tree (no source files beside a hub, no orphan levels — [CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)), and a change to one module stays inside one directory. A layout that scatters a concern across directories is a locality finding like any other.
 
 Apply the **deletion test** to anything that smells shallow: would removing this
 designed module concentrate the complexity somewhere sensible, or just shuffle it

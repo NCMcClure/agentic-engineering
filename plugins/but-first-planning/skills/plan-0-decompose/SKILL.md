@@ -57,7 +57,14 @@ For each sprint, draft its issues as tracer-bullet slices. For each, decide:
 - **Type** — `HITL` (needs a human decision/review), `AFK` (an agent can implement and merge it autonomously), or `REVIEW` (a human opens a UI surface and visually confirms spec'd behaviour — see below). Prefer AFK where honest.
 - **Blocked by** — which sibling issues must land first.
 - **Spec anchors** — the spec file(s) this slice realises. Every issue carries at least one. See [SPEC-ANCHORS.md](SPEC-ANCHORS.md) for why and how (the relative-path shape matters — the verifier checks it).
-- **User-facing?** — one optional, link-free line at the end of `## What to build`: `**User-facing**: yes — <the surface>` or `no — internal`. It costs a moment now and saves `build-user-docs` from guessing later which slices need end-user documentation.
+- **User-facing?** — one **required**, link-free line at the end of `## What to build` on every AFK/HITL issue: `**User-facing**: yes — <the surface>` or `no — internal`. The verifier enforces it (critically on 3.7 trees); it's what lets `build-user-docs` document deliberately instead of guessing which slices need end-user documentation.
+
+**Cut the docs-skeleton issue.** Every plan carries one early AFK issue that
+stands up the end-user docs stack — the site config plus landing page per the
+spec's `user-docs-plan.md` ([USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)),
+anchored to that page. It belongs in the first sprint alongside the project
+skeleton: the docs structure has to exist before `build-user-docs`'s first
+per-sprint pass has anywhere to write.
 
 **Route every open question.** Sweep the spec for "Open questions" sections and
 inline `**Open question:**` blocks — each one is routed **exactly once**:

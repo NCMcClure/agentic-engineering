@@ -116,6 +116,7 @@ Give the user a tight status read:
 - **Dispatch plan** *(parallel builds)* — the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
 - **Human gates** — the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
 - **Docs freshness** — one line: verified sprints (in `completed/`) with no row in `.plan/progress/docs.md` have undocumented user-facing work — recommend `build-user-docs`. Skip the line when everything verified is documented (or nothing is verified yet).
+- **Codebase hubs** — one line: when `.plan/plan/verify-agents-tree.py` exists, its exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it exits 0.
 - **Checkpoint health** — any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures — route them to `spec-4-edit`.
 
 If the next issue is `<unassigned>` (its sprint hasn't been published), note that

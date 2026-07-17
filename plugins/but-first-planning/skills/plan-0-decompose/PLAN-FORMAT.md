@@ -16,7 +16,10 @@ Numeric prefixes set ordering and must be unique within their directory.
 
 ## `index.md` (plan root)
 
-`spec-0-init` left a stub. Replace its "Epics" section with a table, one row per epic:
+`spec-0-init` left a stub. Keep the `<!-- plan-format: 3.7 -->` marker comment
+it carries — `verify-plan-tree.py` reads it to decide enforcement strictness
+(marked trees hard-fail the `**User-facing**` rule; unmarked legacy trees only
+warn). Replace the stub's "Epics" section with a table, one row per epic:
 
 ```markdown
 ## Epics
@@ -68,6 +71,7 @@ parallel, say so.
 |-------|---------|-----------------|
 | All epic sprints done | `python .plan/plan/plan-status.py check 01` | exit 0 (`01-minimal-core: done`) |
 | Plan tree verifier passes | `python .plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
+| Codebase hubs current | `python .plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
 
 ## Blocked by
 
@@ -118,6 +122,7 @@ Issues are parallelizable unless an issue's own `Blocked by` says otherwise.
 |-------|---------|-----------------|
 | All sprint issues done | `python .plan/plan/plan-status.py check 01-01` | exit 0 (`...: done`) |
 | Plan tree verifier passes | `python .plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
+| Codebase hubs current | `python .plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
 
 ## Blocked by
 
@@ -173,11 +178,19 @@ Anchor: [spec/02-runtime/event-loop.md](../../../../spec/02-runtime/event-loop.m
 - None - can start immediately
 ```
 
-The `**User-facing**` line is **optional** and the verifier ignores it — it
-names the user-visible surface this slice adds (`yes — <the surface>`) or marks
-the slice internal (`no — internal`), so `build-user-docs` knows what to
-document without guessing. Keep it link-free: a markdown link containing
-`spec/` on this line would be picked up by the verifier's spec-anchor check.
+The `**User-facing**` line is **required on every `AFK` and `HITL` issue** —
+it names the user-visible surface this slice adds (`yes — <the surface>`) or
+marks the slice internal (`no — internal`), so `build-user-docs` documents
+deliberately instead of guessing. `REVIEW` issues omit it (they build
+nothing). The verifier enforces it: missing or malformed is CRITICAL on a
+plan tree carrying the `plan-format: 3.7` marker, a warning on legacy trees.
+Keep it link-free: a markdown link containing `spec/` on this line would be
+picked up by the verifier's spec-anchor check.
+
+Every plan also cuts an early AFK **docs-skeleton issue** — the end-user docs
+site config plus landing page, per the spec's `user-docs-plan.md` (contract:
+[USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — anchored to that
+page, so the docs stack exists from sprint one.
 
 ### REVIEW issue variant
 
@@ -236,7 +249,11 @@ issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
     an older plugin version, re-copy `verify-plan-tree.py` and
     `publish-issues.py` into `.plan/plan/` (the spec-0-init backfill exception)
     before publishing — an old `publish-issues.py` silently labels REVIEW
-    issues as agent-ready.
+    issues as agent-ready. The `**User-facing**` check and the hub checkpoint
+    row need the ≥3.7 scripts: re-copy `verify-plan-tree.py` again and copy
+    `verify-agents-tree.py` alongside it. Legacy trees without the
+    `plan-format: 3.7` marker only warn — nothing hard-fails until the marker
+    is added deliberately.
 
 ### Issue rules the verifier enforces
 
@@ -246,3 +263,4 @@ issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
 - `**GitHub**:` is exactly `<unassigned>` until published, then a real `#NNN` (or tracker reference).
 - Every markdown link in `## What to build` that contains `spec/` must resolve — that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `.plan/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).
 - Every markdown link in `## Blocked by` must resolve to a real sibling issue file (use `[title](./NN_issue_OTHER.md)`), or say "None".
+- `**User-facing**:` present on every `AFK`/`HITL` issue, matching `yes — <surface>` or `no — internal` (CRITICAL on `plan-format: 3.7` trees, WARN on legacy ones).

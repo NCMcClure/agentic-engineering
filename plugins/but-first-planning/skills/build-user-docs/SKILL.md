@@ -43,10 +43,14 @@ the docs correction rides the existing drift machinery like any other defect.
   defined in [DOCS-STATE.md](DOCS-STATE.md).
 - `.plan/progress/completed/` — the verified-complete ledgers. The diff against
   `docs.md` is the work list: every verified issue not yet documented.
-- The undocumented issues' files — title, `## What to build`, the optional
-  `**User-facing**` line (seeded by `plan-0-decompose`; absent on older plans —
-  infer from the title, spec anchors, and the diff), and spec anchors — plus
-  their sprints' `## Goal`. This is the *intent*.
+- The spec's `user-docs-plan.md` page when it exists (contract:
+  [USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — the docs stack
+  and the page map this pass writes into. It pins the layout ahead of the
+  detection order below.
+- The undocumented issues' files — title, `## What to build`, the
+  `**User-facing**` line (required since 3.7, seeded by `plan-0-decompose`;
+  absent on older plans — infer from the title, spec anchors, and the diff),
+  and spec anchors — plus their sprints' `## Goal`. This is the *intent*.
 - The sprint's diff or PR — what *actually* changed.
 - The built tree itself — the only admissible evidence for anything the docs
   claim (see the grounding rule below).
@@ -74,13 +78,16 @@ the sprint diff/PR (the reality). Where they disagree, the diff wins — docs
 describe the product as built, and the disagreement is worth a drift file if
 it's more than cosmetic.
 
-### 3. Detect the docs layout
+### 3. Resolve the docs layout
 
-Find the project's existing documentation convention before writing anything:
-a README-only project, a `docs/` directory, `mkdocs.yml`, a Docusaurus site,
-man pages. Follow what exists. Only when nothing exists, impose the default:
-README carries install + quickstart, `docs/` carries topic pages. The
-detection order and layout rules are in [DOCS-STATE.md](DOCS-STATE.md).
+The spec's `user-docs-plan.md` page, when it exists, **pins** the layout —
+stack and page map both; write into that structure. Otherwise (brownfield,
+pre-3.7 trees) detect the project's existing convention before writing
+anything: a README-only project, a `docs/` directory, `mkdocs.yml`, a
+Docusaurus site, man pages. Follow what exists. Only when nothing exists,
+impose the default per the recorded user-docs posture (ADR-0003): an MkDocs
+site — `mkdocs.yml` + `docs/` pages. The detection order and layout rules are
+in [DOCS-STATE.md](DOCS-STATE.md).
 
 ### 4. Ground every claim
 

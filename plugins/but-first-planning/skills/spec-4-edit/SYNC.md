@@ -88,6 +88,28 @@ restructure.
 - **Renamed a term** in the glossary? Issue titles and `## What to build` text use domain vocabulary — grep the plan tree (and the rest of the spec) for the old term and reconcile, so the plan keeps speaking the project's current language.
 - **Reversed or superseded a decision** (ADR)? Find spec prose and issues that assumed the old decision and update them; mark the old ADR `superseded by ADR-NNNN` rather than deleting it.
 
+## User-docs and AGENTS.md ripples
+
+Two more surfaces a spec change can stale, checked in the same pass as the
+anchor grep:
+
+- **End-user docs.** If the change touches `user-docs-plan.md`, an issue whose
+  `**User-facing**` line says `yes`, or behaviour already shipped (a page in
+  `.plan/progress/docs.md`'s managed set describes it) — the product docs are
+  now stale. Flag the affected pages and **route the rewrite to
+  `build-user-docs`** (read and follow `../build-user-docs/SKILL.md` like any
+  routed skill): its gate, grounding, and ownership rules apply unchanged.
+  `spec-4-edit` never writes product docs directly.
+- **Codebase hubs.** If the change touches `repository-layout.md` or moves a
+  module boundary (a directory appears, disappears, or changes purpose), list
+  the source directories whose `AGENTS.md` hubs need review (contract:
+  [CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)) and re-run
+  `verify-agents-tree.py` after the edits.
+
+Any issue this pass creates or re-cuts carries the `**User-facing**` line —
+the format is owned by [PLAN-FORMAT.md](../plan-0-decompose/PLAN-FORMAT.md);
+dropping it on a re-cut is exactly the drift the verifier now catches.
+
 ## Always re-verify
 
 After any propagation, run both:
@@ -96,6 +118,9 @@ After any propagation, run both:
 python .plan/spec/scripts/verify-spec-tree.py
 python .plan/plan/verify-plan-tree.py
 ```
+
+When `.plan/plan/verify-agents-tree.py` exists and the change rippled into
+source directories or `repository-layout.md`, run it too.
 
 The verifiers don't understand intent, but they catch the mechanical fallout of a
 half-finished propagation: a broken anchor, a sprint table that no longer matches

@@ -195,6 +195,7 @@ DISCIPLINE — non-negotiable:
 2. Read your issue file(s) and EVERY spec anchor they cite before writing any code. The spec's vocabulary is your naming.${auto ? `
 2b. This is a HITL decision issue running under auto-implement: MAKE the decision, ground it in the spec/glossary/ADRs, record it as a new ADR under ${ROOT}/.plan/spec/reference/adr/ (next free number, matching format, indexed), and flag it prominently in your evidence — it will be surfaced for after-the-fact review.` : ''}
 3. The ## Testing checkpoint must GENUINELY pass. If it names tooling that doesn't exist yet, build the issue's behaviour, verify against the acceptance criteria, add it to driftFlags — do NOT invent the missing tooling and do NOT fake a pass.
+3b. Keep the AGENTS.md hubs current (rules: the repo-root AGENTS.md): a new non-leaf code directory gets an AGENTS.md (+ sibling CLAUDE.md containing @AGENTS.md when the root CLAUDE.md carries that import); update the governing AGENTS.md of any directory whose contents you changed, in the same commit; never put source files in a directory that has an AGENTS.md.
 4. Commit one commit per issue: git add ONLY the files you changed (never -A), message naming the issue coords and ticket ref.
 5. Do NOT push. Do NOT run plan-status.py. Do NOT edit sprint.md/epic.md/index.md or any Status field — the integrator owns all of that.
 Report per the schema; evidence is your red->green trail. Set unit="${unitKey(u)}". ${BRIEF}`
@@ -315,7 +316,7 @@ log(`Build: ${built.length} landed, ${failed.length} failed, ${excluded.size} no
 // ---------- Phase 5: sprint exit ----------
 phase('Exit')
 const sprintExit = await agent(
-  `${CTX}\nYou are the sprint-exit verifier. Run, from ${ROOT} on ${BRANCH}: (1) python3 ${PLANDIR}/plan-status.py check ${SPRINT}; (2) the sprint's own exit checkpoints from its sprint.md (read it — Layer-1 test suite, any sprint E2E); (3) python3 ${PLANDIR}/verify-plan-tree.py. These units were NOT built this run (do not count their absence as failure): ${JSON.stringify([...excluded])}. Classify every failure: genuine (work is wrong/missing) vs broken-by-construction (the checkpoint can never pass as written — an issue defect that routes to spec-4-edit; cross-check ${JSON.stringify(dispatch.checkpointHealth || [])}). Run checkpoints read-only — fix nothing. ${BRIEF}`,
+  `${CTX}\nYou are the sprint-exit verifier. Run, from ${ROOT} on ${BRANCH}: (1) python3 ${PLANDIR}/plan-status.py check ${SPRINT}; (2) the sprint's own exit checkpoints from its sprint.md (read it — Layer-1 test suite, any sprint E2E); (3) python3 ${PLANDIR}/verify-plan-tree.py; (4) python3 ${PLANDIR}/verify-agents-tree.py if it exists (exit 2 = genuine failure: a hub-isolation break this sprint introduced; exit 1 warnings are reported, not failing). These units were NOT built this run (do not count their absence as failure): ${JSON.stringify([...excluded])}. Classify every failure: genuine (work is wrong/missing) vs broken-by-construction (the checkpoint can never pass as written — an issue defect that routes to spec-4-edit; cross-check ${JSON.stringify(dispatch.checkpointHealth || [])}). Run checkpoints read-only — fix nothing. ${BRIEF}`,
   {
     label: 'sprint-exit', phase: 'Exit', model: 'opus', effort: 'high',
     schema: {
@@ -395,4 +396,8 @@ return {
   prUrl: pr ? pr.prUrl : null,
   notified: pr && pr.notified ? pr.notified : [],   // tracker issues that got a Human-gate @mention comment
   stoppedEarly,
+  // the docs pass is deliberately OUTSIDE this workflow (serial grounded writing):
+  // after build-next-issue's reconcile writes the ledger rows, run build-user-docs
+  // so the docs commit lands on the still-open sprint PR.
+  docsPassDue: built.length > 0,
 }

@@ -73,6 +73,10 @@ pass. Every other doc file is user-authored: section-level edits only.
 
 Follow the first convention that exists; impose the default only at the end:
 
+0. The spec's `user-docs-plan.md` page (contract:
+   [USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — when it exists,
+   its stack section and page map **pin** the layout; the steps below apply
+   only to brownfield projects and pre-3.7 trees that don't carry the page.
 1. A docs-site config — `mkdocs.yml`, `docusaurus.config.*`, `conf.py`
    (Sphinx), `book.toml` (mdBook) — write pages into that site's source tree
    and wire them into its nav.
@@ -82,5 +86,8 @@ Follow the first convention that exists; impose the default only at the end:
    tight and current.
 4. README only — extend it while it stays scannable; split into `docs/` when
    install + quickstart + topics stop fitting comfortably.
-5. Nothing — the default: README carries install + quickstart, `docs/`
-   carries topic pages, both created and listed as managed.
+5. Nothing — the default follows the recorded user-docs posture
+   (`reference/adr/0003-user-docs-posture.md`): scaffold an MkDocs site —
+   `mkdocs.yml` plus `docs/` pages, README kept to install + quickstart with a
+   pointer to the site — all created and listed as managed. On a pre-3.7 tree
+   with no ADR-0003, fall back to README + `docs/` topic pages.

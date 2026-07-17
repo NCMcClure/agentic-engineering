@@ -76,7 +76,8 @@ published vs unpublished ones, and how to keep anchors valid — is in
 2. **Plan changed?** If the affected issues are already published (have a real tracker reference), the tickets are now stale — sync each ticket from its updated plan file **in the same pass** (SYNC.md's published-issue table says what; `.plan/tracker.md` says how: rebuild bodies, swap labels/milestones, close obsoleted tickets with a reason, publish issues newly added to live sprints). Never silently diverge a live ticket from its plan issue.
 3. **Glossary / ADR touched?** A renamed term or a reversed decision can invalidate spec prose and issue titles elsewhere — grep for the old term and reconcile.
 4. **Prototype signed off?** If the change finalizes a design prototype (the user approves it as the design), promote its capture per `spec-1-specify`'s [UI-SPEC.md](../spec-1-specify/UI-SPEC.md): approved image(s) → `spec/prototypes/assets/`, a `prototypes/<slug>.md` page embedding them, one index line, links from the pages it illustrates.
-5. **Re-verify.** Run both verifiers (`verify-spec-tree.py`, `verify-plan-tree.py`) after edits; a broken anchor link is the tripwire that catches a propagation you missed.
+5. **Docs / hubs rippled?** A change that touches `user-docs-plan.md`, a `User-facing: yes` issue, or behaviour already documented stales the end-user docs; one that touches `repository-layout.md` or moves a module boundary stales the AGENTS.md hubs. [SYNC.md](SYNC.md)'s "User-docs and AGENTS.md ripples" section says what to flag and where to route (docs rewrites go through `build-user-docs`, never written here).
+6. **Re-verify.** Run both verifiers (`verify-spec-tree.py`, `verify-plan-tree.py`) after edits — plus `verify-agents-tree.py` when it exists and source directories or `repository-layout.md` were touched; a broken anchor link is the tripwire that catches a propagation you missed.
 
 ## Autonomous mode
 

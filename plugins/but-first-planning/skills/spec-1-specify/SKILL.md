@@ -34,9 +34,11 @@ grow the existing file instead (updating beats creating; see why in
 [PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)).
 
 If terminology is in play, check `.plan/spec/reference/glossary.md` and use its
-canonical terms. Read `.plan/spec/reference/adr/0001-language-posture.md` and
-`0002-ui-posture.md` once so you write to the recorded postures (language, and
-how a human visually verifies the system) from the first file. If the user is fuzzy on a concept or you hit a real fork in the
+canonical terms. Read the recorded postures once —
+`.plan/spec/reference/adr/0001-language-posture.md`, `0002-ui-posture.md`,
+`0003-user-docs-posture.md`, and `0004-agent-context-files.md` — so you write
+to them (language, visual verification, end-user docs shape, agent-context
+files) from the first file. If the user is fuzzy on a concept or you hit a real fork in the
 design, that's a signal to pause and hand off to `spec-2-grill` rather than
 guessing — say so.
 
@@ -48,6 +50,21 @@ when a category starts holding files that don't belong together. Each category
 is a numbered directory (`01-foundations/`, `02-…/`) with an `index.md` hub.
 Layout rules — index isolation, index scope, file sizing, naming — are in
 [FILE-LAYOUT.md](FILE-LAYOUT.md). Read it before creating categories.
+
+Two content pages are **mandatory** in every spec, whatever the outline
+(`verify-spec-tree.py` warns until they exist; exact filenames are the
+contract):
+
+- **`repository-layout.md`** — how the source tree is organized for agents:
+  organizing rules, the top-level tree, the module map back to spec
+  categories, thin entrypoints, and where the AGENTS.md hubs sit. Contract:
+  [CODEBASE-LAYOUT.md](CODEBASE-LAYOUT.md).
+- **`user-docs-plan.md`** — the end-user docs stack (per ADR-0003) and the
+  page map each sprint's docs pass writes into. Contract:
+  [USER-DOCS-SPEC.md](USER-DOCS-SPEC.md).
+
+Slot them into whichever categories fit; plan them into the outline from the
+start rather than bolting them on after.
 
 ### 3. Write the files
 
@@ -108,6 +125,8 @@ Workflow({
     // optional: context, sourcePaths: [...],
     // languagePosture: "agnostic" | "<lang>:minimal" | "<lang>:code-forward" (read from ADR-0001)
     // uiPosture: "headless" | "dev-dashboard" | "existing-design-system" | "greenfield-product" (read from ADR-0002)
+    // docsPosture: "docs-site" | "readme-only" | "existing-convention" (read from ADR-0003)
+    // agentsPosture: "claude-code" | "agents-only" (read from ADR-0004)
   }
 })
 ```
@@ -122,6 +141,8 @@ returned `openQuestions` inventory is the hand-off to `spec-2-grill`
 
 `verify-spec-tree.py` exits 0; every file you created or edited has a current
 `summary`/`updated` frontmatter and exactly one line in its category index; no
-content file exceeds ~200 lines without being flagged to the user; and any fork
-or fuzzy concept you hit is either resolved in the text or explicitly handed to
-`spec-2-grill` — not silently guessed.
+content file exceeds ~200 lines without being flagged to the user; the spec
+carries `repository-layout.md` and `user-docs-plan.md` (or the user explicitly
+deferred them — reported, never silent); and any fork or fuzzy concept you hit
+is either resolved in the text or explicitly handed to `spec-2-grill` — not
+silently guessed.
