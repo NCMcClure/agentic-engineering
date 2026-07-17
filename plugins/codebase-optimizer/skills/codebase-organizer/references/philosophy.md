@@ -118,6 +118,20 @@ CI step, or a Docker `COPY` must be paired with the corresponding reference fix
 no matter how pretty the tree. When a move's blast radius is large or ambiguous,
 prefer the smaller, safer move — or leave it for the human and say why.
 
+### 9. Orientation hubs make the tree self-describing
+
+A well-shaped tree tells the reader where things live; it still can't say what
+each subtree is *for* or which file to open first. An `AGENTS.md` orientation
+hub in every non-leaf code directory closes that gap: one honest line per
+direct child — what it holds, when to descend — so a reader (human or agent)
+orients at the root, descends hub by hub, and opens only the files the hubs
+point at. This is a maintained *mechanism*, not a shape heuristic: the rules
+(hub isolation, direct-children scope, update-on-change), the content
+derivation, and the verifier live in `agent-hubs.md` — the owning contract.
+Note the synergy with principle 1: a hub may not sit beside loose source
+files, so a hubbed root is *forced* to hold only intent, and every internal
+hub level inherits the same property.
+
 ## How to apply this when planning
 
 1. **Read the scan profile and the manifests before proposing anything.** The
@@ -132,6 +146,11 @@ prefer the smaller, safer move — or leave it for the human and say why.
 5. **Sweep for cruft and ephemera** (principle 5) — quarantine vs `.gitignore`.
 6. **For every move, record the reference impact** (principle 8) so the apply
    phase can keep the build green.
+7. **Place and draft the AGENTS.md hubs from the target tree** (principle 9,
+   rules in `agent-hubs.md`): the root always, every non-leaf code directory,
+   honest one-liners per direct child — and where the current tree puts loose
+   code beside code subdirectories, the nesting moves that fix it belong in
+   the move list.
 
 The output of planning is a concrete *target tree* plus an ordered *move list*,
 where each move says where a file goes and what references it will break — not a

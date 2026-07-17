@@ -10,7 +10,8 @@ Conventions pass feeds three toggleable stages, run in order:
 
 1. **ORGANIZE** — tidy the file tree (codebase-organizer): plan → human-implicit apply
    (history-preserving `git mv` + reference rewriting) → CI verify → commit → re-scan
-   until converged.
+   until converged. Also writes/refreshes the AGENTS.md orientation hubs — every
+   non-leaf code directory gets one, per the organizer's `references/agent-hubs.md`.
 2. **DECOMPOSE** — split oversized god-files: lane-plan → parallel find → decision panel
    → line-disjoint carve-outs → scripted/AST codemod leaving compat shims (re-export
    shims in Python, barrel re-exports in JS/TS, same-package splits in Go, `pub use`
@@ -52,6 +53,7 @@ Workflow({
     skillDir:          "${CLAUDE_PLUGIN_ROOT}/skills/improve-codebase-architecture",
     organizerSkillDir: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer",
     structVerifier:    "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify_source_structure.py",
+    hubVerifier:       "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify_agents_hubs.py",
     scanScript:        "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/repo_scan.py",
 
     // OPTIONAL — omit to let the Setup DETECT step auto-derive them for the repo:
@@ -66,9 +68,19 @@ Workflow({
     //   smokeCmd, testCmdPrefix, srcExts               // toolchain overrides (any ecosystem)
     //   baseImports                                    // python only: import-smoke module set
     //   orgPlanDir: "<abs scratch dir outside the repo>"
+    //   hubs: "on"|"only"|"off", claudeMd: true|false|"detect"   // AGENTS.md hubs (see below)
   }
 })
 ```
+
+**The one-time CLAUDE.md check (do this before launching):** the workflow never
+asks mid-run, so resolve the sibling question up front from the repo root — a
+`CLAUDE.md` containing `@AGENTS.md` → pass `claudeMd: true`; a root `AGENTS.md`
+*without* that import → previously declined, pass `claudeMd: false`; neither →
+ask the user once ("Also create sibling `CLAUDE.md` files containing
+`@AGENTS.md` so Claude Code loads the hubs natively?") and pass their answer.
+The workflow's own `"detect"` default is the unattended fallback and never
+*creates* CLAUDE.md files without an existing signal.
 
 The Setup **DETECT** step identifies the ecosystem from the repo's manifests
 (`pyproject.toml` → python, `package.json` → node, `go.mod` → go, `Cargo.toml` → rust;
@@ -97,6 +109,9 @@ The workflow returns a rollup and leaves all work as **per-round commits on the 
 
 - `organize.total_moves` / `decompose_deepen.files` (per-file `lines_start → lines_end`,
   `extractions_applied`, `convergence`).
+- `hubs.baseline → hubs.final` — the AGENTS.md hub verifier's summary before and
+  after the run; ORGANIZE rounds write/refresh hubs, and the engine stages keep
+  them current as files move.
 - Files under `archive/` — cruft the organizer **quarantined** (never deleted); confirm
   before removing.
 - `unmerged_conflict_branches` — child branches kept for human review after a

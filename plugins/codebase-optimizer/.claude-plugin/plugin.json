@@ -1,8 +1,8 @@
 {
   "name": "codebase-optimizer",
   "displayName": "Codebase Optimizer",
-  "version": "0.2.3",
-  "description": "Staged autonomous codebase optimizer \u2014 organize the file tree, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red. Language-aware engine (Python, JS/TS, Go, Rust detected; anything else via overrides) driven by a dynamic Workflow.",
+  "version": "0.3.0",
+  "description": "Staged autonomous codebase optimizer \u2014 organize the file tree into an AGENTS.md-hubbed progressive-disclosure layout, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red. Language-aware engine (Python, JS/TS, Go, Rust detected; anything else via overrides) driven by a dynamic Workflow.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
@@ -12,6 +12,7 @@
     "architecture",
     "decompose",
     "organize",
+    "agents-md",
     "codemod",
     "python",
     "typescript",

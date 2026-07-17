@@ -1,14 +1,14 @@
 export const meta = {
   name: 'optimize-codebase',
-  description: 'Unified, staged, LANGUAGE-AGNOSTIC codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). An ECOSYSTEM PROFILE (python | node | go | rust | generic — explicit arg or auto-detected from the repo manifests at Setup) supplies every language-specific piece: source extensions, env/test/smoke/lint commands, the module-identity scheme, the compat-shim mechanism (python re-export shims, node barrel re-exports, go same-package splits / alias shims, rust pub use, generic full-reference rewrites), the test-seam census, and the codemod guidance — everything else is neutral machinery. A single Setup pass prepares a clean committed baseline + CI-faithful env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subdirectories instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> scripted/codemod extraction leaving compat shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
+  description: 'Unified, staged, LANGUAGE-AGNOSTIC codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). An ECOSYSTEM PROFILE (python | node | go | rust | generic — explicit arg or auto-detected from the repo manifests at Setup) supplies every language-specific piece: source extensions, env/test/smoke/lint commands, the module-identity scheme, the compat-shim mechanism (python re-export shims, node barrel re-exports, go same-package splits / alias shims, rust pub use, generic full-reference rewrites), the test-seam census, and the codemod guidance — everything else is neutral machinery. A single Setup pass prepares a clean committed baseline + CI-faithful env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subdirectories instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting, and writes/refreshes AGENTS.md orientation hubs per the organizer’s agent-hubs contract (hub isolation, direct-children scope, update-on-change) with the hub verifier reporting baseline -> final. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> scripted/codemod extraction leaving compat shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
   phases: [
     { title: 'Setup', detail: 'assert git tree, clean committed baseline on the working branch, detect the ecosystem + toolchain, set up the project env, capture a baseline test oracle + protected-untracked set + structure-verifier baseline (once for the whole run)' },
-    { title: 'Conventions', detail: 'derive the repo organization conventions (codebase-organizer philosophy + language layouts + live repo_scan/verifier output) into a CONVENTIONS block injected into every decompose/deepen find/panel/chair/implement prompt (once)' },
-    { title: 'Org[{p}] · Iter {r}', detail: 'ORGANIZE stage repo-level rounds (when selected): codebase-organizer plan -> persist -> apply (git mv + ref rewrite) -> CI verify -> commit -> re-scan until converged; phases unique per (pass, round)' },
+    { title: 'Conventions', detail: 'derive the repo organization conventions (codebase-organizer philosophy + language layouts + agent-hubs contract + live repo_scan/verifier output) into a CONVENTIONS block injected into every decompose/deepen find/panel/chair/implement prompt, plus the AGENTS.md hub-verifier baseline (once)' },
+    { title: 'Org[{p}] · Iter {r}', detail: 'ORGANIZE stage repo-level rounds (when selected): codebase-organizer plan -> persist -> apply (git mv + ref rewrite + AGENTS.md hubs) -> CI verify -> commit -> re-scan until converged; phases unique per (pass, round)' },
     { title: 'Discover[{stage}] {p}', detail: 'DECOMPOSE worklist scan (files > discoverLines) / DEEPEN anchor scan (files > deepAnchorLines), unique per pass' },
     { title: '{STAGE} F{n} {file} · Iter {r}', detail: 'per-file engine rounds, created DYNAMICALLY and uniquely per (stage, file, round) — e.g. "DEC F2 main · Iter 1": compute the file public import path + contract census, then iterate rounds (find -> panel -> apply+shims -> validate -> commit) until convergence; no phase name is reused across stages, files, or rounds' },
     { title: 'Measure', detail: 'single-target mode only: measure the named file to decide whether the engine stages apply' },
-    { title: 'Report', detail: 'per-stage rollup: organize moves landed, per-file before/after line counts + extractions, deepenings landed, org-audit findings, and convergence reasons' },
+    { title: 'Report', detail: 'per-stage rollup: organize moves + AGENTS.md hubs landed, per-file before/after line counts + extractions, deepenings landed, org-audit findings, the hub verifier baseline->final state, and convergence reasons' },
   ],
 }
 
@@ -216,6 +216,15 @@ const SCAN_SCRIPT = (typeof A.scanScript === 'string' && A.scanScript.trim()) ? 
 const PY = '"$(command -v python3 || command -v python)"'
 const STRUCT_VERIFY_CMD = A.structVerifyCmd
   || (PY + ' ' + STRUCT_VERIFIER + ' . ' + (SCAN_SCRIPT ? '--scan-script ' + SCAN_SCRIPT + ' ' : '') + '--json')
+
+// ---- AGENTS.md HUB VERIFIER (whole-repo, deliberately no --subtree; see the organizer's
+// references/agent-hubs.md). Empty hubVerifier => every hub check no-ops (back-compat).
+// Hub findings NEVER enter STRUCT_BASELINE / orgAudit's diff — they have their own
+// warn-ramp lifecycle and must not perturb the revert-on-red arithmetic.
+const HUB_VERIFIER = (typeof A.hubVerifier === 'string' && A.hubVerifier.trim()) ? A.hubVerifier.trim() : ''
+const ORG_HUBS = A.hubs === 'only' ? 'only' : (A.hubs === 'off' ? 'off' : 'on')
+const CLAUDE_MD = A.claudeMd === true ? true : (A.claudeMd === false ? false : 'detect')
+const HUB_VERIFY_CMD = HUB_VERIFIER ? (PY + ' ' + HUB_VERIFIER + ' . --json') : ''
 
 if (!ROOT) return { error: 'projectDir is required (absolute repo path)' }
 if (!SKILL_DIR) return { error: 'skillDir is required (path to the improve-codebase-architecture skill dir)' }
@@ -1059,7 +1068,7 @@ if (!PY3) {
     log('ORGANIZE SKIPPED: python3 is not available for the recon scripts (repo_scan.py + structure verifier).')
     RUN_NOTES.push('organize skipped: python3 not available for the recon scripts (repo_scan.py + the structure verifier are stdlib-python helpers bundled by the plugin — install any python3 to enable the organize stage)')
   }
-  RUN_NOTES.push('org-audit / conventions structure-verifier steps are no-ops this run: python3 not available')
+  RUN_NOTES.push('org-audit / conventions structure-verifier / AGENTS.md hub checks are no-ops this run: python3 not available')
 }
 // ---- 'generic' degraded mode: organize still runs (when python3 exists), but decompose/deepen only
 // run when the caller supplied enough of a toolchain to gate on (testCmdPrefix or oracleCmd).
@@ -1288,6 +1297,26 @@ It prints a JSON object with "summary" {critical,warning,info} and a "findings" 
   }
 }
 
+// Run the AGENTS.md hub verifier (whole-repo — deliberately NO --subtree; root hub, root
+// CLAUDE.md chain, and every non-leaf dir are repo-scope facts). Same PY3 guard and
+// transcription pattern as runStructVerify; a missing hubVerifier arg makes this a no-op
+// (back-compat with callers that predate hubs). Hub findings stay OUT of STRUCT_BASELINE
+// and the orgAudit diff — they carry their own warn-ramp ladder.
+async function runHubVerify(phaseName, label, model) {
+  if (!PY3 || !HUB_VERIFY_CMD) return null
+  try {
+    return await agent(
+      `Read-only — make NO edits. Run the deterministic AGENTS.md hub verifier on the repo at ${ROOT} and return its JSON verbatim. Run from inside the repo:
+    bash -c 'cd "${ROOT}" && ${HUB_VERIFY_CMD}'
+It prints a JSON object with "summary" {critical,warning,info} and a "findings" array of {severity,check,path,message}. Transcribe that JSON EXACTLY into your structured result (summary + findings). If the command errors or is missing, return summary:{critical:0,warning:0,info:0}, findings:[], and explain in detail. Do NOT edit anything.`,
+      { label: label || 'hub-verify', phase: phaseName, schema: STRUCT_SCHEMA, model: model || M_AUDIT }
+    )
+  } catch (e) {
+    log('Hub verifier failed (' + ((e && e.message) ? e.message.slice(0, 80) : 'error') + ') — hub state unreported this checkpoint.')
+    return null
+  }
+}
+
 // ================= Phase: Conventions (once, when an engine stage runs) =================
 // Build the CONVENTIONS block that org-aware placement injects into every decompose/deepen
 // find/panel/chair/implement prompt, plus snapshot the structure-verifier baseline so the post-impl
@@ -1295,6 +1324,7 @@ It prints a JSON object with "summary" {critical,warning,info} and a "findings" 
 const NEEDS_CONV = STAGES.some(s => s === 'decompose' || s === 'deepen')
 let CONVENTIONS = ''
 let STRUCT_BASELINE = null
+let HUB_BASELINE = null
 const CONV_SCHEMA = {
   type: 'object', additionalProperties: false, required: ['conventions'],
   properties: { conventions: { type: 'string' }, detail: { type: 'string' } },
@@ -1306,16 +1336,21 @@ if (NEEDS_CONV) {
   if (STRUCT_BASELINE && STRUCT_BASELINE.summary) {
     log('Structure baseline: ' + (STRUCT_BASELINE.summary.critical || 0) + ' critical, ' + (STRUCT_BASELINE.summary.warning || 0) + ' warning, ' + (STRUCT_BASELINE.summary.info || 0) + ' info (pre-existing — excluded from audit)')
   }
+  HUB_BASELINE = await runHubVerify('Conventions', 'hub-baseline')
+  if (HUB_BASELINE && HUB_BASELINE.summary) {
+    log('Hub baseline: ' + (HUB_BASELINE.summary.critical || 0) + ' critical, ' + (HUB_BASELINE.summary.warning || 0) + ' warning (reported, never gating — hubs warn-ramp)')
+  }
   if (ORG_AWARE_PLACEMENT) {
     const convRes = await agent(
       `Read-only — make NO edits. Produce a concise REPO ORGANIZATION CONVENTIONS block for the source tree at ${ROOT} (ecosystem: ${ECOSYSTEM}), to guide WHERE newly-created modules should be placed during automated refactors (so they land in logically-organized subdirectories, not as loose flat siblings that bloat a directory).
 
 Sources to read and distill (do NOT copy verbatim — synthesize into <= ~30 lines):
-- ${ORGANIZER_SKILL_DIR}/references/philosophy.md (the 8 organization principles — esp. "root holds intent", "no overstuffed directories" (repo_scan.py owns the flat-max threshold), "directories are nouns", "honor ecosystem idioms", progressive disclosure).
+- ${ORGANIZER_SKILL_DIR}/references/philosophy.md (the 9 organization principles — esp. "root holds intent", "no overstuffed directories" (repo_scan.py owns the flat-max threshold), "directories are nouns", "honor ecosystem idioms", progressive disclosure, orientation hubs).
 - ${ORGANIZER_SKILL_DIR}/references/language-layouts.md (the idiomatic source layout for this ecosystem: ${ECOSYSTEM}).
+- ${ORGANIZER_SKILL_DIR}/references/agent-hubs.md (the AGENTS.md hub contract: hub isolation, direct-children scope, non-leaf hubs, update-on-change).
 ${CONVENTIONS_DOC ? '- ' + ROOT + '/' + CONVENTIONS_DOC + ' (project-specific layout notes — honor these over generic advice).\n' : ''}- The ACTUAL package/directory layout under the source root **${SCAN_ROOTS[0]}**: list it with \`bash -c 'cd "${ROOT}" && ls -1 ${SCAN_ROOTS[0]}'\`, then inspect the contents of the 2-3 largest packages/dirs (\`ls -1 ${SCAN_ROOTS[0]}/<pkg>\`) so the conventions name the REAL packages of THIS repo + their existing subdirectory patterns (mirror what already exists — do NOT invent a parallel scheme or copy names from another project).
 ${PY3 ? '- The current structure-verifier findings (which dirs are ALREADY over the flat-file limit, so new modules there MUST go into a subdirectory): run \`bash -c \'cd "' + ROOT + '" && ' + STRUCT_VERIFY_CMD + ' --subtree ' + SCAN_ROOTS[0] + '\'\`.\n' : '- (The deterministic structure verifier is unavailable this run — python3 is not on PATH — so derive the over-the-limit dirs from the ls listings above.)\n'}
-Output a \`conventions\` string with: (1) the 1-line placement rule (a module extracted from <pkg> belongs in <pkg>/<concern-subdirectory> grouped by concern, NOT a flat sibling, especially when <pkg> is already at/over the flat-file limit); (2) the real package map + the existing subdirectory names to mirror (don't invent a parallel scheme); (3) which dirs are currently over the limit so placement avoids worsening them; (4) how tests mirror the source tree (${TEST_ROOT ? 'under ' + TEST_ROOT + '/<pkg>/...' : 'colocated with the source, per this ecosystem'}); (5) every relocation keeps the OLD public import path alive via this ecosystem's compat mechanism (python re-export shim / node barrel / go alias or same-package split / rust pub use). Keep it tight and factual.`,
+Output a \`conventions\` string with: (1) the 1-line placement rule (a module extracted from <pkg> belongs in <pkg>/<concern-subdirectory> grouped by concern, NOT a flat sibling, especially when <pkg> is already at/over the flat-file limit); (2) the real package map + the existing subdirectory names to mirror (don't invent a parallel scheme); (3) which dirs are currently over the limit so placement avoids worsening them; (4) how tests mirror the source tree (${TEST_ROOT ? 'under ' + TEST_ROOT + '/<pkg>/...' : 'colocated with the source, per this ecosystem'}); (5) every relocation keeps the OLD public import path alive via this ecosystem's compat mechanism (python re-export shim / node barrel / go alias or same-package split / rust pub use); (6) the AGENTS.md hub duty: every non-leaf code directory carries an AGENTS.md describing its direct children (one line each); NEVER place a new source file directly beside an AGENTS.md — use a subdirectory; and when a change adds/moves/splits files in a directory, its governing AGENTS.md is updated in the SAME commit. Keep it tight and factual.`,
       { label: 'conventions', phase: 'Conventions', agentType: 'Explore', schema: CONV_SCHEMA, model: M_KEY }
     )
     CONVENTIONS = (convRes && convRes.conventions) ? convRes.conventions : ''
@@ -1617,6 +1652,7 @@ Strongest dissent on record (heed it): ${mandate.dissent || '(none)'}
     3. write the COMPAT SHIMS back at the old path exactly as the mechanism above describes (where this ecosystem has them), so every old reference keeps resolving to the SAME object/definition the live code now calls,
     4. rewrite any other in-file references and cross-module imports as needed.
 - PLACEMENT: put the new module at the convention-correct path the mandate names (an existing/justified subdirectory), NOT a loose flat sibling in an already-large directory. Create any mandated scaffold_files (empty).
+- HUB CURRENCY: if a directory you created/changed files in is governed by an AGENTS.md (its own, or its parent's when the dir is a leaf), update that hub's child line(s) in this same change — one honest line per direct child, what it holds. If your scaffold created the FIRST code subdirectory under a hub-carrying directory, add the new child line. Never place a new source file directly beside an AGENTS.md — use a subdirectory.
 ${P.implSeamWatch(m)}
 - CHARACTERIZATION FIRST: write the mandated tests (esp. seam-still-bites) against the existing interface BEFORE moving, so drift is caught.
 ${P.implGuardAudit(m, mandate.dest_module)}
@@ -1667,7 +1703,7 @@ Report files_touched (every path you created/modified this repair, INCLUDING rep
       return `A panel-approved god-file decomposition was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (smoke/compile check + targeted tests + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
 
 Do:
-1. git -C "${ROOT}" status --porcelain (expect ${TARGET} shrunk + the new module + any new tests; remove any stray /tmp codemod artifacts if they leaked into the tree).
+1. git -C "${ROOT}" status --porcelain (expect ${TARGET} shrunk + the new module + any new tests + any updated AGENTS.md hubs; remove any stray /tmp codemod artifacts if they leaked into the tree).
 2. git -C "${ROOT}" add -A
 3. git -C "${ROOT}" commit -m "refactor(${SCOPE_TAG}): extract ${titleLine} from ${TARGET}
 
@@ -1738,7 +1774,7 @@ Strongest dissent on record (heed it): ${mandate.dissent || '(none)'}
 === EXECUTION DISCIPLINE ===
 - PREFER PROGRAMMATIC TRANSFORMATION over hand-retyping large files (use ${P.codemodGuide}; delete any throwaway transform script before finishing). Use \`git mv\` for whole-file moves to preserve history.
 - CHARACTERIZATION TESTS FIRST: write the mandated tests against the existing interface; they must survive the refactor.
-- Implement the deepening: reshape the shallow module(s) behind a small interface; update ALL call sites + add the mandated shims; preserve the listed invariants, public APIs, CLI, wire formats, persisted schemas EXACTLY. Replace-don't-layer tests at the new interface; only introduce a port/seam if two adapters justify it. If you create a NEW module, place it in a convention-correct home (see conventions below), not a loose sibling.
+- Implement the deepening: reshape the shallow module(s) behind a small interface; update ALL call sites + add the mandated shims; preserve the listed invariants, public APIs, CLI, wire formats, persisted schemas EXACTLY. Replace-don't-layer tests at the new interface; only introduce a port/seam if two adapters justify it. If you create a NEW module, place it in a convention-correct home (see conventions below), not a loose sibling — and update the governing AGENTS.md hub's child line(s) for any directory whose contents you changed, in this same change (never place a source file directly beside an AGENTS.md).
 ${P.implSeamWatch(m)}
 - DO NOT COMMIT / \`git add\` / \`git stash\`. Leave ALL changes UNCOMMITTED for the validation step. A commit here survives revert-on-red and leaks an orphan.
 - If the change proves unsafe/oversized or cannot honor the mandate, make NO partial edits: run the safe revert yourself (git -C "${ROOT}" checkout -- . ; remove only NEW untracked files you created) and return ok:false with the reason.
@@ -1781,7 +1817,7 @@ Report files_touched (incl. repointed guards), new_module, shims_written, tests_
       return `A panel-approved architecture deepening was applied to the repo at ${ROOT} (branch ${BRANCH}) and PASSED CI-faithful validation (smoke/compile check + mandated suites + lint, no regressions). Commit it. Anchor with git -C "${ROOT}". NEVER push.
 
 Do:
-1. git -C "${ROOT}" status --porcelain (expect the reshaped files + any new module/tests; remove any stray /tmp codemod artifacts).
+1. git -C "${ROOT}" status --porcelain (expect the reshaped files + any new module/tests + any updated AGENTS.md hubs; remove any stray /tmp codemod artifacts).
 2. git -C "${ROOT}" add -A
 3. git -C "${ROOT}" commit -m "refactor(arch): ${titleLine}
 
@@ -2421,7 +2457,7 @@ async function runOrganizeStage(passIndex) {
     log('Organize pass ' + passIndex + ' round ' + n + ': planning (scan + design + ref-impact + critique)' + (pendingOrgFixes.length ? ' [' + pendingOrgFixes.length + ' audit hint(s) pending]' : ''))
     let planResult
     try {
-      planResult = await workflow({ scriptPath: PLAN_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, depth: ORG_DEPTH, planPath, exclude: ORG_EXCLUDE })
+      planResult = await workflow({ scriptPath: PLAN_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, depth: ORG_DEPTH, planPath, exclude: ORG_EXCLUDE, hubs: ORG_HUBS, claudeMd: CLAUDE_MD })
     } catch (e) {
       convergence = 'plan-error'; rounds.push({ round: n, stage: 'plan', error: String(e && e.message || e) })
       log('Organize round ' + n + ' plan workflow threw: ' + String(e && e.message || e)); break
@@ -2434,14 +2470,17 @@ async function runOrganizeStage(passIndex) {
     const moveCount = (plan.moves || []).length
     const quarantineCount = ((plan.cruft || {}).quarantine || []).length
     const newFileCount = (plan.new_files || []).length
+    // Hubs converge by the planner-side contract: an accurate on-disk hub is not an action,
+    // so hubCount reaches 0 once the hubs match the tree (plus any drafting-cap deferrals).
+    const hubCount = (plan.hubs || []).length + (plan.hub_drafting_deferred || 0)
     const verdict = (plan.critique || {}).verdict || 'unknown'
-    const actionable = moveCount + quarantineCount + newFileCount
+    const actionable = moveCount + quarantineCount + newFileCount + hubCount
     const droppedUnsafe = ((plan.totals || {}).dropped_unsafe_moves) || (plan.dropped_unsafe_moves || []).length || 0
-    log('Organize round ' + n + ' plan: ' + moveCount + ' moves, ' + quarantineCount + ' quarantine, ' + newFileCount + ' new files, verdict=' + verdict + (droppedUnsafe ? ' (' + droppedUnsafe + ' unsafe move(s) dropped by critic)' : ''))
+    log('Organize round ' + n + ' plan: ' + moveCount + ' moves, ' + quarantineCount + ' quarantine, ' + newFileCount + ' new files, ' + hubCount + ' hubs, verdict=' + verdict + (droppedUnsafe ? ' (' + droppedUnsafe + ' unsafe move(s) dropped by critic)' : ''))
     if (actionable === 0) {
       convergence = 'converged'
       rounds.push({ round: n, stage: 'plan', moves: 0, verdict, note: 'no structural work remaining' })
-      log('Organize pass ' + passIndex + ': CONVERGED — organizer found no moves/quarantine/new-files left.')
+      log('Organize pass ' + passIndex + ': CONVERGED — organizer found no moves/quarantine/new-files/hubs left.')
       pendingOrgFixes.length = 0
       break
     }
@@ -2546,12 +2585,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
       convergence = 'commit-error'; rounds.push({ round: n, stage: 'commit', error: commit ? commit.detail : 'no result' })
       log('Organize round ' + n + ': commit failed — halting. ' + (commit ? commit.detail : '')); break
     }
-    rounds.push({ round: n, moves_applied: applyResult.moved, quarantined: (applyResult.quarantined || []).length, references_rewritten: applyResult.references_rewritten, unresolved_references: applyResult.unresolved_references || [], verify_passed: true, commit: commit.commit, verdict, summary: plan.summary })
+    rounds.push({ round: n, moves_applied: applyResult.moved, quarantined: (applyResult.quarantined || []).length, references_rewritten: applyResult.references_rewritten, unresolved_references: applyResult.unresolved_references || [], hubs_written: applyResult.hubs_written || 0, verify_passed: true, commit: commit.commit, verdict, summary: plan.summary })
     pendingOrgFixes.length = 0   // this pass acted on the tree; stale audit hints are superseded
-    log('Organize round ' + n + ' committed ' + commit.commit + ' (' + applyResult.moved + ' moves). Re-planning to check for more...')
+    log('Organize round ' + n + ' committed ' + commit.commit + ' (' + applyResult.moved + ' moves, ' + (applyResult.hubs_written || 0) + ' hubs). Re-planning to check for more...')
   }
   const applied = rounds.filter(r => r.verify_passed)
-  const result = { stage: 'organize', pass: passIndex, convergence, rounds_run: rounds.length, rounds_applied: applied.length, total_moves: applied.reduce((s, r) => s + (r.moves_applied || 0), 0), rounds }
+  const result = { stage: 'organize', pass: passIndex, convergence, rounds_run: rounds.length, rounds_applied: applied.length, total_moves: applied.reduce((s, r) => s + (r.moves_applied || 0), 0), total_hubs_written: applied.reduce((s, r) => s + (r.hubs_written || 0), 0), rounds }
   orgResults.push(result)
   log('Organize pass ' + passIndex + ' done: ' + applied.length + ' round(s) applied, ' + result.total_moves + ' moves, reason=' + convergence)
   return result
@@ -2666,6 +2705,10 @@ if (SINGLE_TARGET) {
 phase('Report')
 const engineApplied = fileResults.reduce((a, r) => a + (r.extractions_applied || 0), 0)
 const orgMoves = orgResults.reduce((a, r) => a + (r.total_moves || 0), 0)
+const HUB_FINAL = await runHubVerify('Report', 'hub-final')
+if (HUB_FINAL && HUB_FINAL.summary) {
+  log('Hub final state: ' + (HUB_FINAL.summary.critical || 0) + ' critical, ' + (HUB_FINAL.summary.warning || 0) + ' warning')
+}
 log('Run finished: ecosystem=' + ECOSYSTEM + ', stages=[' + STAGES.join(', ') + '] — ' + fileResults.length + ' engine file(s), ' + engineApplied + ' extraction/deepening(s) landed, ' + orgResults.length + ' organize pass(es)/' + orgMoves + ' moves. stop=' + (sweepStop || 'complete') + (RUN_NOTES.length ? '. Notes: ' + RUN_NOTES.join(' | ') : ''))
 
 return {
@@ -2680,12 +2723,19 @@ return {
   baseline_commit: setup.baseline_commit || '(tree was already clean)',
   baseline_red_tests: BASELINE_RED.length,
   structure_baseline: STRUCT_BASELINE ? STRUCT_BASELINE.summary : null,
+  // AGENTS.md hub verifier state: baseline (when an engine stage ran Conventions) vs final.
+  // Reported, never gating — hubs warn-ramp; only organize-apply's own Verify hard-fails on them.
+  hubs: (HUB_BASELINE || HUB_FINAL) ? {
+    baseline: HUB_BASELINE ? HUB_BASELINE.summary : null,
+    final: HUB_FINAL ? HUB_FINAL.summary : null,
+  } : null,
   // child branches kept for human review after MERGE_RETRIES exhausted (concurrent decompose only)
   unmerged_conflict_branches: fileResults.filter(r => r.convergence === 'merge-conflict-unresolved').map(r => ({ target: r.target, branch: r.unmerged_branch })),
   organize: {
     passes: orgResults.length,
     total_moves: orgMoves,
-    results: orgResults.map(r => ({ pass: r.pass, convergence: r.convergence, rounds_applied: r.rounds_applied, total_moves: r.total_moves })),
+    total_hubs_written: orgResults.reduce((a, r) => a + (r.total_hubs_written || 0), 0),
+    results: orgResults.map(r => ({ pass: r.pass, convergence: r.convergence, rounds_applied: r.rounds_applied, total_moves: r.total_moves, hubs_written: r.total_hubs_written })),
   },
   decompose_deepen: {
     files_processed: fileResults.length,

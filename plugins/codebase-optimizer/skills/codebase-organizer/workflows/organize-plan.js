@@ -1,10 +1,11 @@
 export const meta = {
   name: 'codebase-organize-plan',
-  description: 'Read-only: scan a repo, design a clean progressive-disclosure target tree, build an ordered move list with predicted reference impact, adversarially critique the plan, and write it to disk for human approval',
+  description: 'Read-only: scan a repo, design a clean progressive-disclosure target tree, build an ordered move list with predicted reference impact, place and draft AGENTS.md orientation hubs on the post-move tree, adversarially critique the plan, and write it to disk for human approval',
   phases: [
     { title: 'Scan', detail: 'deterministic recon + Explore fan-out over the tree' },
     { title: 'Design', detail: 'target tree + root declutter + overstuffed-dir splits' },
     { title: 'RefImpact', detail: 'predict which references each move breaks' },
+    { title: 'HubDraft', detail: 'place AGENTS.md hubs on the post-move tree + draft honest layout lines' },
     { title: 'Critique', detail: 'adversarial critic checks safety/completeness' },
     { title: 'Finalize', detail: 'assemble plan and return it (skill persists to disk)' },
   ],
@@ -37,6 +38,13 @@ const EXCLUDE = (Array.isArray(A.exclude) ? A.exclude : (A.exclude ? [A.exclude]
 // sub-workflow default unless mechModel is given.
 const KEY_MODEL = A.keyModel || 'opus'
 const MECH_MODEL = A.mechModel || undefined  // undefined => inherit caller/default tier
+// HUBS: 'on' (default — hubs ride the reorg), 'only' (degenerate run: no moves, hubs drafted
+// against the CURRENT tree), 'off'. CLAUDE_MD: true/false = the user already answered the
+// one-time sibling question; 'detect' (default) = resolve from the repo's own signals (root
+// CLAUDE.md containing @AGENTS.md => opted in; root AGENTS.md without it => previously
+// declined; neither => 'ask', and the orchestrating skill asks at the approval gate).
+const HUBS = A.hubs === 'only' ? 'only' : (A.hubs === 'off' ? 'off' : 'on')
+const CLAUDE_MD = A.claudeMd === true ? true : (A.claudeMd === false ? false : 'detect')
 const isExcluded = (p) => {
   if (!p) return false
   const n = String(p).replace(/^\.\//, '').replace(/\/+$/, '')
@@ -170,13 +178,44 @@ const CRITIQUE_SCHEMA = {
         },
       },
     },
+    hub_corrections: {
+      type: 'array',
+      description: 'Per-hub corrections for the AGENTS.md drafts (dishonest/aspirational layout lines, scope reaching two levels deep, a missed direct child, a merge that would clobber user prose). Matched by path and folded into that hub\'s content_notes for the apply-phase writer. Hub writes are non-destructive, so there is no drop-list — correct, don\'t drop.',
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['path', 'correction'],
+        properties: {
+          path: { type: 'string', description: 'the hub entry\'s path, copied verbatim' },
+          correction: { type: 'string' },
+        },
+      },
+    },
   },
 }
 
 // ---------- Shared prose ----------
 const READ_REFS = `Before deciding anything, read the organizer's taste from these files (they encode the opinionated rules you must apply):
-- ${SKILL_DIR}/references/philosophy.md (the eight principles; the goal is a root a newcomer reads in 30 seconds)
-- ${SKILL_DIR}/references/language-layouts.md (idiomatic target tree for the detected ecosystem — honor it over a generic template)`
+- ${SKILL_DIR}/references/philosophy.md (the nine principles; the goal is a root a newcomer reads in 30 seconds)
+- ${SKILL_DIR}/references/language-layouts.md (idiomatic target tree for the detected ecosystem — honor it over a generic template)${HUBS !== 'off' ? `
+- ${SKILL_DIR}/references/agent-hubs.md (the AGENTS.md orientation-hub contract: isolation, direct-children scope, honest layout lines)` : ''}`
+
+// Hub-drafting output: one entry per hub the plan will write. Assembled by the
+// HubDraft phase, not by the Design agent (keeps Design's already-large
+// StructuredOutput from growing — see the model-tiering note above).
+const HUB_DRAFT_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['path', 'action', 'layout_lines', 'changed'],
+  properties: {
+    path: { type: 'string', description: "hub directory relative to repo root; '.' = the root" },
+    action: { enum: ['create', 'update', 'merge'], description: 'create = no AGENTS.md there today; update = one exists that this plan generated shape for; merge = one exists with user prose to preserve' },
+    layout_lines: { type: 'array', items: { type: 'string' }, description: "the Layout section: one '- `child/` — what it holds, when to descend' line per direct child of the POST-MOVE tree" },
+    changed: { type: 'boolean', description: 'false when an existing hub is already accurate (it will be dropped from the plan — an accurate hub is not an action)' },
+    content_notes: { type: 'string', description: 'derivation notes; for merge: what user prose must be preserved' },
+    claude_md: { type: 'boolean', description: 'write/refresh the sibling CLAUDE.md for this hub (set uniformly from the opt-in)' },
+  },
+}
 
 const EXCLUDE_NOTE = EXCLUDE.length
   ? `\n\nEXCLUDED TREES (do not REORGANIZE, but DO update their references): ${EXCLUDE.map(e => '`' + e + '`').join(', ')}.
@@ -244,8 +283,22 @@ Examine the actual files in this area (read names, peek at a few to confirm inte
 ))).filter(Boolean)
 
 // ---------- Phase 2: Design ----------
-phase('Design')
-const plan = await agent(
+// Hubs-only run: the tree is taken as-is — no Design, no moves; HubDraft drafts
+// against the current tree and Critique reviews the hubs alone.
+let plan
+if (HUBS === 'only') {
+  plan = {
+    ecosystems: profile.ecosystems || [],
+    target_tree: '(unchanged — hubs-only run)',
+    root_disposition: { keep: [], nest: [] },
+    moves: [],
+    new_files: [],
+    cruft: { quarantine: [], gitignore: [] },
+    summary: 'Hubs-only run: no files move; AGENTS.md orientation hubs are placed and drafted on the tree as it stands.',
+  }
+  log('Hubs-only run: skipping Design (no moves)')
+} else {
+plan = await agent(
   `You are the lead architect of a codebase reorganization for the repo at ${ROOT}. Produce a concrete, opinionated plan that makes the root readable in 30 seconds and gives every overstuffed area a second organizing layer. Read-only — you are designing, not moving.
 
 ${READ_REFS}
@@ -266,6 +319,9 @@ Build the plan in this order (per philosophy.md "How to apply this when planning
 4. Cruft: list quarantine targets (backup/migration/old files -> archive/ for HUMAN deletion, never auto-deleted) and gitignore targets (build caches, compiled output, editor junk, duplicate cache dirs).
 
 Rules: every move is a git mv (preserves history); never propose deleting files; do not move a file out of a path a build glob/workspace expects; keep entry points reachable; honor nested manifests as self-contained units. Mark any move with large blast radius, dynamic-reference exposure, or that is really a refactor as risk:"risky".
+${HUBS === 'on' ? `
+HUB-ISOLATION MANDATE (agent-hubs.md rule 1, extending principle 1 to every level): the TARGET tree must satisfy hub isolation — any directory that will be a non-leaf code directory (its subdirectories contain code; the repo root always counts) must hold NO loose source files, because it will carry an AGENTS.md orientation hub. Where the current tree violates this (loose source files beside code subdirectories), the moves list MUST include the nesting moves that fix it — same git-mv + reference-rewrite treatment as any other move. Do not draft any hub content here; a later phase places and drafts the hubs against your target tree.
+` : ''}
 
 REFERENCE-INTEGRITY MANDATE (this is how the apply phase keeps the build green — there are NO re-export shims; every broken reference is rewritten in place from the ref_impact you enable, so a move is only safe if its full reference fan-out is PREDICTABLE):
 - Whenever a move turns a flat module into a package (e.g. \`foo.py\` -> \`foo/bar.py\`) or moves a module INTO a new package, add that package's \`__init__.py\` to new_files. The apply phase creates it EMPTY and then rewrites import sites to the new dotted path — it does NOT auto-generate re-export bodies, so do not rely on \`from foo import X\` continuing to resolve unless foo stays importable.
@@ -277,6 +333,7 @@ CRITICAL — moves vs new files: a "move" is ALWAYS an existing file going from 
 The target_tree should show the proposed top 2-3 levels with a one-line purpose per top-level directory. The move list must be concrete (from -> to, both real paths) and ordered so a parent's content lands before nested splits depend on it.`,
   { label: 'design-plan', phase: 'Design', schema: PLAN_SCHEMA, model: KEY_MODEL }
 )
+}
 
 if (!plan) return { error: 'design phase produced no plan' }
 // BACKSTOP: enforce the exclusion deterministically — drop any move whose source or destination
@@ -332,6 +389,122 @@ const movesWithImpact = moves.map(m => ({ ...m, ref_impact: impactByKey[m.from +
 const riskyRefCount = allImpacts.flatMap(i => i.fixes || []).filter(f => f.confidence === 'risky').length
 log('RefImpact done: ' + allImpacts.flatMap(i => i.fixes || []).length + ' references predicted (' + riskyRefCount + ' risky)')
 
+// ---------- Phase 3b: Hub placement + drafting ----------
+// Places AGENTS.md hubs on the POST-MOVE tree and drafts honest layout lines
+// per references/agent-hubs.md. Deliberately separate from Design (whose
+// StructuredOutput is already at the reliable-size limit — see the tiering note).
+let hubDrafts = []
+let claudeMdOptin = 'no'
+let hubDraftingDeferred = 0
+if (HUBS !== 'off') {
+  phase('HubDraft')
+
+  // Mechanical recon: current hub state + the one-time CLAUDE.md opt-in signal.
+  const hubRecon = await agent(
+    `Mechanical recon of the AGENTS.md hub state of the repo at ${ROOT}. Read-only; report facts, no judgment.
+Run exactly this and transcribe its JSON findings:
+\`\`\`
+cd "${ROOT}" && ${PY} "${SKILL_DIR}/scripts/verify_agents_hubs.py" . --json
+\`\`\`
+Then: list every existing AGENTS.md and CLAUDE.md file as repo-relative paths (check both tracked and untracked, e.g. \`git -C "${ROOT}" ls-files '*AGENTS.md' '*CLAUDE.md'\` plus a find for untracked ones, skipping node_modules/.git/archive). Report root_claude_import = whether the ROOT CLAUDE.md exists AND contains the literal string @AGENTS.md, and root_agents_exists = whether the ROOT AGENTS.md exists.`,
+    {
+      label: 'hub-recon', phase: 'HubDraft', model: MECH_MODEL,
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['agents_files', 'claude_files', 'root_claude_import', 'root_agents_exists', 'verifier_findings'],
+        properties: {
+          agents_files: { type: 'array', items: { type: 'string' } },
+          claude_files: { type: 'array', items: { type: 'string' } },
+          root_claude_import: { type: 'boolean' },
+          root_agents_exists: { type: 'boolean' },
+          verifier_findings: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['check', 'path'], properties: { check: { type: 'string' }, path: { type: 'string' }, message: { type: 'string' } } } },
+        },
+      },
+    }
+  )
+  const recon = hubRecon || { agents_files: [], claude_files: [], root_claude_import: false, root_agents_exists: false, verifier_findings: [] }
+
+  // One-time CLAUDE.md opt-in resolution (the skill asks at the gate on 'ask').
+  claudeMdOptin = CLAUDE_MD === true ? 'yes'
+    : CLAUDE_MD === false ? 'no'
+      : recon.root_claude_import ? 'detected-yes'
+        : recon.root_agents_exists ? 'no'
+          : 'ask'
+  const siblings = claudeMdOptin === 'yes' || claudeMdOptin === 'detected-yes'
+
+  // Placement: which directories carry a hub on the post-move tree, and what
+  // action each needs. Judgment over the recon facts + the planned moves.
+  const placement = await agent(
+    `You place AGENTS.md orientation hubs for the repo at ${ROOT}, per the contract in ${SKILL_DIR}/references/agent-hubs.md (READ IT FIRST — the five rules). Read-only.
+
+You are placing hubs on the tree AS IT WILL EXIST after the planned moves land (moves below). Rules: the root ('.') ALWAYS carries a hub; every directory whose subdirectories will contain code carries one; leaf code directories carry none.
+
+CURRENT HUB STATE (mechanical recon): ${JSON.stringify(recon, null, 1)}
+PLANNED MOVES (from -> to; the post-move tree is current-tree + these): ${JSON.stringify((plan.moves || []).map(m => ({ from: m.from, to: m.to })), null, 1)}
+PLANNED NEW FILES: ${JSON.stringify((plan.new_files || []).map(f => f.path))}
+PLANNED QUARANTINE (these paths leave the tree): ${JSON.stringify((plan.cruft && plan.cruft.quarantine) || [])}
+TARGET TREE:\n${plan.target_tree}
+${EXCLUDE.length ? 'EXCLUDED TREES (no hubs inside them): ' + EXCLUDE.join(', ') : ''}
+
+For each hub directory, set action: 'create' (no AGENTS.md there today), 'update' (one exists and looks generated/structural), or 'merge' (one exists carrying real user prose that must be preserved — read it to tell). CONVERGENCE CONTRACT: an existing hub that is already accurate for the post-move tree is NOT an action — omit it (unless it lacks its opted-in CLAUDE.md sibling${siblings ? '' : ', which does not apply this run'}). List the root first.`,
+    {
+      label: 'hub-placement', phase: 'HubDraft', model: KEY_MODEL,
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        required: ['hubs'],
+        properties: {
+          hubs: {
+            type: 'array',
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['path', 'action'],
+              properties: {
+                path: { type: 'string', description: "'.' for the root" },
+                action: { enum: ['create', 'update', 'merge'] },
+                reason: { type: 'string' },
+              },
+            },
+          },
+        },
+      },
+    }
+  )
+  const placements = (placement && placement.hubs) || []
+  log('Hub placement: ' + placements.length + ' hub(s) — ' + placements.map(h => h.action + ':' + h.path).join(', '))
+
+  // Draft honest layout lines per hub, in parallel (root first). Capped; hubs
+  // past the cap are deferred to the next round, never silently written empty.
+  const HUB_CAP = 12
+  const toDraft = placements.slice(0, HUB_CAP)
+  hubDraftingDeferred = Math.max(0, placements.length - HUB_CAP)
+  if (hubDraftingDeferred) log('Hub drafting cap: deferring ' + hubDraftingDeferred + ' hub(s) to a later round (NOT silently dropped)')
+
+  const norm = (p) => String(p || '').replace(/^\.\//, '').replace(/\/+$/, '')
+  const movesTouching = (hubPath) => (plan.moves || []).filter(m => {
+    const h = hubPath === '.' ? '' : norm(hubPath) + '/'
+    return norm(m.from).startsWith(h) || norm(m.to).startsWith(h) || hubPath === '.'
+  }).map(m => ({ from: m.from, to: m.to }))
+
+  hubDrafts = (await parallel(toDraft.map(h => () =>
+    agent(
+      `You draft the Layout lines for ONE AGENTS.md orientation hub: ${h.path === '.' ? 'the repo ROOT' : h.path} in the repo at ${ROOT}. Read-only. Read ${SKILL_DIR}/references/agent-hubs.md first — especially "Deriving hub content for an existing repo" and rule 2 (direct children only, one line each, never two levels deep).
+
+The hub describes the tree AS IT WILL EXIST after these moves land (apply them mentally when listing the direct children):
+${JSON.stringify(movesTouching(h.path), null, 1)}
+${(plan.cruft && plan.cruft.quarantine && plan.cruft.quarantine.length) ? 'QUARANTINED (leaving the tree, do not describe): ' + JSON.stringify(plan.cruft.quarantine) : ''}
+
+List the hub directory's direct children (ls, then apply the moves), open 1-3 representative files per child directory to confirm what it actually holds, and write one honest line per child: \`- \`child/\` — what it holds, when to descend\`. Name exempt root files worth calling out (README, key manifests) with one line each. A child you cannot summarize honestly in one line: write your best factual line AND flag it in content_notes as a design smell.
+${h.action !== 'create' ? `An AGENTS.md ALREADY EXISTS at ${h.path === '.' ? '' : h.path + '/'}AGENTS.md — read it. If it is already accurate for the post-move tree, return changed=false (it will be left alone). Otherwise return the corrected layout_lines and, for action 'merge', note in content_notes exactly which user prose must be preserved untouched.` : ''}
+Set path="${h.path}", action="${h.action}".`,
+      { label: 'hub-draft:' + (h.path === '.' ? 'root' : h.path), phase: 'HubDraft', agentType: 'Explore', schema: HUB_DRAFT_SCHEMA }
+    ).then(d => d && { ...d, claude_md: siblings })
+  ))).filter(Boolean).filter(d => d.changed !== false)
+  log('Hub drafting: ' + hubDrafts.length + ' hub(s) drafted with changes' + (siblings ? ' (+ CLAUDE.md siblings)' : '') + '; claude_md_optin=' + claudeMdOptin)
+}
+
 // ---------- Phase 4: Adversarial critique ----------
 phase('Critique')
 const critique = await agent(
@@ -346,10 +519,12 @@ ${plan.target_tree}
 root_disposition: ${JSON.stringify(plan.root_disposition, null, 1)}
 moves (with predicted reference impact): ${JSON.stringify(movesWithImpact, null, 1)}
 cruft: ${JSON.stringify(plan.cruft, null, 1)}
+${hubDrafts.length ? `agents_md_hubs (drafted per ${SKILL_DIR}/references/agent-hubs.md): ${JSON.stringify(hubDrafts, null, 1)}` : ''}
 
 HOW APPLY PRESERVES THE BUILD (judge against THIS mechanism, not an imagined one): the apply phase does git mv, creates each plan.new_files \`__init__.py\` EMPTY, then REWRITES every broken reference in place using each move's ref_impact list (plus a re-grep for misses). There are NO re-export shims and apply does not invent them. So the correct safety question is NOT "does the plan promise a re-export shim?" — it is "is each move's ref_impact list COMPLETE and correct enough that rewriting exactly those references keeps the build green?" Do NOT raise a risk that merely says "needs a re-export shim in __init__.py" — that is not how apply works; instead check whether the import sites are fully enumerated in ref_impact.
 
-Check, by inspecting the actual repo where needed:
+${hubDrafts.length ? `HUB CHECKS (the plan writes the AGENTS.md hubs above; hub writes are non-destructive, so report corrections via hub_corrections rather than dropping): spot-check each hub against the actual (post-move) directory — are its layout_lines honest one-liners for the REAL direct children, none reaching two levels deep, none aspirational? Would any hub sit beside loose source files in the TARGET tree (isolation break — that IS a missing nesting move: add the correction; package markers like __init__.py are EXEMPT from isolation, never flag them)? Is the root hub present? Is every 'merge' correctly flagged where an AGENTS.md with user prose exists (a mislabeled 'create'/'update' would clobber it)? The CLAUDE.md opt-in (claude_md_optin=${claudeMdOptin}) is the USER'S recorded answer and is NOT yours to override — on a first run the root @AGENTS.md import signal does not exist yet precisely because this apply will create it; never emit a correction that flips claude_md.
+` : ''}Check, by inspecting the actual repo where needed:
 - Does the new root actually hold only intent files, and does the top level read like a clear table of contents? (If not, say which entries are wrong.)
 - Are any moves unsafe: orphaning an entry point, crossing a package/workspace boundary, moving a file a build glob or nested manifest depends on, or a "mechanical" move that actually has dynamic references the ref-impact pass underrated?
 - For each move, is its ref_impact list COMPLETE? Spot-check by grepping the repo for the old dotted path / bare name. A move is unsafe if real references exist that ref_impact omits. Pay special attention to the easily-missed classes: path-math (the moved file's own \`Path(__file__).parent[.parent]\`/\`parents[N]\`), name-string (module-name string constants for loggers/prefixes/registry keys), discovery-glob (loaders that scan a dir and filter by bare filename), and test-monkeypatch (\`monkeypatch.setattr\`/\`mock.patch\` target strings binding the old dotted path). If any are present but absent from ref_impact, that is a concrete correction, not a blocker on the whole plan.
@@ -393,6 +568,18 @@ if (unsafeFroms.size) {
 }
 const keptCruft = { quarantine: keptQuarantine, gitignore: (plan.cruft && plan.cruft.gitignore) || [] }
 
+// Fold the critic's per-hub corrections into the matching hub's content_notes
+// so the apply-phase writer honors them (hub writes are non-destructive; there
+// is no drop-list).
+const hubCorrections = (critique && Array.isArray(critique.hub_corrections)) ? critique.hub_corrections : []
+const finalHubs = hubDrafts.map(h => {
+  const fixes = hubCorrections.filter(c => normPath(c.path) === normPath(h.path)).map(c => c.correction)
+  return fixes.length
+    ? { ...h, content_notes: [(h.content_notes || ''), 'CRITIC CORRECTIONS: ' + fixes.join(' | ')].filter(Boolean).join(' — ') }
+    : h
+})
+if (hubCorrections.length) log('Folded ' + hubCorrections.length + ' critic hub correction(s) into the drafts')
+
 const finalPlan = {
   generated: DATE,
   repo_path: ROOT,
@@ -405,6 +592,9 @@ const finalPlan = {
   moves: keptMoves,
   new_files: plan.new_files || [],
   cruft: keptCruft,
+  hubs: finalHubs,
+  claude_md_optin: claudeMdOptin,
+  hub_drafting_deferred: hubDraftingDeferred,
   critique: critique || { verdict: 'unknown', risks: [], corrections: [] },
   dropped_unsafe_moves: droppedForSafety.map((m, i) => ({ from: m.from, to: m.to, reason: (unsafeMoves.find(u => normPath(u.from) === normPath(m.from) && normPath(u.to) === normPath(m.to)) || {}).reason || 'flagged unsafe by critic' })),
   totals: {
@@ -414,6 +604,7 @@ const finalPlan = {
     predicted_references: allImpacts.flatMap(i => i.fixes || []).length,
     risky_references: riskyRefCount,
     quarantine: keptQuarantine.length,
+    hubs: finalHubs.length,
   },
 }
 
@@ -422,7 +613,7 @@ const finalPlan = {
 // (the plan JSON can be enormous). So we do NOT write the plan from inside the
 // workflow. We return it as structured data; the orchestrating skill (which has
 // Write access) persists it to plan_path. This scales to any repo size.
-log('Plan finalized: ' + finalPlan.totals.moves + ' moves, verdict=' + finalPlan.critique.verdict + ' (skill writes it to ' + PLAN_PATH + ')')
+log('Plan finalized: ' + finalPlan.totals.moves + ' moves, ' + finalPlan.totals.hubs + ' hubs, verdict=' + finalPlan.critique.verdict + ' (skill writes it to ' + PLAN_PATH + ')')
 
 return {
   plan_path: PLAN_PATH,

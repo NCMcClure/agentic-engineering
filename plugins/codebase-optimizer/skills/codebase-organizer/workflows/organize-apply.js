@@ -1,11 +1,12 @@
 export const meta = {
   name: 'codebase-organize-apply',
-  description: 'Mutating: execute an approved reorganization plan — create a working branch, git mv every file, quarantine cruft, rewrite broken references, then run the project\'s own build/tests to verify behavior is preserved',
+  description: 'Mutating: execute an approved reorganization plan — create a working branch, git mv every file, quarantine cruft, rewrite broken references, write the planned AGENTS.md hubs, then run the project\'s own build/tests to verify behavior is preserved',
   phases: [
     { title: 'Preflight', detail: 'assert git + clean tree, create working branch' },
     { title: 'Move', detail: 'git mv per plan; quarantine cruft; gitignore ephemera' },
     { title: 'Rewrite', detail: 'apply reference fixes; re-grep for misses' },
-    { title: 'Verify', detail: "run the project's build/test/lint" },
+    { title: 'Hubs', detail: 'write/merge the planned AGENTS.md hubs (+ CLAUDE.md siblings when opted in)' },
+    { title: 'Verify', detail: "run the project's build/test/lint + the hub verifier" },
   ],
 }
 
@@ -61,6 +62,30 @@ const VERIFY_SCHEMA = {
     commands_run: { type: 'array', items: { type: 'string' } },
     detail: { type: 'string', description: 'pass/fail per command; on failure, the failing output and the suspected missed reference' },
     suspected_cause: { type: 'string' },
+    hub_summary: {
+      type: 'object',
+      additionalProperties: false,
+      properties: {
+        critical: { type: 'integer' },
+        warning: { type: 'integer' },
+        info: { type: 'integer' },
+      },
+      description: 'verify_agents_hubs.py summary counts, when the hub verifier ran',
+    },
+  },
+}
+
+const HUB_SCHEMA = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['ok', 'detail'],
+  properties: {
+    ok: { type: 'boolean' },
+    hubs_written: { type: 'array', items: { type: 'string' }, description: 'AGENTS.md paths created or updated' },
+    hubs_merged: { type: 'array', items: { type: 'string' }, description: 'pre-existing AGENTS.md files edited with user prose preserved' },
+    claude_md_written: { type: 'array', items: { type: 'string' } },
+    skipped: { type: 'array', items: { type: 'string' }, description: 'hub entries skipped and why' },
+    detail: { type: 'string' },
   },
 }
 
@@ -120,6 +145,26 @@ Return the list of files edited, missed references you found and fixed, and unre
 )
 log('Rewrite done: ' + (rewrite ? (rewrite.files_edited || []).length : 0) + ' files edited, ' + (rewrite ? (rewrite.unresolved || []).length : 0) + ' unresolved')
 
+// ---------- Phase 3b: Write the AGENTS.md hubs ----------
+// After Move+Rewrite (hubs describe the post-move tree), before Verify (the
+// hub verifier judges the finished state). Skipped when the plan carries no hubs.
+phase('Hubs')
+const hubs = await agent(
+  `You are writing the AGENTS.md orientation hubs of an approved reorganization in ${ROOT} (branch ${pre.branch || BRANCH}). Read ${SKILL_DIR}/references/agent-hubs.md FIRST — the five rules and the brownfield merge rules are the contract. Read the plan at ${PLAN_PATH}: plan.hubs is the list (path, action, layout_lines, content_notes, claude_md) and plan.claude_md_optin says whether CLAUDE.md siblings are on ('yes'/'detected-yes') — if plan.hubs is missing or empty, do nothing and return ok:true with detail "no hubs planned".
+
+AUTHORITY ORDER: plan.claude_md_optin and each entry's claude_md flag are the USER'S recorded decision — ignore any content_note or critic correction that contradicts them (on a first run the root @AGENTS.md import signal doesn't exist yet because YOU are about to create it; that absence is not a "no"). Package markers (__init__.py) are exempt from hub isolation — never skip a hub because one sits in its directory.
+
+For each entry in plan.hubs, honoring its content_notes (they carry the critic's corrections and, for merges, what to preserve — subject to the authority order above):
+- action 'create': write <dir>/AGENTS.md. For the ROOT entry (path '.'), instantiate the stub at ${SKILL_DIR}/assets/agents-root.md — fill {{PROJECT_NAME}} (repo dir name or the manifest's name) and {{ONE_LINE_DESCRIPTION}} (from the README/manifest, factual), replace {{LAYOUT_LINES}} with the entry's layout_lines, and KEEP the "Rules for working in this repo" section verbatim. For a NON-root hub: a short header (# <dir> + one factual sentence) plus a "## Layout" section holding the layout_lines — no Rules section (the root owns the durable rules).
+- action 'update': edit the existing AGENTS.md — refresh only the Layout lines for changed children; for the root, append the stub's Rules section only if no equivalent section exists.
+- action 'merge': the existing file carries user prose — surgical edits only: refresh/insert the Layout lines, add the Rules section (root only) if absent, and NEVER rewrite or delete the owner's prose. When in doubt, add rather than replace.
+- CLAUDE.md siblings, only when plan.claude_md_optin is 'yes' or 'detected-yes' AND the entry's claude_md is true: create <dir>/CLAUDE.md containing exactly "@AGENTS.md" (one line). If a CLAUDE.md already exists there, prepend the @AGENTS.md line if it is missing and never delete its other content.
+
+Then git -C "${ROOT}" add every file you wrote. Do NOT commit. Report every hub written/merged, every CLAUDE.md written, and any entry you skipped with the reason.`,
+  { label: 'hubs', phase: 'Hubs', schema: HUB_SCHEMA }
+)
+log('Hubs done: ' + (hubs ? (hubs.hubs_written || []).length : 0) + ' written, ' + (hubs ? (hubs.hubs_merged || []).length : 0) + ' merged, ' + (hubs ? (hubs.claude_md_written || []).length : 0) + ' CLAUDE.md')
+
 // ---------- Phase 4: Verify ----------
 phase('Verify')
 const verify = await agent(
@@ -132,7 +177,15 @@ Detect ecosystem from manifests, cross-checking the ecosystems list in the plan 
 - Rust: cargo build then cargo test.
 - Else: a Makefile target (make test / make check) or the commands in the CI config.
 
-Prefer a quick resolution-level check (does everything still import/compile?) over an exhaustive slow suite — the goal is to confirm references resolve after the moves. Report passed (true only if the checks you ran succeeded), the exact commands you ran, and on any failure the failing output plus the suspected missed reference (cross-reference the move list). Do NOT commit, do NOT revert — the user's original branch is the safety net.`,
+Prefer a quick resolution-level check (does everything still import/compile?) over an exhaustive slow suite — the goal is to confirm references resolve after the moves. If plan.moves is empty (a hubs-only run), the build check reduces to that fast resolution-level check — nothing moved.
+
+HUB VERIFIER: if the plan contains hubs (plan.hubs non-empty) or ${ROOT}/AGENTS.md exists, also run:
+\`\`\`
+cd "${ROOT}" && "$(command -v python3 || command -v python)" "${SKILL_DIR}/scripts/verify_agents_hubs.py" . --json
+\`\`\`
+and transcribe its summary counts into hub_summary. Exit 2 (a CRITICAL hub finding) means THIS apply wrote an inconsistent hub set — that is a failure: set passed:false and name the finding in detail. Exit 1 warnings are reported in detail, never failing (legacy corners the plan didn't touch ramp in later).
+
+Report passed (true only if the checks you ran succeeded AND the hub verifier didn't exit 2), the exact commands you ran, and on any failure the failing output plus the suspected missed reference (cross-reference the move list). Do NOT commit, do NOT revert — the user's original branch is the safety net.`,
   { label: 'verify', phase: 'Verify', schema: VERIFY_SCHEMA }
 )
 
@@ -146,6 +199,9 @@ return {
   references_rewritten: rewrite ? (rewrite.files_edited || []).length : 0,
   unresolved_references: rewrite ? (rewrite.unresolved || []) : [],
   missed_references: rewrite ? (rewrite.missed_references || []) : [],
+  hubs_written: hubs ? ((hubs.hubs_written || []).length + (hubs.hubs_merged || []).length) : 0,
+  claude_md_written: hubs ? (hubs.claude_md_written || []).length : 0,
+  hub_summary: (verify && verify.hub_summary) || null,
   verification: verify || { passed: false, detail: 'verify produced no result' },
   next_steps: (verify && verify.passed)
     ? 'Review the diff on branch ' + (pre.branch || BRANCH) + ', check quarantined files under archive/, then merge.'

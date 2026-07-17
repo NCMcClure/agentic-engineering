@@ -17,7 +17,7 @@
     {
       "name": "codebase-optimizer",
       "source": "./plugins/codebase-optimizer",
-      "description": "Staged autonomous codebase optimizer — organize the file tree, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red.",
+      "description": "Staged autonomous codebase optimizer — organize the file tree into an AGENTS.md-hubbed progressive-disclosure layout, decompose god-files, and deepen shallow architecture, each behind CI-faithful validation with revert-on-red.",
       "category": "refactoring"
     },
     {

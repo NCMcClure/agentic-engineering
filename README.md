@@ -46,9 +46,10 @@ through. GitHub and GitLab are both first-class. [Read more →](plugins/agentic
 
 A staged, autonomous optimizer for whatever language your repo speaks
 (Python, JS/TS, Go, and Rust are detected out of the box). It organizes the
-file tree, decomposes god-files, and deepens shallow architecture, though
-every change sits behind CI-faithful validation with revert-on-red and
-nothing is ever pushed.
+file tree into an AGENTS.md-hubbed progressive-disclosure layout (orientation
+hubs an agent reads before descending), decomposes god-files, and deepens
+shallow architecture, though every change sits behind CI-faithful validation
+with revert-on-red and nothing is ever pushed.
 [Read more →](plugins/codebase-optimizer/README.md)
 
 ### workflow-studio
