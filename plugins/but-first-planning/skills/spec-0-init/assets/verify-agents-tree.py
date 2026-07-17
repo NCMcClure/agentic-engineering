@@ -36,6 +36,9 @@ SKIP_DIR_NAMES = {
     "third_party", "third-party", "vendor", "vendored", "__pycache__",
     "venv", "virtualenv", "env", ".venv",
 }
+# Package markers are structural glue, not content — a Python package dir
+# cannot exist without __init__.py, so it never violates hub isolation.
+PACKAGE_MARKERS = {"__init__.py", "__init__.pyi"}
 CODE_EXTS = {
     ".py", ".pyi", ".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs", ".vue",
     ".svelte", ".c", ".h", ".cc", ".cpp", ".cxx", ".hh", ".hpp", ".hxx",
@@ -91,7 +94,8 @@ def verify() -> int:
             if entry.is_dir():
                 if not skipped(entry):
                     children.append(entry)
-            elif entry.is_file() and entry.suffix.lower() in CODE_EXTS:
+            elif (entry.is_file() and entry.suffix.lower() in CODE_EXTS
+                    and entry.name not in PACKAGE_MARKERS):
                 direct = True
         has_direct_code[d] = direct
         child_dirs[d] = children

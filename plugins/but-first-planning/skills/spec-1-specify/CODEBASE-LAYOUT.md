@@ -44,11 +44,13 @@ child holds, where to go for a given kind of change. The spec's index rules
 transplant directly:
 
 1. **Hub isolation.** A directory containing an `AGENTS.md` holds no source
-   files directly — code always lives in subdirectories. Non-code files are
-   exempt: manifests and lockfiles (`package.json`, `Cargo.toml`,
-   `CMakeLists.txt`, …), `README.md`, `LICENSE`, dotfiles, CI config. Break
-   this and the hub stops being a cheap read: orientation and content collapse
-   into one directory listing.
+   files directly — code always lives in subdirectories. Exempt: non-code
+   files (manifests and lockfiles — `package.json`, `Cargo.toml`,
+   `CMakeLists.txt`, … — plus `README.md`, `LICENSE`, dotfiles, CI config)
+   and **package markers** (`__init__.py` / `__init__.pyi` — a Python package
+   directory cannot exist without one; keep it a thin marker, not a module).
+   Break this and the hub stops being a cheap read: orientation and content
+   collapse into one directory listing.
 2. **Hub scope: direct children only.** One line per child directory (and per
    exempt root file worth naming), what it holds, when to descend. A hub
    never reaches two levels deep — files below its children are found by
