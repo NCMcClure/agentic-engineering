@@ -84,7 +84,7 @@ it**, and **`build-*` implements that backlog test-first**. It all lives under
 | `plan-0-decompose` | Decompose the spec into an epic → sprint → issue backlog of tracer-bullet slices. |
 | `plan-1-publish-issues` | Publish a sprint's issues to the tracker (GitHub by default; GitLab via `glab` supported), dependency-ordered via the bundled publisher script. |
 
-**Autonomous modes:** nine skills bundle
+**Autonomous modes:** ten skills bundle
 [Claude Code dynamic Workflow scripts](https://code.claude.com/docs) under their
 `workflows/` directories; each is that skill's **autonomous mode**, run to
 convergence after one up-front approval: `spec-1-specify` (author a spec from a
@@ -95,8 +95,9 @@ whole tree; `decisionPolicy: 'decide'` resolves derivable open questions as
 ADRs), `spec-4-edit` (wide blast-radius propagation), `build-next-issue`
 (verify every done-claim, emit the dispatch JSON), `build-sprint` (build a
 whole sprint AFK: TDD builders, serial re-checkpointed integration, one PR),
-`build-assess-drift` (triage + ticket drift), and `build-improve-architecture`
-(code-side deepening report). The interactive prose path stays the default;
+`build-assess-drift` (triage + ticket drift), `build-improve-architecture`
+(code-side deepening report), and `build-audit` (post-build gap audit
+synthesized into a new epic). The interactive prose path stays the default;
 each SKILL.md's **Autonomous mode** section says when to offer the workflow,
 how to invoke it, and what convergence means. The `autopilot` skill chains
 these modes end-to-end (brief → spec → plan → published sprints → built PRs)
@@ -118,6 +119,7 @@ writing — a fan-out would fragment doc coherence), and `build-rubber-duck`
 | `build-user-docs` | Write and refresh the product's end-user docs (README, `docs/`) for verified-complete sprint work, every claim grounded by running the built commands. |
 | `build-improve-architecture` | Find deepening refactors in built code; feed decisions back into the glossary/ADRs. |
 | `build-assess-drift` | Re-assess recorded drift against the live code, plan fixes, and open a tracker issue per surviving item routed to the right skill. |
+| `build-audit` | Audit a finished plan tree for what the plan missed — unreachable promises, UX holes, thin tests, absent benchmarks/docs — verify each gap adversarially, and synthesize the survivors into a new epic. |
 | `build-rubber-duck` | An ephemeral thinking partner for working through a bug or approach. |
 | `autopilot` | Chain every skill's autonomous mode end-to-end (brief → spec → plan → published sprints → built PRs) behind one autonomy contract and one consolidated human touchpoint. |
 
@@ -172,6 +174,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **3.9.0**: new `build-audit` skill — a post-build gap audit for a finished plan tree. Its bundled workflow (`build-audit-run`, the plugin's tenth) maps every promise the spec makes into a ledger, hunts gaps across eight base dimensions (spec-vs-code, reachability, onboarding/UX, end-user docs, test coverage, benchmarks, drift owner-calls, debt markers) plus an opt-in session-fixtures dimension gated on user-granted transcript access, runs a completeness critic that commissions up to four follow-up finders, semantically dedups, adversarially verifies every merged finding, and synthesizes the survivors into one new plan-tree epic (authored to disk, verify-plan-tree loop, `plan/index.md` row) with scope questions split out as owner decisions. Publishing to the tracker is an opt-in second pass via workflow resume. Everything project-specific arrives through args (`projectBrief`, `knownDebt`, `hardRules`, `commissioned`, `transcriptDirs`, `uiCapture`), so the workflow itself stays project-agnostic; `disable-model-invocation` — it's an expensive fan-out, invoked deliberately.
 - **3.8.0**: `build-sprint`'s workflow takes an optional `models` arg — per-stage model overrides (`{build: 'fable', exit: 'fable'}`; stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr; unlisted stages keep the tier defaults), so a run can pin heavier or cheaper models per stage without editing the script. Also hardened the dispatch loader's schema: the array fields are now typed and guarded (`Array.isArray`), fixing a crash where the loader returned `waves` as a JSON-encoded string and the wave loop fell over downstream.
 - **3.7.1**: hub-isolation fix — Python package markers (`__init__.py`/`__init__.pyi`) are now exempt in `verify-agents-tree.py` and CODEBASE-LAYOUT.md; without the exemption a package directory could never legally carry an AGENTS.md hub (found by codebase-optimizer's retrofit smoke test; the two contracts stay in intentional sync).
 - **3.7.0**: end-user docs and agent-optimized codebase organization become enforced contracts instead of suggestions. Two new spec-0-init interview questions, recorded as postures: the **user-docs posture** (ADR-0003 — docs-site/MkDocs default, readme-only, existing-convention) and **Claude Code support** (ADR-0004 — AGENTS.md hubs are unconditional; opting in adds a sibling `CLAUDE.md` containing `@AGENTS.md` beside every hub). Every spec now carries two mandatory pages, `user-docs-plan.md` (docs stack + logically paced page map; contract in spec-1-specify's new USER-DOCS-SPEC.md) and `repository-layout.md` (agent-navigable source tree: hub isolation, direct-children-only hub scope, module map back to spec categories; contract in the new CODEBASE-LAYOUT.md) — `verify-spec-tree.py` warns until they exist. The issue-level `**User-facing**:` line goes optional→required (CRITICAL on new `plan-format: 3.7` trees, warning on legacy ones — `verify-plan-tree.py` grows a warnings tier), every plan cuts an early docs-skeleton issue, and `spec-4-edit` propagates docs/hub ripples (`propagate.js` returns `docsRipples`/`agentsRipples`). `spec-0-init` scaffolds the repo-root `AGENTS.md` (the durable agentic-dev rules, merge-don't-clobber for brownfield) and ships a third verifier, `verify-agents-tree.py`, wired into the sprint/epic checkpoint tables, `build-tdd`'s done-when, `build-sprint`'s exit stage, and `build-next-issue`'s report. Builders keep hubs current in the same commit as the change. Removed the stale empty `skills/build-issue/` dir. prototype iteration with agent-visible visual feedback. `spec-1-specify`'s UI-SPEC.md now requires the agent authoring or revising a prototype to **render it to an image and look** (a headless-browser screenshot for HTML; terminal-capture-to-image for a TUI): read the capture back, judge it against the design intent, iterate — a visual change isn't done until it's been looked at, every state the change touches gets a capture, and working captures stay in a tmp dir, never committed. On human sign-off the capture is promoted into the spec as the durable record of what was approved: image(s) under `spec/prototypes/assets/`, a `prototypes/<slug>.md` page embedding them (normal content-file frontmatter), a line in `prototypes/index.md`'s new sign-off section, links from the pages it illustrates — the artifact later `REVIEW` issues compare the built product against. `spec-4-edit` gains the promotion step in its propagation list; `spec-0-init`'s prototypes-index stub carries both artifact kinds.

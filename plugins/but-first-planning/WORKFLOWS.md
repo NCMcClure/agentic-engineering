@@ -1,6 +1,6 @@
 # WORKFLOWS.md — the house contract for bundled workflow scripts
 
-Nine skills bundle a [Claude Code dynamic Workflow](https://code.claude.com/docs)
+Ten skills bundle a [Claude Code dynamic Workflow](https://code.claude.com/docs)
 script under `workflows/`. Every script is **self-contained** — no imports, no
 shared module — so these conventions are duplicated per script *on purpose*;
 this file is the single place that says what they are. Drift between copies is
@@ -21,6 +21,7 @@ fix rounds) rather than inventing new shapes.
 | `build-next-issue/workflows/reconcile.js` | `build-next-reconcile` | verification + dispatch JSON |
 | `build-sprint/workflows/build-sprint.js` | `build-sprint-run` | autonomous sprint build |
 | `build-assess-drift/workflows/triage-drift.js` | `build-drift-triage` | drift triage (+publish) |
+| `build-audit/workflows/build-audit.js` | `build-audit-run` | post-build gap audit → new epic (+publish) |
 | `build-improve-architecture/workflows/deepening-hunt.js` | `build-improve-deepening-hunt` | code-side deepening hunt (report-only) |
 
 Deliberately **not** workflows: `spec-0-init` (a short interview + verbatim
