@@ -122,7 +122,9 @@ Workflow({
     dispatch: "<the dispatch object, or the .plan/progress/dispatch/EE-SS.json path>",
     // hitlPolicy: "skip-and-flag" (default) | "draft-and-defer" | "auto-implement",
     // parallelism: "serial" (default, robust) | "worktree" (parallel file-disjoint units),
-    // openPr: true, maxFailures: 2, prBase: "main"
+    // openPr: true, maxFailures: 2, prBase: "main",
+    // models: {build: "fable", exit: "fable"} — per-stage model overrides
+    //   (stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr)
   }
 })
 ```

@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-sprint-run',
   description: 'Autonomously build one sprint from a dispatch plan: preflight, HITL triage by policy (REVIEW units are never built under any policy — surfaced as pending human walkthroughs), wave-by-wave TDD builders (serial on the sprint branch by default, git-worktree isolation opt-in), strictly serial integration with full re-checkpointing and a stop-the-line diagnostician, sprint-exit verification, bookkeeping, and one PR with gate notification',
-  whenToUse: "build-sprint's autonomous mode — the user approved an AFK sprint build and its policies in plan mode. One run = one sprint; epic/backlog scope is a loop in the caller (re-run build-next-issue's reconcile between sprints). Args: {root, skillDir, tddSkillPath, sprint, dispatch, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?}. dispatch is the JSON contract from build-next-issue's reconcile.js (object, or path to .plan/progress/dispatch/EE-SS.json). hitlPolicy: 'skip-and-flag' (default) | 'draft-and-defer' | 'auto-implement' — pause-and-ask is the interactive skill's cadence, not a workflow option. parallelism: 'serial' (default, robust) | 'worktree' (parallel file-disjoint units in real git worktrees).",
+  whenToUse: "build-sprint's autonomous mode — the user approved an AFK sprint build and its policies in plan mode. One run = one sprint; epic/backlog scope is a loop in the caller (re-run build-next-issue's reconcile between sprints). Args: {root, skillDir, tddSkillPath, sprint, dispatch, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?}. dispatch is the JSON contract from build-next-issue's reconcile.js (object, or path to .plan/progress/dispatch/EE-SS.json). hitlPolicy: 'skip-and-flag' (default) | 'draft-and-defer' | 'auto-implement' — pause-and-ask is the interactive skill's cadence, not a workflow option. parallelism: 'serial' (default, robust) | 'worktree' (parallel file-disjoint units in real git worktrees). models: optional per-stage model overrides, e.g. {build: 'fable', exit: 'fable'} — stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr; unlisted stages keep the tier defaults.",
   phases: [
     { title: 'Preflight', detail: 'clean tree, sprint branch, tooling spot-check', model: 'sonnet' },
     { title: 'Triage', detail: 'HITL units handled per policy before any dispatch' },
@@ -43,6 +43,11 @@ const HITL_POLICY = ['skip-and-flag', 'draft-and-defer', 'auto-implement'].inclu
 const PARALLELISM = A.parallelism === 'worktree' ? 'worktree' : 'serial'
 const OPEN_PR = A.openPr !== false
 const MAX_FAILURES = Math.max(parseInt(A.maxFailures, 10) || 2, 1)
+// per-stage model overrides: args.models = {build: 'fable', exit: 'opus', ...}.
+// Stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr.
+// Unlisted stages keep the tier defaults at each call site.
+const MODELS = (A.models && typeof A.models === 'object') ? A.models : {}
+const M = (stage, dflt) => MODELS[stage] || dflt
 
 const BRIEF = 'Be terse in every string field. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
@@ -60,11 +65,19 @@ if (typeof dispatch === 'string') {
   const loaded = await agent(
     `Read the JSON file at ${dispatch} and return its parsed content verbatim in the structured output. Pure retrieval. ${BRIEF}`,
     {
-      label: 'load:dispatch', phase: 'Preflight', model: 'haiku', effort: 'low',
-      schema: { type: 'object', required: ['sprint', 'waves', 'edges', 'hitlGates', 'checkpointHealth'] },
+      label: 'load:dispatch', phase: 'Preflight', model: M('load', 'haiku'), effort: 'low',
+      // array types matter: an untyped schema once let the loader return `waves`
+      // as a JSON-encoded string, which crashed the wave loop downstream
+      schema: {
+        type: 'object', required: ['sprint', 'waves', 'edges', 'hitlGates', 'checkpointHealth'],
+        properties: {
+          sprint: { type: 'string' }, waves: { type: 'array' }, edges: { type: 'array' },
+          hitlGates: { type: 'array' }, checkpointHealth: { type: 'array' },
+        },
+      },
     }
   )
-  if (!loaded || !loaded.waves) throw new Error('could not load dispatch JSON from ' + dispatch)
+  if (!loaded || !Array.isArray(loaded.waves)) throw new Error('could not load dispatch JSON from ' + dispatch)
   dispatch = loaded
 }
 if (dispatch.sprint && dispatch.sprint !== SPRINT) throw new Error(`dispatch plan is for ${dispatch.sprint}, not ${SPRINT} — re-run build-next-issue's reconcile`)
@@ -75,7 +88,7 @@ phase('Preflight')
 const preflight = await agent(
   `${CTX}\nYou are the preflight checker. In order: (1) git -C ${ROOT} status --porcelain — if ANYTHING is uncommitted, report clean=false and STOP (never build on top of uncommitted user work). (2) Create the sprint branch: git -C ${ROOT} checkout -b ${BRANCH} ${PR_BASE} (if it already exists, check it out and report resumed=true).${PARALLELISM === 'worktree' ? ` (2b) Prune stale isolation leftovers from any previous run: git -C ${ROOT} worktree prune; then for each leftover ${ROOT}/.worktrees/* directory, git -C ${ROOT} worktree remove <it> --force, and delete its matching issue/* branch with git -C ${ROOT} branch -D — a stale worktree/branch collides with this run's worktree add. Report what you pruned in warnings.` : ''} (3) python3 ${PLANDIR}/verify-plan-tree.py — must exit 0; report its state. (4) Spot-check wave-1 tooling: for these first-wave checkpoint commands, check the named tools/scripts exist WITHOUT running the checkpoints: ${JSON.stringify((dispatch.waves[0] ? dispatch.waves[0].units : []).map(u => ({ unit: unitKey(u), files: u.files })))} — cross-reference the known checkpoint-health problems: ${JSON.stringify(dispatch.checkpointHealth || [])}. ${BRIEF}`,
   {
-    label: 'preflight', phase: 'Preflight', model: 'sonnet', effort: 'low',
+    label: 'preflight', phase: 'Preflight', model: M('preflight', 'sonnet'), effort: 'low',
     schema: {
       type: 'object', required: ['clean', 'branch', 'planTreeGreen', 'warnings'],
       properties: {
@@ -108,7 +121,7 @@ if (hitlUnits.length) {
       agent(
         `${CTX}\nYou are the HITL drafter for issue(s) ${unitKey(u)} ("${u.title}"). Read the issue file(s) and every spec anchor. DRAFT the human-gated artifact (an ADR, design doc, decision note — whatever the issue's deliverable is) to disk, UNCOMMITTED, at a sensible path the issue implies. Ground every factual claim in real sources (read the actual docs/code — never guess a host/tool fact). Do NOT commit, do NOT run the funnel, do NOT mark anything done — a human signs off later. Report the draft path and each genuine judgement call you made (the things the human must actually decide). ${BRIEF}`,
         {
-          label: `draft:${unitKey(u)}`, phase: 'Triage', model: 'opus', effort: 'high',
+          label: `draft:${unitKey(u)}`, phase: 'Triage', model: M('draft', 'opus'), effort: 'high',
           schema: {
             type: 'object', required: ['coords', 'draftPath', 'judgementCalls'],
             properties: { coords: { type: 'string' }, draftPath: { type: 'string' }, judgementCalls: { type: 'array', items: { type: 'string' } } },
@@ -223,7 +236,7 @@ const cleanupWorktree = async (u) => {
   await agent(
     `Cleanup for skipped unit ${unitKey(u)} — its builder was blocked or failed, so its isolation worktree may be orphaned. Run, tolerating "not found" errors: git -C ${ROOT} worktree remove ${ROOT}/.worktrees/${unitKey(u)} --force ; git -C ${ROOT} branch -D issue/${unitKey(u)} ; git -C ${ROOT} worktree prune. Pure command driving; no judgment. ${BRIEF}`,
     {
-      label: `cleanup:${unitKey(u)}`, phase: 'Build', model: 'haiku', effort: 'low',
+      label: `cleanup:${unitKey(u)}`, phase: 'Build', model: M('cleanup', 'haiku'), effort: 'low',
       schema: { type: 'object', required: ['removed'], properties: { removed: { type: 'boolean', description: 'true if a worktree or branch existed and was removed' }, notes: { type: 'string' } } },
     }
   )
@@ -231,7 +244,7 @@ const cleanupWorktree = async (u) => {
 
 const integrateOne = async (u, builder) => {
   const integration = await agent(integratorPrompt(u, built), {
-    label: `integrate:${unitKey(u)}`, phase: 'Integrate', model: 'sonnet', effort: 'medium', schema: INTEGRATE_SCHEMA,
+    label: `integrate:${unitKey(u)}`, phase: 'Integrate', model: M('integrate', 'sonnet'), effort: 'medium', schema: INTEGRATE_SCHEMA,
   })
   if (integration && integration.green) {
     built.push({ unit: unitKey(u), coords: u.coords, refs: u.refs, builder, integration })
@@ -271,7 +284,7 @@ for (const wave of dispatch.waves) {
     // parallel build is safe ONLY here: dispatch declared these units file-disjoint,
     // and each builder's first act is creating its own git worktree
     const builders = await parallel(units.map(u => () =>
-      agent(builderPrompt(u, wave.n), { label: `build:${unitKey(u)}`, phase: 'Build', model: 'sonnet', effort: 'high', schema: BUILDER_SCHEMA })
+      agent(builderPrompt(u, wave.n), { label: `build:${unitKey(u)}`, phase: 'Build', model: M('build', 'sonnet'), effort: 'high', schema: BUILDER_SCHEMA })
     ))
     // integration is strictly serial regardless of build parallelism
     for (let i = 0; i < units.length; i++) {
@@ -288,7 +301,7 @@ for (const wave of dispatch.waves) {
   } else {
     for (const u of units) {
       if (failuresLeft <= 0) { stoppedEarly = true; break }
-      const b = await agent(builderPrompt(u, wave.n), { label: `build:${unitKey(u)}`, phase: 'Build', model: 'sonnet', effort: 'high', schema: BUILDER_SCHEMA })
+      const b = await agent(builderPrompt(u, wave.n), { label: `build:${unitKey(u)}`, phase: 'Build', model: M('build', 'sonnet'), effort: 'high', schema: BUILDER_SCHEMA })
       if (!b || b.status === 'blocked') {
         failed.push({ unit: unitKey(u), coords: u.coords, reason: b ? `builder blocked: ${b.evidence}` : 'builder agent failed', route: 'retry' })
         failuresLeft--
@@ -318,7 +331,7 @@ phase('Exit')
 const sprintExit = await agent(
   `${CTX}\nYou are the sprint-exit verifier. Run, from ${ROOT} on ${BRANCH}: (1) python3 ${PLANDIR}/plan-status.py check ${SPRINT}; (2) the sprint's own exit checkpoints from its sprint.md (read it — Layer-1 test suite, any sprint E2E); (3) python3 ${PLANDIR}/verify-plan-tree.py; (4) python3 ${PLANDIR}/verify-agents-tree.py if it exists (exit 2 = genuine failure: a hub-isolation break this sprint introduced; exit 1 warnings are reported, not failing). These units were NOT built this run (do not count their absence as failure): ${JSON.stringify([...excluded])}. Classify every failure: genuine (work is wrong/missing) vs broken-by-construction (the checkpoint can never pass as written — an issue defect that routes to spec-4-edit; cross-check ${JSON.stringify(dispatch.checkpointHealth || [])}). Run checkpoints read-only — fix nothing. ${BRIEF}`,
   {
-    label: 'sprint-exit', phase: 'Exit', model: 'opus', effort: 'high',
+    label: 'sprint-exit', phase: 'Exit', model: M('exit', 'opus'), effort: 'high',
     schema: {
       type: 'object', required: ['sprintComplete', 'checksRun', 'genuineFailures', 'brokenByConstruction'],
       properties: {
@@ -341,7 +354,7 @@ SPRINT EXIT: ${JSON.stringify(sprintExit, null, 1)}
 FAILED: ${JSON.stringify(failed, null, 1)}
 ${BRIEF}`,
   {
-    label: 'bookkeep', phase: 'Bookkeep', model: 'sonnet', effort: 'medium',
+    label: 'bookkeep', phase: 'Bookkeep', model: M('bookkeep', 'sonnet'), effort: 'medium',
     schema: {
       type: 'object', required: ['notesFile', 'driftFiles', 'committed'],
       properties: { notesFile: { type: 'string' }, driftFiles: { type: 'array', items: { type: 'string' } }, committed: { type: 'boolean' } },
@@ -367,7 +380,7 @@ DRIFT: ${JSON.stringify(allDriftFlags)}
 SPRINT EXIT: ${JSON.stringify(sprintExit)}
 ${BRIEF}`,
     {
-      label: 'pr', phase: 'PR', model: 'sonnet', effort: 'low',
+      label: 'pr', phase: 'PR', model: M('pr', 'sonnet'), effort: 'low',
       schema: {
         type: 'object', required: ['pushed'],
         properties: { pushed: { type: 'boolean' }, prUrl: { type: 'string' }, notified: { type: 'array', items: { type: 'string' } }, note: { type: 'string' } },
