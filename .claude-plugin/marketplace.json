@@ -55,6 +55,12 @@
       "source": "./plugins/plugin-workbench",
       "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta.",
       "category": "authoring"
+    },
+    {
+      "name": "perceptual-loop",
+      "source": "./plugins/perceptual-loop",
+      "description": "An agent can't iterate on what it can't measure: reproducible shots, metrics that gate regressions, sheets the agent and you can look at, motion and audio checks, and a batched queue for the judgements only a human should make.",
+      "category": "evaluation"
     }
   ]
 }

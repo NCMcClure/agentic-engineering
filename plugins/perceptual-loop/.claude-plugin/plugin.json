@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "perceptual-loop",
+  "displayName": "Perceptual Loop",
+  "version": "0.1.0",
+  "description": "An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate regressions, sheets the agent and you can look at, and a batched queue for the judgements only a human should make.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": ["perceptual-loop", "vision", "visual-regression", "image-metrics", "video", "audio", "iteration", "orchestration", "evals"]
+}

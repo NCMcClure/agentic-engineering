@@ -99,6 +99,15 @@ verdict; improve-plugin applies the fixes ranked by how many points each one
 buys back.
 [Read more →](plugins/plugin-workbench/README.md)
 
+### perceptual-loop
+
+An agent can't iterate on what it can't measure. For work judged by eye or ear
+(a render, a UI, a clip, a sound) it supplies the loop code already has:
+reproducible shots, numbers that gate regressions against measured noise,
+sheets the agent opens with its own vision, and one review page that batches
+the taste questions for you. A hook keeps runs small and keeps two agents from
+starting the same renderer. [Read more →](plugins/perceptual-loop/README.md)
+
 ## Working in this repo
 
 The contribution contract (layout invariants, the versioning rule, how to

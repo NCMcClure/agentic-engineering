@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$(command -v python3)\" in ''|*/WindowsApps/*) py=python;; *) py=python3;; esac; \"$py\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" 2>/dev/null || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}
