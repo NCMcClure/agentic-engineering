@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PreToolUse hook (shell tools): the render budget, the application locks and the baseline's safety.
+"""PreToolUse hook (shell tools): the render budget and the baseline's safety.
 
 It reads the tool input JSON on stdin. A project without .perceptual-loop/config.json is left alone at once, before
 anything is imported; a failure of the hook itself never blocks a command (any exception: exit 0, no output).
@@ -7,13 +7,16 @@ anything is imported; a failure of the hook itself never blocks a command (any e
 Rules, each only when the config asks for it (core/references/contract.md):
   budget    a command matching config.budget.match that renders more than config.budget.free shots needs
             PL_RUN="verify: ..." or PL_RUN="full: ..." in its text; allowed large runs go to runs/budget.log
-  locks     a command matching config.locks.apps.<app>.match runs inside `lock.py run <app> ... -- <command>`, or
-            carries PL_AGENT=<name> where <name> holds the lock
   baseline  `baseline.py update` needs --source and a selection (shots, --shots, --group or --all)
 
-A coordination aid, not a security boundary: the rules read command text and the caller names itself. Text inside
+Locks on scarce applications are not this hook's: they belong to the agent-works plugin. A command it wraps
+(`aw lock run <resource> ... -- <command>`, `aw lease <resource> ... -- <command>`) is judged here as the inner
+command, so a wrapped render is still counted and the wrapper is never what gets refused; any other `aw` command
+is left alone.
+
+A coordination aid, not a security boundary: the rules read command text. Text inside
 heredocs and here-strings is skipped; quotes are respected when the command is split, so the quoted arguments of
-`git commit -m`, `gh ... --body/--title`, `echo` and `lock.py note` never match (their segment is a reader's). A
+`git commit -m`, `gh ... --body/--title`, `echo` and `aw note` never match (their segment is a reader's). A
 render command quoted as an argument of some other program still matches; shots that do not exist yet are not
 counted; a render hidden in a script or in $(...) behind a reader is not seen.
 """
@@ -211,33 +214,31 @@ def baseline_update_problem(seg):
     return missing or None
 
 
-def lock_script():
-    return os.path.join(PLUGIN_ROOT, "scripts", "lock.py")
-
-
-def python_word():
-    return "python3" if os.path.basename(sys.executable).lower().startswith("python3") else "python"
-
-
-QUOTED_NOTE = ("(A coordination aid, not a security boundary: the rule reads the command text and the name is self-declared. "
+QUOTED_NOTE = ("(A coordination aid, not a security boundary: the rule reads the command text. "
                "If this was only text quoted inside another command, a message or a note, put that text in a file and "
                "pass the file.)")
 
 
-def unwrap_lock_run(seg):
-    """`lock.py run APP ... -- command` -> ({APP, ...}, command): the wrapper holds those locks for the command.
+def unwrap_aw(seg):
+    """`aw lock run RESOURCE ... -- command` and `aw lease RESOURCE ... -- command` -> (True, command), nested too.
 
-    Any other use of lock.py -> (set(), ''): the lock tool itself is never guarded.
+    They are the agent-works plugin's wrappers: the command they run is what the rules here judge. Any other use
+    of `aw` (a note, a status, a lock taken or given back) -> (False, ''): it renders nothing. Not an `aw` command
+    at all -> (False, the segment unchanged).
     """
     import re
 
-    held = set()
+    wrapped = False
     while True:
-        m = re.search(r"\block\.py[\"']?\s+(?:--json\s+)?run\s+([A-Za-z0-9_.-]+)\s.*?\s--\s+(.*)$", seg, re.S)
+        m = re.search(r"(?:^|[\s/\\\"'])aw(?:\.py|\.cmd|\.exe)?[\"']?\s+(?:lock\s+run|lease)\s+[A-Za-z0-9_.-]+(?:\s.*?)?\s--\s+(.*)$",
+                      seg, re.S)
         if not m:
-            return (held, seg) if held or not re.search(r"\block\.py\b", seg) else (set(), "")
-        held.add(m.group(1))
-        seg = m.group(2)
+            break
+        wrapped = True
+        seg = command_part(m.group(1).strip().strip("\"'"))  # one quoted shell line, or a program and its arguments
+    if not wrapped and (first_word(seg) in ("aw", "aw.cmd") or re.search(r"(?<![\w-])aw\.py\b", seg)):
+        return False, ""
+    return wrapped, seg
 
 
 def decide(command, root, log=True):
@@ -251,26 +252,21 @@ def decide(command, root, log=True):
     root = Path(root)
     config = pl.load_config(root)
     budget = config.get("budget") or {}
-    apps = (config.get("locks") or {}).get("apps") or {}
     segments = split_segments(strip_bodies(command))
-    # PL_RUN and PL_AGENT count where a shell would read them, not inside what a reader quotes.
+    # PL_RUN counts where a shell would read it, not inside what a reader quotes.
     text = "\n".join(s for s in segments if not (command_part(s) and first_word(command_part(s)) in READERS))
 
     m = re.search(r"PL_RUN\s*=\s*(?:\"([^\"]*)\"|'([^']*)'|(\S+))", text)
     reason = next((g.strip() for g in (m.groups() if m else ()) if g), "")
     reason_ok = bool(re.match(r"(verify|full):\s*\S", reason))
-    m = re.search(r"PL_AGENT\s*=\s*[\"']?([A-Za-z0-9-]+)", text)
-    agent = m.group(1) if m else ""
 
     large = []  # allowed large runs, logged only when nothing denies the command
     for raw in segments:
         seg = command_part(raw)
         if not seg or first_word(seg) in READERS:
             continue
-        wrapped, seg = unwrap_lock_run(seg)
-        if wrapped:  # the wrapped command: one quoted shell line, or a program and its arguments
-            seg = command_part(seg.strip().strip("\"'"))
-        if not seg:
+        _, seg = unwrap_aw(seg)
+        if not seg or first_word(seg) in READERS:
             continue
 
         missing = baseline_update_problem(seg)
@@ -304,36 +300,6 @@ def decide(command, root, log=True):
                 large.append((n, seg))
             elif n is None and reason_ok:
                 large.append(("?", seg))
-
-        for app, spec in apps.items():
-            if app in wrapped or not matches((spec or {}).get("match"), seg):
-                continue
-            import lock as pl_lock
-
-            d = pl_lock.locks_dir(root, config)
-            held = pl_lock.read_lock(d, app)
-            if agent and held and held.get("agent") == agent:
-                try:
-                    pl_lock.refresh_lock(d, app, held)  # a holder at work keeps its lock fresh
-                except OSError:
-                    pass
-                continue
-            py, script = python_word(), lock_script()
-            name = agent or "<agent>"
-            why = (f"it carries no PL_AGENT=<name>" if not agent else
-                   f"'{agent}' does not hold the lock (held by {held['agent']}, for: {held.get('for') or '?'})" if held else
-                   f"'{agent}' does not hold the lock (it is free)")
-            return (f"perceptual-loop lock: this command starts '{app}', of which one instance runs at a time across "
-                    f"agents and worktrees, and {why}.\n"
-                    "The normal way (queues for its turn, runs the command, always releases, kills it at its time limit):\n"
-                    f'  {py} -B "{script}" run {app} --as {name} --for "<what, how long>" -- <command>\n'
-                    "Exit 3 from it means still queued with the place kept: run the same command again.\n"
-                    "Several commands under one hold:\n"
-                    f'  {py} -B "{script}" acquire {app} --as {name} --for "<what, how long>"\n'
-                    f"  PL_AGENT={name} <command>          PowerShell: $env:PL_AGENT = \"{name}\"; <command>\n"
-                    f'  {py} -B "{script}" release {app} --as {name}     (also after a failure)\n'
-                    "Hold the lock for the run only, never while thinking or editing. Names: lower-case letters, digits, '-'.\n"
-                    + QUOTED_NOTE)
 
     if large and log:
         import time

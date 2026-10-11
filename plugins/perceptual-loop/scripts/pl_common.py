@@ -1,7 +1,7 @@
 """Shared helpers of the perceptual-loop scripts (see core/references/contract.md).
 
 Standard library only at import time: numpy and Pillow are imported inside the functions that need them, so a script
-that only reads the config (the hook, the lock) starts fast and needs no dependencies.
+that only reads the config (the hook) starts fast and needs no dependencies.
 """
 from __future__ import annotations
 
@@ -25,7 +25,6 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "passes": ["beauty"],
     "regionsFrom": None,
     "budget": {"free": 3, "match": []},
-    "locks": {"dir": None, "staleMinutes": 45, "apps": {}},
     "metrics": {"ssim": True, "deltaE": True, "edges": True, "detail": True},
 }
 
@@ -99,13 +98,6 @@ def shots_dir(root: Path | None = None, config: dict[str, Any] | None = None) ->
 
 def runs_dir(root: Path | None = None) -> Path:
     return pl_dir(root) / "runs"
-
-
-def user_data_dir() -> Path:
-    """Per-user folder shared by every checkout and worktree (locks, board)."""
-    # Not CLAUDE_PLUGIN_DATA: a hook process has it and an agent's shell does not, and both must find the same folder.
-    base = os.environ.get("LOCALAPPDATA") or os.environ.get("XDG_STATE_HOME") or str(Path.home() / ".local" / "state")
-    return Path(base) / "perceptual-loop"
 
 
 # ----------------------------------------------------------------------------------------------------- shots, groups

@@ -13,12 +13,9 @@ HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE.parent / "hooks"))
 sys.path.insert(0, str(HERE.parent / "scripts"))
 import guard  # noqa: E402
-import lock as pl_lock  # noqa: E402
 
 CONFIG = {
     "budget": {"free": 3, "match": [r"shot-render", r"npm run render", r"iterate\.py"]},
-    "locks": {"dir": "LOCKS", "apps": {"editor": {"processes": ["UnrealEditor"], "match": [r"shot-render", r"run-tests"]},
-                                       "sim": {"match": [r"run-in-session"]}}},
 }
 SHOTS = [f"sky_{i}" for i in range(6)] + ["cockpit_a", "cockpit_b", "road_top"]
 GROUPS = {"sky": ["sky_*"], "smoke": ["sky_0", "cockpit_a", "road_top"], "cabins": ["cockpit_*"], "most": ["*", "!road_*"]}
@@ -32,11 +29,8 @@ class GuardCase(unittest.TestCase):
         for s in SHOTS:
             (d / "shots" / s).mkdir(parents=True)
             (d / "shots" / s / "shot.json").write_text(json.dumps({"name": s}))
-        config = json.loads(json.dumps(CONFIG).replace("LOCKS", (self.tmp / "locks").as_posix()))
-        (d / "config.json").write_text(json.dumps(config))
+        (d / "config.json").write_text(json.dumps(CONFIG))
         (d / "groups.json").write_text(json.dumps(GROUPS))
-        self.locks = self.tmp / "locks"
-        self.locks.mkdir()
         self._env = os.environ.pop("PERCEPTUAL_LOOP_DIR", None)
 
     def tearDown(self):
@@ -56,10 +50,6 @@ class GuardCase(unittest.TestCase):
         for n in needles:
             self.assertIn(n, reason)
         return reason
-
-    def hold(self, app, agent):
-        (self.locks / f"{app}.lock").write_text(json.dumps({"app": app, "agent": agent, "for": "test", "since": pl_lock.now_iso(),
-                                                            "refreshed": "2026-01-01T00:00:00Z"}))
 
     def log(self):
         p = self.root / ".perceptual-loop" / "runs" / "budget.log"
@@ -107,10 +97,9 @@ class Budget(GuardCase):
     def test_powershell_spellings(self):
         self.deny("powershell -File engines/scripts/shot-render.ps1 -All", "renders 9 shots")
         self.deny("& ./scripts/shot-render.ps1 -Group sky", "renders 6 shots")
-        self.hold("editor", "ue-1")
-        self.allow('$env:PL_AGENT = "ue-1"; $env:PL_RUN = "verify: smoke passed, this is the sky group"; ./scripts/shot-render.ps1 -Group sky')
-        self.allow('$env:PL_AGENT = "ue-1"; ./scripts/shot-render.ps1 -Group sky -Match "sky_[012]"')
-        self.deny('$env:PL_AGENT = "ue-1"; ./scripts/shot-render.ps1 -Group sky', "renders 6 shots")
+        self.allow('$env:AW_AGENT = "ue-1"; $env:PL_RUN = "verify: smoke passed, this is the sky group"; ./scripts/shot-render.ps1 -Group sky')
+        self.allow('$env:AW_AGENT = "ue-1"; ./scripts/shot-render.ps1 -Group sky -Match "sky_[012]"')
+        self.deny('$env:AW_AGENT = "ue-1"; ./scripts/shot-render.ps1 -Group sky', "renders 6 shots")
         self.assertEqual(len(self.log()), 1)
 
     def test_nothing_rendered_is_never_blocked(self):
@@ -133,7 +122,7 @@ class Budget(GuardCase):
         self.allow("cat scripts/iterate.py; ls shot-render.ps1; rg 'npm run render -- --all'")
         self.allow("Get-Content scripts/shot-render.ps1 | Select-String 'iterate.py --all'")
         self.allow("cd tools/shot-render && ls")
-        self.allow('python lock.py note --as a "iterate.py --all is next; then shot-render.ps1 -All"')
+        self.allow('aw note "iterate.py --all is next; then shot-render.ps1 -All"')
 
     def test_heredoc_and_here_string_bodies_are_skipped(self):
         self.allow("git commit -F - <<'EOF'\nrender: uv run iterate.py --all\nshot-render.ps1 -All\nEOF")
@@ -145,57 +134,57 @@ class Budget(GuardCase):
         self.deny("python - <<< 'x'; uv run iterate.py --all", "renders 9 shots")  # <<< is not a heredoc
 
 
-class Locks(GuardCase):
-    def test_a_guarded_command_needs_a_holder(self):
-        r = self.deny("powershell -File scripts/run-tests.ps1", "starts 'editor'", "no PL_AGENT", "lock.py", "run editor --as <agent>",
-                      "acquire editor --as <agent>", "release editor --as <agent>", "not a security boundary", "Exit 3")
-        self.assertIn(str(HERE.parent / "scripts" / "lock.py"), r)  # a real path the agent can run
-        self.deny("PL_AGENT=ue-1 powershell -File scripts/run-tests.ps1", "'ue-1' does not hold the lock (it is free)", "--as ue-1")
-        self.hold("editor", "someone")
-        self.deny("PL_AGENT=ue-1 powershell -File scripts/run-tests.ps1", "held by someone")
-        self.deny('$env:PL_AGENT = "ue-1"; ./scripts/run-tests.ps1', "held by someone")
+class AwWrappers(GuardCase):
+    """Locks and leases are the agent-works plugin's; what its wrappers run is judged here as the inner command."""
 
-    def test_the_holder_runs_and_its_lock_is_refreshed(self):
-        self.hold("editor", "ue-1")
-        self.allow("PL_AGENT=ue-1 powershell -File scripts/run-tests.ps1")
-        self.allow('$env:PL_AGENT = "ue-1"; ./scripts/run-tests.ps1 -Tier core')
-        self.allow("export PL_AGENT=ue-1\n./scripts/shot-render.sh sky_0")
-        self.assertNotEqual(pl_lock.read_lock(self.locks, "editor")["refreshed"], "2026-01-01T00:00:00Z")
-        self.deny("PL_AGENT=ue-1 tools/run-in-session.ps1 run x", "starts 'sim'")  # another application, another lock
+    def test_a_wrapped_render_within_the_budget_passes(self):
+        self.allow('aw lock run editor --for "tests, 3 min" -- ./scripts/shot-render.sh sky_0 sky_1')
+        self.allow('aw lock run editor --as ue-1 --for "x" --max-minutes 5 -- "./scripts/shot-render.sh sky_0 sky_1"')
+        self.allow('aw lease gpu --share 0.5 --mem 12GB --for "three shots" -- npm run render -- sky_0 sky_1 sky_2')
+        self.allow('aw lock run sim --for x -- aw lock run editor --for x -- ./run-in-session.ps1 shot-render sky_0')
+        self.allow('aw lease gpu --for x -- aw lock run editor --for x -- uv run iterate.py --group smoke')
+        self.allow('python -B "/plugins/agent-works/cli/aw.py" lock run editor --for "x" -- uv run iterate.py sky_0')
+        self.assertEqual(self.log(), [])
 
-    def test_lock_run_wraps_a_guarded_command(self):
-        self.allow('python -B "/plugins/pl/scripts/lock.py" run editor --as ue-1 --for "tests, 3 min" -- powershell -File scripts/run-tests.ps1')
-        self.allow('python lock.py run editor --as ue-1 --for "x" --max-minutes 5 -- "./scripts/shot-render.sh sky_0 sky_1"')
-        self.allow('python lock.py run sim --as a --for x -- python lock.py run editor --as a --for x -- ./run-in-session.ps1 shot-render sky_0')
-        self.deny('python lock.py run sim --as ue-1 --for "x" -- powershell -File scripts/run-tests.ps1', "starts 'editor'")
-        # the wrapper holds the lock, it does not buy shots
-        self.deny('python lock.py run editor --as ue-1 --for "x" -- ./scripts/shot-render.sh --all', "renders 9 shots")
-        self.allow('PL_RUN="full: #12 finished" python lock.py run editor --as ue-1 --for "x" -- ./scripts/shot-render.sh --all')
-        self.assertEqual(self.log()[0].split("\t")[1:3], ["full", "9"])
+    def test_the_wrapper_does_not_buy_shots(self):
+        self.deny('aw lock run editor --for "x" -- ./scripts/shot-render.sh --all', "renders 9 shots")
+        self.deny('aw lease gpu --share 1 --for "x" -- uv run iterate.py --group sky', "renders 6 shots (--group sky)")
+        self.deny('aw lock run sim --for x -- aw lease gpu --for x -- uv run iterate.py --all', "renders 9 shots")
+        self.deny('aw.cmd lock run editor --for x -- "uv run iterate.py --all"', "renders 9 shots")
+        self.deny('python -B "/plugins/agent-works/cli/aw.py" lease gpu --for x -- uv run iterate.py --all', "renders 9 shots")
+        self.deny('AW_AGENT=ue-1 aw lock run editor --for x -- npm run render -- sky_0 sky_1 sky_2 sky_3', "renders 4 shots")
 
-    def test_the_lock_tool_itself_and_dry_runs_pass(self):
-        self.allow('python lock.py acquire editor --as ue-1 --for "run-tests, 3 min"')
-        self.allow("python lock.py release editor --as ue-1 && python lock.py status")
-        self.allow("./scripts/shot-render.sh --list")
-        self.allow("git log --oneline -- scripts/run-tests.ps1")
+    def test_a_reason_reaches_through_the_wrapper(self):
+        self.allow('PL_RUN="full: #12 finished" aw lock run editor --for "x" -- ./scripts/shot-render.sh --all')
+        self.allow('aw lease gpu --for x -- PL_RUN="verify: sky_0 works, this is the group" uv run iterate.py --group sky')
+        self.assertEqual([line.split("\t")[1:3] for line in self.log()], [["full", "9"], ["verify", "6"]])
+        self.assertTrue(self.log()[0].split("\t")[4].startswith("./scripts/shot-render.sh --all"))  # the inner command is logged
 
-    def test_default_lock_folder_is_the_one_lock_py_uses(self):
-        d = self.root / ".perceptual-loop"
-        (d / "config.json").write_text(json.dumps({"locks": {"apps": {"editor": {"match": ["run-tests"]}}}}))
-        env = {**os.environ, "LOCALAPPDATA": str(self.tmp / "data"), "XDG_STATE_HOME": str(self.tmp / "data"), "PYTHONDONTWRITEBYTECODE": "1"}
-        env.pop("PL_AGENT", None)
-        lock = [sys.executable, "-B", str(HERE.parent / "scripts" / "lock.py")]
-        self.assertEqual(subprocess.run([*lock, "acquire", "editor", "--as", "ue-1", "--for", "t", "--wait", "0"], cwd=self.root, env=env,
-                                        capture_output=True).returncode, 0)
-        # the hook process has CLAUDE_PLUGIN_DATA, the agent's shell has not: both must look in the same place
-        env["CLAUDE_PLUGIN_DATA"] = str(self.tmp / "plugin-data")
-        payload = json.dumps({"tool_name": "Bash", "tool_input": {"command": "PL_AGENT=ue-1 ./run-tests.sh"}, "cwd": str(self.root)})
-        r = subprocess.run([sys.executable, "-B", str(HERE.parent / "hooks" / "guard.py")], input=payload, env=env, capture_output=True, text=True)
-        self.assertEqual((r.returncode, r.stdout), (0, ""))
-        payload = payload.replace("ue-1", "ue-2")
-        r = subprocess.run([sys.executable, "-B", str(HERE.parent / "hooks" / "guard.py")], input=payload, env=env, capture_output=True, text=True)
-        self.assertEqual(json.loads(r.stdout)["hookSpecificOutput"]["permissionDecision"], "deny")
-        self.assertIn("held by ue-1", r.stdout)
+    def test_dry_runs_and_wrapper_flags(self):
+        self.allow('aw lock run editor --for x -- uv run iterate.py --all --dry-run')
+        self.allow('aw lock run editor --for x -- ./scripts/shot-render.ps1 -All -List')
+        # a flag of the wrapper is not a flag of the render: --all here belongs to nothing that renders
+        self.deny('aw lock run editor --for "list the --dry-run output" -- uv run iterate.py --all', "renders 9 shots")
+
+    def test_other_aw_commands_are_left_alone(self):
+        self.allow('aw lock acquire editor --for "iterate.py --all, 3 min"')
+        self.allow("aw lock release editor && aw lock status")
+        self.allow('aw note "ran iterate.py --all; shot-render.ps1 -All is next"')
+        self.allow('aw kanban add "npm run render -- --all is too slow"')
+        self.allow('python -B cli/aw.py note "uv run iterate.py --all"')
+        self.allow("aw sys --quiet-for timing && uv run iterate.py sky_0")
+        self.deny("aw sys --quiet-for timing && uv run iterate.py --all", "renders 9 shots")  # the next segment is a command
+
+    def test_a_wrapped_baseline_update_is_still_targeted(self):
+        self.deny("aw lock run editor --for x -- uv run scripts/baseline.py update", "--source", "a selection")
+        self.allow("aw lock run editor --for x -- uv run scripts/baseline.py update --source candidate sky_0")
+
+    def test_unwrap(self):
+        self.assertEqual(guard.unwrap_aw("aw lock run a --for x -- cmd --flag"), (True, "cmd --flag"))
+        self.assertEqual(guard.unwrap_aw("aw lease gpu --share 0.5 -- aw lock run a -- 'cmd one two'"), (True, "cmd one two"))
+        self.assertEqual(guard.unwrap_aw("aw lock status"), (False, ""))
+        self.assertEqual(guard.unwrap_aw("draw.py lock run a -- cmd"), (False, "draw.py lock run a -- cmd"))
+        self.assertEqual(guard.unwrap_aw("uv run iterate.py --all"), (False, "uv run iterate.py --all"))
 
 
 class Baseline(GuardCase):
@@ -266,7 +255,7 @@ class Splitting(unittest.TestCase):
         self.assertEqual(guard.split_segments("a \\\n  --flag; b `\n -Flag"), ["a    --flag", "b   -Flag"])
         self.assertEqual(guard.command_part('FOO=1 BAR="x y" env BAZ=2 cmd --a'), "cmd --a")
         self.assertEqual(guard.command_part('$env:PL_RUN = "verify: render works"'), "")
-        self.assertEqual(guard.command_part("export PL_AGENT=a"), "")
+        self.assertEqual(guard.command_part("export AW_AGENT=a"), "")
         self.assertEqual(guard.first_word('"C:/Tools/Git/git.exe" log'), "git")
 
 

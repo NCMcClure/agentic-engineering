@@ -89,12 +89,17 @@ Write the suggested `smoke` group (every content pair and condition once) and to
 
 *Done when: `groups.py list` shows `smoke` with a count, and every topic the work touches has a group.*
 
-## Step 6 — Budget and locks (optional, per project)
+## Step 6 — Budget and scarce applications (optional, per project)
 
 In `config.json`, `budget.match` lists patterns of the commands that render (the hook then refuses a run above
-`budget.free` shots without a stated reason), and `locks.apps` lists applications only one agent may run at a time
-(`orchestrate-agents`). Leave both empty until a second agent or a slow render makes them worth it.
+`budget.free` shots without a stated reason). Leave it empty until a slow render makes it worth it.
 
-*Done when: `budget.match` and `locks.apps` in `config.json` are filled in or deliberately empty, and a first
+An application only one agent may run at a time (the renderer, an editor, the GPU for a timing) needs a lock.
+Locks, leases and the machine's load are agent-works' job (`agent-works:coordinate` / `aw lock`, `aw lease`,
+`aw sys`). Without it: nothing enforces the turn, so run one agent at a time on that application and say so in
+every brief (`orchestrate-agents`).
+
+*Done when: `budget.match` in `config.json` is filled in or deliberately empty, each scarce application is
+declared to agent-works or named in the brief as one-at-a-time, and a first
 `iterate.py` run on one shot exits 0 or 1 and prints the pair sheet's path. Next: `calibrate-gate`
 to give the baseline its tolerances, then `iterate`.*

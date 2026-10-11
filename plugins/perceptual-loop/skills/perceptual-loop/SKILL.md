@@ -29,7 +29,7 @@ each the lesson of a real failure. The two that are broken most often:
 | A difference needs a verdict, a comparison for the owner, or open look questions are piling up | `judge-and-queue` |
 | The result changes over time: animation, transitions, smoothness, latency, a clip | `check-motion` |
 | The result is sound, or sound must stay in sync with a picture | `check-audio` |
-| Several tasks could run at once, or agents share an application that only one may use | `orchestrate-agents` |
+| Several agents work on looks at once: who proves what, how much each renders, who opens the pictures | `orchestrate-agents` |
 
 **No pixel-aligned reference** (a generated image, a restyle, a prompt as the reference): pixel metrics do not
 apply. `uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/semantic.py" --help` gives image–image and image–text
@@ -38,6 +38,10 @@ similarity to gate and rank with, and `keypoints.py` checks a character's pose. 
 
 `build-harness` and `orchestrate-agents` are set-up skills the user starts (`/perceptual-loop:build-harness`); when
 you need one mid-task, read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow it.
+
+Sharing a codebase and a machine between agents (tasks, briefs, worktrees, locks on a scarce application, the
+machine's load, the project's memory) is agent-works' job (`agent-works:orchestrate` / `agent-works:coordinate`).
+Without it: one agent at a time on the application that renders, by hand.
 
 The words (shot, source, pass, region, gate, verdict, group, probe, sheet) and every file's shape are defined once in
 `${CLAUDE_PLUGIN_ROOT}/core/references/contract.md`. Use those words in plans, briefs and reports.

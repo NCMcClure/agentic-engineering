@@ -55,7 +55,9 @@ the system gives no rule and you choose one, say plainly that it is yours, name 
 owner (`judge-and-queue`).
 
 A probe that needs no launch (it reads files) is cheapest: write those first. A probe that launches the reference
-application obeys the project's locks (`${CLAUDE_PLUGIN_ROOT}/skills/orchestrate-agents/SKILL.md` step 3).
+application takes its turn on it like any other run. Locks on scarce applications are agent-works' job
+(`agent-works:coordinate` / `aw lock run <resource> -- <command>`). Without it: make sure by hand that no other
+agent is using the application, and never start a second instance beside the owner's own.
 
 *Done when: the rule is stated with its inputs and constants, each marked measured (with the probe's numbers) or
 our own, and a test holds it.*
@@ -70,7 +72,9 @@ either way, with what was tried.
 
 ## Step 5 — Record
 
-One short entry in the project's memory or notes: the question, the three findings, the verdict, the probe's
-location. Next time the same class of difference appears, the answer is a lookup.
+One short entry: the question, the three findings, the verdict, the probe's location. Next time the same class of
+difference appears, the answer is a lookup. Keeping a project's memory is agent-works' job (`agent-works:memory` /
+`aw memory new`): use it when the project has `.agents/memory`. Without it: write the entry where the project
+keeps its notes, and say in your report where that is.
 
-*Done when: the entry exists where the project keeps such notes and names the probe's file.*
+*Done when: the entry exists in the project's memory or notes and names the probe's file.*
