@@ -42,8 +42,9 @@ decisions and orchestration; each still runs without it.
 
 Code written before the spec is settled is a loan against your future self.
 A numbered planning pipeline (spec → grill → architect → plan → publish)
-plus a build loop of coordinated TDD agents, all landing in one `.plan/`
-directory, with an autopilot that runs the whole graph hands-off.
+plus a build loop of coordinated TDD agents, all landing in one
+`.agents/plan/` workspace (4.0 moved it there from `.plan/`), with an
+autopilot that runs the whole graph hands-off.
 [Read more →](plugins/but-first-planning/README.md)
 
 ### agentic-teamwork

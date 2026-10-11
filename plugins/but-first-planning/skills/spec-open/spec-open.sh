@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# spec-open: serve the .plan/ spec site (reusing a running instance) and open it.
+# spec-open: serve the .agents/plan/ spec site (reusing a running instance) and open it.
 # Stdlib/CLI only. Serves site + inline-comment API on one port via comments-server.py.
 set -euo pipefail
 
@@ -12,17 +12,17 @@ PY="$(command -v python3 || command -v python || true)"
 [ -n "$PY" ] || { echo "No python3/python on PATH." >&2; exit 1; }
 
 # Root: explicit override (SPEC_ROOT env or $1) wins, else $CLAUDE_PROJECT_DIR/$PWD.
-# If .plan/ isn't there, walk up from cwd to find the repo that owns it — covers
+# If .agents/plan/ isn't there, walk up from cwd to find the repo that owns it — covers
 # running from a subdir or a multi-repo workspace (SPEC_ROOT= is the escape hatch).
 ROOT="${SPEC_ROOT:-${1:-${CLAUDE_PROJECT_DIR:-$PWD}}}"
-if [ ! -f "$ROOT/.plan/spec/scripts/comments-server.py" ]; then
+if [ ! -f "$ROOT/.agents/plan/spec/scripts/comments-server.py" ]; then
   d="$PWD"
   while [ "$d" != "/" ]; do
-    [ -d "$d/.plan" ] && { ROOT="$d"; break; }
+    [ -d "$d/.agents/plan" ] && { ROOT="$d"; break; }
     d="$(dirname "$d")"
   done
 fi
-SERVER="$ROOT/.plan/spec/scripts/comments-server.py"
+SERVER="$ROOT/.agents/plan/spec/scripts/comments-server.py"
 
 announce_and_open() {
   echo "Spec site: $URL"
@@ -41,6 +41,10 @@ if curl -sf -o /dev/null "$API" 2>/dev/null; then
 fi
 
 if [ ! -f "$SERVER" ]; then
+  if [ -d "$ROOT/.plan" ] || [ -d "$PWD/.plan" ]; then
+    echo "This workspace is still at .plan/ (but-first-planning < 4.0); it now lives at .agents/plan/. Migrate it: see spec-0-init, 'Migrating a .plan/ workspace'." >&2
+    exit 1
+  fi
   echo "No spec site found ($SERVER missing) — run spec-0-init first." >&2
   exit 1
 fi
@@ -53,7 +57,7 @@ if ! "$PY" -c 'import mkdocs' >/dev/null 2>&1; then
 fi
 
 echo "Starting the spec server…"
-nohup "$PY" "$SERVER" --port "$PORT" >"$ROOT/.plan/.comments.log" 2>&1 &
+nohup "$PY" "$SERVER" --port "$PORT" >"$ROOT/.agents/plan/.comments.log" 2>&1 &
 
 # Wait until it responds (up to ~30s: MkDocs cold start behind the proxy).
 for _ in $(seq 1 60); do
@@ -64,6 +68,6 @@ for _ in $(seq 1 60); do
   sleep 0.5
 done
 
-echo "Server didn't come up within 30s — see $ROOT/.plan/.comments.log." >&2
+echo "Server didn't come up within 30s — see $ROOT/.agents/plan/.comments.log." >&2
 echo "Docs toolchain missing? pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin" >&2
 exit 1

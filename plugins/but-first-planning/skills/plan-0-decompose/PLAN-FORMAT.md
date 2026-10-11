@@ -69,9 +69,11 @@ parallel, say so.
 
 | Check | Command | Expected result |
 |-------|---------|-----------------|
-| All epic sprints done | `python .plan/plan/plan-status.py check 01` | exit 0 (`01-minimal-core: done`) |
-| Plan tree verifier passes | `python .plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
-| Codebase hubs current | `python .plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
+| All epic sprints done | `python .agents/plan/plan/plan-status.py check 01` | exit 0 (`01-minimal-core: done`) |
+| Plan tree verifier passes | `python .agents/plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
+| Codebase hubs current | `python .agents/plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
+
+<!-- The hub row is conditional: write it only when .agents/plan/plan/verify-agents-tree.py exists (the agent-works hub check is wired); otherwise omit the row. -->
 
 ## Blocked by
 
@@ -120,9 +122,11 @@ Issues are parallelizable unless an issue's own `Blocked by` says otherwise.
 
 | Check | Command | Expected result |
 |-------|---------|-----------------|
-| All sprint issues done | `python .plan/plan/plan-status.py check 01-01` | exit 0 (`...: done`) |
-| Plan tree verifier passes | `python .plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
-| Codebase hubs current | `python .plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
+| All sprint issues done | `python .agents/plan/plan/plan-status.py check 01-01` | exit 0 (`...: done`) |
+| Plan tree verifier passes | `python .agents/plan/plan/verify-plan-tree.py` | exit 0; `OK: ...` |
+| Codebase hubs current | `python .agents/plan/plan/verify-agents-tree.py` | exit 0 (warnings tolerated while the tree ramps in) |
+
+<!-- The hub row is conditional: write it only when .agents/plan/plan/verify-agents-tree.py exists (the agent-works hub check is wired); otherwise omit the row. -->
 
 ## Blocked by
 
@@ -247,11 +251,12 @@ issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
 !!! warning "Older workspaces"
     REVIEW plans need the ≥3.3 workspace scripts. On a workspace scaffolded by
     an older plugin version, re-copy `verify-plan-tree.py` and
-    `publish-issues.py` into `.plan/plan/` (the spec-0-init backfill exception)
+    `publish-issues.py` into `.agents/plan/plan/` (the spec-0-init backfill exception)
     before publishing — an old `publish-issues.py` silently labels REVIEW
     issues as agent-ready. The `**User-facing**` check and the hub checkpoint
-    row need the ≥3.7 scripts: re-copy `verify-plan-tree.py` again and copy
-    `verify-agents-tree.py` alongside it. Legacy trees without the
+    row need the ≥3.7 scripts: re-copy `verify-plan-tree.py` again; the hub
+    row also needs the agent-works hub-check stub (`spec-0-init` step 2) and
+    is omitted without it. Legacy trees without the
     `plan-format: 3.7` marker only warn — nothing hard-fails until the marker
     is added deliberately.
 
@@ -261,6 +266,6 @@ issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
 - `**Type**:` is exactly `AFK`, `HITL`, or `REVIEW` (the verifier rejects anything else).
 - All five sections present: `## Parent`, `## What to build`, `## Acceptance criteria`, `## Testing checkpoint`, `## Blocked by`.
 - `**GitHub**:` is exactly `<unassigned>` until published, then a real `#NNN` (or tracker reference).
-- Every markdown link in `## What to build` that contains `spec/` must resolve — that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `.plan/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).
+- Every markdown link in `## What to build` that contains `spec/` must resolve — that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `.agents/plan/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).
 - Every markdown link in `## Blocked by` must resolve to a real sibling issue file (use `[title](./NN_issue_OTHER.md)`), or say "None".
 - `**User-facing**:` present on every `AFK`/`HITL` issue, matching `yes — <surface>` or `no — internal` (CRITICAL on `plan-format: 3.7` trees, WARN on legacy ones).

@@ -3,7 +3,7 @@
 A numbered, file-based **planning + build** workflow for Claude Code, packaged as
 installable Skills. Author a language-agnostic specification, sharpen it, decompose
 it into an epic/sprint/issue backlog, then build it test-first, everything landing
-in a single `.plan/` directory at the root of whatever project you install it into.
+in a single `.agents/plan/` workspace in whatever project you install it into.
 
 > The premise: *but first, planning.* Get the spec and the architecture right,
 > readable as a website and editable as markdown, before you write the code.
@@ -65,13 +65,13 @@ Or, from a clone of the marketplace repo, inside `plugins/but-first-planning/`:
 Three prefixes mark the phase: **`spec-*` authors and sharpens the
 specification**, **`plan-*` turns it into an executable backlog and publishes
 it**, and **`build-*` implements that backlog test-first**. It all lives under
-`.plan/`.
+`.agents/plan/`.
 
 **Spec (`spec-*`, run roughly in order):**
 
 | Skill | What it does |
 |-------|--------------|
-| `spec-0-init` | Scaffold the `.plan/` workspace (spec docs site, plan tree, glossary, ADRs, tracker config, verifiers) and wire a read-only plan-tree integrity gate into `.claude/settings.json` for sprint builds. |
+| `spec-0-init` | Scaffold the `.agents/plan/` workspace (spec docs site, plan tree, glossary, ADRs, tracker config, verifiers) and wire a read-only plan-tree integrity gate into `.claude/settings.json` for sprint builds. |
 | `spec-1-specify` | Author the specification as a progressive-disclosure, language-agnostic docs website. |
 | `spec-2-grill` | Relentlessly grill the spec for clarity; sharpen the glossary and record ADRs. |
 | `spec-3-architect` | Pressure-test the *design* before code exists: find deepening opportunities and seams. |
@@ -154,9 +154,25 @@ the ledger, `build-user-docs` refreshes the product's end-user docs (README,
 `docs/` — not the spec site) onto the still-open sprint PR, so documentation
 stays current with what's actually built, sprint by sprint.
 
-Everything the skills produce lives under `.plan/` in the target project and is
+Everything the skills produce lives under `.agents/plan/` in the target project and is
 plain markdown: browsable as an MkDocs website, diffable in git, and editable by
-agents. The spec's **language posture** is your call at `spec-0-init` and is
+agents.
+
+```
+.agents/plan/
+├── README.md  mkdocs.yml  tracker.md
+├── spec/        the specification (the docs site), its glossary and ADRs
+├── plan/        the plan tree: epics → sprints → issues, and its scripts
+└── progress/    verified-complete ledgers, run notes, drift
+```
+
+The plan tree is `.agents/plan/plan/`. The doubled name is intended (the
+workspace is `plan`, the tree inside it is `plan`): do not flatten it, the
+scripts locate themselves by it. `.agents/` is the home of everything
+agent-facing in a repo; `./docs` is for end-user documentation only, and
+`build-user-docs` is the one skill here that writes to it.
+
+The spec's **language posture** is your call at `spec-0-init` and is
 recorded as ADR-0001 so every spec skill honours it: language-agnostic
 (pseudocode + diagrams) by default, or tied to a language with snippets used
 sparingly or liberally. The **UI/UX posture** (ADR-0002) is the same idea for
@@ -164,6 +180,41 @@ eyes: headless, dev-dashboard, existing-design-system, or greenfield-product —
 it scales the spec's UI/UX content (up to a `prototypes/` playground of static
 HTML mockups served by the spec site) and puts `REVIEW` issues in the plan:
 human visual-verification gates the build skills never auto-build.
+
+## With agent-works
+
+The plugin runs alone, and hands four things to the
+`agent-works` plugin when that is installed:
+
+- **The AGENTS.md hub check.** This plugin ships no hub verifier. With
+  agent-works, `spec-0-init` wires a stub at
+  `.agents/plan/plan/verify-agents-tree.py` that calls `aw hubs`; without it
+  the hub checkpoint row is omitted and hub structure is not verified.
+- **Scarce resources, notes, counters and briefs** in a sprint build go
+  through `aw lock run`, `aw sys`, `aw note` and `aw claim`; without it,
+  builders take turns.
+- **CLAUDE.md siblings** are agent-works' generated twins.
+- **Decisions and terms of the built codebase** (not of the spec) live in
+  `.agents/decisions/` and `.agents/CONTEXT.md`; out-of-scope work and gates
+  owed between agents go to its kanban. The spec's own glossary and ADRs stay
+  in `.agents/plan/spec/reference/`, and the plan tree stays the task home.
+
+## Upgrading from 3.x
+
+4.0 moved the workspace from `.plan/` to `.agents/plan/`. In each project that
+has a `.plan/`, from the repo root:
+
+```bash
+mkdir -p .agents
+git mv .plan .agents/plan
+```
+
+Then ask for `spec-0-init` (it sees the old layout and runs its migration
+section): it re-copies the workspace scripts, which changed, replaces the old
+`verify-agents-tree.py`, rewrites the `TaskCompleted` hook path in
+`.claude/settings.json` and the `.gitignore` line, fixes `.plan/` paths in
+checkpoint rows, and runs the verifiers. Until then the 4.0 scripts refuse a
+`.plan/` layout with one line naming this migration.
 
 ## Releasing
 
@@ -174,6 +225,7 @@ entry carries none; plugin.json is authoritative) and follow the repo's
 
 ## Changelog
 
+- **4.0.0**: the workspace moves from `.plan/` to `.agents/plan/` (breaking), and the AGENTS.md hub verifier leaves for the `agent-works` plugin (breaking). `.agents/` is the home of everything agent-facing and `./docs` is for end-user documentation only, so the planning workspace now sits beside agent-works' memory, decisions and kanban; inside it nothing moved, and the plan tree is `.agents/plan/plan/` (the doubled name is intended). Every skill, workflow script, stub and copied script names the new path; `publish-issues.py` computes the repo root one level higher, `plan-gate.py` looks under `.agents/plan/`, and the verifiers, the gate, the publisher and `spec-open` refuse a `.plan/` layout with one line naming the migration. `spec-0-init` gains "Migrating a `.plan/` workspace": `mkdir -p .agents && git mv .plan .agents/plan`, re-copy the scripts, rewrite the `TaskCompleted` hook path and the `.gitignore` line, fix `.plan/` paths in checkpoint rows, run the verifiers. `verify-agents-tree.py` is deleted from the plugin: with agent-works available, `spec-0-init` writes a stub at `.agents/plan/plan/verify-agents-tree.py` that calls `aw hubs` (existing checkpoint rows keep working); without it the hub checkpoint row is omitted and hub structure is not verified. CODEBASE-LAYOUT.md keeps the `repository-layout.md` contract and shrinks the hub half to the five rules plus the pointer to `agent-works:hubs`. Smaller deferrals, each with a fallback: scarce resources, notes, counters and briefs in a sprint build go through `agent-works:orchestrate` / `agent-works:coordinate`; CLAUDE.md siblings are agent-works' twins; decisions and terms of the built codebase belong to `agent-works:decisions`; surfaced out-of-scope work and owed gates go to its kanban. The spec's glossary and ADRs stay in the spec, and `build-user-docs` still writes README and `docs/`. Fixed on the way: the copied scripts read and write UTF-8 explicitly (on Windows the plan verifier rejected a `**User-facing**` line written with an em dash), and the publisher writes the plan-file path into tickets with forward slashes.
 - **3.9.0**: new `build-audit` skill — a post-build gap audit for a finished plan tree. Its bundled workflow (`build-audit-run`, the plugin's tenth) maps every promise the spec makes into a ledger, hunts gaps across eight base dimensions (spec-vs-code, reachability, onboarding/UX, end-user docs, test coverage, benchmarks, drift owner-calls, debt markers) plus an opt-in session-fixtures dimension gated on user-granted transcript access, runs a completeness critic that commissions up to four follow-up finders, semantically dedups, adversarially verifies every merged finding, and synthesizes the survivors into one new plan-tree epic (authored to disk, verify-plan-tree loop, `plan/index.md` row) with scope questions split out as owner decisions. Publishing to the tracker is an opt-in second pass via workflow resume. Everything project-specific arrives through args (`projectBrief`, `knownDebt`, `hardRules`, `commissioned`, `transcriptDirs`, `uiCapture`), so the workflow itself stays project-agnostic; `disable-model-invocation` — it's an expensive fan-out, invoked deliberately.
 - **3.8.0**: `build-sprint`'s workflow takes an optional `models` arg — per-stage model overrides (`{build: 'fable', exit: 'fable'}`; stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr; unlisted stages keep the tier defaults), so a run can pin heavier or cheaper models per stage without editing the script. Also hardened the dispatch loader's schema: the array fields are now typed and guarded (`Array.isArray`), fixing a crash where the loader returned `waves` as a JSON-encoded string and the wave loop fell over downstream.
 - **3.7.1**: hub-isolation fix — Python package markers (`__init__.py`/`__init__.pyi`) are now exempt in `verify-agents-tree.py` and CODEBASE-LAYOUT.md; without the exemption a package directory could never legally carry an AGENTS.md hub (found by codebase-optimizer's retrofit smoke test; the two contracts stay in intentional sync).

@@ -1,10 +1,14 @@
 # Glossary format
 
-The glossary lives at `.plan/spec/reference/glossary.md` and renders on the spec
+The glossary lives at `.agents/plan/spec/reference/glossary.md` and renders on the spec
 website. It is a single, opinionated list of the project's domain terms — one
 canonical word per concept, the rest listed as aliases to avoid. It is a
 glossary and nothing else: no implementation detail, no design rationale, no
 scratch notes. Those belong in spec files and ADRs.
+
+It is the **spec's** glossary. Terms of the built codebase (not of the spec)
+belong to `agent-works:decisions` (`.agents/CONTEXT.md`) when that plugin is
+installed, and never to `./docs`, which holds end-user documentation only.
 
 Because it's a content file on the site, it keeps its frontmatter (`tags`,
 `summary`, `created`, `updated`). Bump `updated` when you add or sharpen terms.

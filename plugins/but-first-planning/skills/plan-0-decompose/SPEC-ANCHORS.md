@@ -16,17 +16,17 @@ truth, and lets `spec-4-edit` find exactly which issues a spec change touches.
 An issue file lives at:
 
 ```
-.plan/plan/<epic>/<sprint>/issues/NN_issue_SLUG.md
+.agents/plan/plan/<epic>/<sprint>/issues/NN_issue_SLUG.md
 ```
 
-The spec lives at `.plan/spec/...`. So from an issue file, the spec is **four
+The spec lives at `.agents/plan/spec/...`. So from an issue file, the spec is **four
 directories up**, then into `spec/`:
 
 ```
 issues/  →  ../        (sprint dir)
          →  ../../      (epic dir)
          →  ../../../   (plan/)
-         →  ../../../../ (.plan/)
+         →  ../../../../ (.agents/plan/)
          →  ../../../../spec/<category>/<file>.md
 ```
 

@@ -1,7 +1,7 @@
 """Plan-tree structural verifier (count-agnostic).
 
 Read-only. No external dependencies (stdlib only). Validates the
-`.plan/plan/` epic -> sprint -> issue tree authored by the `plan-0-decompose` skill.
+`.agents/plan/plan/` epic -> sprint -> issue tree authored by the `plan-0-decompose` skill.
 
 Exits 0 on a clean pass, 1 on warnings only, 2 on any critical violation.
 Critical = broken structure, missing required fields, or unresolved links.
@@ -14,8 +14,13 @@ import re
 import sys
 from pathlib import Path
 
-PLAN_ROOT = Path(__file__).resolve().parent          # .plan/plan/
-REPO_ROOT = PLAN_ROOT.parent                          # .plan/
+PLAN_ROOT = Path(__file__).resolve().parent          # .agents/plan/plan/
+REPO_ROOT = PLAN_ROOT.parent                          # .agents/plan/ (the workspace, not the repository)
+OLD_LAYOUT = (
+    "error: this workspace is still at .plan/ (but-first-planning < 4.0); it now lives at "
+    ".agents/plan/. Migrate: mkdir -p .agents && git mv .plan .agents/plan, then re-copy the "
+    "scripts (spec-0-init, 'Migrating a .plan/ workspace')."
+)
 
 ISSUE_FILENAME_RE = re.compile(r"^[0-9]{2}_issue_[A-Z][A-Z0-9-]+\.md$")
 REQUIRED_ISSUE_FIELDS = [
@@ -55,11 +60,14 @@ def strict_format() -> bool:
     index_md = PLAN_ROOT / "index.md"
     if not index_md.exists():
         return False
-    m = PLAN_FORMAT_RE.search(index_md.read_text())
+    m = PLAN_FORMAT_RE.search(index_md.read_text(encoding="utf-8"))
     return bool(m) and (int(m.group(1)), int(m.group(2))) >= (3, 7)
 
 
 def verify() -> int:
+    if REPO_ROOT.name == ".plan":
+        print(OLD_LAYOUT, file=sys.stderr)
+        return 2
     failures: list[str] = []
     warnings: list[str] = []   # exit 1 if no failures
     strict = strict_format()
@@ -108,7 +116,7 @@ def verify() -> int:
 
     # Per-issue required fields, GitHub field, and link integrity
     for issue_md in issue_mds:
-        text = issue_md.read_text()
+        text = issue_md.read_text(encoding="utf-8")
         for required in REQUIRED_ISSUE_FIELDS:
             if required not in text:
                 fail(failures, issue_md, f"missing required field/section: {required}")
@@ -149,7 +157,7 @@ def verify() -> int:
 
     # Sprint -> issues count integrity (table rows == files on disk)
     for sprint_md in sprint_mds:
-        text = sprint_md.read_text()
+        text = sprint_md.read_text(encoding="utf-8")
         in_table = sorted(set(re.findall(r"\(issues/([^)]+)\)", text)))
         on_disk = sorted(p.name for p in (sprint_md.parent / "issues").iterdir() if p.suffix == ".md")
         if in_table != on_disk:
@@ -164,7 +172,7 @@ def verify() -> int:
     for epic_md in epic_mds:
         if not epic_md.exists():
             continue
-        text = epic_md.read_text()
+        text = epic_md.read_text(encoding="utf-8")
         in_table = sorted(set(re.findall(r"\((\d{2}-[a-z0-9-]+)/sprint\.md\)", text)))
         on_disk = sorted(
             p.name for p in epic_md.parent.iterdir() if p.is_dir() and re.match(r"^\d{2}-", p.name)

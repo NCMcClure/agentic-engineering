@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Publish plan-tree issues to the configured tracker, dependency-ordered.
 
-Lives at `.plan/plan/publish-issues.py` (copied there by spec-0-init; bundled
+Lives at `.agents/plan/plan/publish-issues.py` (copied there by spec-0-init; bundled
 with plan-1-publish-issues). Deterministic and idempotent: it parses the plan
 tree, topologically sorts each sprint's issues by their sibling `Blocked by`
 links, creates a ticket per unpublished issue (blockers first, so blocked
 bodies cite real `#NNN` refs), and backfills the ref into the issue file and
 sprint table immediately — an interrupted run leaves an accurate record.
 
-Tracker backend is read from `.plan/tracker.md`:
+Tracker backend is read from `.agents/plan/tracker.md`:
 
 - `# Issue tracker: GitHub` -> `gh issue create` with the ready-for-agent /
   ready-for-human / ready-for-review triage labels (Project-board field
@@ -39,9 +39,9 @@ import sys
 import time
 from pathlib import Path
 
-PLAN = Path(__file__).resolve().parent           # .plan/plan/
-DOT_PLAN = PLAN.parent                            # .plan/
-ROOT = DOT_PLAN.parent                            # repo root
+PLAN = Path(__file__).resolve().parent           # .agents/plan/plan/
+DOT_PLAN = PLAN.parent                            # .agents/plan/
+ROOT = DOT_PLAN.parent.parent                     # repo root (.agents/plan/ is two levels below it)
 TRACKER_MD = DOT_PLAN / "tracker.md"
 
 EPIC_COLORS = ["#6699cc", "#b16286", "#689d6a", "#d79921",
@@ -61,7 +61,7 @@ def warn(msg: str) -> None:
 # Tracker config
 # --------------------------------------------------------------------------- #
 def tracker() -> dict:
-    """Parse .plan/tracker.md into a backend descriptor."""
+    """Parse .agents/plan/tracker.md into a backend descriptor."""
     if not TRACKER_MD.is_file():
         die(f"{TRACKER_MD} not found — run spec-0-init first")
     text = TRACKER_MD.read_text(encoding="utf-8")
@@ -187,7 +187,7 @@ def load_tree() -> list[dict]:
 def build_body(issue: dict, refs: dict) -> str:
     """Ticket body from the plan file. `refs` maps issue-file path -> iid."""
     what = re.sub(
-        r"\[([^\]]+)\]\((?:\.\./)+spec/([^)]+)\)", r"\1 (`.plan/spec/\2`)", issue["what"]
+        r"\[([^\]]+)\]\((?:\.\./)+spec/([^)]+)\)", r"\1 (`.agents/plan/spec/\2`)", issue["what"]
     )
     blocked_lines = []
     for dep in issue["deps"]:
@@ -195,12 +195,12 @@ def build_body(issue: dict, refs: dict) -> str:
         dep_title = dep[9:-3].replace("-", " ").lower()
         blocked_lines.append(f"- #{ref} — {dep_title}" if ref else f"- {dep} (unpublished)")
     blocked = "\n".join(blocked_lines) if blocked_lines else "- None"
-    anchors = "\n".join(f"Spec anchor: `.plan/spec/{a}`" for a in dict.fromkeys(issue["anchors"]))
+    anchors = "\n".join(f"Spec anchor: `.agents/plan/spec/{a}`" for a in dict.fromkeys(issue["anchors"]))
     return (
         f"## What to build\n\n{what}\n\n{anchors}\n\n"
         f"## Acceptance criteria\n\n{issue['criteria']}\n\n"
         f"## Blocked by\n\n{blocked}\n\n"
-        f"---\n*Plan file: `{issue['path'].relative_to(ROOT)}` — the plan tree is the source of truth.*"
+        f"---\n*Plan file: `{issue['path'].relative_to(ROOT).as_posix()}` — the plan tree is the source of truth.*"
     )
 
 
@@ -370,6 +370,10 @@ def cmd_sync(args: argparse.Namespace) -> int:
 
 
 def main() -> int:
+    if DOT_PLAN.name == ".plan":
+        die("this workspace is still at .plan/ (but-first-planning < 4.0); it now lives at "
+            ".agents/plan/. Migrate: mkdir -p .agents && git mv .plan .agents/plan, then re-copy "
+            "the scripts (spec-0-init, 'Migrating a .plan/ workspace').")
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="cmd")
     p_pub = sub.add_parser("publish", help="create tickets for unpublished issues (default)")

@@ -41,6 +41,29 @@ The rule all of this serves is stated once, in SKILL.md's coordination model —
 the coordinator never lets two agents write the same working tree concurrently.
 This section is the how and the observed failure when it's violated.
 
+## Shared machine state goes through agent-works
+
+A sprint build is rarely alone on the machine. When the `agent-works` plugin
+is available, route what is shared through it (`agent-works:orchestrate` for
+cutting tasks and briefs, `agent-works:coordinate` for the machine):
+
+- **Scarce applications and resources** (one GPU, one emulator, one port, a
+  licence): run the command inside `aw lock run <resource> --for "<what>" --
+  <command>`, and read `aw sys` before a measurement that needs a quiet machine.
+- **Notes between agents** ("merged X, pull before you build"): `aw note`.
+- **Shared counters** (a schema or migration number two builders might both
+  take): `aw claim <counter>` before using the next value.
+- **Builder briefs**: the common brief and the round brief of
+  `agent-works:orchestrate`, with this file's "What each builder must do" as
+  the task part.
+- **Out-of-scope work a builder surfaces, and gates one agent owes another**:
+  cards on the agent-works kanban. The plan tree stays the home of this
+  plugin's tasks; drift stays in `progress/drift/`.
+
+Without agent-works, the serial rule above is the whole mechanism: anything
+that exists once per machine is used by one builder at a time, in dispatch
+order, and notes go in the run's progress note.
+
 ## What each builder must do
 
 Brief every builder to:
@@ -55,8 +78,8 @@ Brief every builder to:
    duties): a new non-leaf directory gets a hub (+ sibling `CLAUDE.md` when the
    root chain exists), a changed directory's hub is updated in the same commit,
    and no source file lands beside an `AGENTS.md`. The rules live in the root
-   `AGENTS.md` / `spec-1-specify`'s CODEBASE-LAYOUT.md.
-4. Flip status via the funnel — `python .plan/plan/plan-status.py set EE-SS-II done`
+   `AGENTS.md`; the contract is `agent-works:hubs`.
+4. Flip status via the funnel — `python .agents/plan/plan/plan-status.py set EE-SS-II done`
    (no `--evidence`; the verified ledger row is build-next-issue's to add). This updates the
    issue file (status + acceptance boxes) and rolls up the sprint/epic/index; never
    hand-edit a `Status` field.
@@ -84,7 +107,7 @@ Brief every builder to:
 ## The scaffolded plan-tree integrity gate
 
 `spec-0-init` doesn't just *describe* a hook — it **scaffolds** one. It drops
-`plan-gate.py` into `.plan/plan/` and wires it into the project's
+`plan-gate.py` into `.agents/plan/plan/` and wires it into the project's
 `.claude/settings.json` on the `TaskCompleted` hook event (fires as a task is being
 marked done), blocking on exit code `2`.
 
@@ -92,7 +115,7 @@ On that event the gate runs `verify-plan-tree.py` and **blocks (exit 2) only on
 *critical* plan-tree corruption** — a `Status` hand-edited into disagreement with its
 parents, a broken link, an orphaned spec anchor. So no task is marked done on top of
 a corrupted tree. The gate is **read-only and self-disables**
-when there's no `.plan/` workspace, so it costs nothing outside plan projects.
+when there's no `.agents/plan/` workspace, so it costs nothing outside plan projects.
 
 Know its boundary, and don't lean on it for more than it does: the gate **cannot run
 the per-issue `## Testing checkpoint`.** That command is authored per issue and is

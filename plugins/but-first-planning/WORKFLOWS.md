@@ -81,7 +81,7 @@ a comment header in each script.
 ## Shared machine contracts
 
 - **Dispatch JSON** — produced by `reconcile.js` at
-  `.plan/progress/dispatch/EE-SS.json`, consumed by `build-sprint.js`. The
+  `.agents/plan/progress/dispatch/EE-SS.json`, consumed by `build-sprint.js`. The
   schema's canonical home is `skills/build-next-issue/DISPATCH-PLAN.md` ("The
   JSON contract").
 - **Drift files** — format owned by `skills/build-next-issue/SKILL.md`; scripts
@@ -92,7 +92,8 @@ a comment header in each script.
 - **The `**User-facing**` line** — required on every AFK/HITL issue a script
   authors or edits; format owned by `skills/plan-0-decompose/PLAN-FORMAT.md`.
   Scripts that touch issue bodies preserve it; `build-plan-tree.js` fills it.
-- **Codebase hubs** — the AGENTS.md rules and `verify-agents-tree.py` are
-  owned by `skills/spec-1-specify/CODEBASE-LAYOUT.md`. Scripts that run
-  verifiers include it when `.plan/plan/verify-agents-tree.py` exists;
-  builder prompts carry its update-on-change duty.
+- **Codebase hubs** — the AGENTS.md contract and its checker belong to the
+  `agent-works` plugin (`aw hubs`); `skills/spec-1-specify/CODEBASE-LAYOUT.md`
+  carries the five rules. Scripts that run verifiers include
+  `.agents/plan/plan/verify-agents-tree.py` (the stub that calls `aw hubs`)
+  only when it exists; builder prompts carry the update-on-change duty.

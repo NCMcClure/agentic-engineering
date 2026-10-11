@@ -33,11 +33,11 @@ documented there (the spec-2, spec-3, plan-0, and plan-1 skills are user-invoked
 — read and follow each one's `SKILL.md` directly for anything their workflows
 leave to prose):
 
-1. **Workspace** — if `.plan/` is absent, run `spec-0-init` (the one inherently
+1. **Workspace** — if `.agents/plan/` is absent, run `spec-0-init` (the one inherently
    interactive step; keep its interview brief, feeding it the contract's tracker
    choice).
 2. **Spec** — `spec-1-specify` → `author-spec.js` with the brief, passing
-   `languagePosture` read from `.plan/spec/reference/adr/0001-language-posture.md`,
+   `languagePosture` read from `.agents/plan/spec/reference/adr/0001-language-posture.md`,
    `uiPosture` from `adr/0002-ui-posture.md`, `docsPosture` from
    `adr/0003-user-docs-posture.md`, and `agentsPosture` from
    `adr/0004-agent-context-files.md` (spec-0-init recorded all four). Carry its
@@ -56,7 +56,7 @@ leave to prose):
    the funnel. Under a fully pre-authorized contract this degrades to a report —
    post it and continue.
 7. **Per-sprint loop** until the scope is exhausted or a failure budget stops it:
-   - `python .plan/plan/publish-issues.py publish --sprint EE-SS --dry-run`,
+   - `python .agents/plan/plan/publish-issues.py publish --sprint EE-SS --dry-run`,
      then for real (the contract's publish posture authorized this).
    - `build-next-issue` → `reconcile.js` `{dispatch: true}`.
    - `build-sprint` → `build-sprint.js` with the contract's `hitlPolicy` and the
@@ -88,8 +88,8 @@ foundation.
 
 The contracted scope is built and PR'd, every sprint's ledger rows were written
 by an independent reconcile, end-user docs are current through the built scope
-(`.plan/progress/docs.md` covers every verified sprint, unless the contract
-turned the docs pass off), the run ledger (a `.plan/progress/notes/` file per
+(`.agents/plan/progress/docs.md` covers every verified sprint, unless the contract
+turned the docs pass off), the run ledger (a `.agents/plan/progress/notes/` file per
 sprint plus your final summary) accounts for every draft, pending REVIEW
 walkthrough, auto-decision, failure, and drift item — and the user got exactly
 the touchpoints the contract promised, no more.

@@ -7,7 +7,7 @@ file is the procedure for doing that without leaving drift behind.
 
 ## Finding the issues a spec change affects
 
-One common source of the changed-spec-file set is `.plan/spec-comments.json`: the
+One common source of the changed-spec-file set is `.agents/plan/spec-comments.json`: the
 `specFile` of each unresolved inline comment is a spec file the user wants
 changed, so those paths seed the grep below (and, for a wide blast radius, the
 `changedSpecFiles` arg to `workflows/propagate.js`) just like a hand-edited file
@@ -18,7 +18,7 @@ the plan tree for the spec path:
 
 ```bash
 # Which issues realise spec/02-runtime/event-loop.md ?
-grep -rl "spec/02-runtime/event-loop.md" .plan/plan/*/*/issues/
+grep -rl "spec/02-runtime/event-loop.md" .agents/plan/plan/*/*/issues/
 ```
 
 (Anchors in issue files use a `../../../../spec/...` prefix, but the readable
@@ -53,7 +53,7 @@ to change.
 
 The plan file stays the source of truth: after the plan-side edit lands, **regenerate the
 ticket from the file** rather than hand-editing both sides. The tracker mechanics (commands,
-label vocabulary, body shape) live in `.plan/tracker.md` and the matching
+label vocabulary, body shape) live in `.agents/plan/tracker.md` and the matching
 `plan-1-publish-issues` reference (TRACKER-GITHUB.md / TRACKER-GITLAB.md); the bundled
 `publish-issues.py sync --iid NNN` rebuilds a ticket's title/body from its plan file
 mechanically. This table is *what* to do; those are *how*:
@@ -95,7 +95,7 @@ anchor grep:
 
 - **End-user docs.** If the change touches `user-docs-plan.md`, an issue whose
   `**User-facing**` line says `yes`, or behaviour already shipped (a page in
-  `.plan/progress/docs.md`'s managed set describes it) — the product docs are
+  `.agents/plan/progress/docs.md`'s managed set describes it) — the product docs are
   now stale. Flag the affected pages and **route the rewrite to
   `build-user-docs`** (read and follow `../build-user-docs/SKILL.md` like any
   routed skill): its gate, grounding, and ownership rules apply unchanged.
@@ -104,7 +104,7 @@ anchor grep:
   module boundary (a directory appears, disappears, or changes purpose), list
   the source directories whose `AGENTS.md` hubs need review (contract:
   [CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)) and re-run
-  `verify-agents-tree.py` after the edits.
+  `verify-agents-tree.py` after the edits, when it exists.
 
 Any issue this pass creates or re-cuts carries the `**User-facing**` line —
 the format is owned by [PLAN-FORMAT.md](../plan-0-decompose/PLAN-FORMAT.md);
@@ -115,14 +115,15 @@ dropping it on a re-cut is exactly the drift the verifier now catches.
 After any propagation, run both:
 
 ```bash
-python .plan/spec/scripts/verify-spec-tree.py
-python .plan/plan/verify-plan-tree.py
+python .agents/plan/spec/scripts/verify-spec-tree.py
+python .agents/plan/plan/verify-plan-tree.py
 ```
 
-When `.plan/plan/verify-agents-tree.py` exists and the change rippled into
-source directories or `repository-layout.md`, run it too.
+When `.agents/plan/plan/verify-agents-tree.py` exists (the agent-works hub check
+is wired) and the change rippled into source directories or
+`repository-layout.md`, run it too.
 
 The verifiers don't understand intent, but they catch the mechanical fallout of a
 half-finished propagation: a broken anchor, a sprint table that no longer matches
 its issues on disk, a `relates-to` pointing at a moved file. A clean pair of
-verifier runs is the signal that the change landed consistently across `.plan/`.
+verifier runs is the signal that the change landed consistently across `.agents/plan/`.

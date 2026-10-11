@@ -21,11 +21,11 @@ its own — invoke it deliberately, once per finished tree or epic.
 
 ## What it reads
 
-- `.plan/spec/` — every content page, category by category, to build the
+- `.agents/plan/spec/` — every content page, category by category, to build the
   promise ledger (the spec is the source of truth for what was promised).
 - The live code, tests, entrypoints, and top-level docs — where the gaps show.
-- `.plan/progress/drift/` — owner calls and parked items worth promoting now.
-- `.plan/plan/` — the existing epics, as calibration exemplars and for the next
+- `.agents/plan/progress/drift/` — owner calls and parked items worth promoting now.
+- `.agents/plan/plan/` — the existing epics, as calibration exemplars and for the next
   free epic number.
 - This plugin's own contracts: `plan-0-decompose/PLAN-FORMAT.md`,
   `VERTICAL-SLICES.md`, `build-user-docs/SKILL.md` (doc taxonomy).
@@ -48,7 +48,7 @@ become an issue.
 ### 1. Confirm the audit is ripe
 
 The plan tree (or at least the epic being audited past) should be done:
-`python3 .plan/plan/plan-status.py check` and a recent `build-next-issue`
+`python3 .agents/plan/plan/plan-status.py check` and a recent `build-next-issue`
 reconcile with no open done-claim disputes. Auditing a half-built tree just
 rediscovers the backlog.
 
@@ -59,7 +59,7 @@ project-agnostic. Gather:
 
 - **projectBrief** (required) — 2-6 sentences: what the project is, what the
   finished tree covered, what the owner most wants the audit to find.
-- **epicNumber** — the next free `NN` from `.plan/plan/index.md`.
+- **epicNumber** — the next free `NN` from `.agents/plan/plan/index.md`.
 - **knownDebt** — standing debt the owner already knows about, so finders
   sharpen it into buildable pieces instead of proudly rediscovering it.
 - **hardRules** — extra bounds as plain sentences (out-of-bounds paths,
@@ -128,6 +128,6 @@ and (if publishing) every issue carries its `#NNN`.
 ## Scope boundary
 
 The workflow writes only the new epic directory and the one new row (plus
-Total arithmetic) in `.plan/plan/index.md` — never the spec, never existing
+Total arithmetic) in `.agents/plan/plan/index.md` — never the spec, never existing
 epics, never drift files. It is read-only toward git: the user reviews and
 commits the epic themselves.

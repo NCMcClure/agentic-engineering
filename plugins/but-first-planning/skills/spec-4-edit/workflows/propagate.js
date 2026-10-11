@@ -18,15 +18,15 @@ if (!A || !A.root || !Array.isArray(A.changedSpecFiles) || !A.changedSpecFiles.l
   throw new Error('args must be an object: {root: <absolute repo root>, changedSpecFiles: [spec-relative paths], changeSummary: <what changed and why>}')
 }
 const ROOT = A.root.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
-const PLANDIR = `${ROOT}/.plan/plan`
+const SPEC = `${ROOT}/.agents/plan/spec`
+const PLANDIR = `${ROOT}/.agents/plan/plan`
 
 const BRIEF = 'Be terse in every string field. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
 CONTEXT. The spec at ${SPEC}/ changed and the plan tree at ${PLANDIR}/ (epic/sprint/issue files,
 formats enforced by ${PLANDIR}/verify-plan-tree.py) must be brought back into agreement. Issues
-link to the spec via spec-anchor paths; the tracker config is ${ROOT}/.plan/tracker.md.
+link to the spec via spec-anchor paths; the tracker config is ${ROOT}/.agents/plan/tracker.md.
 THE CHANGE: ${A.changeSummary}
 CHANGED SPEC FILES (relative to ${SPEC}/): ${A.changedSpecFiles.join(', ')}
 `
@@ -111,7 +111,7 @@ const publishedChanged = [...updates, ...obsolete].filter(c => /^#\d+/.test(c.re
 let sync = null
 if (publishedChanged.length) {
   sync = await agent(
-    `${CTX}\nYou are the tracker synchronizer. Read ${ROOT}/.plan/tracker.md for the tracker backend and commands. These plan issues just changed AND have live tickets — sync each ticket from its (now-updated) plan file, in dependency order:\n${JSON.stringify(publishedChanged.map(c => ({ ref: c.ref, path: c.path, verdict: c.verdict, reason: c.editInstruction || c.reasoning })), null, 1)}\n\n- verdict 'update' -> rebuild the ticket's title/body from the plan file: python3 ${PLANDIR}/publish-issues.py sync --iid <NNN> (fall back to the tracker.md update recipe if the script is absent).\n- verdict 'obsolete' -> comment the closure reason on the ticket, then close it (close, never delete).\n- Blocked-by ripples: any OTHER published ticket whose body cites one of these refs in its Blocked-by section also needs its body regenerated — grep the plan tree for the sibling links and sync those too.\nReport per-ticket outcomes. ${BRIEF}`,
+    `${CTX}\nYou are the tracker synchronizer. Read ${ROOT}/.agents/plan/tracker.md for the tracker backend and commands. These plan issues just changed AND have live tickets — sync each ticket from its (now-updated) plan file, in dependency order:\n${JSON.stringify(publishedChanged.map(c => ({ ref: c.ref, path: c.path, verdict: c.verdict, reason: c.editInstruction || c.reasoning })), null, 1)}\n\n- verdict 'update' -> rebuild the ticket's title/body from the plan file: python3 ${PLANDIR}/publish-issues.py sync --iid <NNN> (fall back to the tracker.md update recipe if the script is absent).\n- verdict 'obsolete' -> comment the closure reason on the ticket, then close it (close, never delete).\n- Blocked-by ripples: any OTHER published ticket whose body cites one of these refs in its Blocked-by section also needs its body regenerated — grep the plan tree for the sibling links and sync those too.\nReport per-ticket outcomes. ${BRIEF}`,
     {
       label: 'sync:tickets', phase: 'Sync', model: 'sonnet', effort: 'medium',
       schema: {

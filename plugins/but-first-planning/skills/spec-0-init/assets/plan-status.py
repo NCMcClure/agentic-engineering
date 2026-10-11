@@ -2,7 +2,7 @@
 completion status of an epic / sprint / issue across every plan surface.
 
 Read-only deps: stdlib only (subprocess + shutil for the optional `gh` calls).
-Lives beside `verify-plan-tree.py` in `.plan/plan/`; roots itself the same way.
+Lives beside `verify-plan-tree.py` in `.agents/plan/plan/`; roots itself the same way.
 
 Two verbs:
 
@@ -20,11 +20,11 @@ Two verbs:
 
 plus the tracker issue (GitHub close/reopen + Project board Status, or GitLab
 close/reopen + `status::*` label swaps via `glab`), if an external tracker is
-configured in `.plan/tracker.md`. Sprint and epic statuses are
+configured in `.agents/plan/tracker.md`. Sprint and epic statuses are
 NEVER set directly — they are always derived from their children by `rollup()`.
 
 With `--evidence` on a `done` transition, a verified-complete row is also appended
-to `.plan/progress/completed/<epic>.md` (this is build-next-issue's ledger; build-sprint builders
+to `.agents/plan/progress/completed/<epic>.md` (this is build-next-issue's ledger; build-sprint builders
 flip status WITHOUT evidence so unverified rows never enter the ledger).
 
 `check` recomputes the rolled-up truth for a node (issue / sprint / epic / whole
@@ -50,8 +50,8 @@ import sys
 from datetime import date
 from pathlib import Path
 
-PLAN_ROOT = Path(__file__).resolve().parent          # .plan/plan/
-REPO_ROOT = PLAN_ROOT.parent                          # .plan/
+PLAN_ROOT = Path(__file__).resolve().parent          # .agents/plan/plan/
+REPO_ROOT = PLAN_ROOT.parent                          # .agents/plan/ (the workspace, not the repository)
 INDEX_MD = PLAN_ROOT / "index.md"
 TRACKER_MD = REPO_ROOT / "tracker.md"
 COMPLETED_DIR = REPO_ROOT / "progress" / "completed"
@@ -166,7 +166,7 @@ def resolve_issue_path(arg: str) -> tuple[Path, Path, Path]:
 # Status reading / roll-up
 # --------------------------------------------------------------------------- #
 def read_status_field(path: Path) -> str | None:
-    m = STATUS_FIELD_RE.search(path.read_text())
+    m = STATUS_FIELD_RE.search(path.read_text(encoding="utf-8"))
     return m.group(2) if m else None
 
 
@@ -282,7 +282,7 @@ def set_table_cell(text: str, link_needle: str, status: str, what: str) -> str:
 
 def write_if_changed(path: Path, new_text: str, old_text: str) -> None:
     if new_text != old_text:
-        path.write_text(new_text)
+        path.write_text(new_text, encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- #
@@ -296,7 +296,7 @@ def tracker_mode() -> tuple[str, str | None, str | None]:
     """
     if not TRACKER_MD.exists():
         return "local", None, None
-    text = TRACKER_MD.read_text()
+    text = TRACKER_MD.read_text(encoding="utf-8")
     if re.search(r"#\s*Issue tracker:\s*local", text, re.IGNORECASE):
         return "local", None, None
     if re.search(r"#\s*Issue tracker:\s*GitLab", text, re.IGNORECASE):
@@ -337,7 +337,7 @@ def gh_run(args: list[str]) -> tuple[int, str]:
 
 
 def issue_number(issue_file: Path) -> str | None:
-    m = GITHUB_FIELD_RE.search(issue_file.read_text())
+    m = GITHUB_FIELD_RE.search(issue_file.read_text(encoding="utf-8"))
     if not m:
         return None
     ref = m.group(1)
@@ -569,7 +569,7 @@ def tracker_sync(issue_file: Path, status: str, evidence: str | None) -> None:
 # Completed ledger
 # --------------------------------------------------------------------------- #
 def heading_title(path: Path) -> str:
-    m = H1_RE.search(path.read_text())
+    m = H1_RE.search(path.read_text(encoding="utf-8"))
     return m.group(1).strip() if m else path.stem
 
 
@@ -601,20 +601,20 @@ def append_completed_row(
             "| Issue | Title | Tracker ref | Verified | Evidence |\n"
             "|-------|-------|-------------|----------|----------|\n"
         )
-        ledger.write_text(header + row)
+        ledger.write_text(header + row, encoding="utf-8")
         return
 
-    text = ledger.read_text()
+    text = ledger.read_text(encoding="utf-8")
     row_prefix = f"| {issue_id} |"
     lines = text.splitlines(keepends=True)
     for i, line in enumerate(lines):
         if line.startswith(row_prefix):  # replace existing row (idempotent)
             lines[i] = row
-            ledger.write_text("".join(lines))
+            ledger.write_text("".join(lines), encoding="utf-8")
             return
     if not text.endswith("\n"):
         text += "\n"
-    ledger.write_text(text + row)
+    ledger.write_text(text + row, encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- #
@@ -630,7 +630,7 @@ def cmd_set(args: argparse.Namespace) -> int:
     epic_dir, sprint_dir, issue_file = resolve_issue_path(args.coords)
 
     # 1. issue file: status field + acceptance boxes
-    text = issue_file.read_text()
+    text = issue_file.read_text(encoding="utf-8")
     new = set_status_field(text, status)
     new = set_acceptance_boxes(new, done=(status == "done"))
     write_if_changed(issue_file, new, text)
@@ -638,7 +638,7 @@ def cmd_set(args: argparse.Namespace) -> int:
     # 2 + 3. sprint table row (by issue filename) + sprint.md rolled-up field
     sprint_md = sprint_dir / "sprint.md"
     if sprint_md.exists():
-        s_text = sprint_md.read_text()
+        s_text = sprint_md.read_text(encoding="utf-8")
         s_new = set_table_cell(
             s_text, f"(issues/{issue_file.name})", status, "sprint Issues table"
         )
@@ -652,7 +652,7 @@ def cmd_set(args: argparse.Namespace) -> int:
     # 4 + 5. epic Sprints table row (by sprint dir) + epic.md rolled-up field
     epic_md = epic_dir / "epic.md"
     if epic_md.exists():
-        e_text = epic_md.read_text()
+        e_text = epic_md.read_text(encoding="utf-8")
         e_new = set_table_cell(
             e_text, f"({sprint_dir.name}/sprint.md)", sprint_status, "epic Sprints table"
         )
@@ -665,7 +665,7 @@ def cmd_set(args: argparse.Namespace) -> int:
 
     # 6. plan index Epics table row (by epic dir)
     if INDEX_MD.exists():
-        i_text = INDEX_MD.read_text()
+        i_text = INDEX_MD.read_text(encoding="utf-8")
         i_new = set_table_cell(
             i_text, f"({epic_dir.name}/epic.md)", epic_status, "index Epics table"
         )
@@ -710,7 +710,7 @@ def check_sprint(epic_dir: Path, sprint_dir: Path, problems: list[str]) -> str:
         )
     # each issue's table cell agrees with its field
     if sprint_md.exists():
-        s_text = sprint_md.read_text()
+        s_text = sprint_md.read_text(encoding="utf-8")
         for f in sorted((sprint_dir / "issues").iterdir()):
             if f.is_file() and ISSUE_FILE_RE.match(f.name):
                 cell = table_cell_status(s_text, f"(issues/{f.name})")
@@ -725,7 +725,7 @@ def check_sprint(epic_dir: Path, sprint_dir: Path, problems: list[str]) -> str:
 def check_epic(epic_dir: Path, problems: list[str]) -> str:
     epic_md = epic_dir / "epic.md"
     child_truths = []
-    e_text = epic_md.read_text() if epic_md.exists() else ""
+    e_text = epic_md.read_text(encoding="utf-8") if epic_md.exists() else ""
     for sd in sprint_dirs(epic_dir):
         st = check_sprint(epic_dir, sd, problems)
         child_truths.append(st)
@@ -742,7 +742,7 @@ def check_epic(epic_dir: Path, problems: list[str]) -> str:
             f"{epic_dir.name}/epic.md `**Status**: {field}` != rolled-up {truth}"
         )
     if INDEX_MD.exists():
-        cell = table_cell_status(INDEX_MD.read_text(), f"({epic_dir.name}/epic.md)")
+        cell = table_cell_status(INDEX_MD.read_text(encoding="utf-8"), f"({epic_dir.name}/epic.md)")
         if cell is not None and cell != truth:
             problems.append(
                 f"index Epics-table cell '{cell}' for {epic_dir.name} != rolled-up {truth}"

@@ -69,5 +69,5 @@ a strong read, not a menu.
 At the spec stage, write the winning design into the relevant spec file as the
 module's interface contract, add any new terms to the glossary, offer an ADR if
 the choice was load-bearing, and run
-`python .plan/spec/scripts/verify-spec-tree.py` after editing. On built code, the
+`python .agents/plan/spec/scripts/verify-spec-tree.py` after editing. On built code, the
 winner becomes the refactor's target interface.

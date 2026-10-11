@@ -1,11 +1,16 @@
 # ADR format
 
-Architecture decision records live under `.plan/spec/reference/adr/` and render
+Architecture decision records live under `.agents/plan/spec/reference/adr/` and render
 on the spec website. They use sequential numbering: `0001-slug.md`,
 `0002-slug.md`, … Scan the folder for the highest existing number and increment.
 
 Because ADRs render on the site, each one carries frontmatter like any content
-file. After writing one, add a line to `.plan/spec/reference/adr/index.md`.
+file. After writing one, add a line to `.agents/plan/spec/reference/adr/index.md`.
+
+These are the **spec's** decisions. Decisions about the built codebase (not
+about the spec) belong to `agent-works:decisions` (`.agents/decisions/`) when
+that plugin is installed, and never to `./docs`, which holds end-user
+documentation only.
 
 ## Template
 

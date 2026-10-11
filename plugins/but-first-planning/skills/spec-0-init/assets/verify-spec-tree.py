@@ -1,7 +1,7 @@
 """Spec-tree structural verifier (count-agnostic).
 
 Read-only, stdlib only. Validates the progressive-disclosure specification
-under `.plan/spec/` authored by the `spec-1-specify` skill:
+under `.agents/plan/spec/` authored by the `spec-1-specify` skill:
 
   * every content file (non-index, non-README) carries valid frontmatter
     (tags, summary, created, updated; relates-to optional);
@@ -21,7 +21,12 @@ import re
 import sys
 from pathlib import Path
 
-SPEC_ROOT = Path(__file__).resolve().parent.parent   # .plan/spec/  (script is in spec/scripts/)
+SPEC_ROOT = Path(__file__).resolve().parent.parent   # .agents/plan/spec/  (script is in spec/scripts/)
+OLD_LAYOUT = (
+    "error: this workspace is still at .plan/ (but-first-planning < 4.0); it now lives at "
+    ".agents/plan/. Migrate: mkdir -p .agents && git mv .plan .agents/plan, then re-copy the "
+    "scripts (spec-0-init, 'Migrating a .plan/ workspace')."
+)
 
 SKIP_DIRS = {"assets", "scripts", ".site", "prototypes"}
 DATE_RE = re.compile(r"^\d{4}-\d{2}(-\d{2})?$")
@@ -70,6 +75,9 @@ def parse_frontmatter(text: str):
 
 
 def verify() -> int:
+    if SPEC_ROOT.parent.name == ".plan":
+        print(OLD_LAYOUT, file=sys.stderr)
+        return 2
     failures: list[str] = []   # critical -> exit 2
     warnings: list[str] = []   # exit 1 if no failures
 
@@ -87,7 +95,7 @@ def verify() -> int:
         if any(part in SKIP_DIRS for part in md.relative_to(SPEC_ROOT).parts):
             continue
         rel = md.relative_to(SPEC_ROOT)
-        text = md.read_text()
+        text = md.read_text(encoding="utf-8")
 
         if md.name == "index.md":
             index_hubs.append(md)

@@ -2,7 +2,7 @@
  * Inline commenting for the spec site.
  *
  * Highlight text on any spec page, leave a multi-line comment, and it shows in a
- * rail on the right. Comments auto-save to .plan/spec-comments.json via the
+ * rail on the right. Comments auto-save to .agents/plan/spec-comments.json via the
  * companion sidecar (comments-server.py); if that server isn't running they fall
  * back to localStorage so the page never breaks. The spec-4-edit skill reads the
  * JSON and flips each comment's `resolved` flag once it's addressed.

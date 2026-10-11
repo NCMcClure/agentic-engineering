@@ -26,7 +26,7 @@ if (!A || !A.root || !A.skillDir || !A.brief) {
 }
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
+const SPEC = `${ROOT}/.agents/plan/spec`
 
 // ---------- language posture (from ADR-0001) ----------
 // "agnostic" | "<lang>:minimal" | "<lang>:code-forward"; legacy bare `language` => minimal.

@@ -1,11 +1,11 @@
 ---
 name: build-user-docs
-description: Write and refresh end-user documentation (README, docs/) for verified-complete sprint work, grounded by running the built commands — product docs, not the .plan/ spec site. Use after a sprint verifies, or when the user asks to "update the docs" / "document what we built".
+description: Write and refresh end-user documentation (README, docs/) for verified-complete sprint work, grounded by running the built commands — product docs, not the .agents/plan/ spec site. Use after a sprint verifies, or when the user asks to "update the docs" / "document what we built".
 ---
 
 # build-user-docs — docs for the people who'll use the thing
 
-The spec site under `.plan/spec/` documents the *design* for the people building
+The spec site under `.agents/plan/spec/` documents the *design* for the people building
 it. Nothing in the pipeline documents the *product* for the people who'll use
 it — how to install it, run it, and get something done with it. This skill
 closes that gap: after `build-next-issue`'s verification confirms a sprint's
@@ -21,7 +21,7 @@ ledger, nothing else.
 ## The gate rule
 
 An issue is **documentable if and only if it has a row in
-`.plan/progress/completed/`** — the per-epic ledger that only gains rows via
+`.agents/plan/progress/completed/`** — the per-epic ledger that only gains rows via
 `plan-status.py set EE-SS-II done --evidence`, written only by
 `build-next-issue`'s independent verification. A `Status: done` field, a closed
 ticket, or a builder's claim is *not* enough. This reuses the suite's trust
@@ -38,10 +38,10 @@ the docs correction rides the existing drift machinery like any other defect.
 
 ## What it reads
 
-- `.plan/progress/docs.md` — this skill's own ledger and managed-files
+- `.agents/plan/progress/docs.md` — this skill's own ledger and managed-files
   manifest, created lazily on the first run. This skill owns the format; it is
   defined in [DOCS-STATE.md](DOCS-STATE.md).
-- `.plan/progress/completed/` — the verified-complete ledgers. The diff against
+- `.agents/plan/progress/completed/` — the verified-complete ledgers. The diff against
   `docs.md` is the work list: every verified issue not yet documented.
 - The spec's `user-docs-plan.md` page when it exists (contract:
   [USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — the docs stack
@@ -64,8 +64,8 @@ is edited or created until the user approves.
 
 ### 1. Compute the undocumented set
 
-Diff `.plan/progress/completed/` against the sprints recorded in
-`.plan/progress/docs.md`. The result is the verified-but-undocumented issue
+Diff `.agents/plan/progress/completed/` against the sprints recorded in
+`.agents/plan/progress/docs.md`. The result is the verified-but-undocumented issue
 set. If it's empty, say so and stop — this skill is idempotent, and a no-op
 run is a correct run. Sort the set user-first: issues whose `**User-facing**`
 line says `no — internal` need no docs, only a line in the report saying they
@@ -110,7 +110,7 @@ Apply the ownership and coherence rules from [DOCS-STATE.md](DOCS-STATE.md):
 - Each pass re-reads the whole managed set and rewrites for the *current*
   product. The per-sprint delta is an input, not the output shape — no
   append-only changelog fragments, no "New in sprint 03" sections.
-- Forbidden content: internal architecture, the `.plan/` workflow, anything
+- Forbidden content: internal architecture, the `.agents/plan/` workflow, anything
   behind a slice that has no ledger row.
 
 ### 6. Commit per the run's git posture
@@ -124,7 +124,7 @@ uncommitted and say so.
 
 ### 7. Record and report
 
-Append this pass's rows to `.plan/progress/docs.md` (sprint, date, docs
+Append this pass's rows to `.agents/plan/progress/docs.md` (sprint, date, docs
 commit, files touched) and update its `## Managed files` list. Then report:
 which issues were documented and where, which were excluded as
 `User-facing: no`, every claim grounded by execution vs. reported ungroundable,
@@ -135,13 +135,13 @@ sign-off.
 
 Every verified-but-undocumented issue is either documented or explicitly
 reported out-of-surface (`User-facing: no`); every command and example in the
-docs was executed against the built tree; `.plan/progress/docs.md` records the
+docs was executed against the built tree; `.agents/plan/progress/docs.md` records the
 pass; and the docs commit landed where the git posture says it should.
 
 ## Scope boundary
 
 This skill touches only the target project's documentation files and
-`.plan/progress/docs.md`. It never flips a plan `Status:` field (the funnel
+`.agents/plan/progress/docs.md`. It never flips a plan `Status:` field (the funnel
 owns those), never edits the spec (that's `spec-4-edit`), and never writes
-under `.plan/spec/` — the spec site is design docs, and keeping the two
+under `.agents/plan/spec/` — the spec site is design docs, and keeping the two
 separate is the point.

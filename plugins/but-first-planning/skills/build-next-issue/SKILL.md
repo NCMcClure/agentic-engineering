@@ -13,19 +13,19 @@ so "done" means done, not merely closed.
 
 Run it whenever work pauses or resumes. It's idempotent and read-mostly: it reads
 state, verifies completion, records it through the status funnel and into
-`.plan/progress/`, and reports — it does not implement issues. When work will be built in parallel by multiple builders, its report
+`.agents/plan/progress/`, and reports — it does not implement issues. When work will be built in parallel by multiple builders, its report
 also includes a **dispatch plan** — the parallel-safe build frontier — that
 `build-sprint` consumes to fan builders out across a sprint.
 
 ## What it reads
 
-- The plan tree under `.plan/plan/` — `Status:` fields and `Blocked by` chains.
-- `.plan/tracker.md` — where the tracker is and how to query it.
+- The plan tree under `.agents/plan/plan/` — `Status:` fields and `Blocked by` chains.
+- `.agents/plan/tracker.md` — where the tracker is and how to query it.
 - The tracker itself — closed issues / a Done column (GitHub: `gh issue list --state closed`; local mode: there's no remote, so lean on the plan + git).
 - Git history — merged branches and commits that reference an issue file or slug.
-- `.plan/progress/completed/` — what was already verified-complete in past runs (per-epic ledgers); `.plan/progress/notes/` — past reconciliation narrative.
-- `.plan/progress/docs.md` — which verified sprints have end-user docs (read-only; `build-user-docs` owns it, and it may not exist yet on a workspace where that skill hasn't run).
-- `.plan/progress/drift/` — open cross-cutting items (`status: open` or `routed`) and any `route: follow-up issue #NNN` they've been ticketed as. Untriaged drift (`open`) is work waiting to be turned into issues by `build-assess-drift`; routed drift points at a real follow-up issue you can build.
+- `.agents/plan/progress/completed/` — what was already verified-complete in past runs (per-epic ledgers); `.agents/plan/progress/notes/` — past reconciliation narrative.
+- `.agents/plan/progress/docs.md` — which verified sprints have end-user docs (read-only; `build-user-docs` owns it, and it may not exist yet on a workspace where that skill hasn't run).
+- `.agents/plan/progress/drift/` — open cross-cutting items (`status: open` or `routed`) and any `route: follow-up issue #NNN` they've been ticketed as. Untriaged drift (`open`) is work waiting to be turned into issues by `build-assess-drift`; routed drift points at a real follow-up issue you can build.
 - **Implicit dependencies** — derived, not declared: artifacts an issue's *checkpoint command* or *What to build* needs that another issue produces. A `Blocked by: None` routinely hides a real ordering; see [DISPATCH-PLAN.md](DISPATCH-PLAN.md).
 
 ## Process
@@ -58,26 +58,26 @@ Never hand-edit a `Status` field or a ledger by retyping. Drive everything throu
 `plan-status.py`:
 
 - **Reconcile status to reality.** For each issue whose real state differs from the
-  plan, run `python .plan/plan/plan-status.py set EE-SS-II <status>` — flip a
+  plan, run `python .agents/plan/plan/plan-status.py set EE-SS-II <status>` — flip a
   genuinely-finished issue to `done`, or a falsely-done one back to `in-progress`
   (or `blocked`). The funnel rolls the change up through the sprint/epic tables and
   fields, the plan index, and the tracker in one step.
 - **Log verified-complete work.** When an issue passes verification, record it with
   `set EE-SS-II done --evidence "<what convinced you>"` — this appends a row to
-  `.plan/progress/completed/<epic>.md` (the per-epic ledger). Pass `--evidence` only
+  `.agents/plan/progress/completed/<epic>.md` (the per-epic ledger). Pass `--evidence` only
   when *you* have verified it; that's what keeps unverified rows out of the ledger.
 - **Write the reconciliation narrative** for this run to a new
-  `.plan/progress/notes/YYYY-MM-DD-NN-MM-slug.md` file (one file per run): build/verify
+  `.agents/plan/progress/notes/YYYY-MM-DD-NN-MM-slug.md` file (one file per run): build/verify
   method, issues that claimed done but failed, plan/tracker drift, merged-but-unmarked
   work, checkpoint health, test totals. Mirror any cross-cutting plan/spec defect or
-  architecture smell into its own file under `.plan/progress/drift/` — one
+  architecture smell into its own file under `.agents/plan/progress/drift/` — one
   `drift-<slug>.md` per item — so it's tracked once, not restated every run. This
   skill owns the drift-file format — frontmatter fields, status lifecycle, and the
   one-time old-workspace migration are in [DRIFT-FORMAT.md](DRIFT-FORMAT.md); reuse
   an existing item's file (bump its `status`) rather than opening a duplicate for a
   recurring one.
 - **Refresh the snapshot.** Update the `## Status snapshot` and `## Open cross-cutting
-  items` lists in `.plan/progress/index.md` from the current roll-up
+  items` lists in `.agents/plan/progress/index.md` from the current roll-up
   (`plan-status.py check` gives you the rolled-up numbers).
 
 ### 4. Select the next issue
@@ -115,8 +115,8 @@ Give the user a tight status read:
 - **On deck** — the 1–3 issues that unlock after the next one, so the path is visible.
 - **Dispatch plan** *(parallel builds)* — the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
 - **Human gates** — the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
-- **Docs freshness** — one line: verified sprints (in `completed/`) with no row in `.plan/progress/docs.md` have undocumented user-facing work — recommend `build-user-docs`. Skip the line when everything verified is documented (or nothing is verified yet).
-- **Codebase hubs** — one line: when `.plan/plan/verify-agents-tree.py` exists, its exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it exits 0.
+- **Docs freshness** — one line: verified sprints (in `completed/`) with no row in `.agents/plan/progress/docs.md` have undocumented user-facing work — recommend `build-user-docs`. Skip the line when everything verified is documented (or nothing is verified yet).
+- **Codebase hubs** — one line: when `.agents/plan/plan/verify-agents-tree.py` exists (the agent-works hub check is wired), its exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it exits 0.
 - **Checkpoint health** — any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures — route them to `spec-4-edit`.
 
 If the next issue is `<unassigned>` (its sprint hasn't been published), note that
@@ -137,7 +137,7 @@ Workflow({
     skillDir: "${CLAUDE_PLUGIN_ROOT}/skills/build-next-issue",
     // optional: scope: "EE" or "EE-SS" to bound the run,
     // dispatch: true  — also derive the dispatch plan and write
-    //                   .plan/progress/dispatch/EE-SS.json (the build-sprint contract),
+    //                   .agents/plan/progress/dispatch/EE-SS.json (the build-sprint contract),
     // verifyLimit: 20 — cap the verification fan-out (deferred claims are reported, never passed)
   }
 })

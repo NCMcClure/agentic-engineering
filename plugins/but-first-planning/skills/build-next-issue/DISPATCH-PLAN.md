@@ -87,7 +87,7 @@ without re-deriving it.
 
 When the dispatch plan is produced for an autonomous build — by hand or by the
 bundled `workflows/reconcile.js` — it is **also written as JSON** to
-`.plan/progress/dispatch/EE-SS.json`, which `build-sprint`'s workflow
+`.agents/plan/progress/dispatch/EE-SS.json`, which `build-sprint`'s workflow
 (`build-sprint.js`) takes as its required `dispatch` arg. This file is the
 canonical schema; keep the prose plan and the JSON saying the same thing.
 

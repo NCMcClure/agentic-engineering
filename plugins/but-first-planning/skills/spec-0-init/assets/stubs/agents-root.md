@@ -2,7 +2,7 @@
 
 {{ONE_LINE_DESCRIPTION}}
 
-Planning lives under [`.plan/`](.plan/spec/index.md) — the spec site is the
+Planning lives under [`.agents/plan/`](.agents/plan/spec/index.md) — the spec site is the
 source of truth for *what this system is*; the plan tree for *what work
 remains*. Read the spec's `repository-layout.md` page before moving anything.
 
@@ -35,5 +35,5 @@ These are durable rules for every agent session, not suggestions:
    sprint by `build-user-docs` against the spec's `user-docs-plan.md` — don't
    hand-grow them ad hoc, and never document behaviour that hasn't verified.
 
-Run `python .plan/plan/verify-agents-tree.py` to check the hub structure;
-`<!-- verify-agents-tree: skip <dir>/ ... -->` here excludes generated trees.
+The hub contract and its checker belong to the `agent-works` plugin
+(`agent-works:hubs`); without it, these rules are kept by hand.

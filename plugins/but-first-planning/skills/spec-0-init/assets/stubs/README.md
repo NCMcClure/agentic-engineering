@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}} — planning workspace
 
-This `.plan/` directory holds the **specification** and **implementation plan**
+This `.agents/plan/` directory holds the **specification** and **implementation plan**
 for {{PROJECT_NAME}}, authored and maintained by the numbered planning skills
 (`spec-0-init` … `build-next-issue`). Everything here is plain markdown — human-
 readable on disk, browsable as a website, and editable by agents.
@@ -25,20 +25,20 @@ readable on disk, browsable as a website, and editable by agents.
 pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin
 # or, with uv:  uv add --group docs mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin
 
-mkdocs serve -f .plan/mkdocs.yml      # then open http://127.0.0.1:8000
+mkdocs serve -f .agents/plan/mkdocs.yml      # then open http://127.0.0.1:8000
 ```
 
-Edits to anything under `.plan/spec/` reload live.
+Edits to anything under `.agents/plan/spec/` reload live.
 
 ## Leaving inline comments on the spec
 
 The spec pages support inline commenting: select any text, type a note, and it
-shows in a rail on the right. Comments auto-save to `.plan/spec-comments.json`,
+shows in a rail on the right. Comments auto-save to `.agents/plan/spec-comments.json`,
 each with a `resolved` flag. To persist them to disk, run the comments server
 (stdlib Python, no install) **instead of** `mkdocs serve`:
 
 ```bash
-python .plan/spec/scripts/comments-server.py   # site + comments on http://127.0.0.1:8000
+python .agents/plan/spec/scripts/comments-server.py   # site + comments on http://127.0.0.1:8000
 ```
 
 It fronts MkDocs on a single port and serves the comment API on the same origin,
@@ -54,8 +54,8 @@ just save to the browser's localStorage instead of the file.
 ## Verifying structure
 
 ```bash
-python .plan/spec/scripts/verify-spec-tree.py   # spec frontmatter + links
-python .plan/plan/verify-plan-tree.py           # plan structure + spec anchors
+python .agents/plan/spec/scripts/verify-spec-tree.py   # spec frontmatter + links
+python .agents/plan/plan/verify-plan-tree.py           # plan structure + spec anchors
 ```
 
 Both are read-only, stdlib-only, and exit non-zero on a structural violation.
@@ -67,8 +67,8 @@ everywhere — the issue file, the parent sprint/epic tables and fields, the pla
 index, and the GitHub issue/board — in a single call:
 
 ```bash
-python .plan/plan/plan-status.py set 01-03-07 done   # flip an issue; sprint/epic roll up
-python .plan/plan/plan-status.py check 01-03         # is sprint 01-03 fully done + consistent?
+python .agents/plan/plan/plan-status.py set 01-03-07 done   # flip an issue; sprint/epic roll up
+python .agents/plan/plan/plan-status.py check 01-03         # is sprint 01-03 fully done + consistent?
 ```
 
 `check` (with no argument, an epic `EE`, a sprint `EE-SS`, or an issue `EE-SS-II`)

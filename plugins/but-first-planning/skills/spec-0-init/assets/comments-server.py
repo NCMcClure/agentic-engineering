@@ -13,10 +13,10 @@ forward and no cross-origin URL to configure.
 
 Run it from the repo root, in place of `mkdocs serve`:
 
-    python .plan/spec/scripts/comments-server.py            # site + comments on :8000
+    python .agents/plan/spec/scripts/comments-server.py            # site + comments on :8000
 
 It spawns `mkdocs serve` on an internal port and fronts it. Comments persist to
-`.plan/spec-comments.json` (at the .plan root, NOT under docs_dir, so MkDocs
+`.agents/plan/spec-comments.json` (at the .agents/plan root, NOT under docs_dir, so MkDocs
 doesn't live-reload on every save). The spec-4-edit skill reads that file and
 flips each comment's `resolved` flag once addressed.
 
@@ -48,8 +48,8 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
-# spec-comments.json lives at the .plan root. This script is at
-# .plan/spec/scripts/comments-server.py, so parents[2] == .plan/.
+# spec-comments.json lives at the .agents/plan root. This script is at
+# .agents/plan/spec/scripts/comments-server.py, so parents[2] == .agents/plan/.
 PLAN_DIR = Path(__file__).resolve().parents[2]
 COMMENTS_FILE = PLAN_DIR / "spec-comments.json"
 MKDOCS_YML = PLAN_DIR / "mkdocs.yml"
@@ -122,13 +122,13 @@ def write_comments(comments: list) -> dict:
 
 
 # --- plan-tree status (read-only) --------------------------------------------
-# Serves the site's Plan page. Parses .plan/plan/ fresh on every GET (the tree
+# Serves the site's Plan page. Parses .agents/plan/plan/ fresh on every GET (the tree
 # is tens of files; a re-parse per 15s poll is negligible and needs no cache).
 # Deliberately self-contained rather than importing plan-status.py: that script
 # sys.exit(2)s on structural oddities (fatal in a threaded server) and the two
 # files are backfilled independently, so a cross-file import can break on a
 # partially-updated workspace. Here every anomaly becomes a `warnings` entry.
-# Regexes and _rollup() mirror .plan/plan/plan-status.py — keep in sync.
+# Regexes and _rollup() mirror .agents/plan/plan/plan-status.py — keep in sync.
 
 PLAN_STATUSES = ("not-started", "in-progress", "blocked", "done")
 ISSUE_TYPES = ("AFK", "HITL", "REVIEW")
@@ -172,7 +172,7 @@ def _rollup(children: list) -> str:
 
 
 def _tracker_mode_name() -> str:
-    """`local` | `github` | `github+board` | `gitlab` — from .plan/tracker.md."""
+    """`local` | `github` | `github+board` | `gitlab` — from .agents/plan/tracker.md."""
     if not TRACKER_MD_FILE.exists():
         return "local"
     try:
@@ -556,7 +556,7 @@ def wait_for(host_port: str, timeout: float = 30.0) -> bool:
 
 def spawn_mkdocs(port: int) -> subprocess.Popen:
     if not MKDOCS_YML.exists():
-        sys.exit(f"error: {MKDOCS_YML} not found — run this from a .plan/ workspace.")
+        sys.exit(f"error: {MKDOCS_YML} not found — run this from a .agents/plan/ workspace.")
     # Prefer the mkdocs console script from THIS interpreter's env (so a venv's
     # mkdocs-shadcn is used, not a system mkdocs on PATH); then PATH; then -m.
     local = Path(sys.executable).parent / "mkdocs"

@@ -18,7 +18,7 @@ let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root) throw new Error('args must be an object: {root: <absolute repo root>, context?, extraLenses?, applyFixes?, rounds?, maxFindings?}')
 const ROOT = A.root.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
+const SPEC = `${ROOT}/.agents/plan/spec`
 const APPLY = A.applyFixes === true
 const ROUNDS = APPLY ? Math.min(Math.max(parseInt(A.rounds, 10) || 1, 1), 3) : 1
 const MAX_FINDINGS = Math.max(parseInt(A.maxFindings, 10) || 60, 1)
@@ -368,7 +368,7 @@ for (let round = 1; round <= ROUNDS; round++) {
     // uncommitted, so the working-tree diff is exactly this run's blast radius.
     phase('Review')
     const changed = await agent(
-      `Run: git -C ${ROOT} diff --name-only -- .plan/spec and also git -C ${ROOT} status --porcelain -- .plan/spec (to catch new untracked files). Return every changed/added spec file path relative to ${SPEC}/ (strip the .plan/spec/ prefix). Pure retrieval; no judgment. Machine-consumed output; no prose.`,
+      `Run: git -C ${ROOT} diff --name-only -- .agents/plan/spec and also git -C ${ROOT} status --porcelain -- .agents/plan/spec (to catch new untracked files). Return every changed/added spec file path relative to ${SPEC}/ (strip the .agents/plan/spec/ prefix). Pure retrieval; no judgment. Machine-consumed output; no prose.`,
       {
         label: `changed-files:r${round}`, phase: 'Review', model: 'haiku', effort: 'low',
         schema: { type: 'object', required: ['files'], properties: { files: { type: 'array', items: { type: 'string' } } } },
@@ -409,7 +409,7 @@ if (ROUNDS > 1) log(`Rounds: ${perRound.length ? perRound.map(r => `r${r.round}=
 // ---------- Audit (once, over the cumulative diff of all rounds) ----------
 phase('Audit')
 const audit = await agent(
-  `${CONTEXT}\nYou are the post-fix auditor. Several agents just edited the spec in parallel (possibly over multiple fix rounds) to resolve verified review findings. Your job:\n1. Run python3 ${SPEC}/scripts/verify-spec-tree.py — if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: run git -C ${ROOT} diff --stat -- .plan/spec, then read the full diff (git -C ${ROOT} diff -- .plan/spec).\n3. Check the edits are mutually coherent: no two fixers introduced contradictory statements, new glossary terms/ADR numbers referenced from section files actually exist, cross-references resolve, index.md files still describe their children accurately, and no fix accidentally deleted content unrelated to its finding. Make surgical corrective edits where needed (Read before Edit; match file conventions).\n4. Do NOT run any git command that mutates state — leave everything uncommitted.\nReport what you corrected and your overall coherence assessment.`,
+  `${CONTEXT}\nYou are the post-fix auditor. Several agents just edited the spec in parallel (possibly over multiple fix rounds) to resolve verified review findings. Your job:\n1. Run python3 ${SPEC}/scripts/verify-spec-tree.py — if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: run git -C ${ROOT} diff --stat -- .agents/plan/spec, then read the full diff (git -C ${ROOT} diff -- .agents/plan/spec).\n3. Check the edits are mutually coherent: no two fixers introduced contradictory statements, new glossary terms/ADR numbers referenced from section files actually exist, cross-references resolve, index.md files still describe their children accurately, and no fix accidentally deleted content unrelated to its finding. Make surgical corrective edits where needed (Read before Edit; match file conventions).\n4. Do NOT run any git command that mutates state — leave everything uncommitted.\nReport what you corrected and your overall coherence assessment.`,
   {
     label: 'post-fix-audit', phase: 'Audit', effort: 'high',
     schema: {

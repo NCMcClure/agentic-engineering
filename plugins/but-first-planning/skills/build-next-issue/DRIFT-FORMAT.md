@@ -1,7 +1,7 @@
 # The drift-file format
 
 Each cross-cutting item is one file,
-`.plan/progress/drift/drift-<kebab-title>.md`, with greppable frontmatter so a recurring
+`.agents/plan/progress/drift/drift-<kebab-title>.md`, with greppable frontmatter so a recurring
 item is found and updated rather than re-logged. Open items are the files whose
 `status:` is `open` or `routed`:
 
@@ -40,8 +40,8 @@ and advancing the survivors to `routed` with a `route: follow-up issue #NNN`.
 
 ## Migrating an old workspace
 
-If `.plan/progress.md` still exists and
-`.plan/progress/` does not, do a one-time split on this run: create the `progress/`
+If `.agents/plan/progress.md` still exists and
+`.agents/plan/progress/` does not, do a one-time split on this run: create the `progress/`
 tree, move each `## Completed` row into `completed/<epic>.md` grouped by its
 `EE-SS/II` prefix (ambiguous rows → `completed/_unsorted.md`, and flag them), move
 each dated `## Notes` block into its own `notes/YYYY-MM-DD-…md`, then replace

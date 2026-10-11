@@ -1,14 +1,14 @@
 # File layout and structural rules
 
-The spec lives under `.plan/spec/`. The layout is small and the rules are few,
+The spec lives under `.agents/plan/spec/`. The layout is small and the rules are few,
 but each one is load-bearing: break it and you break the progressive-disclosure
 cost model (see [PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)). The
-verifier (`.plan/spec/scripts/verify-spec-tree.py`) enforces the mechanical ones.
+verifier (`.agents/plan/spec/scripts/verify-spec-tree.py`) enforces the mechanical ones.
 
 ## Canonical layout
 
 ```
-.plan/spec/
+.agents/plan/spec/
 ├── index.md                 # root navigation hub — categories only, no content
 ├── 01-<category>/           # a category: numbered, kebab-case
 │   ├── index.md             # category hub — one line per file in this category

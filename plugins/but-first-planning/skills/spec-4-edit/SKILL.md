@@ -1,6 +1,6 @@
 ---
 name: spec-4-edit
-description: Change an existing spec or plan, keeping spec, plan tree, and tracker in sync via spec anchors. Use for any change after planning — "the design changed", "add a feature". Requires .plan/.
+description: Change an existing spec or plan, keeping spec, plan tree, and tracker in sync via spec anchors. Use for any change after planning — "the design changed", "add a feature". Requires .agents/plan/.
 ---
 
 # spec-4-edit — change the plan, keep everything in sync
@@ -24,7 +24,7 @@ is edited or created until the user approves.
 
 ### 0a. Pick up inline spec comments
 
-Before anything else, check for `.plan/spec-comments.json` — the review queue the
+Before anything else, check for `.agents/plan/spec-comments.json` — the review queue the
 spec site writes when someone highlights text and leaves a comment. If it exists,
 read it and filter to the entries with `"resolved": false`; each unresolved
 comment is a requested change. The comment's `specFile` names the spec page it
@@ -73,7 +73,7 @@ published vs unpublished ones, and how to keep anchors valid — is in
 [SYNC.md](SYNC.md). The shape of it:
 
 1. **Spec changed?** Find every plan issue whose spec anchor points at the changed file(s). For each, decide: still valid, needs its acceptance criteria updated, needs re-cutting, or now obsolete. Surface the list to the user before editing. For a wide blast radius (roughly **10+ affected issues**), run the bundled propagation workflow after the user approves the list — `Workflow({scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/spec-4-edit/workflows/propagate.js", args: {root, changedSpecFiles, changeSummary}})` — which classifies every affected issue, applies the update/obsolete edits, syncs the published tickets (including blocked-by body ripples), and re-runs both verifiers; it flags `re-cut` verdicts back to you rather than applying them (those route through `plan-0-decompose`).
-2. **Plan changed?** If the affected issues are already published (have a real tracker reference), the tickets are now stale — sync each ticket from its updated plan file **in the same pass** (SYNC.md's published-issue table says what; `.plan/tracker.md` says how: rebuild bodies, swap labels/milestones, close obsoleted tickets with a reason, publish issues newly added to live sprints). Never silently diverge a live ticket from its plan issue.
+2. **Plan changed?** If the affected issues are already published (have a real tracker reference), the tickets are now stale — sync each ticket from its updated plan file **in the same pass** (SYNC.md's published-issue table says what; `.agents/plan/tracker.md` says how: rebuild bodies, swap labels/milestones, close obsoleted tickets with a reason, publish issues newly added to live sprints). Never silently diverge a live ticket from its plan issue.
 3. **Glossary / ADR touched?** A renamed term or a reversed decision can invalidate spec prose and issue titles elsewhere — grep for the old term and reconcile.
 4. **Prototype signed off?** If the change finalizes a design prototype (the user approves it as the design), promote its capture per `spec-1-specify`'s [UI-SPEC.md](../spec-1-specify/UI-SPEC.md): approved image(s) → `spec/prototypes/assets/`, a `prototypes/<slug>.md` page embedding them, one index line, links from the pages it illustrates.
 5. **Docs / hubs rippled?** A change that touches `user-docs-plan.md`, a `User-facing: yes` issue, or behaviour already documented stales the end-user docs; one that touches `repository-layout.md` or moves a module boundary stales the AGENTS.md hubs. [SYNC.md](SYNC.md)'s "User-docs and AGENTS.md ripples" section says what to flag and where to route (docs rewrites go through `build-user-docs`, never written here).

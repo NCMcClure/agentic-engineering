@@ -1,11 +1,11 @@
 ---
 name: spec-0-init
-description: Scaffold the .plan/ planning workspace — spec site, plan tree, glossary, ADRs, tracker. Run once, when the user wants to plan or spec a project and .plan/ doesn't exist — "set up planning".
+description: Scaffold the .agents/plan/ planning workspace — spec site, plan tree, glossary, ADRs, tracker. Run once, when the user wants to plan or spec a project and .agents/plan/ doesn't exist — "set up planning".
 ---
 
-# spec-0-init — scaffold the `.plan/` workspace
+# spec-0-init — scaffold the `.agents/plan/` workspace
 
-This is the foundation the rest of the suite builds on. It creates `.plan/` at
+This is the foundation the rest of the suite builds on. It creates `.agents/plan/` at
 the repo root: a spec docs website (`spec/`), an empty plan tree (`plan/`), a
 glossary and ADR folder, a tracker config, a `progress/` directory, the
 deterministic status funnel (`plan/plan-status.py`), and the two structural
@@ -20,41 +20,84 @@ point. By default the spec is language-agnostic (it describes systems, not
 code), but the **language posture** chosen in the interview — recorded as
 ADR-0001 so it outlives this session — can tie it to a specific language.
 
-## Before you scaffold — where does `.plan/` belong?
+## Before you scaffold — where does `.agents/plan/` belong?
 
-`.plan/` lives at a **repo root**. In a single-repo session that's just the
+`.agents/plan/` lives at a **repo root**. In a single-repo session that's just the
 current directory, but in a multi-repo workspace the session's cwd may not be the
 repo that should own the plan (e.g. cwd is a tooling repo but the spec targets a
 sibling app repo). **Confirm the target repo first**, and `cd` there before
 scaffolding so `$CLAUDE_PROJECT_DIR` and every emitted path (the `plan-gate.py`
 hook command, verifier invocations, the `.gitignore` edit) resolve against the
-repo that actually holds `.plan/`.
+repo that actually holds `.agents/plan/`.
+
+`.agents/` is the home of everything agent-facing in a repo, and it may already
+exist (the `agent-works` plugin keeps memory, decisions and its kanban there).
+Add `plan/` beside what is there and touch nothing else in it. Nothing this
+skill scaffolds goes into `./docs`: that folder is for end-user documentation
+only, and `build-user-docs` is the one skill that writes there.
 
 ## When NOT to scaffold
 
-Decide "already initialised" on a **sentinel file**, not on the `.plan/` directory
+Decide "already initialised" on a **sentinel file**, not on the `.agents/plan/` directory
 merely existing — an interrupted prior run can leave a hollow skeleton (the
 directory tree present, zero files in it), which a bare existence check would
-wrongly treat as done. Use `.plan/spec/scripts/verify-spec-tree.py` as the
+wrongly treat as done. Use `.agents/plan/spec/scripts/verify-spec-tree.py` as the
 sentinel (the scaffold always writes it):
 
-- **Sentinel present** → `.plan/` is initialised. Do **not** overwrite it; tell the
+- **Sentinel present** → `.agents/plan/` is initialised. Do **not** overwrite it; tell the
   user and point them at `spec-1-specify` (to author) or `spec-4-edit` (to revise).
-- **`.plan/` exists but the sentinel is missing** (or `find .plan -type f` shows an
+- **`.agents/plan/` exists but the sentinel is missing** (or `find .agents/plan -type f` shows an
   essentially empty tree) → treat it as an **incomplete/aborted scaffold**. Say so,
   and offer to finish/repair it by populating the missing files rather than bailing.
+- **`.plan/` exists and `.agents/plan/` does not** → a workspace from before 4.0.
+  Do not scaffold a second one: migrate it (next section).
+
+## Migrating a `.plan/` workspace (3.x → 4.0)
+
+Version 4.0 moved the workspace from `.plan/` to `.agents/plan/`. Nothing
+inside it changed, but the copied scripts did (one computes the repo root from
+its own location, and each now refuses the old path), so a move alone is not
+enough. From the repo root:
+
+1. **Move it, keeping history.**
+
+   ```bash
+   mkdir -p .agents
+   git mv .plan .agents/plan        # untracked workspace: mv .plan .agents/plan
+   ```
+
+2. **Re-copy the scripts** from the bundled `assets/` over their old copies,
+   verbatim, to the places step 2's tree shows: `plan/verify-plan-tree.py`,
+   `plan/plan-status.py`, `plan/plan-gate.py`, `plan/publish-issues.py` (from
+   `plan-1-publish-issues`' assets), `spec/scripts/verify-spec-tree.py`,
+   `spec/scripts/comments-server.py`, `progress/drift-status.py`. A
+   `plan/verify-agents-tree.py` from 3.7–3.9 is the old hub verifier and must
+   not stay: replace it with the hub-check stub when agent-works is available,
+   else delete it and remove the "Codebase hubs current" rows from the
+   `epic.md` / `sprint.md` checkpoint tables (step 2, "The hub check").
+3. **Rewrite the path where it is written down.** In `.claude/settings.json`
+   the hook command becomes `…/.agents/plan/plan/plan-gate.py`; in `.gitignore`
+   the line becomes `.agents/plan/.site/`. Then find the rest with
+   `grep -rn '\.plan/' .agents/plan AGENTS.md` and replace `.plan/` with
+   `.agents/plan/` in every live command or link: the checkpoint rows of
+   `epic.md` / `sprint.md` and the issues' testing checkpoints, the workspace
+   `README.md`, `spec/plan.md`, the root `AGENTS.md`. Leave `progress/`
+   ledgers and notes as they are; they are history.
+4. **Verify.** Run step 3's commands; they give what they gave before the move.
+   A script still run from a `.plan/` layout exits 2 with one line naming this
+   migration.
 
 Narrow exceptions where a re-run touches only one thing: reconfiguring the
 tracker (touch only `tracker.md`); backfilling a helper script into an older
-`.plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
+`.agents/plan/` project that predates it — copy `plan-gate.py` (and add the hooks per
 step 2a) or `drift-status.py` into place; backfilling the **Plan page** into
 a workspace scaffolded before 3.4 — copy `stubs/plan-page.md` → `spec/plan.md`
 (fill `{{MONTH}}`), `plan-view.js` / `plan-view.css` → `spec/assets/`, re-copy
 `comments-server.py` → `spec/scripts/` (it carries the `/__plan_status__`
 endpoint), add the two `plan-view` lines to `mkdocs.yml`'s `extra_css` /
 `extra_javascript` if absent, and restart the comments server; and backfilling
-the **3.7 docs/hub machinery** into an older workspace — copy
-`verify-agents-tree.py` → `.plan/plan/`, re-copy `verify-plan-tree.py`, ask
+the **3.7 docs/hub machinery** into an older workspace — write the hub-check
+stub per step 2 (only with agent-works), re-copy `verify-plan-tree.py`, ask
 the two 3.7 interview questions (user-docs posture, Claude Code support) and
 record them as ADRs at the **next free numbers** (0003/0004 are only
 guaranteed on fresh scaffolds), and scaffold the root `AGENTS.md` (+
@@ -104,7 +147,7 @@ Create the tree below by copying this skill's bundled `assets/` and filling the
 glossary.
 
 ```
-.plan/
+.agents/plan/
 ├── README.md                 # from stubs/README.md
 ├── mkdocs.yml                # from assets/mkdocs.yml  ({{PROJECT_NAME}})
 ├── tracker.md                # from stubs/tracker-github.md, tracker-gitlab.md, OR tracker-local.md
@@ -147,7 +190,7 @@ glossary.
     ├── plan-status.py        # from assets/plan-status.py (verbatim)
     ├── publish-issues.py     # from ../plan-1-publish-issues/assets/publish-issues.py (verbatim)
     ├── verify-plan-tree.py   # from assets/verify-plan-tree.py (verbatim)
-    ├── verify-agents-tree.py # from assets/verify-agents-tree.py (verbatim)
+    ├── verify-agents-tree.py # ONLY with agent-works: from assets/hub-check-stub.py (verbatim; see "The hub check")
     └── plan-gate.py          # from assets/plan-gate.py (verbatim)
 ```
 
@@ -155,17 +198,32 @@ The `.py`, `.css`, and `.js` files copy **verbatim** — do not hand-retype them
 `verify-plan-tree.py`, `plan-status.py`, `publish-issues.py`, and `plan-gate.py`
 locate themselves by their own path / `$CLAUDE_PROJECT_DIR` (all root at `plan/`),
 as do `verify-spec-tree.py` (`spec/scripts/`), `comments-server.py` (`spec/scripts/`,
-writes `.plan/spec-comments.json` two levels up), and `drift-status.py` (`progress/`),
+writes `.agents/plan/spec-comments.json` two levels up), and `drift-status.py` (`progress/`),
 so they must land exactly where shown. (`publish-issues.py` is bundled with
 `plan-1-publish-issues`; resolve it relative to that sibling skill's directory.)
 `spec-comments.css` / `spec-comments.js` power inline commenting on the spec site
-(highlight text, leave a note; the notes auto-save to `.plan/spec-comments.json`
+(highlight text, leave a note; the notes auto-save to `.agents/plan/spec-comments.json`
 and feed `spec-4-edit`) and are already registered in `mkdocs.yml`.
 `plan-view.css` / `plan-view.js` power the live **Plan** page (`spec/plan.md`):
 it renders the plan tree — epics, sprints, and issues with statuses, blockers,
 acceptance progress, and the next unblocked issue — from the read-only
 `/__plan_status__` endpoint in `comments-server.py`, and is the issue board for
 local-tracker projects.
+
+**The hub check comes from agent-works.** This plugin ships no AGENTS.md hub
+verifier. The contract and its checker belong to the `agent-works` plugin
+(skill `agent-works:hubs`, command `aw hubs`).
+
+- **agent-works is available** (its skills are listed in this session, or
+  `command -v aw` finds the CLI): `aw hubs` is the check. Copy
+  `assets/hub-check-stub.py` verbatim to `.agents/plan/plan/verify-agents-tree.py`.
+  It calls `aw hubs <repo root>` and passes the exit code through, so the
+  "Codebase hubs current" checkpoint row and every skill that runs that path
+  keep working, and no copy of the verifier lives in the project.
+- **agent-works is not available**: write no stub. `plan-0-decompose` then
+  omits the hub checkpoint row, and the skills that would run the file skip
+  it. Say once, in the hand-off: "hub structure is not verified: install
+  agent-works".
 
 **Record the language posture** from step 1 in two places so downstream skills
 honour it. Author `adr/0001-language-posture.md` from its stub (the [ADR
@@ -220,16 +278,21 @@ hubs are unconditional either way; only the CLAUDE.md siblings vary:
 | Claude Code support: yes | "The source tree carries AGENTS.md orientation hubs with sibling CLAUDE.md imports for Claude Code." | on — every AGENTS.md gets a sibling CLAUDE.md containing exactly `@AGENTS.md` |
 | Claude Code support: no | "The source tree carries AGENTS.md orientation hubs." | off — AGENTS.md only; no CLAUDE.md files |
 
+When agent-works is installed, the CLAUDE.md siblings are its **twins**
+(`aw twins`: generated, git-ignored by default, healed at session start).
+ADR-0004 still records the choice, but nobody writes or commits the sibling
+files by hand.
+
 Add both ADR rows to `adr/index.md`'s Records section. Write them even when
 the defaults were taken — the recorded posture is what stops a later skill
 (or a long collaborative editing session) from silently drifting.
 
-Then add `.plan/.site/` to the repo's `.gitignore` (the built site is
+Then add `.agents/plan/.site/` to the repo's `.gitignore` (the built site is
 regenerable and should not be committed).
 
 ### 2b. Scaffold the root agent hub into the target repo
 
-The one piece that lives *outside* `.plan/` (precedent: the settings hook in
+The one piece that lives *outside* `.agents/plan/` (precedent: the settings hook in
 step 2a). From `stubs/agents-root.md`, create the repo-root `AGENTS.md` —
 fill `{{PROJECT_NAME}}` / `{{ONE_LINE_DESCRIPTION}}`. It is the owning home of
 the repo's durable agentic-development rules (hub isolation, hub scope,
@@ -238,7 +301,8 @@ now — builders add them as directories appear (`build-tdd`'s codebase-
 organization duty), guided by the spec's `repository-layout.md`.
 
 When ADR-0004 says Claude Code support is on, also create the repo-root
-`CLAUDE.md` containing exactly:
+`CLAUDE.md` (with agent-works installed, run `aw twins` instead of writing
+it) containing exactly:
 
 ```
 @AGENTS.md
@@ -257,7 +321,7 @@ Merge, don't clobber — brownfield repos may already have either file:
 `plan-gate.py` is a read-only backstop for autonomous sprint builds
 (`build-sprint`): it runs `verify-plan-tree.py` and blocks an event when the
 plan tree is critically broken, so a task can't be marked done on a corrupted
-tree. It no-ops outside a `.plan/` workspace. Wire it into the project's
+tree. It no-ops outside a `.agents/plan/` workspace. Wire it into the project's
 **`.claude/settings.json`** (the shared, committed settings file —
 *not* `settings.local.json`) on the `TaskCompleted` hook event:
 
@@ -265,7 +329,7 @@ tree. It no-ops outside a `.plan/` workspace. Wire it into the project's
 {
   "hooks": {
     "TaskCompleted": [ { "hooks": [ { "type": "command",
-      "command": "python3 \"${CLAUDE_PROJECT_DIR}/.plan/plan/plan-gate.py\"" } ] } ]
+      "command": "python3 \"${CLAUDE_PROJECT_DIR}/.agents/plan/plan/plan-gate.py\"" } ] } ]
   }
 }
 ```
@@ -282,11 +346,11 @@ Run the verifiers — a fresh scaffold produces no CRITICAL findings (warnings
 below are the expected ramp-in state):
 
 ```bash
-python .plan/spec/scripts/verify-spec-tree.py   # expect: WARN on the two mandatory pages (they don't exist yet), exit 1
-python .plan/plan/verify-plan-tree.py           # expect: OK: 0 epics, 0 sprints, 0 issues ...
-python .plan/plan/verify-agents-tree.py         # greenfield: OK ... (exit 0); brownfield: WARNs for missing hubs (exit 1) — expected, builders ramp them in
-python .plan/plan/plan-status.py check          # expect: "plan tree: not-started" (exit 1 — nothing built yet)
-python .plan/progress/drift-status.py           # expect: "No drift items." (exit 0 — none recorded yet)
+python .agents/plan/spec/scripts/verify-spec-tree.py   # expect: WARN on the two mandatory pages (they don't exist yet), exit 1
+python .agents/plan/plan/verify-plan-tree.py           # expect: OK: 0 epics, 0 sprints, 0 issues ...
+python .agents/plan/plan/verify-agents-tree.py         # only if the hub-check stub was written (agent-works): greenfield exit 0; brownfield warnings for missing hubs (exit 1) are expected, builders ramp them in
+python .agents/plan/plan/plan-status.py check          # expect: "plan tree: not-started" (exit 1 — nothing built yet)
+python .agents/plan/progress/drift-status.py           # expect: "No drift items." (exit 0 — none recorded yet)
 ```
 
 The spec verifier's two mandatory-page warnings (`repository-layout.md`,
@@ -301,12 +365,12 @@ a plan tree and only blocks on *critical* corruption, so a clean fresh scaffold 
 trips it. No `chmod` is needed — it's invoked via `python3`.
 
 If the user wants to see the site, give them the install + serve commands (see
-`.plan/README.md`): `pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin`
-(or the `uv` equivalent), then `mkdocs serve -f .plan/mkdocs.yml`. Don't install
+`.agents/plan/README.md`): `pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin`
+(or the `uv` equivalent), then `mkdocs serve -f .agents/plan/mkdocs.yml`. Don't install
 doc dependencies unless asked. To also leave inline comments on the spec, they run
-`python .plan/spec/scripts/comments-server.py` *instead of* `mkdocs serve`: it
+`python .agents/plan/spec/scripts/comments-server.py` *instead of* `mkdocs serve`: it
 fronts MkDocs on a single port and serves the comment API on the same origin, so
-comments auto-save to `.plan/spec-comments.json` and it keeps working when the
+comments auto-save to `.agents/plan/spec-comments.json` and it keeps working when the
 site is viewed through a forwarded port (VS Code / code-server / SSH tunnel), with
 no second port to forward. Plain `mkdocs serve` still works for a read-only view;
 comments just fall back to browser localStorage without the sidecar, and the
@@ -320,13 +384,14 @@ author the first part of the specification. Summarise the tracker they chose,
 the language posture recorded in ADR-0001 (agnostic unless they tied it to a
 language), the UI/UX posture recorded in ADR-0002 (headless unless they chose
 a UI tier), the user-docs posture recorded in ADR-0003 (docs-site unless they
-chose otherwise), and whether Claude Code support is on (ADR-0004 — root
-AGENTS.md scaffolded either way).
+chose otherwise), whether Claude Code support is on (ADR-0004 — root
+AGENTS.md scaffolded either way), and whether the hub check is wired
+(agent-works) or "hub structure is not verified: install agent-works".
 
 ## Why this shape
 
-- **One `.plan/` root** keeps the project's top level uncluttered and the whole planning effort self-contained and easy to delete or relocate.
+- **One workspace under `.agents/`**, the home of everything agent-facing, keeps the project's top level uncluttered, leaves `./docs` to end-user documentation, and keeps the whole planning effort self-contained and easy to delete. The plan tree inside it is `.agents/plan/plan/`: the workspace is `plan`, the tree in it is `plan`, and the doubled name is intended.
 - **Glossary and ADRs live inside `spec/`** so they render on the website alongside the spec, instead of being invisible side-files.
 - **The plan tree is plain markdown, not in the site nav** — it's an execution backlog, browsable on the file host and validated by its verifier, mirroring how a spec and its backlog are kept separate but linked by spec anchors.
 - **Verifiers are count-agnostic** so they keep working as the spec and plan grow; they assert structure, not a fixed number of files.
-- **The integrity gate is scaffolded, not just documented** — a real `.claude/settings.json` hook so an autonomous sprint build (`build-sprint`) physically can't accept a builder's work on a corrupted plan tree. It's read-only and self-disables outside `.plan/`, so it costs nothing elsewhere.
+- **The integrity gate is scaffolded, not just documented** — a real `.claude/settings.json` hook so an autonomous sprint build (`build-sprint`) physically can't accept a builder's work on a corrupted plan tree. It's read-only and self-disables outside `.agents/plan/`, so it costs nothing elsewhere.
