@@ -636,7 +636,7 @@ def git_rules(segments, cfg, env):
     """force-push and default-branch-commit."""
     db = (cfg.get("guard") or {}).get("defaultBranch") or {}
     names = [str(n) for n in db.get("names") or ["main", "master"]]
-    commit, force = _level(db.get("commit"), "ask"), _level(db.get("forcePush"), "ask")
+    commit, force = _level(db.get("commit"), "warn"), _level(db.get("forcePush"), "ask")
     out = []
     for seg in segments:
         words = command_words(seg)
@@ -651,7 +651,7 @@ def git_rules(segments, cfg, env):
             if forced:
                 out.append(decision(force, "force-push",
                                     "A force push rewrites a pushed branch: others' work on it, and an open review, "
-                                    "can be lost. It needs the owner's say each time."))
+                                    "can be lost. Merge the default branch in instead."))
         if verb == "commit" and commit and "--dry-run" not in args:
             branch = env.get("branch")
             if branch is None or dash_c:

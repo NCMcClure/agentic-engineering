@@ -66,7 +66,7 @@ DEFAULTS: Dict[str, Any] = {
         "ownerFilesEdit": "ask",
         "generated": [],
         "staging": {"blanket": "deny", "unseen": "deny"},
-        "defaultBranch": {"names": ["main", "master"], "commit": "ask", "forcePush": "ask"},
+        "defaultBranch": {"names": ["main", "master"], "commit": "warn", "forcePush": "ask"},
         "rules": [],
         "log": True,
     },

@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "agent-works",
   "displayName": "Agent Works",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed gates on a kanban board you and the agents share, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw CLI.",
   "author": {
     "name": "Nicholas McClure",
