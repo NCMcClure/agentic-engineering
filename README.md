@@ -53,7 +53,10 @@ Mixed-skill teams shouldn't rely on discipline to keep prototypes off main.
 Deterministic guardrails block commits to protected branches, force-pushes,
 secrets, junk files, and failing tests. The hooks run inside Claude Code and
 again in the terminal, with CI as the backstop for anything that slips
-through. GitHub and GitLab are both first-class. [Read more →](plugins/agentic-teamwork/README.md)
+through. GitHub and GitLab are both first-class. Owns team version-control
+guardrails; agent-specific guards and how agents share a codebase are
+agent-works' job. The two are meant to run together.
+[Read more →](plugins/agentic-teamwork/README.md)
 
 ### codebase-optimizer
 

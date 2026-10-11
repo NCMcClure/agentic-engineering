@@ -158,6 +158,13 @@ agent sessions, and the feedback loop *before* the push fails.
 `rules.*`; every pattern is config. Change the config in a PR like any other
 code.
 
+## Boundary with agent-works
+
+This plugin owns **team version-control guardrails**: protected branches, force pushes, secrets, junk files and
+failing tests, in Claude Code, the terminal and CI. **Agent-specific guards** (files that are the owner's alone,
+blanket staging, generated files, scarce-resource locks, expensive-run budgets) and everything about how agents
+share a codebase are agent-works' job (`agent-works:guard` / `aw doctor`). The two are meant to run together.
+
 ## Requirements
 
 - bash ≥ 4, git, jq (guards)
@@ -166,6 +173,7 @@ code.
 
 ## Changelog
 
+- **0.1.2**: boundary note: team git guardrails live here, agent-specific guards in agent-works.
 - **0.1.1**: README reworded.
 - **0.1.0**: Initial release: git-guard, session briefing, edit-check,
   stop-gate; terminal pre-commit mirror; GitHub + GitLab providers;
