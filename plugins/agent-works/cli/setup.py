@@ -12,7 +12,7 @@
 What --apply writes: .agents/agent-works.json (its presence turns the guard on), .agents/README.md (the generated
 contracts page, version-stamped), a root AGENTS.md if there is none, the memory tree with its status memory, the
 decisions folder with its index, the glossary, lines in .gitignore, and the CLAUDE.md twins. It never overwrites a file
-that is there (the generated .agents/README.md and indexes excepted), and it never moves a file by itself: agent
+that is there (the generated .agents/README.md excepted), and it never moves a file by itself: agent
 material found under the user docs (DOCS_AGENT_FILE) is reported with the `git mv` commands to run.
 
 The launcher: Claude Code puts an enabled plugin's bin/ on the PATH of its Bash tool, so `aw` works there as it is.
@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import common
+import memory as memory_mod
 
 ALLOW_RULE = "Bash(aw:*)"
 
@@ -98,11 +99,11 @@ def plan(root: Path, opts: argparse.Namespace) -> Dict[str, Any]:
 
     memory = common.config_path(cfg, root, "memory")
     if found["memory"]:
-        add("keep", R(memory), "the memory tree is there and stays as it is, indexes included; `aw memory lint` checks it")
+        add("keep", R(memory), "the memory tree is there and stays as it is, hand-written indexes included; `aw memory lint` checks it")
     else:
         add("create", R(memory / "INDEX.md"), "the memory tree", text=template("memory-index.md"))
         add("create", R(memory / "project" / "INDEX.md"), "the folder of the status memory",
-            text="# project/\n\nThe living status of the project and its plan.\n")
+            text=f"# project/\n{memory_mod.GENERATED}\n\nThe living status of the project and its plan.\n")
         add("create", R(memory / "project" / f"{common.today()}-project-status.md"), "the one status memory",
             text=template("status.md", slug="project-status", date=common.today(), title="Project status",
                           description="Goal, current focus and known issues: read at the start of every task"))
@@ -181,13 +182,11 @@ def apply(root: Path, doc: Dict[str, Any]) -> List[str]:
                 done.append(f"moved {s['path']} to {s['to']}")
     cfg = common.load_config(root)
     if not doc["found"]["memory"]:
-        # Only for the tree this run created. The lists of an existing tree's indexes may be written by hand and
-        # say more than the memories' descriptions: they stay (MEM_INDEX_STALE), and `aw memory index` is a step
-        # the reader takes knowingly.
+        # Only for the tree this run created (its indexes carry the generated marker). The indexes of an existing
+        # tree may be written by hand and say more than the memories' descriptions: they stay
+        # (MEM_INDEX_HANDWRITTEN), and `aw memory index --adopt` is a step the reader takes knowingly.
         try:
-            import memory
-
-            done += [f"wrote {c}" for c in memory.write_indexes(root, cfg)]
+            done += [f"wrote {c}" for c in memory_mod.write_indexes(root, cfg)]
         except Exception:
             pass
     if any(s["do"] == "twins" for s in doc["steps"]):

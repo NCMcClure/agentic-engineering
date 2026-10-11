@@ -22,7 +22,7 @@ people who use the project; agent-works never writes there and flags agent mater
 |---|---|---|
 | What is where | root `AGENTS.md`, a hub `AGENTS.md` per non-leaf code directory | 200 / 40 lines |
 | Project rules | root `AGENTS.md`, five lines each, linking to the why | inside the 200 |
-| Why, measurements, lessons | `.agents/memory/<folder>/<date>-<slug>.md`, indexes generated | 400 lines, 12 a folder |
+| Why, measurements, lessons | `.agents/memory/<folder>/<date>-<slug>.md`, indexes generated (hand-written ones are kept until adopted) | 400 lines, 12 a folder |
 | Status | one status memory: goal, current focus, known issues as card links | 120 lines |
 | What is done | the git log and closed cards, printed by `aw status` | derived |
 | Decisions, words, contracts | `.agents/decisions/`, `.agents/CONTEXT.md`, `.agents/contracts/` | 150 lines a record |

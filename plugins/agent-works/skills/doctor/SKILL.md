@@ -24,13 +24,13 @@ baseline", record one first with `aw doctor --baseline`.
 
 | Finding | Command |
 |---|---|
-| `MEM_INDEX_STALE` | `aw memory index`. On indexes written by hand, read the diff first: it replaces every list line with the memory's `description`, so what a line said beyond that moves into the description (160 characters) or the memory before you run it. |
+| `MEM_INDEX_STALE` (a missing index, or a generated one out of date) | `aw memory index`. It refuses while the tree has hand-written indexes: there, add the missing line or file by hand in the form of its neighbours. |
 | `DEC_INDEX_STALE` | `aw decisions index` |
 | `GEN_TWIN_MISSING`, `CLAUDE_CHAIN` (a missing twin) | `aw twins` |
 | `CONTRACT_MISSING`, `CONTRACT_STALE` (another version) | `aw setup --apply` |
 | `MEM_FRONTMATTER` (the file's date and `updated` differ) | `aw memory touch <slug>` |
 
-*Done when: `aw doctor` no longer prints any of these codes.*
+*Done when: `aw doctor` no longer prints any of these codes as a warning.*
 
 ## Step 3 — Repairs that need a reader
 
@@ -44,6 +44,7 @@ wording intact, and quote in your report every passage you removed rather than m
 | `HUB_*` | The `hubs` skill. |
 | `STATUS_*`, `MEM_FILE_SIZE`, `MEM_FOLDER_OVER`, `MEM_HOOK_LONG` | Consolidation, in `${CLAUDE_PLUGIN_ROOT}/core/references/memory.md`: split by topic, split the folder, rewrite the description, compact status to Goal, Current focus and Known issues. |
 | `MEM_SLUG_DUP`, `MEM_NAME_MISMATCH`, `MEM_ROOT_LOOSE`, `MEM_LINK_DANGLING` | Rename to `<date>-<slug>.md` with `git mv`, move into a category folder, fix or drop the link. |
+| `MEM_INDEX_HANDWRITTEN` (info) | Nothing is wrong: the index was written by hand, and `aw memory new` and `touch` change one line of it at a time. Converting is the owner's decision. To adopt: move what each list line says beyond its memory's `description` into that description (160 characters, `MEM_HOOK_LONG`) or the memory, then `aw memory index --adopt`, and read the diff. |
 | `MEM_SHARED_CANDIDATE` | If it holds on any project: `aw learn add`, then delete the memory or leave one line pointing at the learning. |
 | `DUP_RULE` | Choose the single home with `${CLAUDE_PLUGIN_ROOT}/core/references/homes.md` (a rule: the root `AGENTS.md`). Keep that copy; replace the other with a link. If the copies disagree, ask the owner which is right. |
 | `DOCS_AGENT_FILE` | `git mv` the file or folder to the home the finding names, then `aw decisions index` and `aw links`, and fix every link and path the move broke (code comments too: search for the old path). |
