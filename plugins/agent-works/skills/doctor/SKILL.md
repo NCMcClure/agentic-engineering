@@ -28,6 +28,7 @@ baseline", record one first with `aw doctor --baseline`.
 | `DEC_INDEX_STALE` | `aw decisions index` |
 | `GEN_TWIN_MISSING`, `CLAUDE_CHAIN` (a missing twin) | `aw twins` |
 | `CONTRACT_MISSING`, `CONTRACT_STALE` (another version) | `aw setup --apply` |
+| `ROOT_PLUGINS` (the root `AGENTS.md` does not introduce the project's plugins, or the section is out of date) | `aw setup --apply`: it writes only the marked § Agent plugins. A plugin the project does not use comes out of `plugins` in the config, not out of the section by hand. |
 | `MEM_FRONTMATTER` (the file's date and `updated` differ) | `aw memory touch <slug>` |
 
 *Done when: `aw doctor` no longer prints any of these codes as a warning.*

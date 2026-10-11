@@ -67,7 +67,11 @@ skill's Step 2, and `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md` docu
   commands, the rules. Fill them from the code and the README. 200 lines at most.
 - The status memory's Goal, from the owner.
 - Hubs for the non-leaf code directories: the `hubs` skill.
-- An existing root `AGENTS.md` is not rewritten here. Slimming it is the `doctor` skill.
+- An existing root `AGENTS.md` is not rewritten here, except for one marked section, § Agent plugins, which
+  `--apply` puts in or brings up to date: which plugins the project works with, what each is for and when to open
+  each skill. Every session and sub-agent loads the root file, so this is what primes them. The list is `plugins`
+  in the config; ask the owner which of the three the project uses if that is not plain. Slimming the rest is the
+  `doctor` skill.
 
 *Done when: no `<…>` placeholder is left in the root `AGENTS.md` or the status memory.*
 

@@ -39,7 +39,8 @@ Briefs are tracked files under `.agents/briefs/`, because a rule that only a scr
 The templates are in `${CLAUDE_PLUGIN_ROOT}/assets/templates/`. A brief links to the root `AGENTS.md` for the
 project's rules and never restates them; a rule that turns out to bind beyond the round moves into `AGENTS.md`
 before the round closes. Say what is already known and ruled out, point at files instead of retelling them, and
-never hand an agent your conclusion to confirm.
+never hand an agent your conclusion to confirm. Name the skills the task needs (the root `AGENTS.md` § Agent
+plugins says when each applies): a sub-agent opens a skill it was pointed at far more reliably than one it must think of.
 
 *Done when: both briefs are within budget and tracked by git, and `aw dup` reports no rule that a brief repeats.*
 

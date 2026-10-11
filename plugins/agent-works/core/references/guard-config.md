@@ -14,6 +14,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
              "plan": ".agents/plan", "userDocs": "docs" },
   "tasks": { "home": "kanban" },
   "claude": { "twins": "generated" },
+  "plugins": ["agent-works", "codebase-optimizer", "perceptual-loop"],
   "budgets": { "rootAgentsLines": 200, "hubLines": 40, "contractLines": 120, "statusLines": 120,
                "memoryFileLines": 400, "memoryFolderFiles": 12, "indexHookChars": 160,
                "decisionLines": 150, "glossaryRowChars": 300, "briefLines": 120, "roundBriefLines": 80, "noteChars": 200 },
@@ -45,6 +46,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
 | `version` | The schema version, `1`. A higher number than the plugin reads is `CONFIG_INVALID`. |
 | `paths.*` | Where each kind of fact lives, relative to the repository's top. `userDocs` is the folder for user-facing documentation: agent-works never writes there, and agent material found in it is `DOCS_AGENT_FILE`. An existing `.agents/board` is used as the kanban folder while `paths.kanban` does not exist. |
 | `tasks.home` | Where tasks are kept: `kanban`. Another value with cards in the kanban folder is `TASKS_TWO_HOMES`. |
+| `plugins` | The plugins the root `AGENTS.md` introduces in its § Agent plugins (what each is for, when to open each skill), so every session and sub-agent is primed at start. `aw setup --apply` writes the section between its two markers and nothing else; `aw doctor` reports it missing or out of date (`ROOT_PLUGINS`). Remove a name to drop its row; `[]` for no section. |
 | `claude.twins` | `generated` (a `CLAUDE.md` importing its sibling beside every `AGENTS.md`, git-ignored, healed at session start), `committed` (the same, tracked), `off`. |
 | `budgets.*` | Size limits the checks compare against: lines of the root `AGENTS.md`, of a hub, of `.agents/README.md`, of the status memory, of a memory, of a decision, of a brief and a round brief; memories per folder; characters of a memory's `description`, of a glossary row, of a note. |
 | `links.roots` | Top-level folders whose paths are checked when written in code. Empty: every top-level folder git tracks. |
