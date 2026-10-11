@@ -61,7 +61,9 @@ A staged, autonomous optimizer for whatever language your repo speaks
 file tree into an AGENTS.md-hubbed progressive-disclosure layout (orientation
 hubs an agent reads before descending), decomposes god-files, and deepens
 shallow architecture, though every change sits behind CI-faithful validation
-with revert-on-red and nothing is ever pushed.
+with revert-on-red and nothing is ever pushed. It writes the hubs; the hub
+contract and its verifier are agent-works' job. Without it, hubs are written
+but their structure is not verified.
 [Read more →](plugins/codebase-optimizer/README.md)
 
 ### workflow-studio

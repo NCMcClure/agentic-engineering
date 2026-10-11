@@ -11,7 +11,10 @@ Conventions pass feeds three toggleable stages, run in order:
 1. **ORGANIZE** — tidy the file tree (codebase-organizer): plan → human-implicit apply
    (history-preserving `git mv` + reference rewriting) → CI verify → commit → re-scan
    until converged. Also writes/refreshes the AGENTS.md orientation hubs — every
-   non-leaf code directory gets one, per the organizer's `references/agent-hubs.md`.
+   non-leaf code directory gets one. The hub contract and its verifier are
+   agent-works' job (`agent-works:hubs` / `aw hubs`). Without it: hubs are still
+   written from the organizer's five rules, and the report says "hub structure
+   not verified: agent-works not installed".
 2. **DECOMPOSE** — split oversized god-files: lane-plan → parallel find → decision panel
    → line-disjoint carve-outs → scripted/AST codemod leaving compat shims (re-export
    shims in Python, barrel re-exports in JS/TS, same-package splits in Go, `pub use`
@@ -53,7 +56,7 @@ Workflow({
     skillDir:          "${CLAUDE_PLUGIN_ROOT}/skills/improve-codebase-architecture",
     organizerSkillDir: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer",
     structVerifier:    "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify_source_structure.py",
-    hubVerifier:       "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify_agents_hubs.py",
+    hubVerifyCommand:  "aw hubs",   // only when `command -v aw` finds it; else "" (see below)
     scanScript:        "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/repo_scan.py",
 
     // OPTIONAL — omit to let the Setup DETECT step auto-derive them for the repo:
@@ -73,7 +76,16 @@ Workflow({
 })
 ```
 
-**The one-time CLAUDE.md check (do this before launching):** the workflow never
+**The hub verifier check (do this before launching):** run `command -v aw`.
+If it prints a path, pass `hubVerifyCommand: "aw hubs"`; if not, pass `""`. With
+an empty value the run still writes and maintains hubs, skips every hub
+structure check, and reports "hub structure not verified: agent-works not
+installed" in `notes` and `hubs`.
+
+**The one-time CLAUDE.md check (do this before launching):** if the repo is set
+up with agent-works (`.agents/agent-works.json` exists), skip this check and
+omit `claudeMd`: that repo's `claude.twins` setting decides, and nothing is
+asked. Otherwise: the workflow never
 asks mid-run, so resolve the sibling question up front from the repo root — a
 `CLAUDE.md` containing `@AGENTS.md` → pass `claudeMd: true`; a root `AGENTS.md`
 *without* that import → previously declined, pass `claudeMd: false`; neither →
@@ -111,7 +123,9 @@ The workflow returns a rollup and leaves all work as **per-round commits on the 
   `extractions_applied`, `convergence`).
 - `hubs.baseline → hubs.final` — the AGENTS.md hub verifier's summary before and
   after the run; ORGANIZE rounds write/refresh hubs, and the engine stages keep
-  them current as files move.
+  them current as files move. Without a `hubVerifyCommand` it reads
+  `{ verified: false, note: "hub structure not verified: agent-works not installed" }`:
+  say so when you report.
 - Files under `archive/` — cruft the organizer **quarantined** (never deleted); confirm
   before removing.
 - `unmerged_conflict_branches` — child branches kept for human review after a

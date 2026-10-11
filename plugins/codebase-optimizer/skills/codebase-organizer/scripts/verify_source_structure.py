@@ -57,7 +57,7 @@ SKIP_DIRS = {
 }
 
 # ---------------------------------------------------------------------------
-# Data structures (mirrors .loom/bin/verify_knowledge_structure.py)
+# Data structures
 # ---------------------------------------------------------------------------
 
 @dataclass
