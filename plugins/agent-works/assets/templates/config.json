@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "claude": { "twins": "{{twins}}" },
+  "guard": {
+    "ownerFiles": [],
+    "generated": [],
+    "rules": []
+  },
+  "resources": {},
+  "lockOrder": [],
+  "runs": [],
+  "counters": {}
+}

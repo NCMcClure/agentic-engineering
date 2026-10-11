@@ -26,6 +26,18 @@ Skills arrive namespaced: `/but-first-planning:spec-0-init`,
 
 ## The plugins
 
+### agent-works
+
+Agent workflows rot the same way in every repo: `AGENTS.md` bloats, one rule
+gets stated four times, task status lives in six places, and two sessions on
+one machine never learn the other exists. agent-works gives every kind of fact
+one home under `.agents/` with a size budget, checks them all with
+`aw doctor`, keeps tasks and owed gates on a kanban board you share with the
+agents, and coordinates locks, leases and learnings across projects through
+one CLI. It is the foundation the plugins below lean on for hubs, memory,
+decisions and orchestration; each still runs without it.
+[Read more →](plugins/agent-works/README.md)
+
 ### but-first-planning
 
 Code written before the spec is settled is a loan against your future self.
