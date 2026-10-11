@@ -89,8 +89,9 @@ Both change the owner's own machine. **Ask before each; do neither unasked.**
 aw doctor --baseline
 ```
 
-It records today's sizes and finding counts; later runs print what moved. Report the counts and the files to
-commit (everything under `.agents/`, the root `AGENTS.md`, `.gitignore`). Do not commit unless asked. Findings on
+It records today's sizes and finding counts; later runs print what moved. Commit the set-up (everything under
+`.agents/`, the root `AGENTS.md`, `.gitignore`, staged by path) on a branch and take it through the project's
+cadence without waiting for approval, unless the owner asked to approve a step. Report the counts. Findings on
 an adopted repository are the `doctor` skill's work, not a failure of setup.
 
-*Done when: the baseline is written, and the owner has the finding counts and the list of files to commit.*
+*Done when: the baseline is written, and the set-up is committed, and the owner has the finding counts.*

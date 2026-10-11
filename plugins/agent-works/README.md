@@ -161,6 +161,9 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.1.1**: The git cadence (branch, commit, push, pull request, merge) no longer waits for approval unless the
+  owner asked for it: a commit on the default branch is a warning (`guard.defaultBranch.commit`, was `ask`), and
+  `setup`, the common brief and the generated `.agents/README.md` say so.
 - **0.1.0**: Initial release: one home per fact under `.agents/` with budgets, `aw doctor` and its checks, hub
   verifier and `CLAUDE.md` twins, generated memory and decision indexes, the kanban board (formerly claudeban)
   with owed gates, the agent guard, and machine-wide locks, leases, notes, claims and shared learnings through

@@ -75,7 +75,9 @@ class GitAsks(unittest.TestCase):
 
     def test_commit_on_the_default_branch(self):
         d = run("git commit -m x", branch="main")
-        self.assertEqual((d["rule"], d["kind"]), ("default-branch-commit", "ask"))
+        self.assertEqual((d["rule"], d["kind"]), ("default-branch-commit", "warn"))
+        asked = cfg_with(guard={"defaultBranch": {"commit": "ask"}})
+        self.assertEqual(run("git commit -m x", asked, branch="main")["kind"], "ask")
         self.assertEqual(rule("git add a.txt && git commit -m x", branch="master"), "default-branch-commit")
         self.assertIsNone(run("git commit -m x", branch="feat/x"))
         self.assertIsNone(run("git commit --dry-run -m x", branch="main"))
@@ -344,8 +346,13 @@ class Hook(unittest.TestCase):
         self.p.hook("guard", self.payload("git add -A"))
         self.assertFalse(log.exists())
 
-    def test_the_commit_ask_reads_the_branch_of_the_checkout(self):
+    def test_the_commit_rule_reads_the_branch_of_the_checkout(self):
         (self.p.root / ".git" / "HEAD").write_text("ref: refs/heads/main\n", encoding="utf-8")
+        _, out, _ = self.p.hook("guard", self.payload("git commit -m x"))
+        doc = json.loads(out)["hookSpecificOutput"]  # a warning by default: nobody is asked
+        self.assertNotIn("permissionDecision", doc)
+        self.assertIn("Work goes on a branch", doc["additionalContext"])
+        self.p.write(".agents/agent-works.json", json.dumps({"guard": {"defaultBranch": {"commit": "ask"}}}))
         _, out, _ = self.p.hook("guard", self.payload("git commit -m x"))
         self.assertEqual(json.loads(out)["hookSpecificOutput"]["permissionDecision"], "ask")
 

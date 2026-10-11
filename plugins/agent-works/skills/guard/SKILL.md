@@ -12,8 +12,9 @@ a scarce application without its lock, an expensive run without its reason. It i
 `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md`.
 
 **Boundary.** Protected branches, force pushes, secrets, junk files and failing tests as a *team* policy, in the
-terminal and in CI, belong to the agentic-teamwork plugin. This guard's own `default-branch-commit` and
-`force-push` are questions put to the owner, an aid for one agent. The two plugins are meant to run together.
+terminal and in CI, belong to the agentic-teamwork plugin. This guard's own `default-branch-commit` (a
+warning) and `force-push` (a question to the owner) are an aid for one agent; the ordinary cadence of branch,
+commit, pull request and merge is never held for approval. The two plugins are meant to run together.
 
 ## Step 1 — Ask the guard
 
@@ -39,7 +40,7 @@ Edit `.agents/agent-works.json`. Each need has one key:
 | Files local to the owner's machine: never staged, edits asked | `guard.ownerFiles`, `guard.ownerFilesEdit` | literal paths; a trailing slash is a folder |
 | Files a tool writes: never edited by hand | `guard.generated` | a regex on the path, and `how`: the command to run instead |
 | Staging the whole tree; unreadable pathspecs | `guard.staging` | `deny` by default |
-| Commits on the default branch, forced pushes | `guard.defaultBranch` | `ask` by default |
+| Commits on the default branch, forced pushes | `guard.defaultBranch` | `warn` and `ask` by default; `commit: "ask"` only when the owner wants to approve |
 | One instance at a time of an application or device | `resources.<name>`, `lockOrder` | `match`: the commands that start it; `scope`: `project` or `machine` |
 | A run whose cost grows with a count | `runs` | how many items are free, and the variable that carries the reason |
 | A number several branches bump | `counters.<name>` | claimed with `aw claim` |

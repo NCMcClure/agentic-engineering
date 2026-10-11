@@ -25,7 +25,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
     "ownerFiles": [], "ownerFilesEdit": "ask",
     "generated": [],
     "staging": { "blanket": "deny", "unseen": "deny" },
-    "defaultBranch": { "names": ["main", "master"], "commit": "ask", "forcePush": "ask" },
+    "defaultBranch": { "names": ["main", "master"], "commit": "warn", "forcePush": "ask" },
     "rules": [],
     "log": true
   },
@@ -57,7 +57,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
 | `guard.generated` | `[{ "match": "<regex on the path relative to the top>", "how": "<what to run instead>" }]`. An Edit or Write of a match is refused with the `how`. Case is ignored. |
 | `guard.staging.blanket` | `git add -A` / `-u` / `.` / `:/` / `'*'` and `git commit -a`: `deny` (default), `ask`, `warn`, `off`. |
 | `guard.staging.unseen` | A pathspec the guard cannot read (a variable, `$(…)`, `xargs`, `--pathspec-from-file`), when `ownerFiles` is not empty: `deny` (default), `ask`, `warn`, `off`. |
-| `guard.defaultBranch` | `names`: the branches work does not land on directly. `commit`: a `git commit` while on one. `forcePush`: any `git push --force` / `-f` / `+refspec`. Each `ask` (default), `deny`, `warn`, `off`. |
+| `guard.defaultBranch` | `names`: the branches work does not land on directly. `commit`: a `git commit` while on one (`warn` by default: the agent is told to branch, nobody is asked). `forcePush`: any `git push --force` / `-f` / `+refspec` (`ask` by default). Each `ask`, `deny`, `warn` or `off`. Set `commit` to `ask` only when the owner wants to approve it. |
 | `guard.rules` | The project's own rules, as data. See below. |
 | `guard.log` | `true`: every deny, ask and warn is appended as one JSON line to `<aw home>/projects/<project id>/guard.log`. |
 | `resources.<name>` | Something of which one runs at a time. `scope`: `project` (default) or `machine`. `match`: regexes of the commands that start it. `unless`: regexes of commands that match but start nothing (a listing, a dry run). `processes`, `maxMinutes`, `exclusive`: read by `aw lock` (see `coordination.md`). |
@@ -90,7 +90,8 @@ resource, run and project rules. A refusal wins over a question, a question over
 | `run-budget` | a command matching `runs[].match` that asks for more than `free` items without its reason | deny; with a reason: allowed, and logged |
 | *your id* | a `guard.rules` entry matches | its `decision` |
 
-`default-branch-commit` and `force-push` are aids for an agent, asked of the owner. Branch protection, secrets and
+`default-branch-commit` and `force-push` are aids for an agent. The ordinary cadence (branch, commit, push, pull request, merge) is never
+asked of the owner by this guard: only the forced push is, because it destroys work. Branch protection, secrets and
 failing tests as a team policy belong to the agentic-teamwork plugin.
 
 See what the guard would say, without running anything and without logging:

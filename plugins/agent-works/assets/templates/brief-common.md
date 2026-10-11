@@ -36,8 +36,10 @@ a lock by that name.
 - Commit as you go, in steps a reviewer can read. An interruption must lose nothing.
 - When `<default branch>` moved under you: `git fetch`, then merge it into your branch. Never rebase a branch you
   have pushed, never force-push.
-- <Branch naming, the pull-request convention, the trailer lines, and who merges: you when every gate is green, or
-  the orchestrator.>
+- The cadence is yours end to end: branch, commit, push, open the pull request, merge it when every gate is green,
+  delete the branch. Do not stop to ask for approval of any of these steps, unless the owner asked to approve one
+  (in the task, or as a rule in the root `AGENTS.md`): <the steps the owner approves, or "none">.
+- <Branch naming, the pull-request convention, the trailer lines.>
 - Leave the pull request open and report when a gate is not green or a judgement is not yours.
 
 ## Scarce resources

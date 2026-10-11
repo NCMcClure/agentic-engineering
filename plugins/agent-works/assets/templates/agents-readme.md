@@ -70,6 +70,9 @@ source files has no hub. When you add, move, rename or repurpose something, fix 
 ## Working beside other agents
 
 - One task, one branch, one worktree per agent. Stage files by their exact paths; commit as you go.
+- Branch, commit, push, open the pull request and merge it when its gates are green, without asking for
+  approval. A step is held for the owner only where the owner asked for that (in the task, or a rule in the root
+  `AGENTS.md`). A forced push is always the owner's.
 - An application or device of which one runs at a time is a lock: `aw lock run <resource> --for "<what, how long>"
   -- <command>`. Exit 3 with `STILL QUEUED` means you do not hold it: run the same command again.
 - Heavy shared use is a lease: `aw lease gpu --share 0.5 --mem 12GB --for "<what>" -- <command>`.
