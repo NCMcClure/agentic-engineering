@@ -1,7 +1,7 @@
 """Drift listing — a fast, read-only index of the cross-cutting drift items so an
 agent can triage *which* drift files to open rather than reading them all at once.
 
-Lives in `.plan/progress/` and roots itself there, reading the sibling `drift/`
+Lives in `.agents/plan/progress/` and roots itself there, reading the sibling `drift/`
 directory's `drift-*.md` files. Stdlib only; never writes — `build-assess-drift`
 owns advancing a drift item's status, this script only reports.
 
@@ -46,7 +46,7 @@ import re
 import sys
 from pathlib import Path
 
-PROGRESS_ROOT = Path(__file__).resolve().parent      # .plan/progress/
+PROGRESS_ROOT = Path(__file__).resolve().parent      # .agents/plan/progress/
 DRIFT_DIR = PROGRESS_ROOT / "drift"
 
 # The drift lifecycle vocabulary (owned by build-next-issue). CORE is always shown in
@@ -169,7 +169,7 @@ def print_table(items: list[dict]) -> None:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="List the .plan/progress/drift/ items for triage (read-only)."
+        description="List the .agents/plan/progress/drift/ items for triage (read-only)."
     )
     parser.add_argument(
         "--status",

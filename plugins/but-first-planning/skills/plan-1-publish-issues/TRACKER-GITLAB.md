@@ -7,7 +7,7 @@ and label-driven boards update themselves — no board API calls at publish or
 status time.
 
 Read the project path, numeric project ID, and label strings from
-`.plan/tracker.md` — don't hardcode them here. The examples below use
+`.agents/plan/tracker.md` — don't hardcode them here. The examples below use
 `<project-path>` / `<project-id>` for those values.
 
 ## Field naming: `**GitHub**:` holds the GitLab ref
@@ -67,7 +67,7 @@ glab issue create -R <project-path> \
 
 <from the issue file's "What to build" section>
 
-Spec anchor: .plan/spec/<path>
+Spec anchor: .agents/plan/spec/<path>
 
 ## Acceptance criteria
 
@@ -84,7 +84,7 @@ The command prints the issue URL; the trailing number is the iid `NNN`. Backfill
 `**GitHub**: #NNN` (and the sprint-table row) **immediately per issue**, not
 batched at the end — an interrupted run then shows exactly what's published.
 
-Prefer the bundled `publish-issues.py` (copied into `.plan/plan/` by
+Prefer the bundled `publish-issues.py` (copied into `.agents/plan/plan/` by
 `spec-0-init`) over hand-running these commands — it does the parse → toposort →
 create → backfill loop deterministically and idempotently for both trackers.
 

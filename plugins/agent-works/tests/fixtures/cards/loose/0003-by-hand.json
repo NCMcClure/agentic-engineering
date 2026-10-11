@@ -1,0 +1,23 @@
+{
+  "id": "0003",
+  "file": "0003-by-hand.md",
+  "title": "By hand",
+  "status": "backlog",
+  "order": 0,
+  "priority": "normal",
+  "labels": [
+    "a",
+    "b"
+  ],
+  "skills": [],
+  "source": "user",
+  "created": "",
+  "updated": "",
+  "kind": "task",
+  "owner": "",
+  "needs": "",
+  "ref": "",
+  "body": "Body",
+  "remote": null,
+  "extra": []
+}

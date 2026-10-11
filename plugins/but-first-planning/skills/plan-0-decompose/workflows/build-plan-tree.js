@@ -22,8 +22,8 @@ if (!A || !A.root || !A.skillDir) {
 }
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
-const PLANDIR = `${ROOT}/.plan/plan`
+const SPEC = `${ROOT}/.agents/plan/spec`
+const PLANDIR = `${ROOT}/.agents/plan/plan`
 
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 

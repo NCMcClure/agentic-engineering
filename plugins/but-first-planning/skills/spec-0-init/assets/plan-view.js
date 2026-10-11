@@ -1,7 +1,7 @@
 /*
  * Plan page for the spec site.
  *
- * Renders the plan tree (.plan/plan/) — epics, sprints, and issues with
+ * Renders the plan tree (.agents/plan/plan/) — epics, sprints, and issues with
  * statuses, blockers, acceptance progress, and the next unblocked work — from
  * the read-only /__plan_status__ endpoint served by comments-server.py. The
  * endpoint re-parses the tree on every GET, so this page is live: it polls, and

@@ -1,0 +1,26 @@
+{
+  "id": "0002",
+  "file": "0002-fix-race-in-session-cache.md",
+  "title": "Fix race in session cache",
+  "status": "in-progress",
+  "order": 1,
+  "priority": "high",
+  "labels": [
+    "bug",
+    "needs triage"
+  ],
+  "skills": [
+    "code-review",
+    "agent-works:kanban"
+  ],
+  "source": "claude",
+  "created": "2026-01-05T10:00:00.000Z",
+  "updated": "2026-01-06T08:30:15.250Z",
+  "kind": "task",
+  "owner": "worker-2",
+  "needs": "a quiet machine",
+  "ref": "#41",
+  "body": "Two writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts",
+  "remote": null,
+  "extra": []
+}

@@ -1,17 +1,18 @@
 ---
 name: spec-1-specify
-description: Author the specification as a progressive-disclosure docs site under .plan/spec/. Use when the user wants to write or grow a spec — "spec this out", "document the design", "add a section". Requires .plan/.
+description: Author the specification as a progressive-disclosure docs site under .agents/plan/spec/. Use when the user wants to write or grow a spec — "spec this out", "document the design", "add a section". Requires .agents/plan/.
 ---
 
 # spec-1-specify — author the specification
 
-Grow the specification under `.plan/spec/` into a navigable, progressive-
+Grow the specification under `.agents/plan/spec/` into a navigable, progressive-
 disclosure knowledge base that reads well as a website and edits cleanly as
 markdown. You are writing **what the system is and how it behaves**, not code.
 The deliverable is a knowledge base, not one long document: many small, self-
 contained files, each findable by its frontmatter and reachable by navigation.
 
-If `.plan/` doesn't exist, stop and run `spec-0-init` first.
+If `.agents/plan/` doesn't exist, stop and run `spec-0-init` first (a workspace
+still at `.plan/` predates 4.0: `spec-0-init` migrates it).
 
 ## The mental model: five-level progressive disclosure
 
@@ -28,14 +29,14 @@ your first big spec.
 ### 1. Understand what's being specified
 
 Work from the conversation. If the spec already has categories, read
-`.plan/spec/index.md` and the relevant category indexes to see what exists and
+`.agents/plan/spec/index.md` and the relevant category indexes to see what exists and
 where the new material belongs. Don't duplicate a topic that already has a home —
 grow the existing file instead (updating beats creating; see why in
 [PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)).
 
-If terminology is in play, check `.plan/spec/reference/glossary.md` and use its
+If terminology is in play, check `.agents/plan/spec/reference/glossary.md` and use its
 canonical terms. Read the recorded postures once —
-`.plan/spec/reference/adr/0001-language-posture.md`, `0002-ui-posture.md`,
+`.agents/plan/spec/reference/adr/0001-language-posture.md`, `0002-ui-posture.md`,
 `0003-user-docs-posture.md`, and `0004-agent-context-files.md` — so you write
 to them (language, visual verification, end-user docs shape, agent-context
 files) from the first file. If the user is fuzzy on a concept or you hit a real fork in the
@@ -85,7 +86,7 @@ Keep indexes navigation-only — no content, no reaching two levels deep.
 Run the structural verifier and fix anything it flags:
 
 ```bash
-python .plan/spec/scripts/verify-spec-tree.py
+python .agents/plan/spec/scripts/verify-spec-tree.py
 ```
 
 It checks frontmatter validity, that indexes stay hub-only, and that
@@ -94,7 +95,7 @@ file, exit 1 and are worth addressing).
 
 ### 5. Offer to serve and hand off
 
-Offer to serve the site (`mkdocs serve -f .plan/mkdocs.yml`) so the user can read
+Offer to serve the site (`mkdocs serve -f .agents/plan/mkdocs.yml`) so the user can read
 what you wrote. Then point at the natural next step: `spec-2-grill` to stress-
 test and sharpen, `spec-3-architect` to pressure-test the system design before
 any code exists, or `plan-0-decompose` once the spec is solid enough to decompose.

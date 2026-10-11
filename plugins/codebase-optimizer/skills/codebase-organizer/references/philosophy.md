@@ -126,8 +126,9 @@ hub in every non-leaf code directory closes that gap: one honest line per
 direct child — what it holds, when to descend — so a reader (human or agent)
 orients at the root, descends hub by hub, and opens only the files the hubs
 point at. This is a maintained *mechanism*, not a shape heuristic: the rules
-(hub isolation, direct-children scope, update-on-change), the content
-derivation, and the verifier live in `agent-hubs.md` — the owning contract.
+(hub isolation, direct-children scope, update-on-change) and the content
+derivation are summarised in `agent-hubs.md`; the full contract and its
+verifier belong to the agent-works plugin.
 Note the synergy with principle 1: a hub may not sit beside loose source
 files, so a hubbed root is *forced* to hold only intent, and every internal
 hub level inherits the same property.

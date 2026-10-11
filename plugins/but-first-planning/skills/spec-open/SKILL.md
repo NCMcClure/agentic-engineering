@@ -1,6 +1,6 @@
 ---
 name: spec-open
-description: Serve the .plan/ spec docs site (reusing a running instance) and open it in the browser. Use when the user wants to view, open, preview, or read the spec site, or to leave inline comments on it — "open the spec", "serve the docs", "let me review the spec". Requires .plan/.
+description: Serve the .agents/plan/ spec docs site (reusing a running instance) and open it in the browser. Use when the user wants to view, open, preview, or read the spec site, or to leave inline comments on it — "open the spec", "serve the docs", "let me review the spec". Requires .agents/plan/.
 ---
 
 # spec-open — view the spec site
@@ -13,7 +13,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/skills/spec-open/spec-open.sh"
 ```
 
 It probes `http://127.0.0.1:8000/__spec_comments__`: if the server is already up
-it just opens the browser; otherwise it starts `.plan/spec/scripts/comments-server.py`
+it just opens the browser; otherwise it starts `.agents/plan/spec/scripts/comments-server.py`
 (which serves the site, the inline-comment API, and the plan-status API on one
 port), waits for it to respond, then opens the browser.
 
@@ -24,8 +24,9 @@ it is the issue board. If a workspace scaffolded before plugin 3.4 has no Plan
 entry in the nav, offer the spec-0-init backfill exception (copy the plan-page
 stub, the `plan-view` assets, and the current `comments-server.py` into place).
 
-Relay whatever the script prints. If it reports no `.plan/`, the project isn't
-scaffolded yet: point the user at `spec-0-init`. If the server never comes up,
+Relay whatever the script prints. If it reports no `.agents/plan/`, the project isn't
+scaffolded yet: point the user at `spec-0-init`. If it reports a workspace still at
+`.plan/`, the project predates 4.0: `spec-0-init`'s migration section moves it. If the server never comes up,
 the docs toolchain is likely missing: `pip install mkdocs mkdocs-shadcn
 mkdocs-awesome-pages-plugin`. On a remote or headless host the browser won't pop
 open: pass on the printed URL so the user can open it (or their forwarded port).

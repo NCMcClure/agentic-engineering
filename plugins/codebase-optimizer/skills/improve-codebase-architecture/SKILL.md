@@ -1,6 +1,6 @@
 ---
 name: improve-codebase-architecture
-description: Find deepening opportunities in built code, informed by CONTEXT.md domain language and docs/adr decisions. Use for architecture asks — "improve the architecture", consolidate tightly-coupled modules, make the code more testable.
+description: Find deepening opportunities in built code, informed by the project's glossary and decision records. Use for architecture asks — "improve the architecture", consolidate tightly-coupled modules, make the code more testable.
 ---
 
 # Improve Codebase Architecture
@@ -24,13 +24,17 @@ The key principles — the **deletion test**, **the interface is the test
 surface**, and **one adapter = hypothetical seam, two = real seam** — are
 defined once, in [LANGUAGE.md](LANGUAGE.md); apply them by name.
 
-This skill is _informed_ by the project's domain model. The domain language gives names to good seams; ADRs record decisions the skill should not re-litigate.
+This skill is _informed_ by the project's domain model. The domain language gives names to good seams; decision records (ADRs) hold decisions the skill should not re-litigate.
+
+**Where they live.** The glossary is `.agents/CONTEXT.md` and decision records are `.agents/decisions/NNNN-slug.md`; when `.agents/agent-works.json` exists, its `paths.glossary` and `paths.decisions` name the homes instead. Never `./docs` (that folder is for user-facing documentation) and never a `CONTEXT.md` at the repo root. Below, "the glossary" and "a decision record" mean these files.
+
+Keeping decision records and the glossary is agent-works' job (`agent-works:decisions` / `aw decisions`). Without it: write them by hand in the minimal formats of [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md) and [ADR-FORMAT.md](ADR-FORMAT.md).
 
 ## Process
 
 ### 1. Explore
 
-Read the project's domain glossary and any ADRs in the area you're touching first.
+Read the glossary and any decision records in the area you're touching first.
 
 Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics — explore organically and note where you experience friction:
 
@@ -59,11 +63,11 @@ For each candidate, render a card with:
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
 
-**Use CONTEXT.md vocabulary for the domain, and [LANGUAGE.md](LANGUAGE.md) vocabulary for the architecture.** If `CONTEXT.md` defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
+**Use the glossary's vocabulary for the domain, and [LANGUAGE.md](LANGUAGE.md) vocabulary for the architecture.** If the glossary defines "Order," talk about "the Order intake module" — not "the FooBarHandler," and not "the Order service."
 
 **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007 — but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
 
-See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance.
+See [HTML-REPORT.md](HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance; start from the skeleton in `assets/report-skeleton.html`. [DEEPENING.md](DEEPENING.md) has the dependency categories and seam discipline to judge candidates by.
 
 Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
 
@@ -73,8 +77,8 @@ Once the user picks a candidate, drop into a grilling conversation. Walk the des
 
 Side effects happen inline as decisions crystallize:
 
-- **Naming a deepened module after a concept not in `CONTEXT.md`?** Add the term to `CONTEXT.md` — the format and rules are in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md). Create the file lazily if it doesn't exist.
-- **Sharpening a fuzzy term during the conversation?** Update `CONTEXT.md` right there.
-- **User rejects the candidate with a load-bearing reason?** Offer an ADR, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](ADR-FORMAT.md).
+- **Naming a deepened module after a concept not in the glossary?** Add the term to it — the format and rules are in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md). Create the file lazily if it doesn't exist.
+- **Sharpening a fuzzy term during the conversation?** Update the glossary right there.
+- **User rejects the candidate with a load-bearing reason?** Offer a decision record, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing — skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](ADR-FORMAT.md).
 - **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](INTERFACE-DESIGN.md).
-- **An accepted refactor moves or creates modules?** Update the governing `AGENTS.md` hub(s) in the same change — the contract is the codebase-organizer skill's `references/agent-hubs.md`.
+- **An accepted refactor moves or creates modules?** Update the governing `AGENTS.md` hub(s) in the same change. The hub contract is agent-works' job (`agent-works:hubs` / `aw hubs`). Without it: one line per direct child in the hub of the directory you changed, and no source file beside an `AGENTS.md`.

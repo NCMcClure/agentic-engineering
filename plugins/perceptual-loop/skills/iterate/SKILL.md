@@ -82,3 +82,7 @@ listed by shot in your report, and the second smoke run held.*
 `uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/timing.py"` shows where iterations' time went and how many runs
 went over budget. The usual fixes: fewer shots, fewer passes, one application start per run instead of per shot, a
 cache hit that is being defeated (inputs rewritten each run), sheets drawn for shots nobody opens (`--no-sheets`).
+
+Before blaming the loop, rule out the machine: another agent's render makes every run slow. Checking that the machine is quiet before a measurement is agent-works' job (`agent-works:coordinate` /
+`aw sys --quiet-for timing`). Without it: read the GPU and processor load yourself before the run (`nvidia-smi`,
+the system's process list), wait if another job is running, and write what you saw beside the numbers.

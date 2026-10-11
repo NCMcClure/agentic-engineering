@@ -60,7 +60,12 @@ report the median and the 95th and 99th percentiles over repeated steps, at each
 **floor** the design allows next to each number so the reader sees what is left. Timestamps come from one clock or
 from clocks whose relation is measured.
 
-*Done when: the table has before, after and floor per path and rate, with the number of steps measured.*
+A latency or a frame time measured on a busy machine is a number about the other job. Checking that the machine is quiet before a measurement is agent-works' job (`agent-works:coordinate` /
+`aw sys --quiet-for timing`). Without it: read the GPU and processor load yourself before the run (`nvidia-smi`,
+the system's process list), wait if another job is running, and write what you saw beside the numbers.
+
+*Done when: the table has before, after and floor per path and rate, with the number of steps measured and the
+machine's load at the time.*
 
 ## Step 4 — Look
 

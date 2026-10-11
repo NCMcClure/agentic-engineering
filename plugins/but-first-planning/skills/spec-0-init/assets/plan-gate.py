@@ -13,9 +13,10 @@ project-specific and is not visible to a hook, so re-running each checkpoint
 green on serial integration stays the coordinator's job.
 
 No external dependencies (stdlib only). No-ops (exit 0) when there is no
-`.plan/` workspace, which keeps it inert outside plan projects and after a
-`.plan/` removal. The hook's stdin JSON is intentionally ignored — the gate is
-coord-agnostic.
+`.agents/plan/` workspace, which keeps it inert outside plan projects and after a
+`.agents/plan/` removal. A workspace still at the pre-4.0 `.plan/` path blocks
+(exit 2) with one line naming the migration. The hook's stdin JSON is
+intentionally ignored — the gate is coord-agnostic.
 """
 from __future__ import annotations
 
@@ -31,8 +32,16 @@ def main() -> int:
     root = Path(os.environ.get("CLAUDE_PROJECT_DIR", "")).resolve() if os.environ.get(
         "CLAUDE_PROJECT_DIR"
     ) else Path.cwd()
-    verifier = root / ".plan" / "plan" / "verify-plan-tree.py"
+    verifier = root / ".agents" / "plan" / "plan" / "verify-plan-tree.py"
     if not verifier.is_file():
+        if (root / ".plan" / "plan").is_dir():
+            sys.stderr.write(
+                "plan-tree gate: this workspace is still at .plan/ (but-first-planning < 4.0); "
+                "it now lives at .agents/plan/. Migrate: mkdir -p .agents && git mv .plan "
+                ".agents/plan, then re-copy the scripts and rewrite this hook's path "
+                "(spec-0-init, 'Migrating a .plan/ workspace').\n"
+            )
+            return 2
         return 0  # no plan workspace -> nothing to gate
 
     proc = subprocess.run(

@@ -107,6 +107,10 @@ verbatim) and leaves the queue. Read them: a ruling is binding for later work an
 note often says more than the option. A ruling of "approve as it is" also closes the item's metric discussion: do
 not reopen it because a number is far from the reference.
 
+`.perceptual-loop/decisions/` holds rulings on looks. A ruling that binds work beyond this look (a rule for every
+engine, a format, a policy) also gets a decision record: that is agent-works' job (`agent-works:decisions` /
+`aw decisions new`). Without it: write it where every agent of the project reads its rules, and link the ruling.
+
 *Done when: the queue no longer holds decided items, each ruling's follow-up work is started or listed, and any
 doctrine-level ruling (a rule that changed) is written where every agent reads it.*
 

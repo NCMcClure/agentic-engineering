@@ -19,10 +19,16 @@ green by rewriting references; verification runs the project's own tests.
 The organizing taste lives in `references/philosophy.md` (the nine principles)
 and `references/language-layouts.md` (idiomatic target trees per ecosystem).
 Reference-fixing detail lives in `references/reference-rewriting.md`, and the
-AGENTS.md orientation-hub contract in `references/agent-hubs.md` — the reorg
-doesn't just shape the tree, it writes the hubs that make it self-describing.
-The two workflow scripts under `workflows/` carry the fan-out; you orchestrate
-them.
+AGENTS.md orientation-hub rules in `references/agent-hubs.md` — the reorg
+doesn't just shape the tree, it writes the hubs that make it self-describing
+(the root hub from the stub `assets/agents-root.md`). The two workflow scripts
+under `workflows/` carry the fan-out; you orchestrate them, and they call the
+bundled `scripts/repo_scan.py` and `scripts/verify_source_structure.py`.
+
+The hub contract, its templates and its verifier are agent-works' job
+(`agent-works:hubs` / `aw hubs`). Without it: this skill still drafts and
+writes hubs from the five rules in `references/agent-hubs.md`, and its report
+says "hub structure not verified: agent-works not installed".
 
 ## When to reach for this
 
@@ -43,6 +49,9 @@ fix the layout" request. For a single obvious move ("put these two files in a
    safety net. If dirty, recommend committing or stashing first. The apply phase
    re-checks this and will refuse to run on a dirty tree unless explicitly told
    to proceed on a fresh branch.
+4. **Find the hub verifier.** Run `command -v aw`. If it prints a path, pass
+   `hubVerifyCommand: "aw hubs"` to both workflows below; if not, pass
+   `hubVerifyCommand: ""` (hubs are written, their structure is not checked).
 
 ## Beat 1 — Scan and plan (read-only)
 
@@ -60,7 +69,8 @@ Workflow({
     skillDir: "<absolute path to this skill dir>",
     depth: "recursive",           // "recursive" (default) or "root-only"
     hubs: "on",                   // "on" (default) | "only" (hubs, no moves) | "off"
-    claudeMd: "detect"            // true | false | "detect" (default — resolve from repo signals)
+    claudeMd: "detect",           // true | false | "detect" (default — resolve from repo signals)
+    hubVerifyCommand: "aw hubs"   // or "" when `command -v aw` finds nothing (prerequisite 4)
   }
 })
 ```
@@ -104,7 +114,10 @@ Show the user, concisely:
   root hub's Layout lines shown as the preview. Existing hubs are merged, never
   clobbered.
 - **The one-time CLAUDE.md question**, only when the plan's `claude_md_optin`
-  is `"ask"` (the repo carries no signal yet — a root `CLAUDE.md` containing
+  is `"ask"`. It is never `"ask"` in a repo set up with agent-works
+  (`.agents/agent-works.json` exists): the plan then says `"agent-works"`, that
+  repo's `claude.twins` setting decides, and you ask nothing. Otherwise `"ask"`
+  means the repo carries no signal yet (a root `CLAUDE.md` containing
   `@AGENTS.md` means already opted in; a root `AGENTS.md` without it means
   previously declined; neither means ask now): "Also create sibling `CLAUDE.md`
   files containing `@AGENTS.md` so Claude Code loads the hubs natively?" Write
@@ -128,7 +141,8 @@ Workflow({
     dateToday: "<YYYY-MM-DD>",
     skillDir: "<absolute skill dir>",
     planPath: "<repo>/.codebase-organizer-plan.json",
-    branch: "codebase-organizer/reorg"   // it works on a fresh branch by default
+    branch: "codebase-organizer/reorg",  // it works on a fresh branch by default
+    hubVerifyCommand: "aw hubs"          // the same value as in Beat 1
   }
 })
 ```
@@ -136,16 +150,19 @@ Workflow({
 It re-asserts a clean tree, creates the working branch, performs each move with
 `git mv`, quarantines cruft, rewrites references per the plan's recipes,
 re-greps for anything missed, writes the planned AGENTS.md hubs (merging with
-any pre-existing ones, plus CLAUDE.md siblings when opted in), then runs
+any pre-existing ones, plus CLAUDE.md siblings when opted in; in an
+agent-works repo it runs `aw twins` instead of writing them), then runs
 **Beat 4** inline.
 
 ## Beat 4 — Verify (inside the apply workflow, surfaced to you)
 
 The apply workflow detects and runs the project's own build/test/lint (`pytest`,
 `npm test` / `tsc`, `go build ./...`, `cargo test`, or a `Makefile`/CI target)
-and, when hubs are in play, `scripts/verify_agents_hubs.py` — a critical hub
-finding fails the apply (it just wrote the hubs), warnings are reported and
-ramp in later. A green result is the success criterion. If it's red, the workflow reports exactly what broke and the
+and, when hubs are in play and you passed a `hubVerifyCommand`, that command —
+a critical hub finding fails the apply (it just wrote the hubs), warnings are
+reported and ramp in later. With an empty `hubVerifyCommand` the result carries
+`hub_verified: false` and `hub_note: "hub structure not verified: agent-works
+not installed"`. A green result is the success criterion. If it's red, the workflow reports exactly what broke and the
 suspected missed reference; relay that and propose next steps (fix forward, or
 `git checkout`/branch-discard to revert — the original tree is untouched on the
 user's original branch).
@@ -157,14 +174,15 @@ routes through the same pipeline as the degenerate case, not a separate mode:
 run planning with `hubs: "only"` (Design is skipped, zero moves; hubs are
 drafted against the current tree), present the hub list at the same gate, and
 apply. Verification reduces to a fast resolution-level build check plus the
-hub verifier, since no code moved.
+hub verifier (when there is one), since no code moved.
 
 ## Reporting back
 
 Summarize: root file count before → after, top-level dirs created, overstuffed
 dirs split, moves applied, references rewritten, cruft quarantined, hubs
 written/merged (+ CLAUDE.md siblings if opted in) with the hub verifier's
-summary, and the verification result. Tell the user the work is on branch `<branch>` and that
+summary — or, when none ran, the sentence "hub structure not verified:
+agent-works not installed" — and the verification result. Tell the user the work is on branch `<branch>` and that
 nothing was deleted — quarantined files await their review under `archive/`.
 Remind them to review the diff before merging.
 

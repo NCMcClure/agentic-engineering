@@ -19,9 +19,9 @@ has a recorded resolution, and no two spec files contradict each other.
 
 ## What this skill operates on
 
-- The spec under `.plan/spec/` — the thing being grilled.
-- The glossary at `.plan/spec/reference/glossary.md` — the canonical vocabulary. Format and discipline in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md).
-- The decision records under `.plan/spec/reference/adr/` — load-bearing choices. Format and the bar for creating one in [ADR-FORMAT.md](ADR-FORMAT.md).
+- The spec under `.agents/plan/spec/` — the thing being grilled.
+- The glossary at `.agents/plan/spec/reference/glossary.md` — the canonical vocabulary. Format and discipline in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md).
+- The decision records under `.agents/plan/spec/reference/adr/` — load-bearing choices. Format and the bar for creating one in [ADR-FORMAT.md](ADR-FORMAT.md).
 
 Both the glossary and the ADR folder were scaffolded by `spec-0-init`. Create
 individual ADR files lazily, only when one is warranted.
@@ -64,7 +64,7 @@ not lost to the transcript.
 
 - **A term gets resolved?** Update `glossary.md` right then, in the format in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md). The glossary is a glossary — definitions only, no implementation detail, no design rationale.
 - **A fuzzy term gets sharpened?** Update its glossary entry on the spot.
-- **The grilling changes the design?** Edit the affected spec file(s) so the spec stays the source of truth — and bump their `updated` frontmatter and summary (see `spec-1-specify`'s FRONTMATTER reference). Run `python .plan/spec/scripts/verify-spec-tree.py` after edits.
+- **The grilling changes the design?** Edit the affected spec file(s) so the spec stays the source of truth — and bump their `updated` frontmatter and summary (see `spec-1-specify`'s FRONTMATTER reference). Run `python .agents/plan/spec/scripts/verify-spec-tree.py` after edits.
 - **A decision is load-bearing?** Offer an ADR — but only when it clears the bar (hard to reverse ∧ surprising without context ∧ a real trade-off). Most decisions don't qualify; see [ADR-FORMAT.md](ADR-FORMAT.md). ADR files on the site carry frontmatter like any content file.
 
 ## At scale: the bundled deep-review workflow

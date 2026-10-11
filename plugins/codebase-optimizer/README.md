@@ -17,7 +17,9 @@ The engine is a Claude Code **dynamic Workflow** that fans out many subagents. I
 self-contained: the methodology files it reads at runtime
 (`LANGUAGE.md`/`DEEPENING.md`, the organizer's `philosophy.md`/`language-layouts.md`),
 the two organize sub-workflows, `repo_scan.py`, and the structure verifier are all
-bundled and resolved via `${CLAUDE_PLUGIN_ROOT}`.
+bundled and resolved via `${CLAUDE_PLUGIN_ROOT}`. One thing is deliberately not
+bundled: the AGENTS.md hub contract and its verifier, which belong to the
+agent-works plugin (see "AGENTS.md hubs" below).
 
 ## Requirements
 
@@ -61,16 +63,29 @@ A tidy tree still can't tell an agent what each subtree is for. The ORGANIZE
 stage (and the standalone `codebase-organizer` skill) therefore writes an
 `AGENTS.md` orientation hub in the repo root and every non-leaf code directory:
 one honest line per direct child — what it holds, when to descend — drafted
-from the actual post-move tree, never aspiration. The rules (hub isolation:
-no source files beside a hub; direct-children-only scope; update-on-change)
-live in `skills/codebase-organizer/references/agent-hubs.md`, checked by the
-bundled `verify_agents_hubs.py`, and the DECOMPOSE/DEEPEN stages keep hubs
-current in the same commit as any file they move or create. Sibling
-`CLAUDE.md` files (containing `@AGENTS.md`, so Claude Code loads the hubs
-natively) are opt-in, asked once per repo. Existing AGENTS.md/CLAUDE.md files
-are merged, never clobbered. "Just add hubs to my repo" works too — the
-organizer runs with `hubs: "only"` (zero moves). The contract is kept in
-intentional sync with the but-first-planning plugin's greenfield equivalent.
+from the actual post-move tree, never aspiration. The DECOMPOSE/DEEPEN stages
+keep hubs current in the same commit as any file they move or create. Existing
+AGENTS.md/CLAUDE.md files are merged, never clobbered. "Just add hubs to my
+repo" works too — the organizer runs with `hubs: "only"` (zero moves).
+
+The hub contract, its templates and its verifier are agent-works' job
+(`agent-works:hubs` / `aw hubs`). Without it: hubs are still drafted and written
+from the five rules in `skills/codebase-organizer/references/agent-hubs.md`, and
+the run's report says "hub structure not verified: agent-works not installed".
+
+Sibling `CLAUDE.md` files (containing `@AGENTS.md`, so Claude Code loads the
+hubs natively): in a repo set up with agent-works its `claude.twins` setting
+decides; otherwise they are opt-in, asked once per repo.
+
+## Decision records and the glossary
+
+The DEEPEN methodology reads the project's glossary and decision records so it
+names seams in the project's own words and does not re-litigate settled
+choices. Their homes are `.agents/CONTEXT.md` and `.agents/decisions/`, never
+`./docs` (user-facing documentation only) and never the repo root. Keeping them
+is agent-works' job (`agent-works:decisions` / `aw decisions`). Without it:
+`improve-codebase-architecture` writes them by hand in the minimal formats it
+ships.
 
 ## Safety model
 
@@ -107,13 +122,14 @@ chair-unavailable consensus fallback, observational org audit).
 .claude-plugin/plugin.json
 skills/
   optimize-codebase/{SKILL.md, workflows/optimize-codebase.js}
-  improve-codebase-architecture/{SKILL,LANGUAGE,DEEPENING,INTERFACE-DESIGN,HTML-REPORT}.md
+  improve-codebase-architecture/{SKILL,LANGUAGE,DEEPENING,INTERFACE-DESIGN,HTML-REPORT,CONTEXT-FORMAT,ADR-FORMAT}.md
   codebase-organizer/{SKILL.md, references/, assets/agents-root.md,
-    scripts/{repo_scan.py, verify_source_structure.py, verify_agents_hubs.py}, workflows/}
+    scripts/{repo_scan.py, verify_source_structure.py}, workflows/}
 ```
 
 ## Changelog
 
+- **0.4.0**: hubs, decision records and the glossary defer to the agent-works plugin, the one owner of how a codebase is set up for agents. **Breaking:** (1) decision records and the glossary move to `.agents/decisions/NNNN-slug.md` and `.agents/CONTEXT.md` (honouring `paths.decisions` / `paths.glossary` of `.agents/agent-works.json`); `docs/adr/` and a root `CONTEXT.md` are no longer read or written — move existing files there. (2) The bundled hub verifier `verify_agents_hubs.py` is gone: the workflows take a `hubVerifyCommand` argument (`"aw hubs"` when the `aw` command exists, replacing the `hubVerifier` path argument) and, when it is empty, still write hubs but report "hub structure not verified: agent-works not installed". Also: `references/agent-hubs.md` and the root stub shrink to the five rules plus the fallback; in a repo with `.agents/agent-works.json` the CLAUDE.md sibling question is not asked (its `claude.twins` setting decides); `CONTEXT-FORMAT.md` and `ADR-FORMAT.md` shrink to the minimal formats; leftover `.gitignore` entries from the plugin's previous home removed.
 - **0.3.0**: AGENTS.md progressive-disclosure hubs. The organizer plans and writes orientation hubs on the post-move tree — a new `HubDraft` phase places them (root always, every non-leaf code dir) and drafts honest one-line-per-child Layout sections from the real files; apply writes/merges them (user prose never clobbered) with opt-in `CLAUDE.md` siblings containing `@AGENTS.md` (asked once per repo, detected from the root import thereafter); the Design phase now includes the nesting moves hub isolation requires (no source files beside a hub). New owning contract `references/agent-hubs.md` (philosophy gains principle 9), new `verify_agents_hubs.py` verifier (whole-repo, warn-ramp until a root hub exists, then isolation is critical) gating the organize apply and reported baseline→final by optimize-codebase; the DECOMPOSE/DEEPEN engine prompts carry a hub-currency duty so moved/split files update their governing hub in the same commit. Hubs-only runs (`hubs: "only"`) retrofit hubs onto an already-tidy repo with zero moves.
 - **0.2.3**: emitted recon/verify commands resolve `python3` or `python` rather than hardcoding `python3`, matching the existing "python3 or python" availability check so a `python`-only box (e.g. Windows/Git-Bash) doesn't drop to degraded mode.
 - **0.2.2**: README reworded.

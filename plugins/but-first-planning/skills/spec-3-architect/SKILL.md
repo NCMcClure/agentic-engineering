@@ -37,8 +37,8 @@ Key principles (full list in [LANGUAGE.md](LANGUAGE.md)):
 - **One adapter = a hypothetical seam. Two adapters = a real one.**
 
 This skill is *informed* by the project's vocabulary: the glossary
-(`.plan/spec/reference/glossary.md`) names good seams; the ADRs
-(`.plan/spec/reference/adr/`) record decisions you should not re-litigate.
+(`.agents/plan/spec/reference/glossary.md`) names good seams; the ADRs
+(`.agents/plan/spec/reference/adr/`) record decisions you should not re-litigate.
 
 ## Process
 
@@ -98,7 +98,7 @@ sits behind the seam, what the eventual tests would assert.
 
 Side effects happen **inline**, because this is the moment the design firms up:
 
-- **Editing the spec.** The spec is the source of truth — when the design changes, change the spec files and bump their `updated`/summary frontmatter. Run `python .plan/spec/scripts/verify-spec-tree.py` after edits.
+- **Editing the spec.** The spec is the source of truth — when the design changes, change the spec files and bump their `updated`/summary frontmatter. Run `python .agents/plan/spec/scripts/verify-spec-tree.py` after edits.
 - **Naming a deepened module after a concept not in the glossary?** Add the term — same discipline as `spec-2-grill` ([its CONTEXT-FORMAT.md](../spec-2-grill/CONTEXT-FORMAT.md)).
 - **Sharpening a fuzzy term?** Update the glossary right there.
 - **A load-bearing decision, or the user rejecting a candidate for a reason future reviews must respect?** Offer an ADR ([its ADR-FORMAT.md](../spec-2-grill/ADR-FORMAT.md)) — framed as "want me to record this so future architecture reviews don't re-suggest it?" Only when it clears the bar.

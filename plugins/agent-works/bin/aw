@@ -1,0 +1,18 @@
+#!/bin/sh
+# aw: the agent-works command line. Finds a Python 3 (python3, then python; the Windows Store stub is skipped)
+# and runs the CLI that ships beside this launcher.
+here=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+case "$(command -v python3 2>/dev/null)" in
+  ''|*/WindowsApps/*) py=python ;;
+  *) py=python3 ;;
+esac
+if ! command -v "$py" >/dev/null 2>&1; then
+  echo "aw: no Python 3 on the PATH (tried python3 and python)" >&2
+  exit 127
+fi
+case "$(uname -s 2>/dev/null)" in
+  # Git Bash and Cygwin: an exec leaves Python with a parent that is gone, and aw could no longer find the session
+  # it runs in. Stay as its parent there.
+  MINGW*|MSYS*|CYGWIN*) "$py" -B "$here/../cli/aw.py" "$@"; exit $? ;;
+esac
+exec "$py" -B "$here/../cli/aw.py" "$@"

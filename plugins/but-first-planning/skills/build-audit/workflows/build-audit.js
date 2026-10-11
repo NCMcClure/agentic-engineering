@@ -28,9 +28,9 @@ if (!A || !A.root || !A.pluginRoot || !A.epicNumber || !A.projectBrief) {
 }
 const ROOT = A.root.replace(/\/$/, '')
 const PLUGIN = A.pluginRoot.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
-const PLAN = `${ROOT}/.plan/plan`
-const PROGRESS = `${ROOT}/.plan/progress`
+const SPEC = `${ROOT}/.agents/plan/spec`
+const PLAN = `${ROOT}/.agents/plan/plan`
+const PROGRESS = `${ROOT}/.agents/plan/progress`
 const EPICNUM = String(A.epicNumber)
 const PUBLISH = A.publish === true
 const MAXISSUES = A.maxEpicIssues || 30
@@ -108,7 +108,7 @@ phase('Map')
 const PROMISE = {
   type: 'object', required: ['page', 'claim', 'kind'],
   properties: {
-    page: { type: 'string', description: 'spec file, relative to .plan/spec/' },
+    page: { type: 'string', description: 'spec file, relative to .agents/plan/spec/' },
     claim: { type: 'string', description: 'the promise, one terse sentence' },
     kind: { enum: ['user-facing-flow', 'assertable-behavior', 'config-key', 'integration', 'doc-promise', 'benchmark'] },
     testSurface: { type: 'string', description: 'the named test surface, or "NONE NAMED"' },
@@ -161,7 +161,7 @@ const FINDING = {
         title: { type: 'string', description: 'behavioral, present-tense, like existing plan issues' },
         type: { enum: ['AFK', 'HITL', 'REVIEW'] },
         whatToBuild: { type: 'string' },
-        specAnchors: { type: 'array', items: { type: 'string' }, description: 'spec paths relative to .plan/spec/' },
+        specAnchors: { type: 'array', items: { type: 'string' }, description: 'spec paths relative to .agents/plan/spec/' },
         acceptanceCriteria: { type: 'array', minItems: 2, maxItems: 5, items: { type: 'string' } },
         testingCheckpoint: { type: 'string', description: 'command + expected result' },
         userFacing: { type: 'string', description: 'the **User-facing** line value: "yes — <what>" or "no — internal"' },
@@ -376,7 +376,7 @@ let pub = null
 if (PUBLISH && treeGreen) {
   // ONE serial agent: tracker CLI + per-file #NNN backfill is order-sensitive and idempotency must see prior edits
   pub = await agent(
-    `${CTX}\nYou are the publisher. Read ${ROOT}/.plan/tracker.md for the tracker and Project-board contract (owner, project number, field semantics — look field/option IDs up at runtime, never hardcode). For EACH sprint of the new epic, in order (${synth.sprints.map(s => `${EPICNUM}-${s.num}`).join(', ')}):
+    `${CTX}\nYou are the publisher. Read ${ROOT}/.agents/plan/tracker.md for the tracker and Project-board contract (owner, project number, field semantics — look field/option IDs up at runtime, never hardcode). For EACH sprint of the new epic, in order (${synth.sprints.map(s => `${EPICNUM}-${s.num}`).join(', ')}):
 1. Run: python3 ${PLAN}/publish-issues.py publish --sprint ${EPICNUM}-<NN> (cwd ${ROOT}). It creates the GitHub issues and backfills #NNN into the plan files. IDEMPOTENCY: files already carrying "**GitHub**: #NNN" are skipped by the script — never create duplicates yourself.
 2. Mirror each created issue into the Project board: gh project item-add <num> --owner <owner> --url <issue-url>, then set Epic=E${EPICNUM}, Sprint=${EPICNUM}-<NN>, Type per the issue via gh project item-edit. The Epic/Sprint single-select OPTIONS for this new epic likely do not exist yet: fetch the field's current options first (gh project field-list --format json), and add the new option via the GraphQL updateProjectV2SingleSelectField mutation ONLY by passing the complete existing option list (with their ids and colors/descriptions) plus the new option — if the mutation errors or the shape is unclear, SKIP board mirroring for that field, leave the rest intact, and record it in fieldGaps rather than risking the board.
 3. On a per-issue failure record it and continue.

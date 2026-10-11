@@ -1,11 +1,11 @@
 # Publishing to GitHub
 
 The default tracker. Issues are created with the `gh` CLI and, if a GitHub
-Project board is configured in `.plan/tracker.md`, mirrored into it with custom
+Project board is configured in `.agents/plan/tracker.md`, mirrored into it with custom
 fields. The repo is inferred from `git remote -v` when `gh` runs in the clone.
 
 Read the project board URL / owner / number and the label strings from
-`.plan/tracker.md` — don't hardcode them here.
+`.agents/plan/tracker.md` — don't hardcode them here.
 
 ## Division of labour with `plan-status.py`
 
@@ -14,7 +14,7 @@ Publishing and status-tracking are split:
 - **Publish (this skill)** — *create* the issue and set its **immutable** fields:
   the Epic/Sprint/Type project fields and the `**GitHub**: #NNN` backfill. New
   issues land in the default Status (`Todo`); publish does **not** drive Status.
-- **Status transitions (`.plan/plan/plan-status.py`)** — every later `Todo → In
+- **Status transitions (`.agents/plan/plan/plan-status.py`)** — every later `Todo → In
   Progress → Done` move, and `gh issue close/reopen`, is done by the funnel as
   issues are built and verified. Don't set Status from here.
 

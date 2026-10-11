@@ -26,12 +26,25 @@ Skills arrive namespaced: `/but-first-planning:spec-0-init`,
 
 ## The plugins
 
+### agent-works
+
+Agent workflows rot the same way in every repo: `AGENTS.md` bloats, one rule
+gets stated four times, task status lives in six places, and two sessions on
+one machine never learn the other exists. agent-works gives every kind of fact
+one home under `.agents/` with a size budget, checks them all with
+`aw doctor`, keeps tasks and owed gates on a kanban board you share with the
+agents, and coordinates locks, leases and learnings across projects through
+one CLI. It is the foundation the plugins below lean on for hubs, memory,
+decisions and orchestration; each still runs without it.
+[Read more →](plugins/agent-works/README.md)
+
 ### but-first-planning
 
 Code written before the spec is settled is a loan against your future self.
 A numbered planning pipeline (spec → grill → architect → plan → publish)
-plus a build loop of coordinated TDD agents, all landing in one `.plan/`
-directory, with an autopilot that runs the whole graph hands-off.
+plus a build loop of coordinated TDD agents, all landing in one
+`.agents/plan/` workspace (4.0 moved it there from `.plan/`), with an
+autopilot that runs the whole graph hands-off.
 [Read more →](plugins/but-first-planning/README.md)
 
 ### agentic-teamwork
@@ -40,7 +53,10 @@ Mixed-skill teams shouldn't rely on discipline to keep prototypes off main.
 Deterministic guardrails block commits to protected branches, force-pushes,
 secrets, junk files, and failing tests. The hooks run inside Claude Code and
 again in the terminal, with CI as the backstop for anything that slips
-through. GitHub and GitLab are both first-class. [Read more →](plugins/agentic-teamwork/README.md)
+through. GitHub and GitLab are both first-class. Owns team version-control
+guardrails; agent-specific guards and how agents share a codebase are
+agent-works' job. The two are meant to run together.
+[Read more →](plugins/agentic-teamwork/README.md)
 
 ### codebase-optimizer
 
@@ -49,7 +65,9 @@ A staged, autonomous optimizer for whatever language your repo speaks
 file tree into an AGENTS.md-hubbed progressive-disclosure layout (orientation
 hubs an agent reads before descending), decomposes god-files, and deepens
 shallow architecture, though every change sits behind CI-faithful validation
-with revert-on-red and nothing is ever pushed.
+with revert-on-red and nothing is ever pushed. It writes the hubs; the hub
+contract and its verifier are agent-works' job. Without it, hubs are written
+but their structure is not verified.
 [Read more →](plugins/codebase-optimizer/README.md)
 
 ### workflow-studio
@@ -105,8 +123,10 @@ An agent can't iterate on what it can't measure. For work judged by eye or ear
 (a render, a UI, a clip, a sound) it supplies the loop code already has:
 reproducible shots, numbers that gate regressions against measured noise,
 sheets the agent opens with its own vision, and one review page that batches
-the taste questions for you. A hook keeps runs small and keeps two agents from
-starting the same renderer. [Read more →](plugins/perceptual-loop/README.md)
+the taste questions for you. A hook keeps runs small. It measures looks and
+does not coordinate agents: locks, leases, machine load and the general half
+of orchestration are agent-works' job. Without it, each skill falls back to a
+few by-hand lines. [Read more →](plugins/perceptual-loop/README.md)
 
 ## Working in this repo
 

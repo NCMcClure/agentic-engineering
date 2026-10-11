@@ -7,17 +7,17 @@ description: Test-driven development with a red-green-refactor loop, driven by a
 
 ## Implementing a plan issue
 
-When the work is a plan issue (from `.plan/plan/`, typically the one
+When the work is a plan issue (from `.agents/plan/plan/`, typically the one
 `build-next-issue` named as next), the issue gives you the test plan for
 free:
 
 - Its **acceptance criteria** are your behaviour list — one tracer bullet per criterion.
 - Its **testing checkpoint** command is the gate the slice must pass to count as done.
-- Its **spec anchors** (links into `.plan/spec/`) are the behavioural contract — read them so your tests assert what was *specified*, in the spec's vocabulary, not a guess.
+- Its **spec anchors** (links into `.agents/plan/spec/`) are the behavioural contract — read them so your tests assert what was *specified*, in the spec's vocabulary, not a guess.
 
 Work the red-green loop below until every acceptance criterion is satisfied and
 the testing checkpoint passes. Then run the status funnel — `python
-.plan/plan/plan-status.py set EE-SS-II done` (e.g. `01-03-07`) — which flips the
+.agents/plan/plan/plan-status.py set EE-SS-II done` (e.g. `01-03-07`) — which flips the
 issue's `Status:`, ticks its acceptance boxes, rolls the change up through the
 sprint/epic tables and fields and the plan index, and syncs the tracker, all in
 one step. Don't hand-edit any `Status` field. Then hand back to
@@ -25,7 +25,7 @@ one step. Don't hand-edit any `Status` field. Then hand back to
 ambiguous, stop and route the change through `spec-4-edit` rather than quietly
 diverging from it — the spec stays the source of truth.
 
-When there's no `.plan/` workspace, ignore this section and use the plain
+When there's no `.agents/plan/` workspace, ignore this section and use the plain
 red-green-refactor loop below.
 
 ## Philosophy
@@ -67,7 +67,7 @@ RIGHT (vertical):
 
 ### 1. Planning
 
-When exploring the codebase, use the project's domain glossary so that test names and interface vocabulary match the project's language, and respect ADRs in the area you're touching. If a `.plan/` workspace exists, that glossary is `.plan/spec/reference/glossary.md`; the ADRs are in `.plan/spec/reference/adr/`.
+When exploring the codebase, use the project's domain glossary so that test names and interface vocabulary match the project's language, and respect ADRs in the area you're touching. If a `.agents/plan/` workspace exists, that glossary is `.agents/plan/spec/reference/glossary.md`; the ADRs are in `.agents/plan/spec/reference/adr/`.
 
 Before writing any code:
 
@@ -123,10 +123,11 @@ After all tests pass, look for [refactor candidates](REFACTORING.md):
 
 ## Codebase organization
 
-When a `.plan/` workspace (or a root `AGENTS.md`) exists, the source tree
-carries AGENTS.md orientation hubs — the rules live in the root `AGENTS.md`
-and in [spec-1-specify's CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md),
-shared rather than duplicated here. Your two duties while building:
+When a `.agents/plan/` workspace (or a root `AGENTS.md`) exists, the source tree
+carries AGENTS.md orientation hubs. The rules are in the root `AGENTS.md`; the
+contract and its checker are `agent-works:hubs` (five-line summary in
+[spec-1-specify's CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)).
+Your two duties while building:
 
 - **New directory** → place it per the spec's `repository-layout.md`, and if
   it makes a parent non-leaf (subdirectories now contain code), give that
@@ -138,8 +139,9 @@ shared rather than duplicated here. Your two duties while building:
   not as follow-up.
 
 Never put source files in a directory that carries an `AGENTS.md` — code
-lives in subdirectories (hub isolation). `python
-.plan/plan/verify-agents-tree.py` checks the structure when it exists.
+lives in subdirectories (hub isolation). Check with `aw hubs` when agent-works
+is installed (`python .agents/plan/plan/verify-agents-tree.py` is the same
+check, wired for checkpoint rows); without it nothing verifies the hubs.
 
 ## Checklist per cycle
 
@@ -155,10 +157,10 @@ lives in subdirectories (hub isolation). `python
 
 For a plan issue: every acceptance criterion maps to a named passing test; the
 issue's testing-checkpoint command exits 0; if
-`.plan/plan/verify-agents-tree.py` exists it reports no violations your change
+`.agents/plan/plan/verify-agents-tree.py` exists it reports no violations your change
 introduced (hubs created/updated per the codebase-organization duties above);
 status was flipped through `plan-status.py set EE-SS-II done` (never
 hand-edited); and control is handed back to `build-next-issue` to verify
-completion and name what's next. Without a `.plan/` workspace: every behaviour
+completion and name what's next. Without a `.agents/plan/` workspace: every behaviour
 agreed in Planning has a passing test and the refactor pass left the suite
 green.

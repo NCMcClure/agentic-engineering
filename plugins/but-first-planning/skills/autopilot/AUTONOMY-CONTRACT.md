@@ -36,7 +36,7 @@ early regardless of scope — report, don't push through.
 
 ## 4. publish / PR posture
 
-Which tracker (from `.plan/tracker.md`), whether each sprint opens a PR
+Which tracker (from `.agents/plan/tracker.md`), whether each sprint opens a PR
 (`openPr`), the PR base branch, and whether `triage-drift.js` may publish drift
 issues (`publish: true`) or must batch them. Also the **docs posture**: whether
 each sprint runs the `build-user-docs` pass after its reconcile (default
@@ -56,7 +56,7 @@ covers, and nothing else is.
 ## Permissions to pre-approve
 
 Per `build-sprint`'s ORCHESTRATION.md: the project's build/test commands, the
-verifiers (`python3 .plan/...`), `git` branch/commit/push, and the tracker CLI
+verifiers (`python3 .agents/plan/...`), `git` branch/commit/push, and the tracker CLI
 (`gh` / `glab`). Builders that stall on permission prompts break the cadence —
 settle this at contract time, in the project's `.claude/settings.json`.
 

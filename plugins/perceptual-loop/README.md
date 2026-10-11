@@ -42,7 +42,7 @@ Requires [`uv`](https://docs.astral.sh/uv/) and, for clips, `ffmpeg`. In a proje
 | `judge-and-queue` | A difference needs a verdict, an unanchored second look, or the owner's ruling |
 | `check-motion` | Animation, transitions, smoothness, character motion, latency, clips |
 | `check-audio` | Sound: pitch, loudness, timing, sync, spectrograms to look at |
-| `orchestrate-agents` (you start it) | Several agents, one renderer: briefs, locks, a board, proportionate verification |
+| `orchestrate-agents` (you start it) | Several agents on looks: a success file and proving shots each, proportionate verification, who opens the pictures |
 
 Plus the **vision-critic** agent (a judge that sees only pictures and neutral questions, never the builder's intent)
 and the **perceptual-critique** workflow (a blind critic per comparison, a refuter per finding).
@@ -63,7 +63,6 @@ dependencies, so the heavy ones cost nothing until used. Every script has `--hel
 | `keypoints.py` | Character pose: per-joint error, limb angles, left/right swaps, jitter |
 | `semantic.py` | Similarity when nothing is pixel-aligned: image–image, image–text, ranking, drift |
 | `audio.py` | Pitch against expectation, loudness, onsets, lag, spectral distance, spectrograms |
-| `lock.py` | One instance of a scarce application across agents and worktrees; a shared board |
 | `review_page.py` | The owner's review page (one self-contained HTML file) and applying the exported rulings |
 | `evidence_lint.py`, `timing.py` | Lint a report for verdicts without evidence; show where iteration time goes |
 
@@ -74,14 +73,24 @@ turns on:
 
 - **Budget:** a render of more shots than `budget.free` is refused unless the command states its reason
   (`PL_RUN="verify: …"` or `"full: …"`); allowed large runs are logged.
-- **Locks:** a command that starts a configured application is refused unless it names its agent (`PL_AGENT=…`) and
-  that agent holds the lock.
 - **Baseline safety:** an update without a source and a selection is refused.
+
+A render wrapped by agent-works (`aw lock run <resource> … -- <command>`, `aw lease <resource> … -- <command>`) is
+judged as the inner command, so the two plugins' hooks neither refuse twice nor miss a wrapped render.
+
+## With agent-works
+
+perceptual-loop measures looks; it does not coordinate agents. Locks and leases on a scarce application, the notes
+agents leave each other, the machine's load before a timing, the project's memory, decision records, and the
+general half of orchestration (tasks, briefs, worktrees, owed gates, reports) are agent-works' job
+(`agent-works:coordinate`, `agent-works:orchestrate`, `agent-works:memory`, `agent-works:decisions` / `aw lock`,
+`aw lease`, `aw sys`, `aw note`). Without it: every skill here still runs, with a few lines of by-hand fallback
+where it would have deferred, and nothing enforces one agent at a time on the renderer.
 
 ## Tests
 
 `python -B -m unittest discover -s tests` runs the standard-library tests: `tests/test_guard.py` (the hook's
-decisions), `tests/test_lock.py` (queue order, races, `run` releasing) and `tests/test_evidence_lint.py`. The
+decisions, including what it sees through agent-works' wrappers) and `tests/test_evidence_lint.py`. The
 measuring scripts carry their own `--self-test` on synthetic data.
 
 ## What it does not do
@@ -92,8 +101,9 @@ measuring scripts carry their own `--self-test` on synthetic data.
   says so.
 - The hook matches command **text**. It skips heredoc bodies and the arguments of commit messages and `echo`, but
   a guarded command quoted as an argument of another program still matches, a render started from inside a script
-  file is not seen, and the caller's name is self-declared: a coordination aid, not a security boundary.
+  file is not seen: a coordination aid, not a security boundary.
 
 ## Changelog
 
+- 0.2.0 — Locks and orchestration defer to the agent-works plugin. **Breaking:** `scripts/lock.py` (locks, the queue, the notes board) and the hook's `locks` rule are gone, so without agent-works nothing enforces one agent at a time on a scarce application; `locks` in `.perceptual-loop/config.json` is ignored (declare the application as a resource in agent-works instead; `PL_AGENT` is still honoured there as an alias). The budget rule now reads through `aw lock run … --` and `aw lease … --`. `orchestrate-agents` keeps the perceptual half (success files, proving shots, proportionate verification, opening the pictures, the owner's queue) and its brief template becomes an addendum to agent-works' common brief; load checks before a timing use `aw sys --quiet-for timing`; `probe-the-source` and `judge-and-queue` point at agent-works for the project's memory and for rulings that bind beyond a look.
 - 0.1.0 — First release: ten skills, the vision-critic agent, the critique workflow, the script set, the guard hook.

@@ -1,6 +1,6 @@
 # The docs ledger and managed-files manifest
 
-`build-user-docs` records its state in one file, `.plan/progress/docs.md`,
+`build-user-docs` records its state in one file, `.agents/plan/progress/docs.md`,
 created lazily on the skill's first run (no scaffolding step, no backfill
 exception — like drift files). This skill owns the format; `build-next-issue`
 consumes it read-only for its docs-freshness report line.
@@ -64,7 +64,7 @@ pass. Every other doc file is user-authored: section-level edits only.
   sections, no stale examples left because they were true last sprint.
 - End-user docs answer: what is this, how do I install it, how do I do the
   things it's for. They never document internal architecture, agent workflow,
-  or anything under `.plan/` — that's what the spec site is for.
+  or anything under `.agents/plan/` — that's what the spec site is for.
 - Every command, flag, path, and example is grounded by execution against the
   built tree before it's written (the grounding rule in
   [SKILL.md](SKILL.md)). An ungroundable claim is a report line, not a doc line.

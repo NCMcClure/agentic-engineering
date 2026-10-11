@@ -51,8 +51,6 @@ otherwise. Scripts find the project root by walking up from the working director
     <source>.json          the renderer's own report (timings, state), free form
   runs/<run>/<shot>/       outputs of a compare run: metrics.<source>.json, sheets, crops (git-ignored)
   runs/timing.jsonl  runs/budget.log     one line per iterate run; allowed over-budget runs
-  locks/  board.log        only when config.locks.dir is unset AND the project is not shared across worktrees;
-                           by default locks live in the user's data folder so every worktree sees them
 ```
 
 ## config.json
@@ -70,8 +68,6 @@ otherwise. Scripts find the project root by walking up from the working director
   "passes": ["beauty"],
   "regionsFrom": "reference",
   "budget": { "free": 3, "match": ["render", "capture", "perceptual-loop.*iterate"] },
-  "locks": { "dir": null, "staleMinutes": 45,
-             "apps": { "editor": { "processes": ["UnrealEditor"], "match": ["shot-render", "run-tests"] } } },
   "metrics": { "ssim": true, "deltaE": true, "edges": true, "detail": true }
 }
 ```
@@ -84,8 +80,9 @@ otherwise. Scripts find the project root by walking up from the working director
 - `budget.free` is how many shots one command may render without stating a reason; `budget.match` are regular
   expressions over command text that mark a command as a render. The reason goes in the command as
   `PL_RUN="verify: <what already works, what this checks>"` or `PL_RUN="full: <what is finished>"`.
-- `locks.apps.<name>`: `processes` are executable-name prefixes that mean the application is running; `match` are
-  regular expressions over command text that mean a command starts it. A caller names itself with `PL_AGENT=<name>`.
+- There is no `locks` key (it was removed in 0.2.0; a leftover one is ignored). Locks on scarce applications and
+  the notes agents leave each other are the agent-works plugin's. The budget rule reads through its wrappers: in
+  `aw lock run <resource> … -- <command>` and `aw lease <resource> … -- <command>` it judges `<command>`.
 
 ## metrics.<source>.json (one per shot and candidate, written by compare.py into the run's shot folder)
 
@@ -134,8 +131,7 @@ otherwise. Scripts find the project root by walking up from the working director
   so heavy ones (torch for `semantic.py`, mediapipe for `keypoints.py`) cost nothing until that script is used.
 - Every script: `--help`; `--json` prints one JSON document on stdout and nothing else; human text otherwise;
   exit 0 = done and (for gates) passed, 1 = a gate failed or a check found something, 2 = usage or environment
-  error; `lock.py` adds 3 = still queued (the place is kept: run the same command again) and `lock.py run` 124 =
-  the command was stopped at its time limit. No script writes outside `.perceptual-loop/` or an `--out` folder it was given. No `__pycache__` is left in
+  error. No script writes outside `.perceptual-loop/` or an `--out` folder it was given. No `__pycache__` is left in
   the plugin (`sys.dont_write_bytecode = True` before importing siblings).
 - Shared helpers are in `scripts/pl_common.py` (find the root, read the config, resolve groups and shot folders,
   load images as float RGB in linear light and in sRGB, flat-key helpers).

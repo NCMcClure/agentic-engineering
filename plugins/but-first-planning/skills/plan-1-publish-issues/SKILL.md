@@ -20,7 +20,7 @@ publish more only if the user asks.
 
 ## Read the tracker config first
 
-`.plan/tracker.md` (written by `spec-0-init`) says where issues go and how. Read it
+`.agents/plan/tracker.md` (written by `spec-0-init`) says where issues go and how. Read it
 before doing anything. It will point at one of:
 
 - **GitHub** (default) — `gh` CLI plus an optional GitHub Project board. Full recipe in [TRACKER-GITHUB.md](TRACKER-GITHUB.md).
@@ -45,7 +45,7 @@ Confirm which sprint to publish (the user names it, or it's the next one with
 
 The parse → toposort → create → backfill loop is deterministic, so it's a script,
 not prose: `publish-issues.py` (bundled in this skill's `assets/`, copied to
-`.plan/plan/` by `spec-0-init` — backfill it from `assets/` if an older workspace
+`.agents/plan/plan/` by `spec-0-init` — backfill it from `assets/` if an older workspace
 lacks it). It reads the tracker backend from `tracker.md`, publishes blockers
 before the issues they block (so blocked bodies cite real `#NNN` refs), builds
 each ticket body from the issue file's `## What to build` / `## Acceptance
@@ -54,8 +54,8 @@ criteria` / `## Blocked by` sections, applies the epic/type labels, and backfill
 It is idempotent — issues that already carry a ref are skipped.
 
 ```bash
-python .plan/plan/publish-issues.py publish --sprint EE-SS --dry-run  # show the order
-python .plan/plan/publish-issues.py publish --sprint EE-SS            # create the tickets
+python .agents/plan/plan/publish-issues.py publish --sprint EE-SS --dry-run  # show the order
+python .agents/plan/plan/publish-issues.py publish --sprint EE-SS            # create the tickets
 ```
 
 Show the user the dry-run order before publishing for real. With no `--sprint`,
@@ -79,7 +79,7 @@ start the work). The tracker's own state, not this step, reflects progress —
 
 ### 5. Verify and report
 
-Run `python .plan/plan/verify-plan-tree.py` — it accepts both `<unassigned>` and
+Run `python .agents/plan/plan/verify-plan-tree.py` — it accepts both `<unassigned>` and
 `#NNN`, so a partially-published plan still passes. Tell the user which issues
 were created (with their references) and which sprint is now live.
 

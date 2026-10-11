@@ -1,6 +1,6 @@
 export const meta = {
   name: 'optimize-codebase',
-  description: 'Unified, staged, LANGUAGE-AGNOSTIC codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). An ECOSYSTEM PROFILE (python | node | go | rust | generic — explicit arg or auto-detected from the repo manifests at Setup) supplies every language-specific piece: source extensions, env/test/smoke/lint commands, the module-identity scheme, the compat-shim mechanism (python re-export shims, node barrel re-exports, go same-package splits / alias shims, rust pub use, generic full-reference rewrites), the test-seam census, and the codemod guidance — everything else is neutral machinery. A single Setup pass prepares a clean committed baseline + CI-faithful env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subdirectories instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting, and writes/refreshes AGENTS.md orientation hubs per the organizer’s agent-hubs contract (hub isolation, direct-children scope, update-on-change) with the hub verifier reporting baseline -> final. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> scripted/codemod extraction leaving compat shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
+  description: 'Unified, staged, LANGUAGE-AGNOSTIC codebase optimizer that folds three loops into one engine: ORGANIZE (tidy the file tree) -> DECOMPOSE (split god-files) -> DEEPEN (architectural deepenings). An ECOSYSTEM PROFILE (python | node | go | rust | generic — explicit arg or auto-detected from the repo manifests at Setup) supplies every language-specific piece: source extensions, env/test/smoke/lint commands, the module-identity scheme, the compat-shim mechanism (python re-export shims, node barrel re-exports, go same-package splits / alias shims, rust pub use, generic full-reference rewrites), the test-seam census, and the codemod guidance — everything else is neutral machinery. A single Setup pass prepares a clean committed baseline + CI-faithful env + protected-untracked set; a Conventions pass derives the repo organization conventions (codebase-organizer philosophy + the deterministic structure verifier) into a context block injected into every stage so newly-created modules land in logically-organized subdirectories instead of loose siblings. Stages run in order and are toggleable (pass stages:[...] or organizeOnly:true). ORGANIZE reuses the codebase-organizer skill (plan -> persist -> apply -> CI verify -> commit -> re-scan until converged), doing history-preserving git mv + reference rewriting, and writes/refreshes AGENTS.md orientation hubs per the organizer’s agent-hubs contract (hub isolation, direct-children scope, update-on-change) with the hub verifier (`aw hubs` of the agent-works plugin, when the caller passes hubVerifyCommand) reporting baseline -> final. DECOMPOSE runs the proven per-file engine: lane plan -> parallel find -> decision panel -> select line-disjoint carve-outs -> sequential apply (targeted oracle -> scripted/codemod extraction leaving compat shims -> validate+repair -> commit), reverting any member that reds. DEEPEN reuses the same Setup/panel/apply machinery with improve-architecture find criteria (shallow modules / missing seams), applied SEQUENTIALLY with revert (no worktrees). After each engine apply a cheap org audit runs the structure verifier on the touched tree. Model-tiered: Opus for the chair + codemod implementer, Sonnet for mechanical steps.',
   phases: [
     { title: 'Setup', detail: 'assert git tree, clean committed baseline on the working branch, detect the ecosystem + toolchain, set up the project env, capture a baseline test oracle + protected-untracked set + structure-verifier baseline (once for the whole run)' },
     { title: 'Conventions', detail: 'derive the repo organization conventions (codebase-organizer philosophy + language layouts + agent-hubs contract + live repo_scan/verifier output) into a CONVENTIONS block injected into every decompose/deepen find/panel/chair/implement prompt, plus the AGENTS.md hub-verifier baseline (once)' },
@@ -217,14 +217,17 @@ const PY = '"$(command -v python3 || command -v python)"'
 const STRUCT_VERIFY_CMD = A.structVerifyCmd
   || (PY + ' ' + STRUCT_VERIFIER + ' . ' + (SCAN_SCRIPT ? '--scan-script ' + SCAN_SCRIPT + ' ' : '') + '--json')
 
-// ---- AGENTS.md HUB VERIFIER (whole-repo, deliberately no --subtree; see the organizer's
-// references/agent-hubs.md). Empty hubVerifier => every hub check no-ops (back-compat).
+// ---- AGENTS.md HUB VERIFIER (whole-repo, deliberately no --subtree). The verifier is not
+// bundled: it is the agent-works plugin's (`aw hubs`). The calling skill passes
+// hubVerifyCommand: "aw hubs" when the `aw` command exists, else leaves it empty.
+// Empty hubVerifyCommand => every hub check no-ops and the run notes say so.
 // Hub findings NEVER enter STRUCT_BASELINE / orgAudit's diff — they have their own
 // warn-ramp lifecycle and must not perturb the revert-on-red arithmetic.
-const HUB_VERIFIER = (typeof A.hubVerifier === 'string' && A.hubVerifier.trim()) ? A.hubVerifier.trim() : ''
+const HUB_VERIFY_COMMAND = (typeof A.hubVerifyCommand === 'string' && A.hubVerifyCommand.trim()) ? A.hubVerifyCommand.trim() : ''
 const ORG_HUBS = A.hubs === 'only' ? 'only' : (A.hubs === 'off' ? 'off' : 'on')
 const CLAUDE_MD = A.claudeMd === true ? true : (A.claudeMd === false ? false : 'detect')
-const HUB_VERIFY_CMD = HUB_VERIFIER ? (PY + ' ' + HUB_VERIFIER + ' . --json') : ''
+const HUB_VERIFY_CMD = HUB_VERIFY_COMMAND ? (HUB_VERIFY_COMMAND + ' . --json') : ''
+if (!HUB_VERIFY_CMD) RUN_NOTES.push('hub structure not verified: agent-works not installed')
 
 if (!ROOT) return { error: 'projectDir is required (absolute repo path)' }
 if (!SKILL_DIR) return { error: 'skillDir is required (path to the improve-codebase-architecture skill dir)' }
@@ -1299,8 +1302,8 @@ It prints a JSON object with "summary" {critical,warning,info} and a "findings" 
 
 // Run the AGENTS.md hub verifier (whole-repo — deliberately NO --subtree; root hub, root
 // CLAUDE.md chain, and every non-leaf dir are repo-scope facts). Same PY3 guard and
-// transcription pattern as runStructVerify; a missing hubVerifier arg makes this a no-op
-// (back-compat with callers that predate hubs). Hub findings stay OUT of STRUCT_BASELINE
+// transcription pattern as runStructVerify; an empty hubVerifyCommand makes this a no-op
+// (agent-works not installed: hubs are still written, their structure is not verified). Hub findings stay OUT of STRUCT_BASELINE
 // and the orgAudit diff — they carry their own warn-ramp ladder.
 async function runHubVerify(phaseName, label, model) {
   if (!PY3 || !HUB_VERIFY_CMD) return null
@@ -1308,7 +1311,7 @@ async function runHubVerify(phaseName, label, model) {
     return await agent(
       `Read-only — make NO edits. Run the deterministic AGENTS.md hub verifier on the repo at ${ROOT} and return its JSON verbatim. Run from inside the repo:
     bash -c 'cd "${ROOT}" && ${HUB_VERIFY_CMD}'
-It prints a JSON object with "summary" {critical,warning,info} and a "findings" array of {severity,check,path,message}. Transcribe that JSON EXACTLY into your structured result (summary + findings). If the command errors or is missing, return summary:{critical:0,warning:0,info:0}, findings:[], and explain in detail. Do NOT edit anything.`,
+It prints one JSON document of findings; each finding names a check (key "code" or "check"), a level (key "level" or "severity": critical | warning | info), a path and a message. Transcribe it into your structured result: per finding check = its code, severity = its level, path and message as printed; summary = the document's own counts per level when it carries them, else count the findings per level yourself. If the command errors or is missing, return summary:{critical:0,warning:0,info:0}, findings:[], and explain in detail. Do NOT edit anything.`,
       { label: label || 'hub-verify', phase: phaseName, schema: STRUCT_SCHEMA, model: model || M_AUDIT }
     )
   } catch (e) {
@@ -1938,7 +1941,7 @@ FIRST read the skill's vocabulary so every suggestion uses it exactly:
 - ${SKILL_DIR}/SKILL.md (process)
 - ${SKILL_DIR}/LANGUAGE.md (module / interface / implementation / depth / seam / adapter / leverage / locality — use these, NOT "component/service/API/boundary")
 - ${SKILL_DIR}/DEEPENING.md (dependency categories: in-process / local-substitutable / remote-owned / true-external)
-If a CONTEXT.md or docs/adr/ exists at ${ROOT}, read the parts touching this area and do NOT re-suggest anything an ADR already settled.
+If a glossary (.agents/CONTEXT.md) or decision records (.agents/decisions/) exist at ${ROOT}, read the parts touching this area and do NOT re-suggest anything a decision record already settled.
 
 THIS STAGE IS ARCHITECTURAL DEEPENING (not god-file splitting): read ${TARGET} and the modules around it organically and note where you experience friction. Look for DEEP-able shallow modules:
 - understanding one concept requires bouncing between many small modules,
@@ -2457,7 +2460,7 @@ async function runOrganizeStage(passIndex) {
     log('Organize pass ' + passIndex + ' round ' + n + ': planning (scan + design + ref-impact + critique)' + (pendingOrgFixes.length ? ' [' + pendingOrgFixes.length + ' audit hint(s) pending]' : ''))
     let planResult
     try {
-      planResult = await workflow({ scriptPath: PLAN_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, depth: ORG_DEPTH, planPath, exclude: ORG_EXCLUDE, hubs: ORG_HUBS, claudeMd: CLAUDE_MD })
+      planResult = await workflow({ scriptPath: PLAN_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, depth: ORG_DEPTH, planPath, exclude: ORG_EXCLUDE, hubs: ORG_HUBS, claudeMd: CLAUDE_MD, hubVerifyCommand: HUB_VERIFY_COMMAND })
     } catch (e) {
       convergence = 'plan-error'; rounds.push({ round: n, stage: 'plan', error: String(e && e.message || e) })
       log('Organize round ' + n + ' plan workflow threw: ' + String(e && e.message || e)); break
@@ -2551,7 +2554,7 @@ CHUNK_END
     log('Organize round ' + n + ': applying ' + moveCount + ' moves + rewriting refs, then verifying the build')
     let applyResult
     try {
-      applyResult = await workflow({ scriptPath: APPLY_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, planPath, branch: BRANCH })
+      applyResult = await workflow({ scriptPath: APPLY_JS }, { projectDir: ROOT, dateToday: DATE, skillDir: ORGANIZER_SKILL_DIR, planPath, branch: BRANCH, hubVerifyCommand: HUB_VERIFY_COMMAND })
     } catch (e) {
       convergence = 'apply-error'; rounds.push({ round: n, stage: 'apply', error: String(e && e.message || e) })
       log('Organize round ' + n + ' apply workflow threw: ' + String(e && e.message || e)); break
@@ -2725,10 +2728,11 @@ return {
   structure_baseline: STRUCT_BASELINE ? STRUCT_BASELINE.summary : null,
   // AGENTS.md hub verifier state: baseline (when an engine stage ran Conventions) vs final.
   // Reported, never gating — hubs warn-ramp; only organize-apply's own Verify hard-fails on them.
+  // Without a hub verify command (agent-works not installed) this says so instead of staying silent.
   hubs: (HUB_BASELINE || HUB_FINAL) ? {
     baseline: HUB_BASELINE ? HUB_BASELINE.summary : null,
     final: HUB_FINAL ? HUB_FINAL.summary : null,
-  } : null,
+  } : (HUB_VERIFY_CMD ? null : { verified: false, note: 'hub structure not verified: agent-works not installed' }),
   // child branches kept for human review after MERGE_RETRIES exhausted (concurrent decompose only)
   unmerged_conflict_branches: fileResults.filter(r => r.convergence === 'merge-conflict-unresolved').map(r => ({ target: r.target, branch: r.unmerged_branch })),
   organize: {

@@ -25,7 +25,7 @@ if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) throw new Error("args must be an object: {root: <absolute repo root>, skillDir: <spec-3-architect skill dir>, context?, extraLenses?, apply?: 'none'|'strong'}")
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.plan/spec`
+const SPEC = `${ROOT}/.agents/plan/spec`
 const APPLY = A.apply === 'strong'
 
 const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
@@ -262,7 +262,7 @@ const referenceFix = await agent(
 // ---------- Phase 7: audit (singleton judgment — inherits the session model) ----------
 phase('Audit')
 const audit = await agent(
-  `${CTX}\nYou are the post-apply auditor. Several agents just edited the spec in parallel to apply deepening candidates, and a reconciler added ADRs and glossary entries. Your job:\n1. Run python3 ${SPEC}/scripts/verify-spec-tree.py — if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: git -C ${ROOT} diff --stat -- .plan/spec, then read the full diff (git -C ${ROOT} diff -- .plan/spec) plus git -C ${ROOT} status --porcelain -- .plan/spec for new untracked files (the ADRs).\n3. Check coherence: every applied deepening has exactly one ADR and the section text cites it where natural; new glossary terms are used consistently by the edited sections; no two fixers introduced contradictory statements; index.md files still describe their children; no edit deleted content unrelated to its candidate. Make surgical corrective edits where needed (Read before Edit; match conventions).\n4. Do NOT run any git command that mutates state — leave everything uncommitted.\n${BRIEF}`,
+  `${CTX}\nYou are the post-apply auditor. Several agents just edited the spec in parallel to apply deepening candidates, and a reconciler added ADRs and glossary entries. Your job:\n1. Run python3 ${SPEC}/scripts/verify-spec-tree.py — if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: git -C ${ROOT} diff --stat -- .agents/plan/spec, then read the full diff (git -C ${ROOT} diff -- .agents/plan/spec) plus git -C ${ROOT} status --porcelain -- .agents/plan/spec for new untracked files (the ADRs).\n3. Check coherence: every applied deepening has exactly one ADR and the section text cites it where natural; new glossary terms are used consistently by the edited sections; no two fixers introduced contradictory statements; index.md files still describe their children; no edit deleted content unrelated to its candidate. Make surgical corrective edits where needed (Read before Edit; match conventions).\n4. Do NOT run any git command that mutates state — leave everything uncommitted.\n${BRIEF}`,
   {
     label: 'post-apply-audit', phase: 'Audit', effort: 'high',
     schema: {

@@ -1,0 +1,22 @@
+{
+  "id": "0011",
+  "file": "0011-stale-docs-for-the-export-command.md",
+  "title": "Stale docs for the export command",
+  "status": "suggested",
+  "order": 0,
+  "priority": "low",
+  "labels": [
+    "docs"
+  ],
+  "skills": [],
+  "source": "claude",
+  "created": "2026-01-10T09:00:00.000Z",
+  "updated": "2026-01-10T09:00:00.000Z",
+  "kind": "task",
+  "owner": "",
+  "needs": "",
+  "ref": "",
+  "body": "The README names a flag that was removed.\n\nFiles:\n- README.md",
+  "remote": null,
+  "extra": []
+}

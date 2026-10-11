@@ -6,7 +6,7 @@ export const meta = {
     { title: 'Move', detail: 'git mv per plan; quarantine cruft; gitignore ephemera' },
     { title: 'Rewrite', detail: 'apply reference fixes; re-grep for misses' },
     { title: 'Hubs', detail: 'write/merge the planned AGENTS.md hubs (+ CLAUDE.md siblings when opted in)' },
-    { title: 'Verify', detail: "run the project's build/test/lint + the hub verifier" },
+    { title: 'Verify', detail: "run the project's build/test/lint + the hub verifier when one was passed (hubVerifyCommand)" },
   ],
 }
 
@@ -22,6 +22,11 @@ const PLAN_PATH = A.planPath || (ROOT + '/.codebase-organizer-plan.json')
 const BRANCH = A.branch || 'codebase-organizer/reorg'
 // Safety: only proceed on a dirty tree if the caller explicitly opted in.
 const ALLOW_DIRTY = A.allowDirty === true
+// The hub verifier is not bundled: it is the agent-works plugin's (`aw hubs`). The calling
+// skill passes hubVerifyCommand: "aw hubs" when the `aw` command exists, else leaves it
+// empty. Empty => hubs are still written, the structure check is skipped and reported so.
+const HUB_VERIFY_COMMAND = (typeof A.hubVerifyCommand === 'string' && A.hubVerifyCommand.trim()) ? A.hubVerifyCommand.trim() : ''
+const HUB_NOT_VERIFIED = 'hub structure not verified: agent-works not installed'
 
 if (!ROOT) return { error: 'projectDir is required (absolute path to the repo)' }
 
@@ -70,7 +75,7 @@ const VERIFY_SCHEMA = {
         warning: { type: 'integer' },
         info: { type: 'integer' },
       },
-      description: 'verify_agents_hubs.py summary counts, when the hub verifier ran',
+      description: 'finding counts per level from the hub verifier, when one ran',
     },
   },
 }
@@ -150,15 +155,16 @@ log('Rewrite done: ' + (rewrite ? (rewrite.files_edited || []).length : 0) + ' f
 // hub verifier judges the finished state). Skipped when the plan carries no hubs.
 phase('Hubs')
 const hubs = await agent(
-  `You are writing the AGENTS.md orientation hubs of an approved reorganization in ${ROOT} (branch ${pre.branch || BRANCH}). Read ${SKILL_DIR}/references/agent-hubs.md FIRST — the five rules and the brownfield merge rules are the contract. Read the plan at ${PLAN_PATH}: plan.hubs is the list (path, action, layout_lines, content_notes, claude_md) and plan.claude_md_optin says whether CLAUDE.md siblings are on ('yes'/'detected-yes') — if plan.hubs is missing or empty, do nothing and return ok:true with detail "no hubs planned".
+  `You are writing the AGENTS.md orientation hubs of an approved reorganization in ${ROOT} (branch ${pre.branch || BRANCH}). Read ${SKILL_DIR}/references/agent-hubs.md FIRST — the five rules and the brownfield merge rules are the contract. Read the plan at ${PLAN_PATH}: plan.hubs is the list (path, action, layout_lines, content_notes, claude_md) and plan.claude_md_optin says whether CLAUDE.md siblings are on ('yes'/'detected-yes'; 'agent-works' = the repo is set up with the agent-works plugin, which owns the siblings: you write none) — if plan.hubs is missing or empty, do nothing and return ok:true with detail "no hubs planned".
 
 AUTHORITY ORDER: plan.claude_md_optin and each entry's claude_md flag are the USER'S recorded decision — ignore any content_note or critic correction that contradicts them (on a first run the root @AGENTS.md import signal doesn't exist yet because YOU are about to create it; that absence is not a "no"). Package markers (__init__.py) are exempt from hub isolation — never skip a hub because one sits in its directory.
 
 For each entry in plan.hubs, honoring its content_notes (they carry the critic's corrections and, for merges, what to preserve — subject to the authority order above):
-- action 'create': write <dir>/AGENTS.md. For the ROOT entry (path '.'), instantiate the stub at ${SKILL_DIR}/assets/agents-root.md — fill {{PROJECT_NAME}} (repo dir name or the manifest's name) and {{ONE_LINE_DESCRIPTION}} (from the README/manifest, factual), replace {{LAYOUT_LINES}} with the entry's layout_lines, and KEEP the "Rules for working in this repo" section verbatim. For a NON-root hub: a short header (# <dir> + one factual sentence) plus a "## Layout" section holding the layout_lines — no Rules section (the root owns the durable rules).
+- action 'create': write <dir>/AGENTS.md. For the ROOT entry (path '.'), instantiate the stub at ${SKILL_DIR}/assets/agents-root.md (drop its leading HTML comment, which is a note to you) — fill {{PROJECT_NAME}} (repo dir name or the manifest's name) and {{ONE_LINE_DESCRIPTION}} (from the README/manifest, factual), replace {{LAYOUT_LINES}} with the entry's layout_lines, and KEEP the "Rules for working in this repo" section verbatim. For a NON-root hub: a short header (# <dir> + one factual sentence) plus a "## Layout" section holding the layout_lines — no Rules section (the root owns the durable rules).
 - action 'update': edit the existing AGENTS.md — refresh only the Layout lines for changed children; for the root, append the stub's Rules section only if no equivalent section exists.
 - action 'merge': the existing file carries user prose — surgical edits only: refresh/insert the Layout lines, add the Rules section (root only) if absent, and NEVER rewrite or delete the owner's prose. When in doubt, add rather than replace.
 - CLAUDE.md siblings, only when plan.claude_md_optin is 'yes' or 'detected-yes' AND the entry's claude_md is true: create <dir>/CLAUDE.md containing exactly "@AGENTS.md" (one line). If a CLAUDE.md already exists there, prepend the @AGENTS.md line if it is missing and never delete its other content.
+- When plan.claude_md_optin is 'agent-works': write NO CLAUDE.md yourself. After the hubs are written, if \`command -v aw\` finds the command, run \`cd "${ROOT}" && aw twins\` once: it makes the siblings the way that repo's own setting (claude.twins in .agents/agent-works.json) says. Do not git add what it leaves git-ignored; without the command, skip this and say so in detail.
 
 Then git -C "${ROOT}" add every file you wrote. Do NOT commit. Report every hub written/merged, every CLAUDE.md written, and any entry you skipped with the reason.`,
   { label: 'hubs', phase: 'Hubs', schema: HUB_SCHEMA }
@@ -179,17 +185,18 @@ Detect ecosystem from manifests, cross-checking the ecosystems list in the plan 
 
 Prefer a quick resolution-level check (does everything still import/compile?) over an exhaustive slow suite — the goal is to confirm references resolve after the moves. If plan.moves is empty (a hubs-only run), the build check reduces to that fast resolution-level check — nothing moved.
 
-HUB VERIFIER: if the plan contains hubs (plan.hubs non-empty) or ${ROOT}/AGENTS.md exists, also run:
+${HUB_VERIFY_COMMAND ? `HUB VERIFIER: if the plan contains hubs (plan.hubs non-empty) or ${ROOT}/AGENTS.md exists, also run:
 \`\`\`
-cd "${ROOT}" && "$(command -v python3 || command -v python)" "${SKILL_DIR}/scripts/verify_agents_hubs.py" . --json
+cd "${ROOT}" && ${HUB_VERIFY_COMMAND} . --json
 \`\`\`
-and transcribe its summary counts into hub_summary. Exit 2 (a CRITICAL hub finding) means THIS apply wrote an inconsistent hub set — that is a failure: set passed:false and name the finding in detail. Exit 1 warnings are reported in detail, never failing (legacy corners the plan didn't touch ramp in later).
+It prints one JSON document of findings, each with a level (key "level" or "severity": critical | warning | info). Put the counts per level into hub_summary (the document's own counts when it carries them, else count the findings). Exit 2 (a CRITICAL hub finding) means THIS apply wrote an inconsistent hub set — that is a failure: set passed:false and name the finding in detail. Exit 1 warnings are reported in detail, never failing (legacy corners the plan didn't touch ramp in later). If the command itself cannot be started, do not fail the apply: leave hub_summary out and say "${HUB_NOT_VERIFIED}" in detail.` : `HUB VERIFIER: none was passed to this run, so the hub structure is NOT checked. Leave hub_summary out and include the sentence "${HUB_NOT_VERIFIED}" in detail.`}
 
-Report passed (true only if the checks you ran succeeded AND the hub verifier didn't exit 2), the exact commands you ran, and on any failure the failing output plus the suspected missed reference (cross-reference the move list). Do NOT commit, do NOT revert — the user's original branch is the safety net.`,
+Report passed (true only if the checks you ran succeeded AND no hub verifier exited 2), the exact commands you ran, and on any failure the failing output plus the suspected missed reference (cross-reference the move list). Do NOT commit, do NOT revert — the user's original branch is the safety net.`,
   { label: 'verify', phase: 'Verify', schema: VERIFY_SCHEMA }
 )
 
 log('Verify: ' + (verify && verify.passed ? 'PASSED' : 'FAILED') + ' (' + (verify ? (verify.commands_run || []).join(', ') : 'no result') + ')')
+if (!HUB_VERIFY_COMMAND) log(HUB_NOT_VERIFIED)
 
 return {
   branch: pre.branch || BRANCH,
@@ -202,6 +209,8 @@ return {
   hubs_written: hubs ? ((hubs.hubs_written || []).length + (hubs.hubs_merged || []).length) : 0,
   claude_md_written: hubs ? (hubs.claude_md_written || []).length : 0,
   hub_summary: (verify && verify.hub_summary) || null,
+  hub_verified: !!(HUB_VERIFY_COMMAND && verify && verify.hub_summary),
+  hub_note: HUB_VERIFY_COMMAND ? '' : HUB_NOT_VERIFIED,
   verification: verify || { passed: false, detail: 'verify produced no result' },
   next_steps: (verify && verify.passed)
     ? 'Review the diff on branch ' + (pre.branch || BRANCH) + ', check quarantined files under archive/, then merge.'

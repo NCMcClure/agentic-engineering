@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "agent-works",
+  "displayName": "Agent Works",
+  "version": "0.1.0",
+  "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed gates on a kanban board you and the agents share, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw CLI.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": ["agent-works", "agents-md", "memory", "kanban", "orchestration", "coordination", "guard", "worktrees", "setup"],
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "kanbanDir": {
+      "type": "string",
+      "title": "Kanban folder",
+      "description": "Where cards are kept, relative to the repository root, when the project's .agents/agent-works.json does not name a folder (paths.kanban).",
+      "default": ".agents/kanban"
+    },
+    "startMode": {
+      "type": "string",
+      "title": "Starting a task",
+      "description": "What dropping a card into the in-progress column does on a board with no setting of its own: open a new session, or queue it for this one.",
+      "options": ["new-session", "queue"],
+      "default": "new-session"
+    },
+    "syncIntervalSeconds": {
+      "type": "number",
+      "title": "Remote sync interval",
+      "description": "Seconds between pulls from GitHub/GitLab on a board with remote sync enabled.",
+      "default": 120
+    }
+  }
+}

@@ -24,6 +24,11 @@ It prints, per metric class (`<source>/frame.ssim`, `<source>/region.*.edgeF1`, 
 proposed tolerance (the spread times a margin, with a floor), and lists **bistable** entries: single values that
 take one of two levels from run to run.
 
+Timings and anything time-dependent in the renders wobble with the machine's load, and a tolerance measured while
+another job ran is too wide. Checking that the machine is quiet before a measurement is agent-works' job (`agent-works:coordinate` /
+`aw sys --quiet-for timing`). Without it: read the GPU and processor load yourself before the run (`nvidia-smi`,
+the system's process list), wait if another job is running, and write what you saw beside the numbers.
+
 A large spread everywhere is not a tolerance problem, it is a determinism problem: go back to `build-harness` (`${CLAUDE_PLUGIN_ROOT}/skills/build-harness/SKILL.md`)
 step 2 before widening anything.
 

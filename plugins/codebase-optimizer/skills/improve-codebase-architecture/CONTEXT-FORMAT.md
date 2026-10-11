@@ -1,11 +1,11 @@
-# CONTEXT.md format
+# Glossary format
 
-`CONTEXT.md` lives at the repo root and holds the project's domain language —
-one canonical word per concept, the rest listed as aliases to avoid. It is a
-glossary and nothing else: no implementation detail, no design rationale, no
-scratch notes. Rationale belongs in ADRs (see [ADR-FORMAT.md](ADR-FORMAT.md)).
+The glossary lives at `.agents/CONTEXT.md` (or the `paths.glossary` of
+`.agents/agent-works.json` when that file exists). Never at the repo root and
+never under `./docs`, which is for user-facing documentation.
 
-## Structure
+Keeping the glossary is agent-works' job (`agent-works:decisions` /
+`aw decisions lint`). Without it: keep the file by hand in the format below.
 
 ```md
 # CONTEXT
@@ -17,27 +17,9 @@ scratch notes. Rationale belongs in ADRs (see [ADR-FORMAT.md](ADR-FORMAT.md)).
 **Order**:
 A customer's request to purchase one or more items, tracked from placement to fulfilment.
 _Avoid_: purchase, transaction
-
-**Invoice**:
-A request for payment sent to a customer after delivery.
-_Avoid_: bill, payment request
-
-**Customer**:
-A person or organisation that places Orders.
-_Avoid_: client, buyer, account
 ```
 
-## Rules
-
-- **Be opinionated.** When several words exist for one concept, pick the best and list the others as aliases to avoid.
-- **Keep definitions tight.** One or two sentences. Define what the term *is*, not what it does.
-- **Show relationships.** Reference other canonical terms by name (capitalised) and express cardinality where it's obvious.
-- **Only project-specific terms.** General programming concepts (timeout, retry, cache) don't belong even if the code uses them constantly. Before adding a term, ask: is this unique to *this* project's domain, or just general engineering vocabulary? Only the former.
-- **Group under subheadings** when natural clusters emerge; a flat list under `## Language` is fine when they don't.
-- **Flag genuine ambiguity.** If a term is still used two ways and you can't yet resolve it, record both senses under a "Flagged ambiguities" subheading with the open question — then resolve it with the user rather than leaving it silently broken.
-
-## One repo, one CONTEXT.md
-
-The repository is a single context: one `CONTEXT.md`. Don't introduce per-area
-glossaries — if two parts of the codebase use a term differently, that's a
-contradiction to resolve, not two definitions to keep.
+- One canonical word per concept; the other words go under _Avoid_.
+- One or two sentences: what the term *is*. No rationale (that is a decision record, see [ADR-FORMAT.md](ADR-FORMAT.md)) and no implementation detail.
+- Project-specific terms only; general engineering vocabulary stays out.
+- One glossary per repo. A term used two ways is a contradiction to resolve with the user, not two entries.

@@ -1,6 +1,6 @@
-# Self-contained docs site for the .plan/ specification.
-# Serve from the repo root with:  mkdocs serve -f .plan/mkdocs.yml
-# Paths below are resolved relative to THIS file (.plan/).
+# Self-contained docs site for the .agents/plan/ specification.
+# Serve from the repo root with:  mkdocs serve -f .agents/plan/mkdocs.yml
+# Paths below are resolved relative to THIS file (.agents/plan/).
 site_name: "{{PROJECT_NAME}} Specification"
 docs_dir: spec
 site_dir: .site

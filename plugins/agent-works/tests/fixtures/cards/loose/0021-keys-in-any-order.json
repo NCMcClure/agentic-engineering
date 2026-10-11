@@ -1,0 +1,30 @@
+{
+  "id": "0021",
+  "file": "0021-keys-in-any-order.md",
+  "title": "Keys in any order",
+  "status": "in-progress",
+  "order": 3,
+  "priority": "normal",
+  "labels": [],
+  "skills": [],
+  "source": "user",
+  "created": "",
+  "updated": "2026-01-03",
+  "kind": "task",
+  "owner": "",
+  "needs": "",
+  "ref": "",
+  "body": "Body right after the rule.",
+  "remote": {
+    "provider": "github",
+    "number": 5,
+    "url": "https://github.com/example/repo/issues/5",
+    "updatedAt": "",
+    "syncedHash": ""
+  },
+  "extra": [
+    "# written by hand",
+    "x-team: core",
+    "  lead: kim"
+  ]
+}

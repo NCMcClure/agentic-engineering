@@ -1,12 +1,12 @@
 ---
 name: plan-0-decompose
-description: Decompose the spec into an epic → sprint → issue tree of tracer-bullet vertical slices under .plan/plan/. Bundles a multi-agent workflow for large specs.
+description: Decompose the spec into an epic → sprint → issue tree of tracer-bullet vertical slices under .agents/plan/plan/. Bundles a multi-agent workflow for large specs.
 disable-model-invocation: true
 ---
 
 # plan-0-decompose — turn the spec into an executable backlog
 
-Decompose the specification into a plan tree under `.plan/plan/`: **epics**
+Decompose the specification into a plan tree under `.agents/plan/plan/`: **epics**
 (large outcomes) contain **sprints** (coherent batches) contain **issues** (thin
 vertical slices a single contributor can grab and finish). The tree mirrors the
 spec's structure, and every issue links back to the spec sections it realises, so
@@ -34,7 +34,7 @@ is edited or created until the user approves.
 
 ### 1. Read the spec
 
-Read `.plan/spec/index.md` and descend into the categories. Note the spec's
+Read `.agents/plan/spec/index.md` and descend into the categories. Note the spec's
 natural seams (often the architecture work from `spec-3-architect` already
 named them) and any ordering the design implies. Use the glossary's vocabulary
 for titles and descriptions — issues should read in the project's own language.
@@ -81,7 +81,7 @@ inline `**Open question:**` blocks — each one is routed **exactly once**:
 An unrouted open question is a planning bug: it resurfaces mid-build as an
 improvised decision nobody approved.
 
-**Cut the REVIEW gates.** Read `.plan/spec/reference/adr/0002-ui-posture.md`.
+**Cut the REVIEW gates.** Read `.agents/plan/spec/reference/adr/0002-ui-posture.md`.
 Under `headless`, cut none. Otherwise add one `REVIEW` issue per **verification
 boundary** — a user-visible feature or system capability a human can confirm by
 looking — typically 1–3 per sprint, `Blocked by` the slices that implement it,
@@ -111,7 +111,7 @@ Create the directories and files using the exact templates in
 cosmetic; the verifier checks them. The shape:
 
 ```
-.plan/plan/
+.agents/plan/plan/
 ├── index.md                         # epic table (update the spec-0-init stub)
 ├── 01-<epic-slug>/
 │   ├── epic.md                      # sprint table + goal + testing checkpoints
@@ -128,7 +128,7 @@ Leave every issue's `GitHub` field as `<unassigned>` and `Status` as
 ### 6. Verify
 
 ```bash
-python .plan/plan/verify-plan-tree.py
+python .agents/plan/plan/verify-plan-tree.py
 ```
 
 It checks structure, required fields, that sprint/epic tables match what's on
@@ -137,7 +137,7 @@ spec files. Fix anything it flags. A clean tree exits 0 and prints the counts.
 
 ### 7. Hand off
 
-Update `.plan/plan/index.md`'s epic table and tell the user the plan is ready.
+Update `.agents/plan/plan/index.md`'s epic table and tell the user the plan is ready.
 Next steps: `plan-1-publish-issues` to push a sprint's issues to the tracker (do this
 lazily, sprint by sprint, not all at once), or `build-next-issue` once work
 is under way. If revising the spec later, `spec-4-edit` keeps the plan in sync.

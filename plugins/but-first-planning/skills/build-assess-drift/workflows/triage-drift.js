@@ -25,7 +25,7 @@ if (!A || !A.root || !A.skillDir) {
 }
 const ROOT = A.root.replace(/\/$/, '')
 const SKILL = A.skillDir.replace(/\/$/, '')
-const PROGRESS = `${ROOT}/.plan/progress`
+const PROGRESS = `${ROOT}/.agents/plan/progress`
 const DRIFTDIR = `${PROGRESS}/drift`
 const PUBLISH = A.publish === true
 const ONLY = Array.isArray(A.items) && A.items.length ? A.items : null
@@ -95,7 +95,7 @@ const REASSESS_SCHEMA = {
 // Per-item re-assessment is parallel-heavy judgment — opus+high per the model-tier policy.
 // Single stage (no separate planner): the re-assessor already holds all the context the
 // fix plan needs. The await on parallel() is a deliberate barrier: Settle serializes
-// shared-file edits (every item's outcome funnels into .plan/progress/index.md), so it
+// shared-file edits (every item's outcome funnels into .agents/plan/progress/index.md), so it
 // needs the full verdict set before it can start.
 const verdicts = (await parallel(items.map(i => () =>
   agent(
@@ -111,7 +111,7 @@ log(`reassessed ${verdicts.length}/${items.length}: ${survivors.length} survivor
 
 // ---------- Phase 3: settle the drift files ----------
 // ONE serial agent, not a fan-out: every item's outcome touches the shared
-// .plan/progress/index.md list (and the drift dir the index script re-reads), so
+// .agents/plan/progress/index.md list (and the drift dir the index script re-reads), so
 // concurrent editors would race; one sonnet pass applies the whole verdict set.
 phase('Settle')
 const settled = await agent(
@@ -142,7 +142,7 @@ if (PUBLISH && survivors.length) {
   // ONE serial agent again: tracker CLI calls plus per-file route:/status: edits are
   // cheap but order-sensitive, and idempotency checks must see each prior edit.
   pub = await agent(
-    `${CTX}\nYou are the publisher. Read ${ROOT}/.plan/tracker.md for the tracker backend, repo, exact label strings, and optional Project board — do not hardcode any of them. Derive today via date +%F. For EACH survivor below, in order:\n1. IDEMPOTENCY: read its drift file first — if route: already names a "follow-up issue #NNN", it is already published: record it as skipped, never open a duplicate.\n2. Otherwise create the issue per ${SKILL}/ISSUE-FORMAT.md: short specific title (the fix, not the symptom); body = "What's drifting" refreshed from the file's ## Triage note, the Where/Kind/Drift item lines, "How to address it" naming the routeSkill and why, and the acceptance criteria as checkboxes; label from the kind->route mapping using tracker.md's exact label strings. Use gh issue create (or tracker.md's equivalent for a non-GitHub backend) and capture #NNN from the printed URL.\n3. Edit the drift file: set "route: follow-up issue #NNN" and "status: routed (drift-triage <today>)".\nIf tracker.md configures a Project board, mirror each created issue in and set its Type field ONLY — leave Epic/Sprint unset; drift isn't sprint-bound. On a per-item failure, record it and continue with the rest. Do not run git mutations beyond the tracker CLI itself.\n\nSURVIVORS (fix plans already annotated under "## Triage" in each file):\n${JSON.stringify(survivors.map(v => ({ id: v.id, file: v.file, kind: v.kind, where: v.where, verdict: v.verdict, plan: v.plan })), null, 1)}\n${BRIEF}`,
+    `${CTX}\nYou are the publisher. Read ${ROOT}/.agents/plan/tracker.md for the tracker backend, repo, exact label strings, and optional Project board — do not hardcode any of them. Derive today via date +%F. For EACH survivor below, in order:\n1. IDEMPOTENCY: read its drift file first — if route: already names a "follow-up issue #NNN", it is already published: record it as skipped, never open a duplicate.\n2. Otherwise create the issue per ${SKILL}/ISSUE-FORMAT.md: short specific title (the fix, not the symptom); body = "What's drifting" refreshed from the file's ## Triage note, the Where/Kind/Drift item lines, "How to address it" naming the routeSkill and why, and the acceptance criteria as checkboxes; label from the kind->route mapping using tracker.md's exact label strings. Use gh issue create (or tracker.md's equivalent for a non-GitHub backend) and capture #NNN from the printed URL.\n3. Edit the drift file: set "route: follow-up issue #NNN" and "status: routed (drift-triage <today>)".\nIf tracker.md configures a Project board, mirror each created issue in and set its Type field ONLY — leave Epic/Sprint unset; drift isn't sprint-bound. On a per-item failure, record it and continue with the rest. Do not run git mutations beyond the tracker CLI itself.\n\nSURVIVORS (fix plans already annotated under "## Triage" in each file):\n${JSON.stringify(survivors.map(v => ({ id: v.id, file: v.file, kind: v.kind, where: v.where, verdict: v.verdict, plan: v.plan })), null, 1)}\n${BRIEF}`,
     {
       label: 'publish:survivors', phase: 'Publish', model: 'sonnet', effort: 'medium',
       schema: {

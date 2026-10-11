@@ -58,16 +58,17 @@ These are the user's calls, and they change the run. Surface them first:
    sprint branch one at a time and re-run the full checkpoint suite after each. A
    green sprint branch is the invariant you never break.
 6. **Run the sprint-exit checkpoints.** All issues `done`, the Layer-1 tests green,
-   the plan-tree verifier green, `verify-agents-tree.py` reporting no new
-   violations (the hub row in the sprint's checkpoint table), plus any
+   the plan-tree verifier green, the hub row of the sprint's checkpoint table
+   when it has one (`verify-agents-tree.py`, present only where the agent-works
+   hub check is wired) reporting no new violations, plus any
    sprint-specific E2E. If a checkpoint is *broken by construction*, say so and
    route it to `spec-4-edit` — don't let a false-negative gate stall a
    genuinely-complete sprint.
 7. **Record and hand back to build-next-issue.** Run `plan-status.py set EE-SS-II done` per
    built issue (the sprint, epic, and index roll up automatically — no separate
    "mark the sprint done" step). Write the per-run narrative to
-   `.plan/progress/notes/` and mirror any drift/smells into their own files under
-   `.plan/progress/drift/` (one `drift-<slug>.md` each; format in `build-next-issue`).
+   `.agents/plan/progress/notes/` and mirror any drift/smells into their own files under
+   `.agents/plan/progress/drift/` (one `drift-<slug>.md` each; format in `build-next-issue`).
    Leave the verified-complete ledger rows (`completed/`) to `build-next-issue`, which owns
    verification. Don't hand-edit status anywhere. Open one PR per sprint.
 8. **Stop at the boundary** per the cadence, and report: what shipped, verification
@@ -119,7 +120,7 @@ Workflow({
     skillDir: "${CLAUDE_PLUGIN_ROOT}/skills/build-sprint",
     tddSkillPath: "${CLAUDE_PLUGIN_ROOT}/skills/build-tdd/SKILL.md",
     sprint: "EE-SS",
-    dispatch: "<the dispatch object, or the .plan/progress/dispatch/EE-SS.json path>",
+    dispatch: "<the dispatch object, or the .agents/plan/progress/dispatch/EE-SS.json path>",
     // hitlPolicy: "skip-and-flag" (default) | "draft-and-defer" | "auto-implement",
     // parallelism: "serial" (default, robust) | "worktree" (parallel file-disjoint units),
     // openPr: true, maxFailures: 2, prBase: "main",

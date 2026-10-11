@@ -7,7 +7,7 @@ disable-model-invocation: true
 # build-assess-drift — is this drift still real, and what's the fix?
 
 `build-next-issue` *records* cross-cutting problems as drift files under
-`.plan/progress/drift/`, but nothing ever re-checks them. A noted defect may already
+`.agents/plan/progress/drift/`, but nothing ever re-checks them. A noted defect may already
 be fixed; a smell may have moved when the code was refactored; a checkpoint bug may
 still be biting every run. This skill closes that loop: it re-derives each open
 drift item's relevance **from the live code**, plans how to fix the ones that
@@ -21,16 +21,16 @@ build those issues.
 
 ## What it reads
 
-- `.plan/progress/drift-status.py` — the read-only index of every drift item
+- `.agents/plan/progress/drift-status.py` — the read-only index of every drift item
   (`id / status / kind / where / route / file`). Run it to triage *which* files to
   open, instead of reading the whole `drift/` directory up front. This skill
   *consumes and advances* the drift-file format owned by `build-next-issue`; it does
   not redefine it.
-- `.plan/progress/drift/drift-*.md` — the individual write-ups, read only for the
+- `.agents/plan/progress/drift/drift-*.md` — the individual write-ups, read only for the
   items the index says are actionable.
 - The code each item points at — its `where:` location (a spec path, a sprint, or a
   code location), walked against the tree as it exists today.
-- `.plan/tracker.md` — where issues go and how (repo, labels, optional Project board).
+- `.agents/plan/tracker.md` — where issues go and how (repo, labels, optional Project board).
 - Git history — to tell "fixed since it was surfaced" from "never a real problem."
 
 ## Process
@@ -45,7 +45,7 @@ is edited or created until the user approves.
 Run the index rather than reading every file:
 
 ```bash
-python .plan/progress/drift-status.py --open
+python .agents/plan/progress/drift-status.py --open
 ```
 
 `--open` lists just the `open` and `routed` items (skip `resolved` — those are
@@ -54,11 +54,11 @@ table to decide which write-ups are worth opening, then read **only those**
 `drift/drift-*.md` files for the paragraph that explains what was claimed and where
 to look. This keeps the skill cheap even when the drift directory is large.
 
-> **Older workspace?** If `.plan/progress/drift-status.py` doesn't exist (the
+> **Older workspace?** If `.agents/plan/progress/drift-status.py` doesn't exist (the
 > workspace predates it), backfill it by copying `spec-0-init`'s
-> `assets/drift-status.py` to `.plan/progress/drift-status.py` (the idempotent
+> `assets/drift-status.py` to `.agents/plan/progress/drift-status.py` (the idempotent
 > backfill in `spec-0-init`'s "When NOT to scaffold"). As a one-off fallback you can
-> grep instead: `grep -l 'status: \(open\|routed\)' .plan/progress/drift/drift-*.md`.
+> grep instead: `grep -l 'status: \(open\|routed\)' .agents/plan/progress/drift/drift-*.md`.
 
 ### 2. Re-assess each against the codebase
 
@@ -105,7 +105,7 @@ get the user's approval before publishing anything.
 
 Publish one issue per surviving item, *inspired by* the recipe in
 [plan-1-publish-issues/TRACKER-GITHUB.md](../plan-1-publish-issues/TRACKER-GITHUB.md) —
-read `.plan/tracker.md` for the repo/labels/board, don't hardcode them, and **don't
+read `.agents/plan/tracker.md` for the repo/labels/board, don't hardcode them, and **don't
 invoke `plan-1-publish-issues`** (it's sprint/plan-tree-bound; drift items aren't).
 
 - Build the body and pick the label per [ISSUE-FORMAT.md](ISSUE-FORMAT.md).
@@ -121,7 +121,7 @@ it's already published — skip it, never open a duplicate.
 
 For each item you published, edit its drift file: set
 `route: follow-up issue #NNN` and flip `status:` to `routed`. Then refresh the
-**Open cross-cutting items** list in `.plan/progress/index.md` so the progress hub
+**Open cross-cutting items** list in `.agents/plan/progress/index.md` so the progress hub
 reflects what's now triaged.
 
 ### 7. Report

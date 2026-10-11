@@ -43,8 +43,15 @@ const MECH_MODEL = A.mechModel || undefined  // undefined => inherit caller/defa
 // one-time sibling question; 'detect' (default) = resolve from the repo's own signals (root
 // CLAUDE.md containing @AGENTS.md => opted in; root AGENTS.md without it => previously
 // declined; neither => 'ask', and the orchestrating skill asks at the approval gate).
+// A repo set up with the agent-works plugin (.agents/agent-works.json exists) overrides all
+// of that: its claude.twins setting decides, the question is never asked and the apply
+// writes no sibling itself (claude_md_optin = 'agent-works').
+// HUB_VERIFY_COMMAND: the hub verifier is not bundled; it is agent-works' (`aw hubs`). The
+// calling skill passes "aw hubs" when the `aw` command exists, else empty => the recon
+// reports no verifier findings and placement works from the tree alone.
 const HUBS = A.hubs === 'only' ? 'only' : (A.hubs === 'off' ? 'off' : 'on')
 const CLAUDE_MD = A.claudeMd === true ? true : (A.claudeMd === false ? false : 'detect')
+const HUB_VERIFY_COMMAND = (typeof A.hubVerifyCommand === 'string' && A.hubVerifyCommand.trim()) ? A.hubVerifyCommand.trim() : ''
 const isExcluded = (p) => {
   if (!p) return false
   const n = String(p).replace(/^\.\//, '').replace(/\/+$/, '')
@@ -402,31 +409,34 @@ if (HUBS !== 'off') {
   // Mechanical recon: current hub state + the one-time CLAUDE.md opt-in signal.
   const hubRecon = await agent(
     `Mechanical recon of the AGENTS.md hub state of the repo at ${ROOT}. Read-only; report facts, no judgment.
-Run exactly this and transcribe its JSON findings:
+${HUB_VERIFY_COMMAND ? `Run exactly this and transcribe its JSON findings into verifier_findings (check = the "code" or "check" key of a finding; path and message as printed):
 \`\`\`
-cd "${ROOT}" && ${PY} "${SKILL_DIR}/scripts/verify_agents_hubs.py" . --json
+cd "${ROOT}" && ${HUB_VERIFY_COMMAND} . --json
 \`\`\`
-Then: list every existing AGENTS.md and CLAUDE.md file as repo-relative paths (check both tracked and untracked, e.g. \`git -C "${ROOT}" ls-files '*AGENTS.md' '*CLAUDE.md'\` plus a find for untracked ones, skipping node_modules/.git/archive). Report root_claude_import = whether the ROOT CLAUDE.md exists AND contains the literal string @AGENTS.md, and root_agents_exists = whether the ROOT AGENTS.md exists.`,
+If the command cannot be started, return verifier_findings: [].` : 'No hub verifier is available to this run: return verifier_findings: [].'}
+Then: list every existing AGENTS.md and CLAUDE.md file as repo-relative paths (check both tracked and untracked, e.g. \`git -C "${ROOT}" ls-files '*AGENTS.md' '*CLAUDE.md'\` plus a find for untracked ones, skipping node_modules/.git/archive). Report root_claude_import = whether the ROOT CLAUDE.md exists AND contains the literal string @AGENTS.md, root_agents_exists = whether the ROOT AGENTS.md exists, and agent_works_config = whether the file ${ROOT}/.agents/agent-works.json exists.`,
     {
       label: 'hub-recon', phase: 'HubDraft', model: MECH_MODEL,
       schema: {
         type: 'object',
         additionalProperties: false,
-        required: ['agents_files', 'claude_files', 'root_claude_import', 'root_agents_exists', 'verifier_findings'],
+        required: ['agents_files', 'claude_files', 'root_claude_import', 'root_agents_exists', 'agent_works_config', 'verifier_findings'],
         properties: {
           agents_files: { type: 'array', items: { type: 'string' } },
           claude_files: { type: 'array', items: { type: 'string' } },
           root_claude_import: { type: 'boolean' },
           root_agents_exists: { type: 'boolean' },
+          agent_works_config: { type: 'boolean' },
           verifier_findings: { type: 'array', items: { type: 'object', additionalProperties: false, required: ['check', 'path'], properties: { check: { type: 'string' }, path: { type: 'string' }, message: { type: 'string' } } } },
         },
       },
     }
   )
-  const recon = hubRecon || { agents_files: [], claude_files: [], root_claude_import: false, root_agents_exists: false, verifier_findings: [] }
+  const recon = hubRecon || { agents_files: [], claude_files: [], root_claude_import: false, root_agents_exists: false, agent_works_config: false, verifier_findings: [] }
 
   // One-time CLAUDE.md opt-in resolution (the skill asks at the gate on 'ask').
-  claudeMdOptin = CLAUDE_MD === true ? 'yes'
+  claudeMdOptin = recon.agent_works_config ? 'agent-works'
+    : CLAUDE_MD === true ? 'yes'
     : CLAUDE_MD === false ? 'no'
       : recon.root_claude_import ? 'detected-yes'
         : recon.root_agents_exists ? 'no'

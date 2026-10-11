@@ -72,3 +72,10 @@ Only an explicit `false` disables a rule.
 | `rules.blockJunk` | Staged junk-pattern files. |
 | `rules.requireTestsPass` | Test gate before commits and in the stop-gate. |
 | `rules.stopGate` | The Stop-hook hard block (warnings still print). |
+
+## Boundary with agent-works
+
+This plugin owns **team version-control guardrails**: protected branches, force pushes, secrets, junk files and
+failing tests, in Claude Code, the terminal and CI. **Agent-specific guards** (files that are the owner's alone,
+blanket staging, generated files, scarce-resource locks, expensive-run budgets) and everything about how agents
+share a codebase are agent-works' job (`agent-works:guard` / `aw doctor`). The two are meant to run together.

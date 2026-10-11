@@ -4,10 +4,10 @@ Progressive disclosure isn't just how the spec is organized
 ([PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)) — it's how the
 *built source tree* should read too. An agent dropped into the repo should
 learn what to read before it reads: orient at the root, descend one hub at a
-time, open only the files that matter. This contract has two halves: a
-mandatory spec page that draws the tree before code exists, and the AGENTS.md
-hub rules the built tree must satisfy. Everything else in the suite links
-here; this file owns the format.
+time, open only the files that matter. Two things make that true: a mandatory
+spec page that draws the tree before code exists, which this file owns, and
+the AGENTS.md hub rules the built tree must satisfy, which belong to the
+`agent-works` plugin and are summarised here.
 
 ## The mandatory page: `repository-layout.md`
 
@@ -36,84 +36,43 @@ carries:
 module have locality (one place per concern), do the hub rules below hold on
 the drawn tree, would a change ripple across module boundaries?
 
-## AGENTS.md hubs — the rules
+## AGENTS.md hubs — five rules, owned by agent-works
 
 An `AGENTS.md` is to a source directory what a category `index.md` is to the
-spec: a concise orientation hub — what this subtree is for, what each direct
-child holds, where to go for a given kind of change. The spec's index rules
-transplant directly:
+spec: a short orientation hub. The contract, its exemptions and its checker
+belong to the `agent-works` plugin: read `agent-works:hubs` when it is
+installed. The five rules, for drawing the tree on `repository-layout.md` and
+for working without agent-works:
 
-1. **Hub isolation.** A directory containing an `AGENTS.md` holds no source
-   files directly — code always lives in subdirectories. Exempt: non-code
-   files (manifests and lockfiles — `package.json`, `Cargo.toml`,
-   `CMakeLists.txt`, … — plus `README.md`, `LICENSE`, dotfiles, CI config)
-   and **package markers** (`__init__.py` / `__init__.pyi` — a Python package
-   directory cannot exist without one; keep it a thin marker, not a module).
-   Break this and the hub stops being a cheap read: orientation and content
-   collapse into one directory listing.
-2. **Hub scope: direct children only.** One line per child directory (and per
-   exempt root file worth naming), what it holds, when to descend. A hub
-   never reaches two levels deep — files below its children are found by
-   descending, not by reading a manifest at the root.
-3. **Leaf code directories carry no hub.** A directory holding source files
-   is a leaf; its parent's AGENTS.md describes it in one line. (Corollary of
-   rule 1 — the two roles never mix.)
-4. **Every non-leaf code directory has a hub.** The repo root always does;
-   below that, any directory whose subdirectories contain code carries an
-   AGENTS.md. No orphan levels an agent must guess through.
-5. **Update on change.** Content in a subtree changes — files added, moved,
-   renamed, a child's purpose shifts — its governing AGENTS.md is updated
-   **in the same change**. A stale hub routes agents wrong silently, which is
-   worse than no hub. This is a durable rule, stated in the root AGENTS.md
-   itself so every agent session in the repo inherits it.
+1. **Hub isolation.** A directory with an `AGENTS.md` holds no source files of its own; code lives in subdirectories (manifests, README, LICENSE, dotfiles, CI config and package markers such as `__init__.py` are exempt).
+2. **Direct children only.** One line per child: what it holds, when to descend; never two levels deep.
+3. **Leaf code directories carry no hub.** The parent's line covers them.
+4. **Every non-leaf code directory has a hub**, the repo root included.
+5. **Update on change.** A hub is updated in the same change that adds, moves, renames or repurposes something below it.
 
 The **root AGENTS.md** is scaffolded by `spec-0-init` (stub:
-`spec-0-init/assets/stubs/agents-root.md`) and is the one owning home of the
-repo's agentic-development rules: the hub rules above, the update-on-change
-rule, and docs currency (end-user docs follow each verified sprint via
-`build-user-docs`). Its Layout section starts empty and is filled by builders
+`spec-0-init/assets/stubs/agents-root.md`) and states these rules and docs
+currency (end-user docs follow each verified sprint via `build-user-docs`) for
+every agent session. Its Layout section starts empty and is filled by builders
 as the tree from `repository-layout.md` materializes.
 
 ## CLAUDE.md siblings (opt-in)
 
 AGENTS.md is unconditional. Whether the repo also carries `CLAUDE.md` files
 is the **agent-context posture** (`reference/adr/0004-agent-context-files.md`,
-asked exactly once by `spec-0-init`). When opted in:
+asked exactly once by `spec-0-init`). When opted in, every AGENTS.md has a
+sibling `CLAUDE.md` whose entire content is `@AGENTS.md`, and no CLAUDE.md
+stands without its AGENTS.md. With agent-works installed the siblings are its
+generated twins (`aw twins`): not written by hand, not committed.
 
-- Every AGENTS.md has a sibling `CLAUDE.md` whose entire content is
-  `@AGENTS.md` — the Claude Code import. One source of truth, zero
-  duplication.
-- No orphan CLAUDE.md: a CLAUDE.md without a sibling AGENTS.md is a
-  violation.
-- The machine signal for the opt-in is the root `CLAUDE.md` containing
-  `@AGENTS.md` — the verifier keys off that, not off the ADR.
+## Checking the hubs
 
-## The verifier: `verify-agents-tree.py`
-
-Shipped by `spec-0-init` into `.plan/plan/`, read-only, stdlib-only, run from
-anywhere inside the repo. Exit 0 clean, 1 warnings, 2 critical — same ladder
-as its siblings. What it checks:
-
-| Check | Level |
-|-------|-------|
-| Root AGENTS.md exists (repo has code) | WARN — legacy repos ramp in |
-| Hub isolation (rule 1) | CRITICAL once a root AGENTS.md exists; WARN before |
-| Every non-leaf code directory has a hub (rule 4) | WARN |
-| CLAUDE.md chain complete, no orphans (when opted in) | WARN |
-
-Hub *scope* (rule 2) and staleness (rule 5) stay prose-enforced — mechanical
-checks for "describes only direct children" and "still accurate" would be
-noise. Default exclusions: dot-directories, `.plan/`, `node_modules/`,
-`build/`, `dist/`, `target/`, vendored trees (`third_party/`, `vendor/`),
-virtualenvs. To exclude something else (a generated tree, a data directory),
-add a marker line to the root AGENTS.md:
-
-```markdown
-<!-- verify-agents-tree: skip generated/ data/fixtures/ -->
-```
-
-Where it runs: the sprint/epic checkpoint tables carry a row for it (so
-`build-sprint` integrators, sprint exit, and `build-next-issue`'s reconcile
-re-run it for free), `build-tdd`'s done-when includes no new violations, and
-`spec-4-edit` re-runs it when a change touches `repository-layout.md` or
-moves module boundaries.
+`aw hubs` (agent-works) is the check: exit 0 clean, 1 warnings, 2 critical.
+This plugin ships no verifier of its own. When agent-works is available,
+`spec-0-init` writes a stub at `.agents/plan/plan/verify-agents-tree.py` that
+calls `aw hubs` and passes its exit code through. The "Codebase hubs current"
+row of the sprint/epic checkpoint tables, `build-sprint`'s exit,
+`build-next-issue`'s reconcile, `build-tdd`'s done-when and `spec-4-edit`'s
+re-verify all run that path **when the file exists** and skip the check when
+it does not. Without agent-works the five rules are kept by hand: hub
+structure is not verified.

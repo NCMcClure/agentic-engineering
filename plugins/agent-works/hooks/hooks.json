@@ -1,0 +1,31 @@
+{
+  "description": "The agent guard (staging, owner and generated files, resource locks, run budgets, project rules), the session start (CLAUDE.md twins, who is running) and the kanban board",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$(command -v python3)\" in ''|*/WindowsApps/*) py=python;; *) py=python3;; esac; \"$py\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" 2>/dev/null || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$(command -v python3)\" in ''|*/WindowsApps/*) py=python;; *) py=python3;; esac; \"$py\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/session.py\" 2>/dev/null || true",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "modules": [
+    "./kanban/register.tsx"
+  ]
+}

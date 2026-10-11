@@ -7,7 +7,7 @@ that quietly accumulates fiction.
 ## The check, per claimed-done issue
 
 For each issue marked `done` in the plan or closed in the tracker (and not
-already verified in `.plan/progress/completed/`):
+already verified in `.agents/plan/progress/completed/`):
 
 1. **Run the testing checkpoint.** The issue's `## Testing checkpoint` table names
    a command (or a manual step). Run it. An issue whose checkpoint command exits
@@ -44,7 +44,7 @@ In a multi-builder sprint build, work is `done` on an unmerged sprint branch lon
 reaches `main`. Record *where* you verified it — `verified on sprint/NN` vs
 `merged to main` — so a checkpoint that needs an artifact still living on a branch
 isn't mistaken for a regression on `main`. And keep repeated runs cheap:
-`.plan/progress/completed/` is the ledger of what's already verified, so on each run
+`.agents/plan/progress/completed/` is the ledger of what's already verified, so on each run
 re-verify only the **delta** since the last verified ref (newly-merged or
 newly-`done` issues), not the whole tree. Continuous use of this skill depends on that.
 
@@ -63,15 +63,15 @@ reviewing its quality. Quality review is `code-review`'s job, not this skill's.
 
 If an issue claimed done doesn't pass:
 
-- Flip it back with `python .plan/plan/plan-status.py set EE-SS-II in-progress` (or `blocked` if it's waiting on something) — the funnel reopens the tracker and rolls the sprint/epic down with it.
-- Record it in a `.plan/progress/notes/` run file with the specific failure (which criterion, what the checkpoint did); if it's a recurring or cross-cutting defect, give it its own file under `.plan/progress/drift/` (`drift-<slug>.md`; format in the SKILL).
+- Flip it back with `python .agents/plan/plan/plan-status.py set EE-SS-II in-progress` (or `blocked` if it's waiting on something) — the funnel reopens the tracker and rolls the sprint/epic down with it.
+- Record it in a `.agents/plan/progress/notes/` run file with the specific failure (which criterion, what the checkpoint did); if it's a recurring or cross-cutting defect, give it its own file under `.agents/plan/progress/drift/` (`drift-<slug>.md`; format in the SKILL).
 - Do **not** count it toward completion, and do **not** let anything that depends on it be selected as "next" — a falsely-done blocker is exactly how broken foundations propagate.
 
 ## Recording evidence
 
 Record a verified-complete entry with `plan-status.py set EE-SS-II done --evidence
 "<what convinced you>"` — e.g. `--evidence "checkpoint run_tests.py exits 0; PR #42
-merged"`. The funnel writes the row into `.plan/progress/completed/<epic>.md`.
+merged"`. The funnel writes the row into `.agents/plan/progress/completed/<epic>.md`.
 Evidence beats a checkmark — the next run (and the next person) can trust a logged
 reason without re-deriving it. Pass `--evidence` only for work you've actually
 verified; a status-only `set … done` (no evidence) writes no ledger row.

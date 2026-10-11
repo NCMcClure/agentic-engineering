@@ -1,0 +1,27 @@
+{
+  "id": "20",
+  "file": "0020-crlf-and-quotes.md",
+  "title": "Single quoted",
+  "status": "review",
+  "order": 2,
+  "priority": "normal",
+  "labels": [
+    "bug"
+  ],
+  "skills": [
+    "a",
+    "b"
+  ],
+  "source": "user",
+  "created": "",
+  "updated": "",
+  "kind": "gate",
+  "owner": "pat",
+  "needs": "",
+  "ref": "#7",
+  "body": "\nFirst line.\n\nLast line.",
+  "remote": null,
+  "extra": [
+    "custom: kept"
+  ]
+}

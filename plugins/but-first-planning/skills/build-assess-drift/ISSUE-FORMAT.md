@@ -6,7 +6,7 @@ acceptance criteria authored up front. It's a grabbable ticket that says *what d
 `build-next-issue` dispatching an agent) can act without re-deriving the triage.
 
 For the `gh` mechanics — `gh issue create`, reading the repo/labels/board from
-`.plan/tracker.md`, mirroring into the GitHub Project, and re-reading to stay idempotent
+`.agents/plan/tracker.md`, mirroring into the GitHub Project, and re-reading to stay idempotent
 — follow [plan-1-publish-issues/TRACKER-GITHUB.md](../plan-1-publish-issues/TRACKER-GITHUB.md).
 This file only defines the **body shape** and the **label/route mapping**.
 
@@ -19,7 +19,7 @@ This file only defines the **body shape** and the **label/route mapping**.
 present in the code today, not the stale original description>
 
 **Where:** <the `where:` location>   **Kind:** <defect | smell | checkpoint-bug | note>
-**Drift item:** D<NN> (.plan/progress/drift/drift-<slug>.md)
+**Drift item:** D<NN> (.agents/plan/progress/drift/drift-<slug>.md)
 
 ## How to address it
 
@@ -50,7 +50,7 @@ The route skill drives both the label and the "How to address it" line:
 | `note`         | — (usually no issue)         | —                | An observation; settles to a terminal status. Only routes when it surfaced a latent defect — then route by what that defect *is*. |
 | concrete fix   | `build-tdd`                  | `ready-for-agent`| A scoped, test-first code change. |
 
-Use the **exact label strings from `.plan/tracker.md`** — the table's `ready-for-agent`
+Use the **exact label strings from `.agents/plan/tracker.md`** — the table's `ready-for-agent`
 / `ready-for-human` are the default canonical names, but a project may have renamed
 them. Bump a `ready-for-agent` item to `ready-for-human` if the re-assessment shows the
 fix actually needs a human call (e.g. a `smell` whose deepening reopens an ADR).
