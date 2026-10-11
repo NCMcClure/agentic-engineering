@@ -13,6 +13,11 @@ this brief is wrong: say so in your report.
 3. Your round's brief and your task. Then the hub of each folder you will change.
 4. <What every agent of this project must read before looking at a result: a review guide, a contract page.>
 
+## Skills
+
+The root `AGENTS.md` lists the plugins this project works with (§ Agent plugins) and when to open each skill. Your
+task names the ones it needs; open them before the work they cover, not after it went wrong.
+
 ## Your name
 
 Your task gives you an agent name. Pass it as `--as <name>` to `aw`, and put `<AGENT_VAR>=<name>` in front of any

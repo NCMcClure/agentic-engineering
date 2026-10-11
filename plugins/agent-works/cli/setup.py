@@ -94,8 +94,14 @@ def plan(root: Path, opts: argparse.Namespace) -> Dict[str, Any]:
         n = common.line_count(common.read_text(root / "AGENTS.md", "") or "")
         limit = common.budget(cfg, "rootAgentsLines")
         add("keep", "AGENTS.md", f"yours ({n} lines" + (f", over the budget of {limit}: aw doctor says what to move" if n > limit else "") + ")")
+        have_root = (common.read_text(root / "AGENTS.md", "") or "").replace("\r\n", "\n")
+        want_root = common.with_plugins_block(have_root, common.plugins_block(cfg))
+        if want_root != have_root:
+            add("section", "AGENTS.md", "its § Agent plugins: which plugins this project works with and when to open each skill "
+                "(only that marked section is written)", text=want_root)
     else:
-        add("create", "AGENTS.md", "the root orientation file, to fill in", text=template("agents-root.md", project=root.name))
+        add("create", "AGENTS.md", "the root orientation file, to fill in",
+            text=template("agents-root.md", project=root.name, plugins=common.plugins_block(cfg)))
 
     memory = common.config_path(cfg, root, "memory")
     if found["memory"]:
@@ -170,6 +176,9 @@ def apply(root: Path, doc: Dict[str, Any]) -> List[str]:
         elif s["do"] == "regenerate":
             common.atomic_write(path, s["text"])
             done.append(f"regenerated {s['path']}")
+        elif s["do"] == "section":
+            common.atomic_write(path, s["text"])
+            done.append(f"wrote the plugins section of {s['path']}")
         elif s["do"] == "append":
             have = common.read_text(path, "") or ""
             common.atomic_write(path, have + ("" if not have or have.endswith("\n") else "\n") + ("\n" if have else "") + s["text"])
@@ -247,13 +256,13 @@ def text_of(doc: Dict[str, Any], applied: Optional[List[str]]) -> str:
     kind = "a fresh repository" if doc["fresh"] else "a repository that has agent files"
     lines = [f"aw setup — {doc['root']} ({kind}; CLAUDE.md twins: {doc['twins']})", ""]
     marks = {"create": "create    ", "append": "add to    ", "regenerate": "regenerate", "move": "move      ", "keep": "keep      ",
-             "report": "REPORT    ", "twins": "twins     "}
+             "report": "REPORT    ", "twins": "twins     ", "section": "section   "}
     for s in doc["steps"]:
         lines.append(f"  {marks[s['do']]} {s['path']}" + (f" -> {s['to']}" if s.get("to") else "") + f"   {s['why']}")
         lines += [f"               {c}" for c in s.get("commands") or []]
     lines.append("")
     if applied is None:
-        lines.append("Nothing was written. `aw setup --apply` does the create / add / regenerate / move / twins steps; REPORT steps are yours.")
+        lines.append("Nothing was written. `aw setup --apply` does the create / add / regenerate / section / move / twins steps; REPORT steps are yours.")
     else:
         lines += applied or ["nothing to do: everything is in place"]
     lines += ["", "next:"] + [f"  {n}" for n in doc["next"]]

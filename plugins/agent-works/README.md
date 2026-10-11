@@ -161,6 +161,10 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.1.2**: The root `AGENTS.md` introduces the project's plugins (agent-works, codebase-optimizer,
+  perceptual-loop: what each is for, when to open each skill) in a marked § Agent plugins that `aw setup --apply`
+  writes and `aw doctor` checks (`ROOT_PLUGINS`), so sessions and sub-agents are primed at start. The list is
+  `plugins` in the config.
 - **0.1.1**: The git cadence (branch, commit, push, pull request, merge) no longer waits for approval unless the
   owner asked for it: a commit on the default branch is a warning (`guard.defaultBranch.commit`, was `ask`), and
   `setup`, the common brief and the generated `.agents/README.md` say so.

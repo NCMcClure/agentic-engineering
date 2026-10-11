@@ -39,6 +39,7 @@ DEFAULTS: Dict[str, Any] = {
     },
     "tasks": {"home": "kanban"},
     "claude": {"twins": "generated"},
+    "plugins": ["agent-works", "codebase-optimizer", "perceptual-loop"],  # the ones the root AGENTS.md introduces
     "budgets": {
         "rootAgentsLines": 200,
         "hubLines": 40,
@@ -530,6 +531,43 @@ def template(name: str, **values: Any) -> str:
     for key, value in values.items():
         text = text.replace("{{" + key + "}}", str(value))
     return text
+
+
+PLUGINS_BLOCK = re.compile(r"<!-- agent-works:plugins\b.*?<!-- /agent-works:plugins -->\n?", re.S)
+
+
+def plugins_block(cfg: Optional[Dict[str, Any]] = None) -> str:
+    """The section of the root AGENTS.md that introduces the plugins of ``plugins`` in the config ("" for none).
+
+    Every session, and every sub-agent, loads the root file: this is what primes them to open a skill when its case
+    comes up. One copy, the template; a row is kept when its plugin is in the list.
+    """
+    names = (cfg or {}).get("plugins")
+    if names is None:
+        names = DEFAULTS["plugins"]
+    names = [str(n) for n in names] if isinstance(names, list) else []
+    if not names:
+        return ""
+    out = []
+    for line in template("agents-plugins.md").replace("\r\n", "\n").splitlines():
+        m = re.match(r"^\| \*\*([^*]+)\*\* \|", line)
+        if m and m.group(1) not in names:
+            continue
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
+def with_plugins_block(text: str, block: str) -> str:
+    """``text`` (a root AGENTS.md) with the plugins section put in or brought up to date, nothing else touched."""
+    text = text.replace("\r\n", "\n")
+    if PLUGINS_BLOCK.search(text):
+        return PLUGINS_BLOCK.sub(lambda _: block, text, count=1)
+    if not block:
+        return text
+    heads = [m.start() for m in re.finditer(r"^## ", text, re.M)]
+    if len(heads) >= 2:  # after the first section (what the project is), before the rest
+        return text[:heads[1]] + block + "\n" + text[heads[1]:]
+    return text + ("" if text.endswith("\n") else "\n") + "\n" + block
 
 
 def plugin_version() -> str:

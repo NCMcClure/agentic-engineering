@@ -71,6 +71,34 @@ class Setup(unittest.TestCase):
         self.assertIn("nothing to do", out)
         self.assertEqual({rel: (self.p.root / rel).read_bytes() for rel in self.tree()}, snapshot)
 
+    def test_the_plugins_section_of_the_root_file(self):
+        block = common.plugins_block()
+        for name in ("agent-works", "codebase-optimizer", "perceptual-loop"):
+            self.assertIn(f"| **{name}** |", block)
+        self.p.aw("setup", "--apply")
+        self.assertIn(block, self.p.read("AGENTS.md"))  # a new root file carries it
+        self.assertNotIn("{{", self.p.read("AGENTS.md"))
+        # an existing file: after its first section, and brought up to date in place
+        mine = "# Mine\n\n## What this is\n\nA thing.\n\n## Rules\n\n1. One.\n"
+        self.p.write("AGENTS.md", mine)
+        self.assertIn("ROOT_PLUGINS", {f["code"] for f in json.loads(self.p.aw("doctor", "--json")[1])["findings"]})
+        self.p.aw("setup", "--apply")
+        self.assertEqual(self.p.read("AGENTS.md"), "# Mine\n\n## What this is\n\nA thing.\n\n" + block + "\n## Rules\n\n1. One.\n")
+        self.assertNotIn("ROOT_PLUGINS", {f["code"] for f in json.loads(self.p.aw("doctor", "--json")[1])["findings"]})
+        self.p.write("AGENTS.md", self.p.read("AGENTS.md").replace("Work judged by eye or ear", "Old words"))
+        self.assertIn("ROOT_PLUGINS", {f["code"] for f in json.loads(self.p.aw("doctor", "--json")[1])["findings"]})
+        # the config's list decides the rows
+        self.p.write(".agents/agent-works.json", json.dumps({"version": 1, "plugins": ["agent-works"]}))
+        self.p.aw("setup", "--apply")
+        text = self.p.read("AGENTS.md")
+        self.assertIn("| **agent-works** |", text)
+        self.assertNotIn("perceptual-loop", text)
+        self.assertTrue(text.endswith("## Rules\n\n1. One.\n"))
+        self.p.write(".agents/agent-works.json", json.dumps({"version": 1, "plugins": []}))
+        self.p.aw("setup", "--apply")
+        self.assertEqual(self.p.read("AGENTS.md"), "# Mine\n\n## What this is\n\nA thing.\n\n\n## Rules\n\n1. One.\n")
+        self.assertNotIn("ROOT_PLUGINS", {f["code"] for f in json.loads(self.p.aw("doctor", "--json")[1])["findings"]})
+
     def test_an_existing_repository_keeps_its_prose_and_gets_reports(self):
         w = self.p.write
         w("AGENTS.md", "# Mine\n" + "l\n" * 300)
@@ -96,6 +124,9 @@ class Setup(unittest.TestCase):
         code, out, _ = self.p.aw("setup", "--apply")
         self.assertEqual(code, 0)
         self.assertTrue(self.p.read("AGENTS.md").startswith("# Mine\n"))
+        self.assertIn(("section", "AGENTS.md"), self.steps(doc))
+        self.assertTrue(self.p.read("AGENTS.md").endswith(common.plugins_block()))  # put in, the prose untouched
+        self.assertEqual(self.p.read("AGENTS.md").count("l\n"), 300)
         self.assertEqual(self.p.read("CLAUDE.md"), "My own Claude notes.\n")  # never overwritten
         self.assertIn("content of its own", out)
         self.assertEqual(self.p.read(".gitignore").splitlines()[0], "node_modules/")

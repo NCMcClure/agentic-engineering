@@ -16,6 +16,7 @@ only. Every non-leaf code directory has its own AGENTS.md that does the same one
 
 <The commands, what each costs, and which to run while iterating and which once at the end.>
 
+{{plugins}}
 ## Rules
 
 <One entry per rule, five lines at most: the rule, then a link to the decision or memory that says why. Rules that
