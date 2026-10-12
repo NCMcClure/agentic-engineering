@@ -14,7 +14,8 @@ those a command does, and those that need a reader. Do the first kind first; it 
 aw doctor
 ```
 
-`--all` lists every finding (the default shows eight per code), `--json` is for scripts, `--html <file>` writes a
+`--all` lists every finding (the default shows eight per code), `--accepted` lists the findings the project
+accepted with the why of each (they are not counted: Step 3), `--json` is for scripts, `--html <file>` writes a
 page for the owner (outside the repository: a report is not a repo file). If the last lines show no "since the
 baseline", record one first with `aw doctor --baseline`.
 
@@ -60,7 +61,30 @@ wording intact, and quote in your report every passage you removed rather than m
 | `BRIEF_STRAY` (a file named like a brief or a hand-over outside `.agents/briefs/`, often in a git-ignored scratch folder) | Read it. Move what holds for every round into `.agents/briefs/common.md`, and each lasting fact to its home: a rule to the root `AGENTS.md`, a lesson to memory, a task to a card, a ruling to a decision. Then delete the file, and quote in your report what you dropped. A file that is no brief: rename it, or narrow `briefs.stray` in the config. |
 | `CONFIG_INVALID` | The `guard` skill. |
 
-*Done when: each remaining finding is either repaired, or listed in your report with the reason it stays.*
+### Accepting a finding instead of repairing it
+
+A finding is sometimes right about the file and wrong about the project: a directory that mixes loose files with
+sub-folders because every command names one of those files, a reference memory that is the approved plan as
+written. Then the repair would cost more than the finding, and the entry goes into `accept` of
+`.agents/agent-works.json`:
+
+```json
+"accept": [{ "code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": "cli.ts is the path every run command names" }]
+```
+
+- **Only with the owner's say.** Accepting is the owner's decision, never an agent's way to a clean run: ask, with
+  the finding and what repairing it would take, and wait for the answer. A finding you merely have no time for is
+  a card (`aw kanban add`), not an entry.
+- **The why is written down**, in the entry, as the owner gave it: a reader a year on must see why it stays.
+- One entry per place: the exact path, or a glob where the name carries a date. Never a glob wide enough to take
+  findings nobody has looked at.
+- Critical findings and `CONFIG_INVALID` cannot be accepted. `ACCEPT_UNUSED` (info) names an entry that no longer
+  matches anything: remove it.
+- `aw doctor --accepted` lists what is accepted, each with its why. The syntax:
+  `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md`, § Accepted findings.
+
+*Done when: each remaining finding is either repaired, accepted by the owner with its why in the config, or
+listed in your report with the reason it stays.*
 
 ## Step 4 — Compare with the baseline
 

@@ -1,10 +1,11 @@
 """aw doctor: every check of agent-works in one run, read-only.
 
-    aw doctor [--json] [--baseline] [--html FILE]
+    aw doctor [--json] [--baseline] [--html FILE] [--all] [--accepted]
 
 It runs the checks of hubs, memory, decisions and the glossary, links, dup, twins and kanban, and adds its own:
 
   CONFIG_INVALID     critical  .agents/agent-works.json is not valid, or a key has the wrong shape
+  ACCEPT_UNUSED      info      an entry of `accept` in the config matches no finding (or only a critical one): remove it
   ROOT_STATUS_PROSE  info      the root AGENTS.md carries status prose (status lives in the status memory and the board)
   ROOT_PLUGINS       warning   the root AGENTS.md does not introduce the project's plugins, or its section is out of date
   CONTRACT_MISSING   warning   no .agents/README.md (the generated contracts page: aw setup --apply)
@@ -18,6 +19,11 @@ It runs the checks of hubs, memory, decisions and the glossary, links, dup, twin
 
 Without a config the defaults apply, so a legacy repository gets its first report before anything is set up. Only
 HUB_ISOLATION, CONFIG_INVALID and a status file over three times its budget are critical. Exit 0 / 1 / 2.
+
+Accepted findings: `accept` in the config lists findings the project decided are fine as they are, each with its
+why: [{"code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": "…"}] (`path` exact, or a glob). They are not counted
+and do not fail the run; one line says how many there are, --accepted lists each with its why, and --json carries
+them under "accepted". A critical finding and CONFIG_INVALID are never accepted. Every check command honours the list.
 
 --baseline writes sizes and finding counts to <aw home>/projects/<id>/baseline.json; later runs print what moved since.
 --html FILE writes the report as one self-contained page.
@@ -37,7 +43,7 @@ from common import Finding
 
 STAMP = re.compile(r"<!--\s*agent-works contract v([0-9]+(?:\.[0-9A-Za-z-]+)*)")
 GROUPS: List[Tuple[str, Tuple[str, ...]]] = [
-    ("Config", ("CONFIG_",)),
+    ("Config", ("CONFIG_", "ACCEPT_")),
     ("Hubs and the root", ("HUB_", "ROOT_", "CLAUDE_CHAIN", "CONTRACT_", "GEN_TWIN_")),
     ("Memory and status", ("MEM_", "STATUS_")),
     ("Decisions and glossary", ("DEC_", "GLOSSARY_")),
@@ -47,7 +53,7 @@ GROUPS: List[Tuple[str, Tuple[str, ...]]] = [
     ("User docs", ("DOCS_",)),
 ]
 SHAPES = {"briefs": dict, "paths": dict, "tasks": dict, "claude": dict, "plugins": list, "budgets": dict, "links": dict, "guard": dict, "resources": dict,
-          "lockOrder": list, "runs": list, "counters": dict, "dup": dict, "kanban": dict, "coordination": dict}
+          "lockOrder": list, "runs": list, "counters": dict, "dup": dict, "kanban": dict, "coordination": dict, "accept": list}
 
 
 def group_of(code: str) -> str:
@@ -71,6 +77,10 @@ def config_findings(cfg: Dict[str, Any], root: Path) -> List[Finding]:
     for key, kind in SHAPES.items():
         if key in cfg and not isinstance(cfg[key], kind):
             out.append(Finding("CONFIG_INVALID", "critical", where, 0, f"\"{key}\" must be {'an object' if kind is dict else 'a list'}"))
+    if "name" in cfg and not isinstance(cfg["name"], str):
+        out.append(Finding("CONFIG_INVALID", "critical", where, 0, "\"name\" must be a string: the project's name, when it is not its folder's"))
+    if isinstance(cfg.get("accept"), list):
+        out += [Finding("CONFIG_INVALID", "critical", where, 0, problem) for problem in common.accept_entries(cfg)[1]]
     guard = cfg.get("guard") if isinstance(cfg.get("guard"), dict) else {}
     for key in ("ownerFiles", "generated", "rules", "agentVarAliases"):
         if key in guard and not isinstance(guard[key], list):
@@ -327,7 +337,10 @@ def sizes(root: Path, cfg: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def collect(root: Path) -> Dict[str, Any]:
-    """Every check, as {"findings", "failed": {check: error}, "sizes", "hubs"}."""
+    """Every check, as {"findings", "accepted", "failed": {check: error}, "sizes", "hubs"}.
+
+    "findings" are the ones that count: what `accept` in the config took out is under "accepted", and an entry
+    of that list that took nothing is reported here (ACCEPT_UNUSED), where every check has run."""
     cfg = common.load_config(root)
     failed: Dict[str, str] = {}
     found: List[Finding] = []
@@ -368,7 +381,16 @@ def collect(root: Path) -> Dict[str, Any]:
     found += _safe("briefs", lambda: brief_findings(root, cfg), failed)
     found += _safe("stray briefs", lambda: stray_brief_findings(root, cfg), failed)
     found += _safe("docs", lambda: docs_findings(root, cfg), failed)
-    return {"findings": common.sort_findings(found), "failed": failed, "sizes": sizes(root, cfg),
+    found, accepted, entries = common.split_accepted(common.sort_findings(found), cfg)
+    where = common.rel(cfg["_path"], root) if cfg.get("_path") else common.CONFIG_REL
+    for e in entries:
+        if e["used"] or failed:  # a check that did not run may be the one the entry is for
+            continue
+        what = f"accept[{e['index']}] ({e['code']} at {e['path']})"
+        found.append(Finding("ACCEPT_UNUSED", "info", where, 0,
+                             f"{what} matches only a critical finding, and a critical finding is never accepted: repair it, and remove the entry"
+                             if e["critical"] else f"{what} matches no finding: remove the entry"))
+    return {"findings": common.sort_findings(found), "accepted": accepted, "failed": failed, "sizes": sizes(root, cfg),
             "hubs": extra.get("hubs", 0), "config": common.rel(cfg["_path"], root) if cfg.get("_path") else None}
 
 
@@ -416,8 +438,15 @@ def text_report(doc: Dict[str, Any], found: List[Finding]) -> str:
         lines.append(f"nothing moved since the baseline of {b['at']}")
     if doc.get("baselineWritten"):
         lines.append(f"baseline written: {doc['baselineWritten']}")
+    accepted = doc.get("accepted") or []
+    if accepted and doc.get("_accepted"):
+        lines += ["", f"Accepted ({len(accepted)})"]
+        lines += [f"  {a['code']:22} {a['path']} — {a['why']}" for a in accepted]
     c = doc["summary"]
-    lines += ["", f"doctor: {c['critical']} critical, {c['warning']} warning, {c['info']} info"]
+    lines.append("")
+    if accepted and not doc.get("_accepted"):
+        lines.append(common.accepted_line(accepted))
+    lines.append(f"doctor: {c['critical']} critical, {c['warning']} warning, {c['info']} info")
     return "\n".join(lines)
 
 
@@ -433,6 +462,12 @@ def html_report(doc: Dict[str, Any], found: List[Finding]) -> str:
             where = e(f.path + (f":{f.line}" if f.line else ""))
             rows.append(f"<tr class=\"{e(f.level)}\"><td>{e(f.level)}</td><td><code>{e(f.code)}</code></td><td><code>{where}</code></td><td>{e(f.message)}</td></tr>")
         rows.append("</table>")
+    accepted = doc.get("accepted") or []
+    if accepted:
+        rows.append(f"<h2>Accepted <small>{len(accepted)}</small></h2><table>")
+        rows += [f"<tr class=\"info\"><td>accepted</td><td><code>{e(a['code'])}</code></td><td><code>{e(a['path'])}</code></td><td>{e(a['why'])}</td></tr>"
+                 for a in accepted]
+        rows.append("</table>")
     c = doc["summary"]
     sizes_ = "".join(f"<li>{e(str(k))}: {e(str(v))}</li>" for k, v in doc["sizes"].items())
     return f"""<!doctype html>
@@ -447,7 +482,7 @@ code {{ font: 12px ui-monospace, monospace; }}
 tr.critical td:first-child {{ color: #c0392b; font-weight: 600; }} tr.warning td:first-child {{ color: #b9770e; }} tr.info td:first-child {{ opacity: .6; }}
 </style></head><body>
 <h1>agent-works doctor: {e(doc['project'])}</h1>
-<p>{e(doc['at'])} · {c['critical']} critical · {c['warning']} warning · {c['info']} info · config: {e(str(doc['config'] or 'none (defaults)'))}</p>
+<p>{e(doc['at'])} · {c['critical']} critical · {c['warning']} warning · {c['info']} info · {len(accepted)} accepted · config: {e(str(doc['config'] or 'none (defaults)'))}</p>
 {''.join(rows) or '<p>Clean.</p>'}
 <h2>Sizes</h2><ul>{sizes_}</ul>
 </body></html>
@@ -460,7 +495,8 @@ def run(args: argparse.Namespace) -> int:
     found: List[Finding] = res["findings"]
     now = {"sizes": {**res["sizes"], "hubs": res["hubs"]}, "codes": counts_by_code(found)}
     doc: Dict[str, Any] = {"project": common.project_id(root), "root": common.posix(root), "config": res["config"],
-                           "at": common.now_iso(), "failed": res["failed"], "sizes": now["sizes"], "codes": now["codes"]}
+                           "at": common.now_iso(), "failed": res["failed"], "sizes": now["sizes"], "codes": now["codes"],
+                           "accepted": res["accepted"]}
     then = common.read_json(baseline_path(root), None)
     if isinstance(then, dict):
         doc["baseline"] = compare(now, then)
@@ -474,6 +510,7 @@ def run(args: argparse.Namespace) -> int:
         common.emit(full, True)
     else:
         full["_max"] = 10 ** 9 if args.all else 8
+        full["_accepted"] = args.accepted
         print_text = text_report(full, found)
         common.emit(print_text)
         if args.html:
@@ -489,4 +526,5 @@ def register(subparsers: Any) -> None:
     p.add_argument("--baseline", action="store_true", help="record today's sizes and counts; later runs compare against them")
     p.add_argument("--html", metavar="FILE", help="also write the report as one self-contained page")
     p.add_argument("--all", action="store_true", help="list every finding (the text report shows eight per code)")
+    p.add_argument("--accepted", action="store_true", help="list the findings `accept` in the config took out, each with its why")
     p.set_defaults(func=run)

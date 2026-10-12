@@ -2,7 +2,8 @@
 
 One file per project, tracked with the repository. **Its presence turns the guard on**: without it both hooks do
 nothing, and every `aw` check runs on the defaults, so a legacy repository gets a report before anything is set up.
-`aw setup --apply` writes a minimal one. Every key is optional; what is left out takes the default shown here.
+`aw setup --apply` writes a minimal one. Every key is optional; what is left out takes the default shown here
+(`name` has none: it is the folder's name until you set it).
 `aw doctor` reports a file that is not valid JSON, a key of the wrong shape or a pattern that is not a regular
 expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the guard falls back to the defaults.
 
@@ -35,6 +36,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
   "lockOrder": [],
   "runs": [],
   "counters": {},
+  "accept": [],
   "coordination": { "lockStaleMinutes": 45, "agentStaleMinutes": 120, "holdMinutes": 120, "claimHours": 72,
                     "learningChars": 6000, "logBytes": 262144 }
 }
@@ -45,6 +47,7 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
 | Key | Meaning |
 |---|---|
 | `version` | The schema version, `1`. A higher number than the plugin reads is `CONFIG_INVALID`. |
+| `name` | The project's name where it is shown to people: the title of `.agents/README.md`, of a new root `AGENTS.md`, and the project in `aw who`, notes and learnings. Not set (the default): the folder name of the repository's main working tree, so a linked worktree says the project's name and not its own folder's. Set it when the folder is not the name (`"name": "Cardan"` in a folder `ac-headless`), then `aw setup --apply`. The project's id in the machine's store stays the folder's. Not a string: `CONFIG_INVALID`. |
 | `paths.*` | Where each kind of fact lives, relative to the repository's top. `userDocs` is the folder for user-facing documentation: agent-works never writes there, and agent material found in it is `DOCS_AGENT_FILE`. An existing `.agents/board` is used as the kanban folder while `paths.kanban` does not exist. |
 | `tasks.home` | Where tasks are kept: `kanban`. Another value with cards in the kanban folder is `TASKS_TWO_HOMES`. |
 | `plugins` | The plugins the root `AGENTS.md` introduces in its § Agent plugins (what each is for, when to open each skill), so every session and sub-agent is primed at start. `aw setup --apply` writes the section between its two markers and nothing else; `aw doctor` reports it missing or out of date (`ROOT_PLUGINS`). Remove a name to drop its row; `[]` for no section. |
@@ -69,11 +72,46 @@ expression as `CONFIG_INVALID` (critical). A broken file never blocks work: the 
 | `lockOrder` | The order to take several resources in; the refusal names it. |
 | `runs` | Budgets for expensive runs. See below. |
 | `counters.<name>` | Shared counters agents claim with `aw claim` (a `note` says what it numbers). |
+| `accept` | Findings the project decided are fine as they are, each with its reason. See below. |
 | `coordination.lockStaleMinutes` | A lock not refreshed for this long, while none of its resource's `processes` runs, is taken over by the next to ask. |
 | `coordination.agentStaleMinutes` | An agent registered without a process id is dropped from `aw who` after this long without a beat. |
 | `coordination.holdMinutes` | How long a lease taken with `--hold` lasts unless it says otherwise. |
 | `coordination.claimHours` | How long a claim on a counter lasts before it lapses. |
 | `coordination.learningChars`, `coordination.logBytes` | The size cap of one shared learning; the size past which a notes log rotates. |
+
+## Accepted findings: `accept`
+
+A check sometimes reports what the project has decided to keep: a directory that mixes loose files with
+sub-folders and will stay so, a reference memory that is the approved plan as written and over its size budget.
+Left alone such a finding warns forever, `aw doctor` is never clean, and a new warning drowns among the old.
+`accept` takes it out, with the reason written down:
+
+```json
+"accept": [
+  { "code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": "cli.ts is the path every run command names" },
+  { "code": "MEM_FILE_SIZE", "path": ".agents/memory/reference/*-approved-plan.md", "why": "the approved plan, kept as written" }
+]
+```
+
+| Field | Meaning |
+|---|---|
+| `code` | The finding's code, as `aw doctor` prints it. One code per entry. |
+| `path` | The finding's path as the report prints it (relative to the top, forward slashes, no line number), or a glob over such paths: `*` is any run of characters, `/` included; `?` one character; `[…]` a set. Case counts. |
+| `why` | The reason it stays, in a sentence. Required, and not empty. |
+
+An accepted finding is not counted and does not fail the run. `aw doctor` says in one line how many there are;
+`aw doctor --accepted` lists each with its why, and `--json` carries them under `accepted` (the finding's fields
+plus `why`). Every check command honours the list (`aw hubs`, `aw memory lint`, `aw decisions lint`, `aw links`,
+`aw dup`, `aw kanban lint`, `aw twins --check`); there the `accepted` key is present only when something was accepted.
+
+- **Never accepted:** a finding of level critical, whatever its code, and `CONFIG_INVALID`. Those are repaired.
+- An entry that matches no finding of a whole `aw doctor` run is reported as `ACCEPT_UNUSED` (info), as is one
+  that matches only a critical finding: remove it, so the list stays what is true today.
+- An entry of another shape, a `code` that is no finding code, a missing `path` or an empty `why` is
+  `CONFIG_INVALID`; the well-formed entries beside it still hold.
+- Accept one place, not a kind: prefer the exact path, and a glob only where the name carries a date or the
+  reason holds for the whole folder. Raising a budget (`budgets.*`) is for every file of a kind; `links.planned`,
+  `links.notChecked` and `dup.ignore` remain the way to tell those two checks what not to read.
 
 ## What the guard does with it
 

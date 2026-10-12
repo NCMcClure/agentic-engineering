@@ -31,7 +31,9 @@ and one command checks them all: `aw doctor`. Everything agent-facing lives unde
 | What holds on any project of this machine | shared learnings in the machine's store, through `aw learn` (`coordination.md`) | none | by reading |
 
 The budgets are `budgets.*` in `.agents/agent-works.json`. A budget is where a file stops being read; raise one
-only with a reason you would write down.
+only with a reason you would write down. One file that is over for a good reason (a reference memory that is the
+approved plan, kept as written) is not a reason to raise the budget for all: the owner accepts that one finding in
+`accept` of the config, with its why (`guard-config.md`), and `aw doctor` stops counting it.
 
 ## What never goes where
 
@@ -76,4 +78,5 @@ only with a reason you would write down.
 `aw doctor` runs every check at once and exits 0 (clean), 1 (warnings) or 2 (critical). Only three findings are
 critical, so an old repository gets a report rather than a wall: source files beside a hub (`HUB_ISOLATION`), a
 config that does not parse (`CONFIG_INVALID`), and a status memory over three times its budget (`STATUS_SIZE`).
-`aw doctor --baseline` records today's sizes and counts; later runs print what moved since.
+`aw doctor --baseline` records today's sizes and counts; later runs print what moved since. Findings the project
+accepted (`accept` in the config) are not counted and never fail a run; a critical finding cannot be accepted.

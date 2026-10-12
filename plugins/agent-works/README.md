@@ -161,6 +161,15 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.1.4**: **A worktree no longer names the project after itself**: `aw setup --apply` run in a linked worktree
+  (`.claude/worktrees/agent-abc123`) titled `.agents/README.md` and a new root `AGENTS.md` with that folder's name,
+  and the main checkout then saw the page as different. The name is now the main working tree's folder name, or
+  `"name"` in the config when set (also what `aw who`, notes and learnings show; the project's id in the store is
+  unchanged). **Accepted findings**: `"accept": [{"code", "path", "why"}]` in the config takes a finding the owner
+  decided to keep out of the count and the exit code, in `aw doctor` and in every single check; `aw doctor` says how
+  many in one line, `--accepted` and `--json` list each with its why. A critical finding and `CONFIG_INVALID` are
+  never accepted, and an entry that matches nothing is `ACCEPT_UNUSED` (info). Run `aw setup --apply` to restamp
+  `.agents/README.md`.
 - **0.1.3**: Defects found while migrating a real project. **`/kanban` opens the pane again**: the skill that shared
   the command's name is now `kanban-cards` (`agent-works:kanban-cards`; run `aw setup --apply` to refresh the
   § Agent plugins of your root `AGENTS.md`), and the command says so in a toast when the pane cannot open. The guard: a project rule now sees what a command
