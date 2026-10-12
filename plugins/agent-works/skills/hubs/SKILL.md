@@ -27,7 +27,7 @@ Exit 0 clean, 1 warnings, 2 critical. `--json` for scripts; `--exclude <prefix>`
 |---|---|
 | `HUB_ISOLATION` | Source files sit beside a hub. If the directory is a leaf, delete its hub (the parent's line covers it). Otherwise the files move into a sub-directory: a reorganisation, see above. |
 | `HUB_MISSING` | Write the hub: Step 3. |
-| `HUB_MIXED_DIR` | Report it. It takes a hub only after its loose files move down a level. |
+| `HUB_MIXED_DIR` | Report it. It takes a hub only after its loose files move down a level. A directory the owner decides stays mixed goes into `accept` of the config with its why (the `doctor` skill, Step 3). |
 | `HUB_STALE_CHILD` | The line names a child that is gone: fix the name or delete the line. |
 | `HUB_UNLISTED_CHILD` | Add the child's line: Step 3. |
 | `HUB_SIZE` | Back to one line per direct child. Rules, commands and reasons move to the root file or to memory. |

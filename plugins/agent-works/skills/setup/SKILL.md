@@ -53,7 +53,9 @@ aw setup --apply --twins <generated|committed|off> --kanban <tracked|ignored>
 Then, for each move the owner agreed to, run the `git mv` the plan printed (a tracked `.agents/board` moves with
 `git mv .agents/board .agents/kanban`; an untracked one with `--move-board`), then `aw decisions index` and
 `aw links` to find what the moves broke. Fill answers 3 to 7 into `.agents/agent-works.json`: that is the `guard`
-skill's Step 2, and `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md` documents every key.
+skill's Step 2, and `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md` documents every key. The generated
+files name the project after the folder of its main working tree (a worktree's own folder is never the name); when
+the folder is not the project's name, set `"name"` in the config and run `aw setup --apply` again.
 
 `aw setup --apply` fills the templates of `${CLAUDE_PLUGIN_ROOT}/assets/templates/`: `config.json`,
 `agents-readme.md`, `agents-root.md`, `memory-index.md`, `status.md`, `glossary.md`, `gitignore-twins`,

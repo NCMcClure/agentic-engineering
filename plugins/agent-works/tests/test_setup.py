@@ -28,6 +28,56 @@ class Setup(unittest.TestCase):
     def tree(self):
         return sorted(common.rel(p, self.p.root) for p in self.p.root.rglob("*") if p.is_file() and ".git/" not in common.rel(p, self.p.root))
 
+    def worktree(self, rel=".claude/worktrees/agent-abc123"):
+        """A linked worktree of the project, as git lays one out (no git process is needed)."""
+        wt = self.p.root / rel
+        meta = self.p.root / ".git" / "worktrees" / wt.name
+        meta.mkdir(parents=True)
+        (meta / "commondir").write_text("../..\n", encoding="utf-8")
+        (meta / "HEAD").write_text("ref: refs/heads/topic\n", encoding="utf-8")
+        wt.mkdir(parents=True)
+        (wt / ".git").write_text(f"gitdir: {meta}\n", encoding="utf-8")
+        return wt
+
+    def test_a_worktree_is_named_after_the_project_not_its_own_folder(self):
+        wt = self.worktree()
+        code, _, err = self.p.aw("setup", "--apply", cwd=wt)
+        self.assertEqual((code, err), (0, ""))
+        page = (wt / ".agents" / "README.md").read_text(encoding="utf-8")
+        self.assertIn("how agent work is kept in acme\n", page)
+        self.assertNotIn("agent-abc123", page)
+        self.assertEqual((wt / "AGENTS.md").read_text(encoding="utf-8").splitlines()[0], "# AGENTS.md — acme")
+        # the page a worktree wrote is the page the main checkout would write: merged, it is "up to date" there
+        for rel in (".agents/README.md", ".agents/agent-works.json", "AGENTS.md"):
+            self.p.write(rel, (wt / rel).read_text(encoding="utf-8"))
+        self.assertIn(("keep", ".agents/README.md"), self.steps(self.plan()))
+
+    def test_the_configs_name_wins_over_the_folders(self):
+        self.p.aw("setup", "--apply")
+        self.assertIn("kept in acme\n", self.p.read(".agents/README.md"))
+        cfg = json.loads(self.p.read(".agents/agent-works.json"))
+        self.p.write(".agents/agent-works.json", json.dumps({**cfg, "name": "Cardan"}))
+        self.assertIn(("regenerate", ".agents/README.md"), self.steps(self.plan()))
+        self.p.aw("setup", "--apply")
+        self.assertIn("kept in Cardan\n", self.p.read(".agents/README.md"))
+        self.assertEqual(self.p.read("AGENTS.md").splitlines()[0], "# AGENTS.md — acme")  # a file that is there is never rewritten
+        self.assertEqual(common.project_name(self.p.root), "Cardan")
+        self.assertRegex(common.project_id(self.p.root), r"^acme-[0-9a-f]{8}$")  # the id in the store is the folder's, as before
+        self.p.write(".agents/agent-works.json", json.dumps({**cfg, "name": "  "}))
+        self.assertEqual(common.project_name(self.p.root), "acme")
+
+    def test_project_name_of_a_worktree_a_nested_project_and_no_repository(self):
+        wt = self.worktree()
+        self.assertEqual(common.project_name(wt), "acme")
+        self.assertEqual(common.project_id(wt), common.project_id(self.p.root))
+        self.p.write("apps/site/.agents/agent-works.json", "{\"version\": 1}")
+        self.assertEqual(common.project_name(self.p.root / "apps" / "site"), "site")  # a project below the top keeps its folder's name
+        bare = Project(git=False)
+        try:
+            self.assertEqual(common.project_name(bare.root), "acme")
+        finally:
+            bare.close()
+
     def test_plan_writes_nothing(self):
         before = self.tree()
         doc = self.plan()

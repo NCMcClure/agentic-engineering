@@ -491,7 +491,7 @@ class Context:
         self.project: str = common.project_id(start)
         root = common.main_root(start)
         self.root: Path = root if root is not None else Path(start or os.getcwd()).resolve()
-        self.name: str = self.root.name or self.project
+        self.name: str = common.project_name(self.root, self.cfg) or self.project
         self._as = as_agent
         self._agent: Optional[str] = None
         self.start = start
@@ -504,7 +504,7 @@ class Context:
 
     def stamp(self) -> None:
         """Note this project in projects.json (cheap: written at most every few hours)."""
-        touch_project(self.project, self.root)
+        touch_project(self.project, self.root, self.name)
 
 
 def identity(cfg: Optional[Dict[str, Any]] = None, explicit: Optional[str] = None) -> str:
@@ -529,13 +529,15 @@ def projects() -> Dict[str, Dict[str, Any]]:
     return doc if isinstance(doc, dict) else {}
 
 
-def touch_project(project: str, root: Path) -> None:
+def touch_project(project: str, root: Path, name: Optional[str] = None) -> None:
+    name = name or root.name or project
     entry = projects().get(project)
-    if isinstance(entry, dict) and entry.get("root") == common.posix(root) and age_seconds(entry.get("seen")) < 6 * 3600:
+    if (isinstance(entry, dict) and entry.get("root") == common.posix(root) and entry.get("name") == name
+            and age_seconds(entry.get("seen")) < 6 * 3600):
         return
 
     def change(doc: Dict[str, Any]) -> None:
-        doc[project] = {"root": common.posix(root), "name": root.name or project, "seen": now()}
+        doc[project] = {"root": common.posix(root), "name": name, "seen": now()}
 
     try:
         update_json(home() / "projects.json", {}, change)

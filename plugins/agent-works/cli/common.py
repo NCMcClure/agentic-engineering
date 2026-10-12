@@ -77,6 +77,7 @@ DEFAULTS: Dict[str, Any] = {
     "lockOrder": [],
     "runs": [],
     "counters": {},
+    "accept": [],  # findings the project decided are fine as they are: [{"code", "path", "why"}]
     "coordination": {
         "lockStaleMinutes": 45,    # a lock not refreshed for this long, with none of its processes running, is taken over
         "agentStaleMinutes": 120,  # an agent entry without a process id is dropped after this long without a beat
@@ -386,6 +387,24 @@ def project_id(start: Pathish = None) -> str:
     return f"{name}-{hashlib.sha1(key.encode('utf-8')).hexdigest()[:8]}"
 
 
+def project_name(start: Pathish = None, cfg: Optional[Dict[str, Any]] = None) -> str:
+    """The project's name for people: ``name`` in the config, else the folder name of the MAIN working tree.
+
+    A linked worktree (``.claude/worktrees/agent-abc123``) therefore says the project's name and not its own
+    folder's, so what one checkout generates is what every other would. A project kept below the top of a
+    repository (its config in a sub-folder) keeps that folder's name. ``project_id`` is not derived from this.
+    """
+    if cfg is None:
+        cfg = load_config(start)
+    given = cfg.get("name")
+    if isinstance(given, str) and given.strip():
+        return given.strip()
+    root = project_root(start)
+    if (root / ".git").exists():
+        root = main_root(root) or root
+    return root.name or "project"
+
+
 def aw_home() -> Path:
     """The machine-wide store: ``AGENT_WORKS_HOME`` or ``~/.agent-works``. Created by the first write, not here."""
     env = os.environ.get("AGENT_WORKS_HOME")
@@ -429,6 +448,103 @@ class Finding:
         return f"{self.level.upper():8} {self.code:22} {where}{' — ' if where else ''}{self.message}"
 
 
+# Every finding code a check can report. `accept` in the config names one of these; a test holds the list to the code.
+CODES = (
+    "ACCEPT_UNUSED",
+    "BRIEF_SIZE", "BRIEF_STRAY", "BRIEF_UNTRACKED",
+    "CLAUDE_CHAIN", "CONFIG_INVALID", "CONTRACT_MISSING", "CONTRACT_STALE",
+    "DEC_AMENDED", "DEC_INDEX_HANDWRITTEN", "DEC_INDEX_STALE", "DEC_NUMBER", "DEC_SECTIONS", "DEC_SIZE",
+    "DOCS_AGENT_FILE", "DUP_RULE",
+    "GATE_OWED_OLD", "GEN_TWIN_MISSING", "GEN_TWIN_ORPHAN", "GLOSSARY_DUP_TERM", "GLOSSARY_MULTI", "GLOSSARY_ROW_LONG",
+    "HUB_ISOLATION", "HUB_MISSING", "HUB_MIXED_DIR", "HUB_ROOT_MISSING", "HUB_STALE_CHILD", "HUB_UNLISTED_CHILD",
+    "KANBAN_CARD_INVALID", "KANBAN_OLD_FOLDER", "KANBAN_STALE_START", "KANBAN_STATUS_UNKNOWN", "KANBAN_UNTRACKED",
+    "LINK_BROKEN",
+    "MEM_FILE_SIZE", "MEM_FOLDER_OVER", "MEM_FRONTMATTER", "MEM_HOOK_LONG", "MEM_INDEX_HANDWRITTEN",
+    "MEM_INDEX_PLACEHOLDER", "MEM_INDEX_STALE", "MEM_LINK_DANGLING", "MEM_NAME_MISMATCH", "MEM_ROOT_LOOSE",
+    "MEM_SHARED_CANDIDATE", "MEM_SLUG_DUP",
+    "PATH_MISSING",
+    "ROOT_PLUGINS", "ROOT_SIZE", "ROOT_STATUS_PROSE",
+    "STATUS_DONE_SECTION", "STATUS_MULTI", "STATUS_SIZE",
+    "TASKS_TWO_HOMES",
+)
+# Never accepted, whatever the config says: a broken config, the report about the list itself, and (by level, in
+# `split_accepted`) every critical finding.
+NEVER_ACCEPTED = ("CONFIG_INVALID", "ACCEPT_UNUSED")
+
+
+def _accept_path(value: Any) -> str:
+    text = posix(value).strip()
+    while text.startswith("./"):
+        text = text[2:]
+    return text.rstrip("/") or text
+
+
+def accept_entries(cfg: Dict[str, Any]) -> Tuple[List[Dict[str, Any]], List[str]]:
+    """``accept`` of the config as (the entries that hold, what is wrong with the others).
+
+    An entry holds when it is ``{"code": <a finding code>, "path": <an exact path or a glob>, "why": <a reason>}``,
+    all three non-empty. Each good entry carries its place in the list as ``index``.
+    """
+    raw = cfg.get("accept")
+    if raw is None:
+        return [], []
+    if not isinstance(raw, list):
+        return [], ["\"accept\" must be a list"]
+    good: List[Dict[str, Any]] = []
+    bad: List[str] = []
+    for i, e in enumerate(raw):
+        at = f"accept[{i}]"
+        if not isinstance(e, dict):
+            bad.append(f"{at}: an entry is {{\"code\": …, \"path\": …, \"why\": …}}, not {json.dumps(e)}")
+            continue
+        code, path, why = e.get("code"), e.get("path"), e.get("why")
+        if not isinstance(code, str) or code not in CODES:
+            bad.append(f"{at}: \"code\" {json.dumps(code)} is not a finding code (aw doctor --json lists the codes it found)")
+        elif code in NEVER_ACCEPTED:
+            bad.append(f"{at}: {code} is never accepted")
+        elif not isinstance(path, str) or not path.strip():
+            bad.append(f"{at}: \"path\" is the finding's path, or a glob over paths, as a non-empty string")
+        elif not isinstance(why, str) or not why.strip():
+            bad.append(f"{at}: \"why\" is required: the reason this finding stays, in a sentence")
+        else:
+            good.append({"index": i, "code": code, "path": _accept_path(path), "why": why.strip()})
+    return good, bad
+
+
+def split_accepted(findings: Iterable[Finding], cfg: Optional[Dict[str, Any]]) -> Tuple[List[Finding], List[Dict[str, Any]], List[Dict[str, Any]]]:
+    """(the findings that stay, the accepted ones as dicts with their ``why``, the entries with what they met).
+
+    A finding is accepted when an entry names its code and its path (exactly, or as a glob in which ``*`` also
+    crosses ``/``). A critical finding is never accepted. Each entry comes back with ``used`` (it took a finding)
+    and ``critical`` (it met only findings that cannot be accepted), which is what ACCEPT_UNUSED is made of.
+    """
+    import fnmatch
+
+    entries, _ = accept_entries(cfg or {})
+    entries = [dict(e, used=False, critical=False) for e in entries]
+    kept: List[Finding] = []
+    accepted: List[Dict[str, Any]] = []
+    for f in findings:
+        path = _accept_path(f.path)
+        hit = next((e for e in entries if e["code"] == f.code and (e["path"] == path or fnmatch.fnmatchcase(path, e["path"]))), None)
+        if hit is None or f.code in NEVER_ACCEPTED:
+            kept.append(f)
+        elif f.level == "critical":
+            hit["critical"] = True
+            kept.append(f)
+        else:
+            hit["used"] = True
+            accepted.append({**f.to_dict(), "why": hit["why"]})
+    return kept, accepted, entries
+
+
+ACCEPTED_HINT = "aw doctor --accepted lists them"
+
+
+def accepted_line(accepted: List[Dict[str, Any]]) -> str:
+    return f"{len(accepted)} accepted ({ACCEPTED_HINT})"
+
+
 def exit_for(findings: Iterable[Finding]) -> int:
     """2 with a critical finding, 1 with a warning, else 0 (info never fails a run)."""
     levels = {f.level for f in findings}
@@ -450,15 +566,23 @@ def findings_doc(findings: Iterable[Finding], extra: Optional[Dict[str, Any]] = 
     return doc
 
 
-def report(findings: Iterable[Finding], as_json: bool = False, title: str = "", extra: Optional[Dict[str, Any]] = None) -> int:
-    """Print a check's findings the one way every ``aw`` check does, and return its exit code."""
-    fs = sort_findings(findings)
+def report(findings: Iterable[Finding], as_json: bool = False, title: str = "", extra: Optional[Dict[str, Any]] = None,
+           cfg: Optional[Dict[str, Any]] = None) -> int:
+    """Print a check's findings the one way every ``aw`` check does, and return its exit code.
+
+    The findings the project accepted (``accept`` in the config; ``cfg``, else the config found from the working
+    directory) are taken out first: they are not counted and do not fail the run. In JSON they are listed under
+    ``accepted``, a key that is there only when something was accepted.
+    """
+    fs, accepted, _ = split_accepted(sort_findings(findings), cfg if cfg is not None else load_config())
     code = exit_for(fs)
     counts = {lv: sum(1 for f in fs if f.level == lv) for lv in LEVELS}
     if as_json:
-        emit(findings_doc(fs, extra), True)
+        emit(findings_doc(fs, {**(extra or {}), **({"accepted": accepted} if accepted else {})}), True)
         return code
     lines = [f.text() for f in fs]
+    if accepted:
+        lines.append(accepted_line(accepted))
     summary = ", ".join(f"{n} {lv}" for lv, n in counts.items() if n) or "clean"
     lines.append(f"{title + ': ' if title else ''}{summary}")
     emit("\n".join(lines))

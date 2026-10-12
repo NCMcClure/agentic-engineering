@@ -167,6 +167,15 @@ class StoreCase(CoordCase):
         self.assertEqual(store.project_name(common.project_id(other)), "other")
         self.assertEqual(store.project_name("gone-0123abcd"), "gone")
 
+    def test_the_configs_name_is_the_projects_name_in_the_store(self):
+        named = self.project("named")
+        (named / ".agents").mkdir(exist_ok=True)
+        (named / ".agents" / "agent-works.json").write_text('{"version": 1, "name": "Cardan"}', encoding="utf-8")
+        self.assertEqual(self.aw("note", "from named", cwd=named).returncode, 0)
+        seen = json.loads((self.home / "projects.json").read_text())
+        self.assertEqual(seen[common.project_id(named)]["name"], "Cardan")
+        self.assertRegex(common.project_id(named), r"^named-[0-9a-f]{8}$")
+
     def test_settings_come_from_the_config_or_the_defaults(self):
         self.assertEqual(store.setting({}, "lockStaleMinutes"), 45)
         self.assertEqual(store.setting({"coordination": {"lockStaleMinutes": 5}}, "lockStaleMinutes"), 5)

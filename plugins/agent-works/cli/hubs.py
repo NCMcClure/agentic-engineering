@@ -221,10 +221,11 @@ def run(args: argparse.Namespace) -> int:
         print(f"aw hubs: {root} is not a directory", file=sys.stderr)
         return 2
     excludes = [e for group in (args.exclude or []) for e in group]
-    res = verify(root, excludes, common.load_config(root))
+    cfg = common.load_config(root)
+    res = verify(root, excludes, cfg)
     extra = {"root": common.posix(root), "hubs": res["hubs"], "claude_chain": res["claude_chain"]}
     chain = "checked" if res["claude_chain"] else "not opted in"
-    return common.report(res["findings"], args.json, f"hubs: {res['hubs']}, CLAUDE.md chain {chain}", extra)
+    return common.report(res["findings"], args.json, f"hubs: {res['hubs']}, CLAUDE.md chain {chain}", extra, cfg)
 
 
 def register(subparsers: Any) -> None:

@@ -228,5 +228,155 @@ class Doctor(unittest.TestCase):
         self.assertNotIn("more MEM_ROOT_LOOSE", self.p.aw("doctor", "--all")[1])
 
 
+class Accepted(unittest.TestCase):
+    """`accept` in the config: a finding the project decided is fine as it is."""
+
+    WHY = "cli.ts is the path every run command names"
+
+    def setUp(self):
+        self.p = Project()
+        w = self.p.write
+        w("AGENTS.md", "# Root\n\n- `apps/`\n")
+        w("apps/hub/src/cli.ts", "x")
+        w("apps/hub/src/store/a.ts", "x")
+        w(".agents/memory/reference/2026-01-05-approved-plan.md",
+          "---\nname: approved-plan\ndescription: The plan as approved\ntype: reference\nupdated: 2026-01-05\n---\n\n" + "- step\n" * 420)
+        w(".agents/memory/reference/2026-01-06-other.md",
+          "---\nname: other\ndescription: Another long one\ntype: reference\nupdated: 2026-01-06\n---\n\n" + "- step\n" * 420)
+
+    def tearDown(self):
+        self.p.close()
+
+    def config(self, accept, **more):
+        self.p.write(".agents/agent-works.json", json.dumps({"version": 1, "claude": {"twins": "off"}, "accept": accept, **more}))
+
+    def doctor(self, *args):
+        code, out, err = self.p.aw("doctor", "--json", *args)
+        self.assertEqual(err, "")
+        return code, json.loads(out)
+
+    def having(self, doc, code):
+        return sorted(f["path"] for f in doc["findings"] if f["code"] == code)
+
+    def test_an_accepted_finding_is_not_a_warning(self):
+        self.config([])
+        code, before = self.doctor()
+        self.assertEqual(self.having(before, "HUB_MIXED_DIR"), ["apps/hub/src"])
+        self.assertEqual(len(self.having(before, "MEM_FILE_SIZE")), 2)
+        self.assertEqual(before["accepted"], [])
+        self.config([{"code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": self.WHY},
+                     {"code": "MEM_FILE_SIZE", "path": ".agents/memory/reference/*-approved-plan.md", "why": "the approved plan, as written"}])
+        code, doc = self.doctor()
+        self.assertEqual(self.having(doc, "HUB_MIXED_DIR"), [])
+        self.assertEqual(self.having(doc, "MEM_FILE_SIZE"), [".agents/memory/reference/2026-01-06-other.md"])  # the glob took one, not both
+        self.assertEqual(self.having(doc, "ACCEPT_UNUSED"), [])
+        self.assertEqual(doc["summary"]["warning"], before["summary"]["warning"] - 2)
+        self.assertEqual([(a["code"], a["path"], a["why"]) for a in doc["accepted"]],
+                         [("HUB_MIXED_DIR", "apps/hub/src", self.WHY),
+                          ("MEM_FILE_SIZE", ".agents/memory/reference/2026-01-05-approved-plan.md", "the approved plan, as written")])
+        self.assertEqual(list(doc)[-2:], ["summary", "findings"])
+        self.assertNotIn("HUB_MIXED_DIR", doc["codes"])  # the baseline counts what is still open
+        text = self.p.aw("doctor")[1]
+        self.assertIn("\n2 accepted (aw doctor --accepted lists them)\n", text)
+        self.assertNotIn(self.WHY, text)
+        listed = self.p.aw("doctor", "--accepted")[1]
+        self.assertIn("Accepted (2)", listed)
+        self.assertRegex(listed, r"HUB_MIXED_DIR\s+apps/hub/src — " + self.WHY)
+        self.assertNotIn("aw doctor --accepted lists them", listed)
+
+    def test_accepting_everything_that_warns_makes_the_run_clean(self):
+        self.config([])
+        code, doc = self.doctor()
+        self.assertEqual(code, 1)
+        self.config([{"code": f["code"], "path": f["path"], "why": "decided"} for f in doc["findings"] if f["level"] == "warning"])
+        code, doc = self.doctor()
+        self.assertEqual((code, doc["summary"]["warning"], doc["summary"]["critical"]), (0, 0, 0))
+        self.assertIn("doctor: 0 critical, 0 warning", self.p.aw("doctor")[1])
+
+    def test_a_critical_finding_and_the_config_check_are_never_accepted(self):
+        status = ".agents/memory/project/2026-01-09-project-status.md"
+        self.p.write(status, "---\nname: project-status\ndescription: d\ntype: status\nupdated: 2026-01-09\n---\n\n" + "- x\n" * 400)
+        self.config([{"code": "STATUS_SIZE", "path": status, "why": "long on purpose"}])
+        code, doc = self.doctor()
+        self.assertEqual(code, 2)
+        self.assertEqual([f["level"] for f in doc["findings"] if f["code"] == "STATUS_SIZE"], ["critical"])
+        self.assertEqual(doc["accepted"], [])
+        unused = [f for f in doc["findings"] if f["code"] == "ACCEPT_UNUSED"]
+        self.assertEqual([(f["level"], f["path"]) for f in unused], [("info", ".agents/agent-works.json")])
+        self.assertIn("critical", unused[0]["message"])
+        for never in ("CONFIG_INVALID", "ACCEPT_UNUSED"):
+            self.config([{"code": never, "path": "*", "why": "no"}])
+            code, doc = self.doctor()
+            self.assertEqual(code, 2)
+            self.assertIn("is never accepted", " ".join(f["message"] for f in doc["findings"] if f["code"] == "CONFIG_INVALID"))
+
+    def test_an_entry_that_matches_nothing_is_reported(self):
+        self.config([{"code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": self.WHY},
+                     {"code": "HUB_MIXED_DIR", "path": "apps/gone", "why": "it was mixed once"}])
+        code, doc = self.doctor()
+        unused = [f for f in doc["findings"] if f["code"] == "ACCEPT_UNUSED"]
+        self.assertEqual(len(unused), 1)
+        self.assertEqual(unused[0]["level"], "info")
+        self.assertIn("HUB_MIXED_DIR", unused[0]["message"])
+        self.assertIn("apps/gone", unused[0]["message"])
+        self.assertEqual(doctor.group_of("ACCEPT_UNUSED"), "Config")
+
+    def test_the_shape_is_checked(self):
+        self.config({"code": "HUB_MIXED_DIR"})
+        msgs = [f.message for f in doctor.config_findings(common.load_config(self.p.root), self.p.root)]
+        self.assertEqual(len(msgs), 1)
+        self.assertIn("\"accept\" must be a list", msgs[0])
+        self.config(["HUB_MIXED_DIR",
+                     {"code": "HUB_MIXED", "path": "a", "why": "w"},
+                     {"code": "HUB_MIXED_DIR", "why": "w"},
+                     {"code": "HUB_MIXED_DIR", "path": "a", "why": "  "},
+                     {"code": "HUB_MIXED_DIR", "path": "a"},
+                     {"code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": self.WHY}])
+        found = doctor.config_findings(common.load_config(self.p.root), self.p.root)
+        self.assertEqual([(f.code, f.level) for f in found], [("CONFIG_INVALID", "critical")] * 5)
+        msgs = [f.message for f in found]
+        for part in ("accept[0]", "accept[1]: \"code\" \"HUB_MIXED\" is not a finding code", "accept[2]: \"path\"",
+                     "accept[3]: \"why\"", "accept[4]: \"why\""):
+            self.assertTrue(any(part in m for m in msgs), (part, msgs))
+        code, doc = self.doctor()  # the entry that is well-formed still holds
+        self.assertEqual((code, self.having(doc, "HUB_MIXED_DIR"), len(doc["accepted"])), (2, [], 1))
+        self.config([], name=7)
+        self.assertIn("\"name\" must be a string", doctor.config_findings(common.load_config(self.p.root), self.p.root)[0].message)
+
+    def test_the_single_checks_honour_the_list(self):
+        self.config([])
+        code, out, _ = self.p.aw("hubs", "--json")
+        self.assertEqual((code, [f["code"] for f in json.loads(out)["findings"]]), (1, ["HUB_MISSING", "HUB_MISSING", "HUB_MIXED_DIR"]))
+        self.assertNotIn("accepted", json.loads(out))
+        self.assertEqual(self.p.aw("memory", "lint")[0], 1)
+        mixed = {"code": "HUB_MIXED_DIR", "path": "apps/hub/src", "why": self.WHY}
+        self.config([mixed])
+        code, out, _ = self.p.aw("hubs", "--json")
+        doc = json.loads(out)
+        self.assertEqual((code, [f["code"] for f in doc["findings"]], doc["summary"]["warning"]), (1, ["HUB_MISSING", "HUB_MISSING"], 2))
+        self.assertEqual([(a["code"], a["path"], a["why"]) for a in doc["accepted"]], [("HUB_MIXED_DIR", "apps/hub/src", self.WHY)])
+        self.assertEqual(list(doc)[-2:], ["summary", "findings"])
+        self.config([mixed, {"code": "HUB_MISSING", "path": "apps*", "why": "two folders, one file each"},
+                     {"code": "MEM_FILE_SIZE", "path": "./.agents/memory/reference/*", "why": "reference material, kept whole"}])
+        code, text, _ = self.p.aw("hubs")
+        self.assertEqual(code, 0)
+        self.assertIn("3 accepted (aw doctor --accepted lists them)", text)
+        self.assertTrue(text.rstrip().endswith("clean"))
+        code, out, _ = self.p.aw("memory", "lint", "--json")
+        doc = json.loads(out)
+        self.assertEqual([f for f in doc["findings"] if f["code"] == "MEM_FILE_SIZE"], [])
+        self.assertEqual(len(doc["accepted"]), 2)
+        self.assertNotIn("ACCEPT_UNUSED", out)  # only the whole run can say an entry matches nothing
+
+    def test_every_finding_code_is_known(self):
+        import re
+        from tests.clihelp import CLI
+        used = set()
+        for f in CLI.rglob("*.py"):
+            used |= set(re.findall(r"Finding\(\s*\"([A-Z][A-Z0-9_]+)\"", f.read_text(encoding="utf-8")))
+        self.assertEqual(sorted(used), sorted(common.CODES))
+        self.assertEqual([c for c in common.CODES if doctor.group_of(c) == "Other"], [])
+
+
 if __name__ == "__main__":
     unittest.main()

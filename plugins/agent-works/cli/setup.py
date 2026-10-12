@@ -80,7 +80,8 @@ def plan(root: Path, opts: argparse.Namespace) -> Dict[str, Any]:
         add("create", common.CONFIG_REL, "the config: its presence turns the guard on", text=template("config.json", twins=twins_mode))
 
     contract = root / ".agents" / "README.md"
-    text = template("agents-readme.md", version=common.plugin_version(), project=root.name)
+    name = common.project_name(root, cfg)  # the project's, not a worktree folder's
+    text = template("agents-readme.md", version=common.plugin_version(), project=name)
     have = common.read_text(contract)
     if have is None:
         add("create", R(contract), "the generated contracts page: which fact lives where", text=text)
@@ -102,7 +103,7 @@ def plan(root: Path, opts: argparse.Namespace) -> Dict[str, Any]:
                 "(only that marked section is written)", text=want_root)
     else:
         add("create", "AGENTS.md", "the root orientation file, to fill in",
-            text=template("agents-root.md", project=root.name, plugins=common.plugins_block(cfg)))
+            text=template("agents-root.md", project=name, plugins=common.plugins_block(cfg)))
 
     memory = common.config_path(cfg, root, "memory")
     if found["memory"]:
