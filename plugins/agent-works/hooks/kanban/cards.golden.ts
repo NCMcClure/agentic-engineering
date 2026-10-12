@@ -33,8 +33,8 @@ export const GOLDEN: readonly Golden[] = [
   },
   {
     "file": "0002-fix-race-in-session-cache.md",
-    "text": "---\nid: \"0002\"\ntitle: \"Fix race in session cache\"\nstatus: in-progress\norder: 1\npriority: high\nlabels: [\"bug\",\"needs triage\"]\nskills: [\"code-review\",\"agent-works:kanban\"]\nsource: claude\ncreated: 2026-01-05T10:00:00.000Z\nupdated: 2026-01-06T08:30:15.250Z\nowner: \"worker-2\"\nneeds: \"a quiet machine\"\nref: \"#41\"\n---\n\nTwo writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts\n",
-    "canon": "---\nid: \"0002\"\ntitle: \"Fix race in session cache\"\nstatus: in-progress\norder: 1\npriority: high\nlabels: [\"bug\",\"needs triage\"]\nskills: [\"code-review\",\"agent-works:kanban\"]\nsource: claude\ncreated: 2026-01-05T10:00:00.000Z\nupdated: 2026-01-06T08:30:15.250Z\nowner: \"worker-2\"\nneeds: \"a quiet machine\"\nref: \"#41\"\n---\n\nTwo writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts\n",
+    "text": "---\nid: \"0002\"\ntitle: \"Fix race in session cache\"\nstatus: in-progress\norder: 1\npriority: high\nlabels: [\"bug\",\"needs triage\"]\nskills: [\"code-review\",\"agent-works:kanban-cards\"]\nsource: claude\ncreated: 2026-01-05T10:00:00.000Z\nupdated: 2026-01-06T08:30:15.250Z\nowner: \"worker-2\"\nneeds: \"a quiet machine\"\nref: \"#41\"\n---\n\nTwo writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts\n",
+    "canon": "---\nid: \"0002\"\ntitle: \"Fix race in session cache\"\nstatus: in-progress\norder: 1\npriority: high\nlabels: [\"bug\",\"needs triage\"]\nskills: [\"code-review\",\"agent-works:kanban-cards\"]\nsource: claude\ncreated: 2026-01-05T10:00:00.000Z\nupdated: 2026-01-06T08:30:15.250Z\nowner: \"worker-2\"\nneeds: \"a quiet machine\"\nref: \"#41\"\n---\n\nTwo writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts\n",
     "card": {
       "id": "0002",
       "file": "0002-fix-race-in-session-cache.md",
@@ -48,7 +48,7 @@ export const GOLDEN: readonly Golden[] = [
       ],
       "skills": [
         "code-review",
-        "agent-works:kanban"
+        "agent-works:kanban-cards"
       ],
       "source": "claude",
       "created": "2026-01-05T10:00:00.000Z",

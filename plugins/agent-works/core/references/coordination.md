@@ -64,6 +64,11 @@ aw learn add --topic "Linker runs out of memory above eight jobs" --tags linker,
 aw learn search linker memory                      then: aw learn show <id>
 ```
 
+Limits, each said by the command that refuses with the limit and the length it was given: a note (`aw note`) is one
+line of at most `budgets.noteChars` characters (200); a learning's `--topic` is one line of at most 120 characters,
+and its body at most `coordination.learningChars` (6000). What does not fit a note goes in a card, a memory or a
+file the note points at; what does not fit a topic goes in the learning's body.
+
 Every command takes `--help`; the reading commands take `--json`. Exit codes: 0 done, 1 not now, 2 usage error,
 3 still queued for a lock. `aw lock run` and `aw lease ... --` return the wrapped command's own exit code, and 124
 when a time limit killed it.

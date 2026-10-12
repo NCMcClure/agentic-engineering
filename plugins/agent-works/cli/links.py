@@ -7,13 +7,15 @@
                 not there. A glob (`*`, `{a,b}`) must match something; a path with a placeholder (`<id>`, `…`) is
                 checked up to it.
 
-Default targets: the root AGENTS.md, every hub, and the Markdown under .agents/. Links are checked in all of them.
+Default targets: the root AGENTS.md, every hub, the Markdown under .agents/, and `links.files`. Links are checked in all of them.
 Paths in code are checked in the files that describe the present (hubs, the glossary, decisions,
 contracts, briefs) and not in memory, which records what was true on its date, nor in the generated
 .agents/README.md, which names homes a project may not have yet. The kanban and plan folders are left
 out: cards and plans quote freely, and plans have their own verifiers.
 
 Config (`links` in .agents/agent-works.json):
+  files       Markdown files or folders read as well by default, relative to the top (the root README.md); one that
+              is not there is skipped
   roots       top-level folders whose paths are checked when written in code (default: every top-level folder git
               tracks, and .agents)
   planned     paths named before they exist; remove an entry when its work lands
@@ -64,6 +66,13 @@ def default_targets(root: Path, cfg: Dict[str, Any]) -> List[Path]:
         if md.name == "AGENTS.md" or r.startswith(".agents/"):
             if not any(s == md or s in md.parents for s in skip):
                 files.append(md)
+    # links.files: Markdown the project wants read as well (the root README.md, a folder of pages).
+    for extra in (cfg.get("links") or {}).get("files") or []:
+        try:
+            more = expand_targets(root, [str(extra)]) if (root / str(extra)).exists() else []
+        except common.AwError:
+            more = []
+        files += [m for m in more if m not in files]
     return files
 
 

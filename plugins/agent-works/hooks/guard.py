@@ -11,12 +11,17 @@ Rules (the config is documented in core/references/guard-config.md):
                          above it, a glob, after cd or git -C; and a pathspec the guard cannot read
   owner-file-edit        Edit / Write of one of guard.ownerFiles
   generated-file         Edit / Write of a path matching guard.generated
-  default-branch-commit  git commit while on one of guard.defaultBranch.names
+  default-branch-commit  git commit while on one of guard.defaultBranch.names (the branch of the checkout the commit
+                         runs in: after `cd`, `pushd`, `git -C`; a folder the guard cannot resolve gives no finding)
   force-push             git push --force / -f / +refspec
   resource-lock          a command matching resources.<name>.match runs inside `aw lock run <name> … -- <command>` or
                          by the agent that holds the lock
   run-budget             a command matching runs[].match that names more than `free` items needs its reason
   <id>                   the project's own guard.rules
+
+The resource and run rules read the commands that can start something: not the readers, and not the commands that
+only handle files (`git add <script>`, `cp`, `mv`, `rm`), unless the entry says "matchFileCommands". The project's
+rules also read what a command sets in its environment (`X=v cmd`, `env X=v cmd`, `export X=v`, `$env:X = "v"`).
 
 A coordination aid, not a security boundary: the rules read the command text and the caller names itself. Commands are
 read the way a shell reads them (quotes, here-documents, here-strings, $(…)), so the words of a commit message, an
@@ -52,6 +57,14 @@ GIT_READERS = {"log", "show", "diff", "grep", "status", "ls-files", "ls-tree", "
                "diff-tree", "show-ref", "ls-remote", "check-ignore", "var", "help", "version", "config",
                # not readers, but their arguments are prose (a message) or handled by the staging rules
                "commit", "tag", "notes"}
+# Commands that only handle the files they name: naming a script is not running it. Asked by the resource and run
+# rules alone; a project's own rules still read them.
+FILE_COMMANDS = {"cp", "mv", "rm", "mkdir", "rmdir", "touch", "chmod", "chown", "ln", "tee", "sed", "copy-item", "cpi",
+                 "move-item", "mi", "remove-item", "ri", "rename-item", "rni", "new-item", "ni", "set-content",
+                 "add-content", "clear-content", "out-file", "del", "erase", "copy", "move", "ren", "rename", "rd", "md",
+                 "code", "vi", "vim", "nano", "notepad"}
+GIT_STARTERS = {"bisect", "rebase", "submodule", "filter-branch", "difftool", "mergetool"}  # these can run a command
+LEADERS = ("&", "!", "env", "export", "time", "nohup", "call")
 GIT_VALUE_OPTS = ("-C", "-c", "--git-dir", "--work-tree", "--namespace", "--exec-path", "--super-prefix")
 ASSIGN = r"^[A-Za-z_][A-Za-z0-9_]*="
 
@@ -207,21 +220,32 @@ def base_name(word):
     return w[:-4] if w.endswith(".exe") else w
 
 
-def command_words(segment):
-    """The segment without subshell brackets, the call operator and leading `VAR=value` / env / export prefixes."""
+def split_lead(segment):
+    """(the leading `VAR=value` / env / export / call-operator words, the command's words), without subshell brackets."""
     words = list(segment)
     if words:
         words[0] = words[0].lstrip("({")
         if "(" not in words[-1]:
             words[-1] = words[-1].rstrip(")}")
     words = [w for w in words if w]
-    while words:
-        w = words[0]
-        if w in ("&", "!", "env", "export", "time", "nohup", "call") or re.match(ASSIGN, w):
-            words = words[1:]
-        else:
-            break
-    return words
+    k = 0
+    while k < len(words) and (words[k] in LEADERS or re.match(ASSIGN, words[k])):
+        k += 1
+    return words[:k], words[k:]
+
+
+def command_words(segment):
+    """The segment without subshell brackets, the call operator and leading `VAR=value` / env / export prefixes."""
+    return split_lead(segment)[1]
+
+
+def ps_assignment(words):
+    """(`X`, the value) of a PowerShell `$env:X = "v"` / `$env:X="v"` segment, else None."""
+    m = re.match(r"^\$env:([A-Za-z_]\w*)$", words[0], re.I) if words else None
+    if m and len(words) >= 2 and words[1] == "=":
+        return m.group(1), " ".join(words[2:])
+    m = re.match(r"^\$env:([A-Za-z_]\w*)=(.*)$", words[0], re.I | re.S) if words else None
+    return (m.group(1), " ".join([m.group(2)] + words[1:])) if m else None
 
 
 def assignments(segments):
@@ -281,6 +305,19 @@ def is_reader(words):
     return first in READERS
 
 
+def handles_files(words):
+    """True when the command only handles the files it names (`git add x`, `cp x y`, `rm x`): it starts none of them."""
+    if not words:
+        return False
+    first = base_name(words[0])
+    if first == "git":
+        _, i, _ = git_verb(words)
+        return i >= len(words) or words[i] not in GIT_STARTERS
+    if first == "find":
+        return not any(w in ("-exec", "-execdir", "-ok") for w in words[1:])
+    return first in FILE_COMMANDS
+
+
 def unwrap(words):
     """`aw lock run R … -- command` and `aw lease R … -- command` -> ({R}, [command words, …]); else (set(), [words]).
 
@@ -332,14 +369,42 @@ def text_of(words):
     return " ".join(words)
 
 
+def _list(value):
+    return [value] if isinstance(value, (str, dict)) else list(value) if isinstance(value, (list, tuple)) else []
+
+
+def entries(match):
+    """A `match` as [(pattern, the pattern's own `unless`)]: each entry is a regex or {"pattern": …, "unless": […]}."""
+    out = []
+    for m in _list(match):
+        if isinstance(m, dict):
+            if isinstance(m.get("pattern"), str):
+                out.append((m["pattern"], [u for u in _list(m.get("unless")) if isinstance(u, str)]))
+        elif isinstance(m, str):
+            out.append((m, []))
+    return out
+
+
+def _search(pattern, text):
+    try:
+        return bool(re.search(pattern, text))
+    except re.error:
+        return False  # a broken pattern in the config must not block anything
+
+
 def matches(patterns, text):
-    for p in patterns or []:
-        try:
-            if re.search(p, text):
-                return True
-        except re.error:
-            continue  # a broken pattern in the config must not block anything
-    return False
+    """Does one of the patterns (regexes; of an object entry, its "pattern") match the text?"""
+    return any(_search(p, text) for p, _ in entries(patterns))
+
+
+def fires(match, unless, texts):
+    """A `match` against the readings of one command: one entry matches a reading, and neither that entry's own
+    `unless` nor the shared `unless` matches any of them."""
+    texts = [t for t in texts if t]
+    if not texts or any(matches(unless, t) for t in texts):
+        return False
+    return any(any(_search(p, t) for t in texts) and not any(matches(own, t) for t in texts)
+               for p, own in entries(match))
 
 
 # ----------------------------------------------------------------------------------------- paths and the owner's files
@@ -495,12 +560,18 @@ def read_staging(verb, args, dir_, root):
     return s
 
 
+def start_dir(cwd, root):
+    """Where a command starts: relative to the checkout's top inside it (`""` at the top), else the absolute path."""
+    here = readings(join_path("", cwd), root or "") if cwd else [""]
+    return here[0] if len(here) == 1 else join_path("", cwd or "")
+
+
 def stagings(command, cwd=None, root=None):
-    """Every `git add` / `git stage` / `git commit` of a command, with its pathspecs resolved from where it runs."""
+    """Every `git add` / `git stage` / `git commit` of a command, with its pathspecs resolved from where it runs
+    ("dir": the folder it runs in, after every `cd`, `pushd` and `git -C` before it; "lead": the words before `git`)."""
     _init()
     root = root or ""
-    here = readings(join_path("", cwd), root) if cwd else [""]
-    dir_ = here[0] if len(here) == 1 else join_path("", cwd or "")
+    dir_ = start_dir(cwd, root)
     found = []
     for segment in expand(shell_words(command)):
         # "(cd a && git add b)": the brackets of a subshell are not part of a name.
@@ -530,6 +601,7 @@ def stagings(command, cwd=None, root=None):
             continue
         s = read_staging(verb, words[i + 1:], at, root)
         s["dir"] = at
+        s["lead"] = words[:g]
         if any(re.match(r"^xargs$", w, re.I) for w in words[:g]):
             s["unseen"].append("xargs")
         found.append(s)
@@ -632,7 +704,7 @@ def staging_rules(command, cfg, env):
     return out
 
 
-def git_rules(segments, cfg, env):
+def git_rules(segments, cfg, env, command=""):
     """force-push and default-branch-commit."""
     db = (cfg.get("guard") or {}).get("defaultBranch") or {}
     names = [str(n) for n in db.get("names") or ["main", "master"]]
@@ -652,15 +724,35 @@ def git_rules(segments, cfg, env):
                 out.append(decision(force, "force-push",
                                     "A force push rewrites a pushed branch: others' work on it, and an open review, "
                                     "can be lost. Merge the default branch in instead."))
-        if verb == "commit" and commit and "--dry-run" not in args:
-            branch = env.get("branch")
-            if branch is None or dash_c:
-                branch = _branch_at(env, dash_c)
+    if commit:
+        # Where each commit runs is what the staging parser already follows for pathspecs: cd, pushd, git -C.
+        start = start_dir(env.get("cwd"), env.get("root"))
+        for s in stagings(command, env.get("cwd"), env.get("root")):
+            if s["verb"] != "commit" or s["dry"]:
+                continue
+            if any(not (w in LEADERS or re.match(ASSIGN, w)) for w in s["lead"]):
+                continue  # `grep -rn git commit .`: git is not the command
+            branch = _branch_in(env, s["dir"], start)
             if branch and branch in names:
                 out.append(decision(commit, "default-branch-commit",
                                     f"This commits on `{branch}`. Work goes on a branch: create one, commit there, "
                                     "open a pull request, merge when verified."))
     return out
+
+
+def _branch_in(env, dir_, start):
+    """The branch checked out where a command runs: `dir_` as the staging parser resolved it. None when that folder
+    is not known (a variable, `popd`, the home folder) or is no checkout: no finding rather than a false one."""
+    try:
+        if dir_ == start:
+            return env["branch"] if env.get("branch") is not None else _branch_at(env, None)
+        if dir_.startswith(UNKNOWN_DIR) or dir_.startswith(".."):
+            return None
+        import common
+        at = dir_ if re.match(ABSOLUTE, dir_) else os.path.join(env.get("root") or "", dir_)
+        return common.current_branch(at) if os.path.isdir(at) else None
+    except Exception:
+        return None
 
 
 def _branch_at(env, dash_c):
@@ -721,11 +813,12 @@ def resource_rule(units, cfg, env, agent):
     needed = []
     for held, words in units:
         text = text_of(words)
+        handler = handles_files(words)
         for name, spec in resources.items():
-            spec = spec or {}
-            if name in held or name in needed:
+            spec = spec if isinstance(spec, dict) else {}
+            if name in held or name in needed or (handler and not spec.get("matchFileCommands")):
                 continue
-            if matches(spec.get("match"), text) and not matches(spec.get("unless"), text):
+            if fires(spec.get("match"), spec.get("unless"), [text]):
                 needed.append(name)
     if not needed:
         return []
@@ -786,7 +879,7 @@ def count_run(words, run, root):
     spec = run.get("count") or {}
     start = 0
     for k in range(len(words)):
-        if matches(run.get("match"), text_of(words[:k + 1])):
+        if matches(run.get("match"), text_of(words[:k + 1])):  # the patterns alone: where the program's name ends
             start = k + 1
             break
     args = []
@@ -861,8 +954,11 @@ def run_rule(units, cfg, env, assigned):
     out = []
     for _held, words in units:
         text = text_of(words)
+        handler = handles_files(words)
         for run in cfg.get("runs") or []:
-            if not isinstance(run, dict) or not matches(run.get("match"), text):
+            if not isinstance(run, dict) or (handler and not run.get("matchFileCommands")):
+                continue
+            if not fires(run.get("match"), run.get("unless"), [text]):
                 continue
             ask = count_run(words, run, env.get("root"))
             if ask["dry"]:
@@ -913,8 +1009,31 @@ def run_rule(units, cfg, env, assigned):
     return out
 
 
-def data_rules(units, all_segments, cfg, env, file_path=None):
-    """The project's own guard.rules."""
+def own_vars(cfg):
+    """The variables the guard reads itself (an agent's name, a run's reason): their values are prose, not commands."""
+    guard = cfg.get("guard") or {}
+    names = {"AW_AGENT", "AW_RUN", str(guard.get("agentVar") or "AW_AGENT")}
+    names |= {str(a) for a in guard.get("agentVarAliases") or []}
+    names |= {str(r.get("reasonVar") or "AW_RUN") for r in cfg.get("runs") or [] if isinstance(r, dict)}
+    return names
+
+
+def rule_texts(lead, words, own):
+    """What a project rule reads of one command: [the command alone, the command with what it sets in its
+    environment, and for PowerShell's `$env:X = "v"` the same as `X=v`]. The guard's own variables are left out."""
+    shown = [w for w in lead if not (re.match(ASSIGN, w) and w.split("=", 1)[0] in own)]
+    if not any(re.match(ASSIGN, w) for w in shown):
+        shown = []  # `env`, `time` or `&` alone say nothing
+    out = [text_of(words), text_of(shown + words)]
+    ps = ps_assignment(words)
+    if ps:
+        out.append(text_of(shown + [f"{ps[0]}={ps[1]}"]))
+    return out
+
+
+def data_rules(unit_texts, segment_texts, cfg, env, file_path=None):
+    """The project's own guard.rules. unit_texts / segment_texts: the readings (rule_texts) of every command that is
+    no reader / of every segment."""
     out = []
     for rule in (cfg.get("guard") or {}).get("rules") or []:
         if not isinstance(rule, dict):
@@ -933,13 +1052,13 @@ def data_rules(units, all_segments, cfg, env, file_path=None):
         if (scope == "file") != (file_path is not None):
             continue
         if scope == "file":
-            texts = [file_path]
+            texts = [[file_path]]
         else:
-            skip = rule.get("skipReaders", True)
-            texts = [text_of(w) for _h, w in units] if skip else [text_of(command_words(s)) for s in all_segments]
+            texts = unit_texts if rule.get("skipReaders", True) else segment_texts
             if scope == "command":
-                texts = ["\n".join(texts)]
-        if any(matches(rule.get("match"), t) and not matches(rule.get("unless"), t) for t in texts):
+                # all segments together, once per reading (a segment without that reading gives its last)
+                texts = [["\n".join(t for t in (r[min(k, len(r) - 1)] for r in texts) if t) for k in range(3)]]
+        if any(fires(rule.get("match"), rule.get("unless"), list(dict.fromkeys(t))) for t in texts):
             out.append(decision(kind, str(rule.get("id") or "project-rule"), str(rule.get("message") or "A project rule matched this call (guard.rules in .agents/agent-works.json).")))
     return out
 
@@ -990,21 +1109,29 @@ def decide_all(tool, tool_input, cfg, env=None):
                 agent = common.agent_name(cfg)
             except Exception:
                 agent = None
-        units = []
+        own = own_vars(cfg)
+        units, unit_texts, segment_texts = [], [], []
         for seg in segments:
-            words = command_words(seg)
+            lead, words = split_lead(seg)
+            mine = ps_assignment(words)
+            if mine and mine[0] in own:
+                continue  # `$env:AW_RUN = "verify: …"`: a reason or a name, read by `assignments`, never a command
+            segment_texts.append(rule_texts(lead, words, own))
             held, inner = unwrap(words)
+            if not words:
+                unit_texts.append(rule_texts(lead, [], own))  # `export X=v`: no reader, and a rule may be about X
             for sub in inner:
-                w = command_words(sub)
+                sub_lead, w = split_lead(sub)
                 if w and not is_reader(w):
                     units.append((held, w))
+                    unit_texts.append(rule_texts(lead + sub_lead, w, own))
                 for name, value in assignments([sub]).items():
                     assigned.setdefault(name, value)
         found += staging_rules(command, cfg, env)
-        found += git_rules(segments, cfg, env)
+        found += git_rules(segments, cfg, env, command)
         found += resource_rule(units, cfg, env, agent)
         found += run_rule(units, cfg, env, assigned)
-        found += data_rules(units, segments, cfg, env)
+        found += data_rules(unit_texts, segment_texts, cfg, env)
     elif tool in EDIT_TOOLS:
         path = tool_input.get("file_path") or tool_input.get("notebook_path")
         if isinstance(path, str) and path:

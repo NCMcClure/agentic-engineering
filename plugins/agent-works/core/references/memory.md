@@ -45,7 +45,13 @@ contract has only such. Their lines may say more than a description holds, so no
   `MEM_INDEX_STALE` is for a missing index and for a generated one that is out of date.
 - **To adopt:** shorten each memory's `description` to the budget (160 characters; `MEM_HOOK_LONG`) so that it
   says what its index line said, then run `aw memory index --adopt`. It converts every hand-written index to a
-  generated one and keeps its description line. Read the diff before committing.
+  generated one and keeps its description line, without a `Parent: [../INDEX.md](../INDEX.md)` link written on
+  that line (the generator writes the parent link on a line of its own). Read the diff before committing.
+
+A folder's index that still holds the placeholder `<one line: what belongs in this folder>` (a folder made by
+`aw memory new` without `--about`, or by moving memories into a new folder and running `aw memory index`) is
+`MEM_INDEX_PLACEHOLDER`: write the folder's one line in its place, then `aw memory index` carries it into the
+parent index.
 
 ## A memory file
 

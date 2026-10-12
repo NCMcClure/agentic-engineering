@@ -1,9 +1,9 @@
 ---
-name: kanban
+name: kanban-cards
 description: Use for out-of-scope work you notice, a card handed over, an owed check, or task status.
 ---
 
-# kanban
+# kanban-cards
 
 Tasks and their status live on one board: cards in the main working tree's `.agents/kanban/`, so every worktree
 and every agent works the same one. The owner sees it as a pane (`/kanban`). You reach it through tools in a

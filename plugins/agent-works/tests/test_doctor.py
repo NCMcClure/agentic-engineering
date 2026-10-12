@@ -75,6 +75,82 @@ class Doctor(unittest.TestCase):
         self.p.write(".agents/agent-works.json", json.dumps({"version": 1, "guard": {"rules": [{"id": "ok", "match": ["a+"]}]}}))
         self.assertEqual(doctor.config_findings(common.load_config(self.p.root), self.p.root), [])
 
+    def test_config_match_entries_with_their_own_unless(self):
+        good = {"version": 1,
+                "guard": {"rules": [{"id": "r", "match": [{"pattern": "a+", "unless": ["b"]}, "c"], "unless": ["d"]}]},
+                "resources": {"ed": {"match": [{"pattern": "render\\.ps1", "unless": ["-List\\b"]}, "Editor"], "unless": ["--version"],
+                                     "matchFileCommands": True}},
+                "runs": [{"id": "x", "match": [{"pattern": "render", "unless": "--plan"}], "unless": ["--help"]}]}
+        self.p.write(".agents/agent-works.json", json.dumps(good))
+        self.assertEqual(doctor.config_findings(common.load_config(self.p.root), self.p.root), [])
+        bad = {"version": 1,
+               "guard": {"rules": [{"id": "r", "match": [{"pattern": "a", "unless": ["([b"]}, {"unless": ["x"]}]}]},
+               "resources": {"ed": {"match": [{"pattern": "((", "unless": ["ok"]}, 7], "unless": ["[z"]}},
+               "runs": [{"id": "x", "match": [{"pattern": "ok", "unless": ["(?P<"]}], "unless": ["(("]}]}
+        self.p.write(".agents/agent-works.json", json.dumps(bad))
+        found = doctor.config_findings(common.load_config(self.p.root), self.p.root)
+        self.assertEqual({(f.code, f.level) for f in found}, {("CONFIG_INVALID", "critical")})
+        msgs = [f.message for f in found]
+        self.assertEqual(len(msgs), 7, msgs)
+        for part in ("guard.rules[r] (unless): the pattern '([b'", "guard.rules[r]: a match entry is a regular expression or",
+                     "resources.ed: the pattern '(('", "resources.ed: 7 is not a regular expression",
+                     "resources.ed (unless): the pattern '[z'", "runs[x] (unless): the pattern '(?P<'", "runs[x] (unless): the pattern '(('"):
+            self.assertTrue(any(part in m for m in msgs), (part, msgs))
+
+    def test_stray_briefs(self):
+        w = self.p.write
+        w(".agents/agent-works.json", "{}")
+        w(".gitignore", ".scratch/\nruns/\n")
+        w(".scratch/round-3/agent-a1.md", "Do the importer.\n")                 # git-ignored: exactly where they hide
+        w(".scratch/BRIEF-common.md", "Rules for all.\n")
+        w("runs/2026-01-05/handoff.md", "What is left.\n")
+        w("notes/Handover-to-next.md", "x\n")
+        w("docs/agent-brief.md", "x\n")
+        w("a/b/c/briefing.md", "x\n")                                           # three folders deep: still read
+        # not strays
+        w(".agents/briefs/common.md", "ours\n")
+        w(".agents/briefs/rounds/2026-01-05-brief-round.md", "ours\n")
+        w(".agents/memory/tooling/2026-01-05-brief-lessons.md", "a memory about briefs\n")
+        w(".agents/kanban/0001-write-the-brief.md", "a card\n")
+        w("docs/brief.txt", "not Markdown\n")
+        w("docs/briefcase/notes.md", "the folder's name is not the file's\n")
+        w("AGENTS.md", "# Root\n")
+        # not walked: too deep, heavy trees, the tool's own worktrees, a folder of thousands
+        w("a/b/c/d/agent-deep.md", "x\n")
+        w("node_modules/pkg/agent-brief.md", "x\n")
+        w("build/handoff.md", "x\n")
+        w(".claude/worktrees/w1/.scratch/agent-a1.md", "x\n")
+        w(".claude/agents/agent-reviewer.md", "an agent definition\n")
+        w("huge/agent-lost.md", "x\n")
+        w("huge/sub/agent-lost.md", "x\n")
+        old = doctor.STRAY_ENTRIES
+        doctor.STRAY_ENTRIES = 40
+        try:
+            for i in range(41):
+                w(f"huge/data-{i:03d}.bin", "")
+            found = doctor.stray_brief_findings(self.p.root, common.load_config(self.p.root))
+        finally:
+            doctor.STRAY_ENTRIES = old
+        self.assertEqual([(f.code, f.level, f.path) for f in found], [(c, "warning", p) for c, p in [
+            ("BRIEF_STRAY", ".scratch/BRIEF-common.md"), ("BRIEF_STRAY", ".scratch/round-3/agent-a1.md"),
+            ("BRIEF_STRAY", "a/b/c/briefing.md"), ("BRIEF_STRAY", "docs/agent-brief.md"),
+            ("BRIEF_STRAY", "notes/Handover-to-next.md"), ("BRIEF_STRAY", "runs/2026-01-05/handoff.md")]])
+        self.assertIn(".agents/briefs/common.md", found[0].message)
+        self.assertEqual(doctor.group_of("BRIEF_STRAY"), "Tasks and briefs")
+        # through the whole doctor, and the names are a setting
+        self.assertIn("BRIEF_STRAY", self.codes(self.run_json()[1]))
+        w(".agents/agent-works.json", json.dumps({"briefs": {"stray": ["handoff*.md"]}}))
+        got = doctor.stray_brief_findings(self.p.root, common.load_config(self.p.root))
+        self.assertEqual([f.path for f in got], ["runs/2026-01-05/handoff.md"])
+        w(".agents/agent-works.json", json.dumps({"briefs": {"stray": []}, "paths": {"briefs": ".scratch"}}))
+        self.assertEqual(doctor.stray_brief_findings(self.p.root, common.load_config(self.p.root)), [])
+        w(".agents/agent-works.json", json.dumps({"paths": {"briefs": ".scratch"}}))   # the briefs folder is a setting
+        got = [f.path for f in doctor.stray_brief_findings(self.p.root, common.load_config(self.p.root))]
+        self.assertNotIn(".scratch/BRIEF-common.md", got)
+        self.assertIn(".agents/briefs/rounds/2026-01-05-brief-round.md", got)
+        w(".agents/agent-works.json", json.dumps({"briefs": []}))
+        self.assertIn("\"briefs\" must be an object", " ".join(f.message for f in doctor.config_findings(common.load_config(self.p.root), self.p.root)))
+
     def test_contract_page(self):
         self.p.write(".agents/agent-works.json", "{}")
         self.assertIn("CONTRACT_MISSING", self.codes(self.run_json()[1]))

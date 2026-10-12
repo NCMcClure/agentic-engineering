@@ -86,7 +86,7 @@ def register(subparsers: Any) -> None:
 
     p = subparsers.add_parser("note", help="one line to the other agents of this project (or of the machine)",
                               description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("text")
+    p.add_argument("text", help="one line, budgets.noteChars characters at most (200 unless the project's config says otherwise)")
     p.add_argument("--machine", action="store_true", help="write on the machine's log, read by every project")
     p.add_argument("--as", dest="agent", help="the agent's name (default: the agent variable, else session-<pid>)")
     p.add_argument("--json", action="store_true", help="print one JSON document")

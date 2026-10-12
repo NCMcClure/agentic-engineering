@@ -12,6 +12,8 @@ lies). What does not: anything about one project's code, design or decisions (th
 never secrets or proprietary content: every project on the machine reads this store. A learning that looks like it
 holds a credential is refused.
 
+Limits: --topic is one line of at most 120 characters; the body holds at most coordination.learningChars (6000).
+
 One Markdown file per learning in <store>/learnings, with frontmatter: id, topic, tags, source (the project it came
 from), created, updated, and retired once it no longer holds. Search ranks a term found in the topic above one found
 in the tags above one found in the body. Exit codes: 0 done (search: something found), 1 nothing found, 2 usage or
@@ -120,10 +122,16 @@ def find(ident: str) -> Dict[str, Any]:
     return hit
 
 
+TOPIC_CHARS = 120  # a topic is the line a search prints: one line, and short enough to scan
+
+
 def check(topic: str, body: str, limit: float) -> None:
     topic = topic.strip()
-    if not topic or "\n" in topic or len(topic) > 120:
-        raise store.CoordError("learn: --topic is one line of at most 120 characters that says what was learned")
+    if not topic or "\n" in topic:
+        raise store.CoordError(f"learn: --topic is one line of at most {TOPIC_CHARS} characters that says what was learned")
+    if len(topic) > TOPIC_CHARS:
+        raise store.CoordError(f"learn: --topic is {len(topic)} characters, and a topic is one line of at most {TOPIC_CHARS}: "
+                               "say what was learned; the evidence and the detail go in the body")
     if not body.strip():
         raise store.CoordError("learn: an empty learning: give the body with --text or --from-file (- reads stdin)")
     if len(body) > limit:
@@ -294,7 +302,7 @@ def register(subparsers: Any) -> None:
         q.add_argument("--json", action="store_true", help="print one JSON document")
 
     q = sub.add_parser("add", help="publish a learning that is not about one project")
-    q.add_argument("--topic", required=True, help="one line that says what was learned")
+    q.add_argument("--topic", required=True, help=f"one line that says what was learned ({TOPIC_CHARS} characters at most)")
     q.add_argument("--tags", default="", help="comma-separated: the tool, the platform, the kind of trap")
     body(q)
     q.set_defaults(func=cmd_add)
@@ -320,7 +328,7 @@ def register(subparsers: Any) -> None:
 
     q = sub.add_parser("edit", help="correct a learning's topic, tags or body")
     q.add_argument("id")
-    q.add_argument("--topic")
+    q.add_argument("--topic", help=f"one line, {TOPIC_CHARS} characters at most")
     q.add_argument("--tags")
     body(q)
     q.set_defaults(func=cmd_edit)

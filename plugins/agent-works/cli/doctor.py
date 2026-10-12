@@ -12,6 +12,8 @@ It runs the checks of hubs, memory, decisions and the glossary, links, dup, twin
   DOCS_AGENT_FILE    warning   agent material under the user-docs folder (decision records, a glossary)
   BRIEF_SIZE         warning   a brief over its budget
   BRIEF_UNTRACKED    warning   a brief git does not track (a rule only a scratch file holds is lost with it)
+  BRIEF_STRAY        warning   a Markdown file named like a brief or a hand-over (`briefs.stray`) outside the briefs
+                               folder, git-ignored scratch folders included (the walk is three folders deep)
   TASKS_TWO_HOMES    warning   tasks are kept in two places
 
 Without a config the defaults apply, so a legacy repository gets its first report before anything is set up. Only
@@ -24,6 +26,8 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
+import os
 import re
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -42,7 +46,7 @@ GROUPS: List[Tuple[str, Tuple[str, ...]]] = [
     ("Tasks and briefs", ("KANBAN_", "GATE_", "TASKS_", "BRIEF_")),
     ("User docs", ("DOCS_",)),
 ]
-SHAPES = {"paths": dict, "tasks": dict, "claude": dict, "plugins": list, "budgets": dict, "links": dict, "guard": dict, "resources": dict,
+SHAPES = {"briefs": dict, "paths": dict, "tasks": dict, "claude": dict, "plugins": list, "budgets": dict, "links": dict, "guard": dict, "resources": dict,
           "lockOrder": list, "runs": list, "counters": dict, "dup": dict, "kanban": dict, "coordination": dict}
 
 
@@ -72,24 +76,47 @@ def config_findings(cfg: Dict[str, Any], root: Path) -> List[Finding]:
         if key in guard and not isinstance(guard[key], list):
             out.append(Finding("CONFIG_INVALID", "critical", where, 0, f"\"guard.{key}\" must be a list"))
     patterns: List[Tuple[str, Any]] = []
+
+    def listed(value: Any) -> List[Any]:
+        return list(value) if isinstance(value, list) else [] if value is None else [value]
+
+    def take(what: str, match: Any, unless: Any) -> None:
+        """A `match` (regexes, or {"pattern", "unless"} objects) and an `unless` (regexes), as the guard reads them."""
+        for m in listed(match):
+            if isinstance(m, dict):
+                if not isinstance(m.get("pattern"), str):
+                    out.append(Finding("CONFIG_INVALID", "critical", where, 0,
+                                       f"{what}: a match entry is a regular expression or {{\"pattern\": …, \"unless\": […]}}; "
+                                       f"{json.dumps(m)} has no \"pattern\""))
+                    continue
+                patterns.append((what, m["pattern"]))
+                take(what, [], m.get("unless"))
+            else:
+                patterns.append((what, m))
+        for u in listed(unless):
+            patterns.append((what + " (unless)", u))
     for g in guard.get("generated") if isinstance(guard.get("generated"), list) else []:
         patterns.append(("guard.generated", g.get("match") if isinstance(g, dict) else None))
     for r in guard.get("rules") if isinstance(guard.get("rules"), list) else []:
         if not isinstance(r, dict) or not r.get("id") or not r.get("match"):
             out.append(Finding("CONFIG_INVALID", "critical", where, 0, "every guard.rules entry is an object with \"id\" and \"match\""))
             continue
-        patterns += [(f"guard.rules[{r['id']}]", m) for m in [*(r.get("match") or []), *(r.get("unless") or [])]]
+        take(f"guard.rules[{r['id']}]", r.get("match"), r.get("unless"))
     for name, spec in (cfg.get("resources") if isinstance(cfg.get("resources"), dict) else {}).items():
         if not isinstance(spec, dict):
             out.append(Finding("CONFIG_INVALID", "critical", where, 0, f"\"resources.{name}\" must be an object"))
             continue
         if spec.get("scope") not in (None, "project", "machine"):
             out.append(Finding("CONFIG_INVALID", "critical", where, 0, f"\"resources.{name}.scope\" is \"project\" or \"machine\""))
-        patterns += [(f"resources.{name}", m) for m in [*(spec.get("match") or []), *(spec.get("unless") or [])]]
+        take(f"resources.{name}", spec.get("match"), spec.get("unless"))
     for run in cfg.get("runs") if isinstance(cfg.get("runs"), list) else []:
         if isinstance(run, dict):
-            patterns += [(f"runs[{run.get('id')}]", m) for m in run.get("match") or []]
+            take(f"runs[{run.get('id')}]", run.get("match"), run.get("unless"))
     for what, pattern in patterns:
+        if not isinstance(pattern, str) and what != "guard.generated":
+            out.append(Finding("CONFIG_INVALID", "critical", where, 0,
+                               f"{what}: {json.dumps(pattern)} is not a regular expression (a string)"))
+            continue
         try:
             re.compile(str(pattern))
         except re.error as e:
@@ -193,6 +220,61 @@ def brief_findings(root: Path, cfg: Dict[str, Any]) -> List[Finding]:
     return out
 
 
+STRAY_DEPTH = 3        # folders below the top that are looked into
+STRAY_ENTRIES = 3000   # a folder with more entries is build output or data: not read, not descended into
+STRAY_SKIP = {".git", "node_modules"}
+STRAY_SKIP_REL = {".claude/worktrees", ".claude/agents", ".claude/skills", ".claude/commands"}
+
+
+def stray_brief_findings(root: Path, cfg: Dict[str, Any]) -> List[Finding]:
+    """Markdown named like a brief or a hand-over for agents that lies outside the briefs folder.
+
+    The working tree is walked as it is on disk, so git-ignored scratch and run-output folders are read: that is
+    where such files hide. Kept cheap: three folders deep, no heavy or foreign trees, no folder of thousands."""
+    import fnmatch
+
+    import hubs
+
+    spec = cfg.get("briefs") if isinstance(cfg.get("briefs"), dict) else {}
+    globs = spec.get("stray", common.DEFAULTS["briefs"]["stray"])
+    globs = [str(g).lower() for g in globs] if isinstance(globs, list) else []
+    if not globs:
+        return []
+    briefs = common.config_path(cfg, root, "briefs")
+    # The homes of agent files hold cards, memories and records whose names may say "brief": they are in their home.
+    homes = {common.config_path(cfg, root, k).resolve() for k in ("briefs", "memory", "kanban", "decisions", "contracts", "plan")}
+    homes |= {(root / r).resolve() for r in STRAY_SKIP_REL} | {(root / common.OLD_KANBAN_REL).resolve()}
+    plugin = Path(__file__).resolve().parent.parent  # the plugin's own templates, when the project is the plugin
+    skip_names = (hubs.SKIP_DIRS - {".agents"}) | STRAY_SKIP
+    out: List[Finding] = []
+
+    def visit(d: Path, depth: int) -> None:
+        try:
+            entries = sorted(os.scandir(d), key=lambda e: e.name)
+        except OSError:
+            return
+        if len(entries) > STRAY_ENTRIES:
+            return
+        for e in entries:
+            try:
+                is_dir, is_file = e.is_dir(follow_symlinks=False), e.is_file(follow_symlinks=False)
+            except OSError:
+                continue
+            p = Path(e.path)
+            if is_dir:
+                if depth < STRAY_DEPTH and e.name not in skip_names and p.resolve() not in homes and p.resolve() != plugin:
+                    visit(p, depth + 1)
+            elif is_file and e.name.lower().endswith(".md") and any(fnmatch.fnmatchcase(e.name.lower(), g) for g in globs):
+                out.append(Finding("BRIEF_STRAY", "warning", common.rel(p, root), 0,
+                                   f"named like a brief or a hand-over for agents, outside {common.rel(briefs, root)}: no "
+                                   f"agent finds it there. Move what holds for every round into {common.rel(briefs / 'common.md', root)} "
+                                   "and each lasting fact to its home (a rule: AGENTS.md; a lesson: memory; a task: a card), "
+                                   "then delete the file"))
+
+    visit(root, 0)
+    return out
+
+
 def tasks_findings(root: Path, cfg: Dict[str, Any]) -> List[Finding]:
     main = common.main_root(root) or root
     new, old = common.config_path(cfg, main, "kanban"), main / common.OLD_KANBAN_REL
@@ -284,6 +366,7 @@ def collect(root: Path) -> Dict[str, Any]:
     found += _safe("kanban", kanban_check, failed)
     found += _safe("tasks", lambda: tasks_findings(root, cfg), failed)
     found += _safe("briefs", lambda: brief_findings(root, cfg), failed)
+    found += _safe("stray briefs", lambda: stray_brief_findings(root, cfg), failed)
     found += _safe("docs", lambda: docs_findings(root, cfg), failed)
     return {"findings": common.sort_findings(found), "failed": failed, "sizes": sizes(root, cfg),
             "hubs": extra.get("hubs", 0), "config": common.rel(cfg["_path"], root) if cfg.get("_path") else None}

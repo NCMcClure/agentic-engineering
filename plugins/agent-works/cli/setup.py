@@ -27,6 +27,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import common
+import decisions as decisions_mod
 import memory as memory_mod
 
 ALLOW_RULE = "Bash(aw:*)"
@@ -122,7 +123,7 @@ def plan(root: Path, opts: argparse.Namespace) -> Dict[str, Any]:
             commands=[f"git mv {found['docsAdr']} {R(decisions)}", "aw decisions index", "aw links"])
     else:
         add("create", R(decisions / "README.md"), "the decisions folder and its generated index",
-            text="# Decisions\n\nNo records yet: `aw decisions new \"<title>\"` starts the first.\n")
+            text=decisions_mod.build_index([]))
 
     glossary = common.config_path(cfg, root, "glossary")
     if found["glossary"]:

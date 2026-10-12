@@ -129,7 +129,7 @@ All ten can be started by the model or by you (`/agent-works:<name>`).
 | `hubs` | Adding, moving or renaming a directory; writing or fixing a hub |
 | `memory` | Reading before a task; writing a lesson or a measurement; updating status |
 | `decisions` | A choice that is hard to reverse, a new term, an agent-facing contract page |
-| `kanban` | Out-of-scope work you noticed, a card handed over, a check you cannot run, status |
+| `kanban-cards` | Out-of-scope work you noticed, a card handed over, a check you cannot run, status |
 | `orchestrate` | Several agents on one repository: tasks, briefs, worktrees, reports, the integration pass |
 | `coordinate` | A scarce application, a heavy job, a timing run, other sessions on the machine |
 | `guard` | The guard refused something, or a mistake must not happen again |
@@ -138,7 +138,7 @@ All ten can be started by the model or by you (`/agent-works:<name>`).
 
 | Path | Holds |
 |---|---|
-| `skills/` | the ten skills |
+| `skills/` | the ten skills (none is named as a command of the mod: `/kanban` is the pane's) |
 | `core/references/` | the contracts, each written once: `homes`, `hubs`, `memory`, `decisions`, `coordination`, `guard-config` |
 | `assets/templates/` | what `aw setup` and the skills fill: config, root and hub `AGENTS.md`, the contracts page, memory, status, decision, glossary, cards, briefs, the report |
 | `cli/` | `aw.py` and one module per command; `cli/coord/` is the machine's store |
@@ -161,6 +161,21 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.1.3**: Defects found while migrating a real project. **`/kanban` opens the pane again**: the skill that shared
+  the command's name is now `kanban-cards` (`agent-works:kanban-cards`; run `aw setup --apply` to refresh the
+  § Agent plugins of your root `AGENTS.md`), and the command says so in a toast when the pane cannot open. The guard: a project rule now sees what a command
+  sets in its environment (`X= cmd`, `env X= cmd`, `export X=`, `$env:X = ""`), so "never clear this variable" is
+  data; resource locks and run budgets no longer take `git add <script>`, `cp`, `mv` or `rm` for running the
+  script (`matchFileCommands` restores the raw reading); a `match` entry may carry its own `unless`
+  (`{ "pattern", "unless" }`), checked by `aw doctor`; `default-branch-commit` reads the branch of the checkout
+  the commit runs in (`cd <worktree> && git commit`). Decisions: `new` titles a record as the folder's latest are
+  (`# ADR 0014: Title`); the lint and the index read Status, Sources and
+  Date in the ADR line forms (`- **Status:** accepted`), and a hand-written `README.md` index is kept
+  (`DEC_INDEX_HANDWRITTEN`, `aw decisions index --adopt`) as memory's are. `aw doctor` finds briefs and hand-overs
+  left in scratch folders, git-ignored ones included (`BRIEF_STRAY`, names in `briefs.stray`). `links.files` adds
+  the root README to what `aw links` reads. Memory: `index --adopt` no longer carries a `Parent:` link into the
+  root index, and a folder index left with its placeholder line is `MEM_INDEX_PLACEHOLDER`. The limits of
+  `aw note` (200) and `aw learn add --topic` (120) are in the help, the reference and the refusal.
 - **0.1.2**: The root `AGENTS.md` introduces the project's plugins (agent-works, codebase-optimizer,
   perceptual-loop: what each is for, when to open each skill) in a marked § Agent plugins that `aw setup --apply`
   writes and `aw doctor` checks (`ROOT_PLUGINS`), so sessions and sub-agents are primed at start. The list is

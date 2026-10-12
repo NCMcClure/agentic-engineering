@@ -23,7 +23,7 @@ and one command checks them all: `aw doctor`. Everything agent-facing lives unde
 | Plans and specs | `.agents/plan/` (the but-first-planning plugin's workspace) | its own | its own verifiers |
 | Tasks and their status | kanban cards in the main working tree's `.agents/kanban/`, shared by every worktree | none | `aw kanban lint` |
 | Checks still owed | cards of kind `gate`: what, for which pull request or card, what running it needs | none | `aw kanban lint` (`GATE_OWED_OLD`) |
-| Briefs for a round of agents | `.agents/briefs/common.md` and `.agents/briefs/rounds/<date>-<slug>.md`, tracked by git | 120 and 80 lines | `aw doctor` (`BRIEF_SIZE`, `BRIEF_UNTRACKED`) |
+| Briefs for a round of agents | `.agents/briefs/common.md` and `.agents/briefs/rounds/<date>-<slug>.md`, tracked by git | 120 and 80 lines | `aw doctor` (`BRIEF_SIZE`, `BRIEF_UNTRACKED`, `BRIEF_STRAY`) |
 | Reports | the agent's final message, the pull request's body, the card | never a file | by reading |
 | Files for one tool | a `CLAUDE.md` twin beside every `AGENTS.md`, one line: `@AGENTS.md` | one line | `aw twins --check` |
 | The plugin's settings | `.agents/agent-works.json` (`guard-config.md` documents it) | none | `aw doctor` (`CONFIG_INVALID`) |
@@ -50,8 +50,10 @@ only with a reason you would write down.
 - **No why in a rule.** The rule is five lines; the reasoning, the measurement and the incident live in the
   decision or memory it links to.
 - **No rules in a scratch file.** A brief that git does not track loses its rules with the next clean-up
-  (`BRIEF_UNTRACKED`). What every round needs is in `.agents/briefs/common.md`; what binds beyond the round moves
-  into `AGENTS.md`.
+  (`BRIEF_UNTRACKED`), and a brief or hand-over written into a scratch or run-output folder is found by no agent
+  (`BRIEF_STRAY`: `aw doctor` looks for the names of `briefs.stray` outside the briefs folder, in git-ignored
+  folders too). What every round needs is in `.agents/briefs/common.md`; what binds beyond the round moves into
+  `AGENTS.md`.
 - **No tasks in prose.** A TODO list in a memory, a "Next" section in the status file and a note that says "still
   to do" are tasks without a status. A task is a card (`TASKS_TWO_HOMES` when two places hold them).
 - **No hand edits of generated files:** `.agents/README.md`, every generated memory `INDEX.md`, the decisions `README.md`,
