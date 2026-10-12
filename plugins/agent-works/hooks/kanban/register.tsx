@@ -110,6 +110,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+/** `/kanban` could not show its pane: said in a toast and in the command's answer, never silently. */
+async function notOpened($: Engine, why: string): Promise<{ text: string }> {
+  const message = `The kanban pane could not be opened: ${why}. The cards are still there: \`aw kanban list\`.`
+  await Promise.resolve($.ui.toast(message)).catch(() => undefined)
+
+  return { text: message }
+}
+
 /** The card an agent named by its id, with or without the leading zeros. */
 function cardOf(cards: readonly Card[], id: string): Card | undefined {
   return cards.find(one => one.id === id || one.id === id.padStart(4, '0'))
@@ -254,8 +262,13 @@ export const register: Register = (on, options) => {
   })
 
   on('command.run', { command: COMMAND }, async ($, e) => {
-    await locate(hostOf($), true)
-    const board = await reload(hostOf($))
+    let board: Awaited<ReturnType<typeof reload>>
+    try {
+      await locate(hostOf($), true)
+      board = await reload(hostOf($))
+    } catch (error) {
+      return notOpened($, `the board could not be read (${error instanceof Error ? error.message : String(error)})`)
+    }
     const [verb = '', ...rest] = e.args.trim().split(/\s+/)
     const argument = rest.join(' ').trim()
     if (verb === 'add' && argument !== '') {
@@ -270,10 +283,22 @@ export const register: Register = (on, options) => {
 
       return { text: status === 'error' ? `Sync failed: ${message}` : `Remote sync is ${status === 'off' ? 'off' : 'on'}.` }
     }
-    await setView(hostOf($), { kind: 'board' })
-    await $.ui.open({ id: PANE, title: TITLE, focus: true })
+    // `/kanban` always answers: the pane (an empty board where the project has none yet), or why there is none.
+    let placed: unknown
+    try {
+      await setView(hostOf($), { kind: 'board' })
+      placed = await $.ui.open({ id: PANE, title: TITLE, focus: true })
+    } catch (error) {
+      return notOpened($, error instanceof Error ? error.message : String(error))
+    }
+    if (isRecord(placed) && placed.isPlaced === false) return notOpened($, 'this surface has no place for a pane')
+    const count = board.cards.filter(card => card.status !== ARCHIVED).length
+    const where = board.isOldFolder ? `${board.dir} (the old folder: it keeps working)` : board.dir
+    if (count === 0 && !(await $.fs.exists(board.dir).catch(() => false))) {
+      return { text: `Kanban opened: no board in ${where} yet; the first card creates it.` }
+    }
 
-    return { text: `Kanban opened: ${board.cards.filter(card => card.status !== ARCHIVED).length} cards in ${board.dir}` }
+    return { text: `Kanban opened: ${count} cards in ${where}` }
   })
 
   on('tool.call', { tool: SURFACE_TOOL }, async ($, e) => {

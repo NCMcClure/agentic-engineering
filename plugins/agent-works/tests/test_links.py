@@ -63,6 +63,21 @@ class Links(unittest.TestCase):
         self.p.write(".agents/agent-works.json", json.dumps({"links": {"roots": ["tools"]}}))
         self.assertEqual([f[3] for f in self.found()[1]], ["no such path: tools/none.sh"])
 
+    def test_files_are_a_setting(self):
+        bad = "[x](nowhere.md) and `src/none.ts`\n"
+        self.p.write("AGENTS.md", "# Root\n")
+        self.p.write("README.md", bad)
+        self.p.write("docs/guide.md", bad)
+        self.p.write("docs/more/deep.md", bad)
+        self.assertEqual(self.found()[1], [])                              # the default: neither is an agent file
+        self.p.write(".agents/agent-works.json", json.dumps({"links": {"files": ["README.md", "AGENTS.md", "no/such.md"]}}))
+        res, found = self.found()
+        self.assertEqual([(c, p) for c, p, _, _ in found], [("LINK_BROKEN", "README.md"), ("PATH_MISSING", "README.md")])
+        self.assertEqual(res["files"], 3)                                  # AGENTS.md once, the missing one skipped
+        self.p.write(".agents/agent-works.json", json.dumps({"links": {"files": ["README.md", "docs"]}}))
+        self.assertEqual(sorted({p for _, p, _, _ in self.found()[1]}), ["README.md", "docs/guide.md", "docs/more/deep.md"])
+        self.assertEqual(self.p.aw("links")[0], 1)
+
     def test_what_is_read_and_what_is_not(self):
         bad = "[x](nowhere.md) and `src/none.ts`\n"
         self.p.write("AGENTS.md", "# Root\n")

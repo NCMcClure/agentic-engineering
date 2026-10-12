@@ -412,6 +412,35 @@ class Lint(unittest.TestCase):
         self.assertEqual(self.codes(), [])
 
 
+class CommandNames(unittest.TestCase):
+    """`/kanban` is the pane's: no skill of the plugin that a person can type as `/<name>` shares a name with a
+    command the mod registers (the harness would answer from the skill, and the pane would never open)."""
+
+    def test_no_skill_answers_to_a_command_of_the_mod(self):
+        import re
+
+        plugin = Path(__file__).resolve().parent.parent
+        commands = set()
+        for src in sorted((plugin / "hooks").rglob("*.ts*")):
+            if ".test." in src.name:
+                continue
+            text = src.read_text(encoding="utf-8")
+            constants = dict(re.findall(r"const\s+([A-Z_]+)\s*=\s*'([^']+)'", text))
+            for name in re.findall(r"\$\.command\.register\(\{\s*name:\s*([A-Za-z_']+)", text):
+                commands.add(name.strip("'") if name.startswith("'") else constants[name])
+        self.assertEqual(commands, {"kanban"})  # the command's name, pinned
+        typed = {}
+        for skill in sorted((plugin / "skills").glob("*/SKILL.md")):
+            front = re.match(r"^---\r?\n(.*?)\r?\n---", skill.read_text(encoding="utf-8"), re.S).group(1)
+            name = re.search(r"^name:\s*(\S+)\s*$", front, re.M).group(1)
+            self.assertEqual(name, skill.parent.name)
+            self.assertNotRegex(front, r"(?m)^disable-model-invocation:\s*true")  # every skill stays the model's to open
+            if not re.search(r"^user-invocable:\s*false\s*$", front, re.M):
+                typed[name] = skill.parent.name
+        self.assertEqual(len(typed), 10)
+        self.assertEqual(commands & set(typed), set())
+
+
 if __name__ == "__main__":
     if "--write-golden" in sys.argv:
         write_golden()

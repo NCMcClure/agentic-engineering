@@ -41,11 +41,11 @@ Edit `.agents/agent-works.json`. Each need has one key:
 | Files a tool writes: never edited by hand | `guard.generated` | a regex on the path, and `how`: the command to run instead |
 | Staging the whole tree; unreadable pathspecs | `guard.staging` | `deny` by default |
 | Commits on the default branch, forced pushes | `guard.defaultBranch` | `warn` and `ask` by default; `commit: "ask"` only when the owner wants to approve |
-| One instance at a time of an application or device | `resources.<name>`, `lockOrder` | `match`: the commands that start it; `scope`: `project` or `machine` |
-| A run whose cost grows with a count | `runs` | how many items are free, and the variable that carries the reason |
+| One instance at a time of an application or device | `resources.<name>`, `lockOrder` | `match`: the commands that start it; `scope`: `project` or `machine`. An excuse for one pattern only: `{ "pattern": …, "unless": […] }` in `match`. Commands that only name a file (`git add`, `cp`, `rm`) are not tested unless `matchFileCommands` |
+| A run whose cost grows with a count | `runs` | how many items are free, and the variable that carries the reason; `match` as for a resource |
 | A number several branches bump | `counters.<name>` | claimed with `aw claim` |
 | The variable that carries an agent's name | `guard.agentVar` | default `AW_AGENT` |
-| Anything else this project learned the hard way | `guard.rules` | data only: `id`, `decision`, `match`, `unless`, `message` |
+| Anything else this project learned the hard way | `guard.rules` | data only: `id`, `decision`, `match`, `unless`, `message`. A rule also reads what a command sets in its environment (`X=v cmd`, `env X=v cmd`, `export X=v`, `$env:X = "v"`), so "never clear this variable" is a pattern for `\bX=` |
 
 A rule's `message` is what the agent reads at the moment of the mistake: say the rule, why, and what to do
 instead. Start a new rule at `warn` or `ask`; make it `deny` once it has refused nothing it should not have.
@@ -58,14 +58,15 @@ in the project's own `.claude/settings.json`, and stays there.
 ## Step 3 — Prove the rule both ways
 
 Run `--explain` (Step 1) on one command the rule must stop and on two it must let through: a near miss, and a
-command that only mentions the words (a commit message, an `echo`, a search). Then:
+command that only mentions the words (a commit message, an `echo`, a search). For a resource or a run, also a
+command that only names the script (`git add <script>`): it must go through. Then:
 
 ```
 aw doctor
 ```
 
-`CONFIG_INVALID` is critical: the file does not parse, a key has the wrong shape, or a pattern is not a regular
-expression. A broken config never blocks work; the guard falls back to the defaults until it is fixed.
+`CONFIG_INVALID` is critical: the file does not parse, a key has the wrong shape, a `match` entry is neither a
+regex nor a `{ "pattern", "unless" }` object, or a pattern is not a regular expression. A broken config never blocks work; the guard falls back to the defaults until it is fixed.
 
 *Done when: the three explanations are as intended, and `aw doctor` prints no `CONFIG_INVALID`.*
 

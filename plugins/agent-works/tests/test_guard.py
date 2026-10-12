@@ -309,6 +309,209 @@ class ProjectRules(unittest.TestCase):
         self.assertIsNone(run("cat web/package-lock.json && rm web/package-lock.json", self.CFG))
 
 
+class CommitWhereItRuns(unittest.TestCase):
+    """default-branch-commit reads the branch of the checkout the `git commit` runs in, not the session's."""
+
+    def setUp(self):
+        self.main = Project(config={}, branch="main")
+        self.work = Project(config={}, branch="chore/x")
+        (self.main.root / "sub").mkdir()
+        (self.work.root / "sub").mkdir()
+
+    def tearDown(self):
+        self.main.close()
+        self.work.close()
+
+    def ask(self, command, at, tool="Bash"):
+        env = guard.read_env(str(at.root))
+        d = guard.decide(tool, {"command": command}, common.load_config(at.root), env)
+        return d["rule"] if d else None
+
+    def test_a_session_on_main_committing_in_a_worktree_on_a_branch(self):
+        w = common.posix(self.work.root)
+        for c, tool in ((f'cd "{w}" && git commit -m x', "Bash"), (f"cd '{w}'; git commit -m x", "Bash"),
+                        (f'cd "{w}"\ngit add a.txt\ngit commit -m x', "Bash"), (f'pushd "{w}" && git commit -m x', "Bash"),
+                        (f'(cd "{w}/sub" && git commit -m x)', "Bash"), (f'git -C "{w}" commit -m x', "Bash"),
+                        (f'cd "{w}/sub" && cd .. && git commit -m x', "Bash"), (f'bash -c "cd \'{w}\' && git commit -m x"', "Bash"),
+                        (f'Set-Location "{w}"; git commit -m x', "PowerShell"), (f'Push-Location "{w}"; git commit -m x', "PowerShell")):
+            self.assertEqual((c, self.ask(c, self.main, tool)), (c, None))
+        self.assertEqual(self.ask("git commit -m x", self.main), "default-branch-commit")       # where the session is
+        self.assertEqual(self.ask("cd sub && git commit -m x", self.main), "default-branch-commit")
+        self.assertEqual(self.ask(f'cd "{w}" && git status; cd "{common.posix(self.main.root)}" && git commit -m x', self.main),
+                         "default-branch-commit")
+
+    def test_a_session_on_a_branch_committing_in_the_main_checkout(self):
+        m = common.posix(self.main.root)
+        for c, tool in ((f'cd "{m}" && git commit -m x', "Bash"), (f'git -C "{m}" commit -m x', "Bash"),
+                        (f'cd "{m}/sub" && git commit -m x', "Bash"), (f'cd "{m}" && git -C sub commit -m x', "Bash"),
+                        (f'Set-Location "{m}"; git commit -m x', "PowerShell")):
+            self.assertEqual((c, self.ask(c, self.work, tool)), (c, "default-branch-commit"))
+        self.assertIsNone(self.ask("git commit -m x", self.work))
+        self.assertIsNone(self.ask("cd sub && git commit -m x", self.work))
+        self.assertIsNone(self.ask(f'cd "{m}" && git commit --dry-run -m x', self.work))
+
+    def test_a_folder_the_guard_cannot_resolve_gives_no_finding(self):
+        for c in ('cd "$WT" && git commit -m x', "cd $(git rev-parse --show-toplevel) && git commit -m x", "popd; git commit -m x",
+                  'git -C "$WT" commit -m x', "cd /no/such/folder/anywhere && git commit -m x", "cd ~ && git commit -m x"):
+            self.assertEqual((c, self.ask(c, self.main)), (c, None))
+
+    def test_talk_about_a_commit_is_no_commit(self):
+        for c in ("grep -rn git commit .", "echo git commit", "git log --grep 'git commit'"):
+            self.assertEqual((c, self.ask(c, self.main)), (c, None))
+        self.assertEqual(self.ask("CI=1 git commit -m x", self.main), "default-branch-commit")
+        self.assertEqual(self.ask("time git commit -m x", self.main), "default-branch-commit")
+
+
+class EnvironmentInRules(unittest.TestCase):
+    """A project rule about a variable sees the command set it, in every spelling."""
+
+    @staticmethod
+    def cfg(skip, pattern="SAFE_MARKER"):
+        return cfg_with(guard={"rules": [{"id": "marker", "decision": "deny", "skipReaders": skip, "match": [pattern],
+                                          "message": "The marker stays."}]},
+                        runs=[{"id": "r", "match": [r"\brender\b"], "reasonVar": "ACME_RUN"}])
+
+    CLEARS = (("SAFE_MARKER= bun run something", "Bash"), ("env SAFE_MARKER= cmd", "Bash"),
+              ("export SAFE_MARKER=; cmd", "Bash"), ("set SAFE_MARKER=", "Bash"), ("OTHER=1 SAFE_MARKER=0 cmd", "Bash"),
+              ("(SAFE_MARKER= cmd)", "Bash"), ("cd x && SAFE_MARKER= ./tool.sh | tail -3", "Bash"),
+              ('bash -c "SAFE_MARKER= cmd"', "Bash"), ("SAFE_MARKER= bash -c 'cmd one'", "Bash"),
+              ("SAFE_MARKER= aw lock run editor --for x -- cmd", "Bash"),
+              ("aw lock run editor --for x -- SAFE_MARKER= cmd", "Bash"),
+              ('$env:SAFE_MARKER = ""; cmd', "PowerShell"), ('$env:SAFE_MARKER=""; cmd', "PowerShell"),
+              ("$env:SAFE_MARKER = $null; cmd", "PowerShell"))
+
+    def test_an_assignment_is_seen_in_every_spelling(self):
+        for skip in (False, True):
+            for pattern in ("SAFE_MARKER", r"\bSAFE_MARKER="):  # the name alone, and the name with its `=`
+                for c, tool in self.CLEARS:
+                    self.assertEqual((skip, pattern, c, rule(c, self.cfg(skip, pattern), tool)), (skip, pattern, c, "marker"))
+
+    def test_scope_command_sees_it_too(self):
+        cfg = cfg_with(guard={"rules": [{"id": "marker", "decision": "deny", "scope": "command", "match": [r"SAFE_MARKER=.*\n.*deploy"]}]})
+        self.assertEqual(rule("SAFE_MARKER= prepare && deploy now", cfg), "marker")
+        self.assertEqual(rule('$env:SAFE_MARKER = ""; deploy now', cfg, "PowerShell"), "marker")
+        self.assertIsNone(run("prepare && deploy now", cfg))
+
+    def test_what_sets_nothing_goes_through(self):
+        for skip in (False, True):
+            for c in ("cmd --flag", "OTHER=1 cmd", "env OTHER=1 cmd", "export OTHER=1", '$env:OTHER = "1"; cmd'):
+                self.assertEqual((skip, c, run(c, self.cfg(skip))), (skip, c, None))
+        # a reader with the prefix is a reader still, unless the rule reads readers
+        self.assertIsNone(run("SAFE_MARKER= cat notes.txt", self.cfg(True)))
+        self.assertEqual(rule("SAFE_MARKER= cat notes.txt", self.cfg(False)), "marker")
+
+    def test_the_guards_own_variables_are_prose(self):
+        # a reason or an agent's name may use any word: it is no command and sets nothing a rule is about
+        for skip in (False, True):
+            for c, tool in (('AW_RUN="verify: SAFE_MARKER is back in place" tool', "Bash"),
+                            ('ACME_RUN="verify: SAFE_MARKER is back in place" tool', "Bash"),
+                            ("AW_AGENT=SAFE_MARKER tool", "Bash"), ("PL_AGENT=SAFE_MARKER tool", "Bash"),
+                            ('$env:AW_RUN = "verify: SAFE_MARKER is back in place"; tool', "PowerShell"),
+                            ('$env:AW_AGENT="SAFE_MARKER"; tool', "PowerShell")):
+                self.assertEqual((skip, c, run(c, self.cfg(skip), tool)), (skip, c, None))
+        cfg = cfg_with(resources={"editor": {"match": [r"run-tests\.ps1"]}})
+        self.assertIsNone(run('$env:AW_RUN = "verify: run-tests.ps1 passes alone"; ./other.ps1', cfg, "PowerShell"))
+        # the reason is still read, and the agent's name too
+        cfg = cfg_with(runs=[{"id": "r", "match": [r"\brender\b"], "free": 1}], resources={"editor": {"match": [r"\bbuild\b"]}})
+        ok = run('$env:AW_RUN = "verify: the two shots that show it"; render a b', cfg, "PowerShell")
+        self.assertEqual((ok["kind"], ok["rule"]), ("warn", "run-budget"))
+        self.assertIsNone(run('$env:AW_AGENT = "a1"; build', cfg, "PowerShell", locks={"editor": "a1"}))
+
+    def test_patterns_written_for_the_bare_command_still_match(self):
+        cfg = cfg_with(guard={"rules": [{"id": "publish", "decision": "deny", "match": [r"^npm publish\b"], "unless": [r"--dry-run"]}]})
+        for c in ("npm publish", "CI=1 npm publish", "env CI=1 npm publish", "CI=1 aw lock run x --for y -- npm publish"):
+            self.assertEqual((c, rule(c, cfg)), (c, "publish"))
+        self.assertIsNone(run("CI=1 npm publish --dry-run", cfg))
+        # `unless` may name the environment as well
+        cfg = cfg_with(guard={"rules": [{"id": "publish", "decision": "deny", "match": [r"^npm publish\b"], "unless": [r"\bRELEASE=1\b"]}]})
+        self.assertIsNone(run("RELEASE=1 npm publish", cfg))
+        self.assertIsNone(run('$env:RELEASE = "1"\nnpm publish', cfg_with(guard={"rules": [
+            {"id": "publish", "decision": "deny", "scope": "command", "match": [r"npm publish\b"], "unless": [r"\bRELEASE=1\b"]}]}), "PowerShell"))
+        self.assertEqual(rule("RELEASE=0 npm publish", cfg), "publish")
+
+
+class FileCommands(unittest.TestCase):
+    """Naming a script is not running it: the resource and run rules skip the commands that only handle files."""
+    CFG = cfg_with(
+        resources={"unreal": {"match": [r"run-tests\.ps1", r"\bbuild\.sh\b"]},
+                   "raw": {"match": [r"raw-thing\.ps1"], "matchFileCommands": True}},
+        runs=[{"id": "render", "match": [r"shot-render\.ps1"], "free": 3},
+              {"id": "raw", "match": [r"raw-render\.ps1"], "free": 3, "matchFileCommands": True}],
+        guard={"rules": [{"id": "no-rm", "decision": "deny", "match": [r"^rm\b.*run-tests\.ps1"]}]})
+
+    def test_handling_a_file_needs_no_lock(self):
+        for c in ("git add engines/unreal/scripts/run-tests.ps1", "git mv scripts/run-tests.ps1 tools/run-tests.ps1",
+                  "git rm scripts/run-tests.ps1", "git -C sub restore scripts/run-tests.ps1", "git stash push build.sh",
+                  "git checkout main -- build.sh", "cp scripts/run-tests.ps1 /tmp/x.ps1", "mv build.sh old-build.sh",
+                  "chmod +x build.sh", "sed -i s/a/b/ build.sh", "touch scripts/run-tests.ps1", "mkdir -p out/build.sh",
+                  "Copy-Item scripts/run-tests.ps1 x.ps1", "Remove-Item scripts/run-tests.ps1", "code build.sh",
+                  "find . -name build.sh -delete", "X=1 git add build.sh", "cd a && git add build.sh && git commit -m 'build.sh'"):
+            self.assertEqual((c, run(c, self.CFG)), (c, None))
+
+    def test_running_it_still_does(self):
+        for c in ("./build.sh", "bash build.sh", "powershell -File scripts/run-tests.ps1", "& scripts/run-tests.ps1",
+                  "git add build.sh && ./build.sh", "cp build.sh /tmp/b.sh; bash build.sh", "xargs ./build.sh < list",
+                  "find . -name '*.x' -exec ./build.sh {} ;", "git bisect run ./build.sh", "git rebase -x ./build.sh main",
+                  "git submodule foreach ./build.sh", "python tools/wrap.py scripts/run-tests.ps1"):
+            self.assertEqual((c, rule(c, self.CFG)), (c, "resource-lock"))
+
+    def test_a_resource_may_ask_for_the_raw_reading(self):
+        self.assertEqual(rule("git add tools/raw-thing.ps1", self.CFG), "resource-lock")
+        self.assertEqual(rule("rm tools/raw-thing.ps1", self.CFG), "resource-lock")
+        self.assertIsNone(run("cat tools/raw-thing.ps1", self.CFG))  # a reader is a reader
+
+    def test_a_run_budget_counts_runs_not_files(self):
+        self.assertIsNone(run("git add tools/x/shot-render.ps1 a b c d", self.CFG))
+        self.assertIsNone(run("cp tools/x/shot-render.ps1 a b c d", self.CFG))
+        self.assertEqual(rule("powershell -File tools/x/shot-render.ps1 a b c d", self.CFG), "run-budget")
+        self.assertEqual(rule("git add tools/raw-render.ps1 a b c d", self.CFG), "run-budget")
+
+    def test_project_rules_still_read_them(self):
+        self.assertEqual(rule("rm scripts/run-tests.ps1", self.CFG), "no-rm")
+
+
+class UnlessPerPattern(unittest.TestCase):
+    CFG = cfg_with(
+        resources={"editor": {"match": [{"pattern": r"shot-render\.ps1", "unless": [r"(^|\s)-List\b"]}, r"\bEditor(\.exe)?\b",
+                                        {"pattern": r"import\.ps1", "unless": r"-WhatIf\b"}],
+                              "unless": [r"--version\b"]}},
+        runs=[{"id": "render", "free": 1, "unless": [r"--help\b"],
+               "match": [{"pattern": r"\brender\b", "unless": [r"\s--plan\b"]}, r"\bbake\b"]}],
+        guard={"rules": [{"id": "launch", "decision": "deny",
+                          "match": [{"pattern": r"\bsim\b", "unless": [r"--offline\b"]}, r"steam://"], "unless": [r"run-in-session"]}]})
+
+    def test_an_excuse_belongs_to_its_pattern(self):
+        self.assertEqual(rule("powershell -File shot-render.ps1 a", self.CFG), "resource-lock")
+        self.assertIsNone(run("powershell -File shot-render.ps1 -List", self.CFG))
+        self.assertIsNone(run("powershell -File import.ps1 -WhatIf", self.CFG))
+        # -List excuses the script, not the editor named in the same command, and not the editor alone
+        self.assertEqual(rule("Editor.exe -List", self.CFG), "resource-lock")
+        self.assertEqual(rule("powershell -File shot-render.ps1 -List -With Editor", self.CFG), "resource-lock")
+        # the resource's own `unless` excuses every pattern
+        self.assertIsNone(run("Editor.exe --version", self.CFG))
+        self.assertIsNone(run("powershell -File shot-render.ps1 a --version", self.CFG))
+
+    def test_runs_and_project_rules_take_the_same_shape(self):
+        self.assertEqual(rule("render a b", self.CFG), "run-budget")
+        self.assertIsNone(run("render a b --plan", self.CFG))
+        self.assertEqual(rule("bake a b --plan", self.CFG), "run-budget")
+        self.assertIsNone(run("bake a b --help", self.CFG))
+        self.assertIsNone(run("render a", self.CFG))  # counted from the program's name, as before
+        self.assertEqual(rule("sim --fast", self.CFG), "launch")
+        self.assertIsNone(run("sim --offline", self.CFG))
+        self.assertEqual(rule("start steam://run/1 --offline", self.CFG), "launch")
+        self.assertIsNone(run("run-in-session start steam://run/1", self.CFG))
+
+    def test_a_shape_the_guard_cannot_read_blocks_nothing(self):
+        cfg = cfg_with(resources={"a": {"match": [{"unless": ["x"]}, 7, None, {"pattern": "([a"}, {"pattern": 3}]},
+                                  "b": {"match": "build\\.sh", "unless": "--dry-run"}, "c": 5},
+                       runs=[{"id": "r", "match": [{"pattern": "([a"}, {}]}],
+                       guard={"rules": [{"id": "r", "match": [{"nope": 1}, 4]}]})
+        self.assertIsNone(run("anything at all 7", cfg))
+        self.assertEqual(rule("./build.sh", cfg), "resource-lock")  # one string is read as a list of one
+        self.assertIsNone(run("./build.sh --dry-run", cfg))
+
+
 class Hook(unittest.TestCase):
     def setUp(self):
         self.p = Project(config={"guard": {"ownerFiles": ["local.ini"], "generated": [{"match": "^gen/", "how": "Run codegen."}]}})

@@ -36,6 +36,16 @@ class LearnCase(CoordCase):
         self.assertEqual(doc["created"], doc["updated"])
         self.assertEqual(self.aw("learn", "show", "9").returncode, 2)
 
+    def test_the_topic_limit_is_said_with_the_length_given(self):
+        r = self.aw("learn", "add", "--topic", "x" * 121, "--tags", "t", "--text", "Body.")
+        self.assertEqual(r.returncode, 2)
+        self.assertIn("--topic is 121 characters", r.stderr)
+        self.assertIn("at most 120", r.stderr)
+        self.assertEqual(self.aw("learn", "add", "--topic", "x" * 120, "--tags", "t", "--text", "Body.").returncode, 0)
+        self.assertIn("120 characters at most", self.aw("learn", "add", "--help").stdout)
+        self.assertIn("at most 120 characters", self.aw("learn", "--help").stdout)
+        self.assertIn("budgets.noteChars", self.aw("note", "--help").stdout)
+
     def test_search_ranks_topic_above_tags_above_body(self):
         body = self.add("Shell mangles paths with spaces", "shell", "Quote every path; the worktree tool does not.")
         tag = self.add("Parallel checkouts need their own build folders", "worktree, git", "Build outputs are not shared.")

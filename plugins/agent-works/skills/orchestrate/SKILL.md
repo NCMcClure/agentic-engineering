@@ -29,6 +29,8 @@ checkout, a locked application, a shared counter, a baseline or reference that i
 ## Step 2 — Write the briefs, in the repository
 
 Briefs are tracked files under `.agents/briefs/`, because a rule that only a scratch file holds is lost with it.
+A brief is written there and never in a scratch or run-output folder, where no other agent finds it (`aw doctor`
+reports one as `BRIEF_STRAY`).
 
 | File | From the template | Holds | Budget |
 |---|---|---|---|
@@ -98,7 +100,9 @@ becomes a card for the task that caused it.
 - Every card is in review or done; every claim is landed or released (`aw claims`); every lock and lease is free
   (`aw lock status`, `aw leases`).
 - Rulings the owner made during the round that bind later work are decision records or rules in `AGENTS.md`.
-- Merged worktrees and branches are removed. The round's brief stays as the record.
+- Merged worktrees and branches are removed. The round's brief is retired when the round closes: its lasting
+  facts go to their homes (a rule to `AGENTS.md`, a lesson to memory, a ruling to a decision, what is left to
+  cards); what remains of it in `.agents/briefs/rounds/` is the record, not a place the next round reads rules from.
 - Your report to the owner: per task the verdict, what was verified and by whom, the gates settled and still
   owed, and what needs a decision, first.
 

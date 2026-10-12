@@ -31,7 +31,7 @@ the homes table.
 | What a folder holds; a new, moved or renamed directory | root `AGENTS.md` and the hubs | `hubs` | `aw hubs`, `aw twins` |
 | A reason, a measurement, a lesson; where the project stands | `.agents/memory/` | `memory` | `aw memory new`, `aw memory touch` |
 | A choice that is hard to reverse; a new term; a protocol or format page | `.agents/decisions/`, `.agents/CONTEXT.md`, `.agents/contracts/` | `decisions` | `aw decisions new` |
-| Work to do; a check to run later; what is in progress | `.agents/kanban/` | `kanban` | `aw status`, `aw kanban owe` |
+| Work to do; a check to run later; what is in progress | `.agents/kanban/` | `kanban-cards` | `aw status`, `aw kanban owe` |
 | Several agents on one repository | `.agents/briefs/` | `orchestrate` | `aw claim`, `aw status` |
 | A scarce application, a heavy job, a timing run, another session on the machine | the machine's store | `coordinate` | `aw lock run`, `aw lease`, `aw sys`, `aw note` |
 | A refusal from the guard; a file agents must not touch; a run too expensive to repeat | `.agents/agent-works.json` | `guard` | `guard.py --explain` |

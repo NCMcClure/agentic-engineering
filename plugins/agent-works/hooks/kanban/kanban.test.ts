@@ -22,7 +22,7 @@ function world(on: On, seed: Readonly<Record<string, string>> = {}) {
   const runs: (readonly string[])[] = []
   const spawned: Record<string, unknown>[] = []
   const opened: unknown[] = []
-  const state = { tick: 0, isSpawnRefused: false, cli: (_argv: readonly string[], _stdin?: string) => '' }
+  const state = { tick: 0, isSpawnRefused: false, isPaneRefused: false, isPaneUnplaced: false, cli: (_argv: readonly string[], _stdin?: string) => '' }
   const clock = mock.clock(on, { now: Date.parse('2026-03-01T00:00:00Z') })
 
   on('fs.exists', (_$, e) => ({
@@ -60,9 +60,10 @@ function world(on: On, seed: Readonly<Record<string, string>> = {}) {
     return { value: undefined }
   })
   on('ui.open', (_$, e) => {
+    if (state.isPaneRefused) throw new Error('no pane host')
     opened.push(e)
 
-    return { value: { isPlaced: true } }
+    return { value: { isPlaced: !state.isPaneUnplaced } }
   })
   on('prompt.submit', (_$, e) => {
     prompts.push(e.text)
@@ -514,4 +515,52 @@ test("the project's own config names the folder, as it does for the aw CLI", asy
   const w = world(on, { '/repo/.agents/agent-works.json': '{"paths":{"kanban":"work/cards"}}' })
   await $.command.run(slash('add Elsewhere'))
   expect(w.files.has('/repo/work/cards/0001-elsewhere.md')).toBe(true)
+})
+
+test('/kanban opens the pane in a project with no board yet, and says the board is empty', async ($, on) => {
+  const w = world(on)
+  const answer = await $.command.run(slash(''))
+  expect(w.opened).toEqual([{ id: 'kanban', title: 'Kanban', focus: true }])
+  expect(answer.text).toContain('Kanban opened: no board in')
+  expect(answer.text).toContain('.agents/kanban')
+  expect(w.toasts).toEqual([])
+  expect([...w.files.keys()]).toEqual([]) // opening writes nothing
+  const ui = await $.ui.mount({ ...PANE, surface: 'vscode' })
+  expect(await ui.find({ type: 'Text', text: /Backlog/ })).toBeDefined()
+})
+
+test('/kanban opens the pane over a board still in .agents/board', async ($, on) => {
+  const w = world(on, { [`${OLD_DIR}/board.json`]: '{}', [`${OLD_DIR}/0001-old.md`]: '---\nid: "0001"\ntitle: "Old"\nstatus: backlog\n---\n' })
+  const answer = await $.command.run(slash(''))
+  expect(w.opened.length).toBe(1)
+  expect(answer.text).toContain('Kanban opened: 1 cards in')
+  expect(answer.text).toContain('.agents/board (the old folder')
+})
+
+test('/kanban says so in a toast when the pane cannot be opened', async ($, on) => {
+  const w = world(on)
+  w.state.isPaneRefused = true
+  const thrown = await $.command.run(slash(''))
+  expect(thrown.text).toContain('The kanban pane could not be opened: ')
+  expect(w.toasts.length).toBe(1)
+  expect(w.toasts[0]).toContain('could not be opened')
+})
+
+test('/kanban says so in a toast when the surface places no pane', async ($, on) => {
+  const w = world(on)
+  w.state.isPaneUnplaced = true
+  const answer = await $.command.run(slash(''))
+  expect(answer.text).toContain('could not be opened: this surface has no place for a pane')
+  expect(w.toasts.length).toBe(1)
+})
+
+// The command's name is pinned here by running it; that no skill of the plugin answers to the same name is pinned
+// in tests/test_kanban.py (CommandNames), which can read the skills' files: a mod's tests import nothing but the mod.
+test('the command is /kanban: that name runs the mod, and no other does', async ($, on) => {
+  const w = world(on)
+  expect((await $.command.run(slash(''))).text).toContain('Kanban opened')
+  expect(w.opened.length).toBe(1)
+  const other = await $.command.run({ ...slash(''), command: 'kanban-cards' }).catch(() => undefined)
+  expect(String(other?.text ?? '')).not.toContain('Kanban opened')
+  expect(w.opened.length).toBe(1)
 })

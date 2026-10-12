@@ -54,7 +54,9 @@ DEFAULTS: Dict[str, Any] = {
         "roundBriefLines": 80,
         "noteChars": 200,
     },
-    "links": {"roots": [], "planned": [], "notChecked": []},
+    "links": {"roots": [], "files": [], "planned": [], "notChecked": []},
+    # names of Markdown files that say "a brief or a hand-over for agents": outside paths.briefs they are BRIEF_STRAY
+    "briefs": {"stray": ["*brief*.md", "agent-*.md", "handoff*.md", "handover*.md"]},
     "dup": {"shingleWords": 12, "minWords": 14, "ignore": []},
     "kanban": {
         "staleStartDays": 7,  # a card in progress that nobody touched for this long: KANBAN_STALE_START
@@ -577,6 +579,52 @@ def plugin_version() -> str:
 
 def line_count(text: str) -> int:
     return text.count("\n") + (1 if text and not text.endswith("\n") else 0)
+
+
+# ------------------------------------------------------------------- indexes: generated, or written by hand
+# An index (a memory folder's INDEX.md, the decisions' README.md) is generated when one of its first lines is the
+# marker its command writes. Any other is hand-written, and is never rewritten as a side effect.
+
+def index_kind(index: Pathish, marker: str, within: int = 2) -> str:
+    """"missing", "generated" (the marker is one of its first ``within`` lines) or "handwritten"."""
+    text = read_text(index)
+    if text is None:
+        return "missing"
+    return "generated" if any(l.strip() == marker for l in text.splitlines()[:within]) else "handwritten"
+
+
+def lines_lost(have: str, generated: str) -> int:
+    """How many lines of an index say something the generated one would not: what generating it loses."""
+    keep = {l.strip() for l in generated.splitlines()}
+    return sum(1 for l in have.splitlines() if l.strip() and l.strip() not in keep)
+
+
+def read_raw(path: Pathish) -> Optional[str]:
+    """The file's text with its line endings (and a byte order mark) as they are, so a write changes nothing else."""
+    try:
+        with open(path, "r", encoding="utf-8", newline="") as f:  # type: ignore[arg-type]
+            return f.read()
+    except (OSError, UnicodeDecodeError):
+        return None
+
+
+def append_list_line(path: Pathish, line: str) -> bool:
+    """Add one list line to a hand-written index, after its last list line (at the end when it has none)."""
+    raw = read_raw(path)
+    if raw is None:
+        return False
+    nl = "\r\n" if "\r\n" in raw else "\n"
+    rows = raw.splitlines(keepends=True)
+    last = max((i for i, r in enumerate(rows) if r.startswith(("- [", "* ["))), default=None)
+    if last is None:
+        gap = "" if not raw else (nl if raw.endswith(("\n", "\r")) else nl + nl)
+        atomic_write(path, raw + gap + line + nl)
+        return True
+    if not rows[last].endswith(("\n", "\r")):
+        rows[last] += nl
+    rows.insert(last + 1, line + nl)
+    atomic_write(path, "".join(rows))
+    return True
 
 
 def markdown_files(root: Pathish) -> List[Path]:

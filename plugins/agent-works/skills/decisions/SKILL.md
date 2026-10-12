@@ -15,7 +15,9 @@ Write a record when at least one holds: the choice is **hard to reverse**; it is
 (a later reader would "fix" it); it was a **real trade-off**. Otherwise it is a commit message, or a memory of
 type `decision` (the `memory` skill).
 
-Read `.agents/decisions/README.md` first: a record on the subject may exist.
+Read `.agents/decisions/README.md` first: a record on the subject may exist. That index is generated when it
+carries the marker of `aw decisions index`; one written by hand is kept as it is (`DEC_INDEX_HANDWRITTEN`), and
+only `aw decisions index --adopt` replaces it.
 
 *Done when: you can name which of the three holds, or you have sent the choice elsewhere.*
 
@@ -26,7 +28,10 @@ aw decisions new "<title>"
 ```
 
 It takes the next number, starts the file from `${CLAUDE_PLUGIN_ROOT}/assets/templates/decision.md` and rewrites
-the index. Fill the five sections: Status, Sources, Context, Decision, Consequences. 150 lines at most: numbers
+the index (a hand-written index gets the record's one line). The heading takes the form the folder's latest
+records use (`# ADR 0014: Title` where they are titled so). Records the project already has in the ADR form,
+with `- **Status:** accepted` and `**Sources:** …` as lines under the title, are read as they are: do not
+rewrite them to pass the lint. Fill the five sections: Status, Sources, Context, Decision, Consequences. 150 lines at most: numbers
 and long reasoning go into a memory that the record links. Set Status to `accepted` only when the owner, or
 whoever owns the choice, accepted it.
 

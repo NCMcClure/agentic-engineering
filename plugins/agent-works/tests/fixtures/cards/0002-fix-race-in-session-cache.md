@@ -5,7 +5,7 @@ status: in-progress
 order: 1
 priority: high
 labels: ["bug","needs triage"]
-skills: ["code-review","agent-works:kanban"]
+skills: ["code-review","agent-works:kanban-cards"]
 source: claude
 created: 2026-01-05T10:00:00.000Z
 updated: 2026-01-06T08:30:15.250Z

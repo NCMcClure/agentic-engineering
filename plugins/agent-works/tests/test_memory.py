@@ -59,6 +59,17 @@ class Memory(unittest.TestCase):
         self.assertEqual(self.p.read(".agents/memory/project/INDEX.md").splitlines()[1], G)  # a missing index is made generated
         self.assertEqual(self.p.aw("memory", "index", "--check")[0], 0)
         self.assertEqual(self.p.aw("memory", "index")[1].strip(), "memory indexes are up to date")
+        # the folder that never got its line says so, until the line is written by hand
+        found = [f for f in memory.findings(self.p.root)]
+        self.assertEqual([(f.code, f.level, f.path, f.line) for f in found],
+                         [("MEM_INDEX_PLACEHOLDER", "warning", ".agents/memory/project/INDEX.md", 4)])
+        self.assertIn("aw memory index", found[0].message)
+        self.assertEqual(self.p.aw("memory", "lint")[0], 1)
+        index = self.p.read(".agents/memory/project/INDEX.md")
+        self.p.write(".agents/memory/project/INDEX.md", index.replace(memory.FOLDER_INTRO, "The living status."))
+        self.assertEqual(self.codes(), [("MEM_INDEX_STALE", ".agents/memory/INDEX.md")])   # the parent still lists the placeholder
+        self.p.aw("memory", "index")
+        self.assertIn("- [project/](project/INDEX.md) — The living status.", self.p.read(".agents/memory/INDEX.md"))
         self.assertEqual(self.codes(), [])
         self.assertEqual({memory.index_kind(self.p.root / ".agents/memory" / d / "INDEX.md") for d in ("", "tooling", "project")},
                          {"generated"})
@@ -123,7 +134,17 @@ class Memory(unittest.TestCase):
         self.assertEqual(engine.splitlines()[:4], ["# engine/", G, "", "Facts about the engine."])
         self.assertIn(f"- [frame-pacing]({TODAY}-frame-pacing.md) — learning — Why frames stutter", engine)
         self.assertIn("- [engine/](engine/INDEX.md) — Facts about the engine.", self.p.read(".agents/memory/INDEX.md"))
-        self.assertEqual(self.codes(), [])
+        self.assertEqual(self.codes(), [("MEM_INDEX_PLACEHOLDER", ".agents/memory/project/INDEX.md")])  # the fixture's own folder without its line; not the new one
+        # a new folder without --about: the placeholder is said at once, on stderr, and by the lint
+        code, out, err = self.p.aw("memory", "new", "render", "shadow-bias", "--type", "learning", "--description", "What the bias hides")
+        self.assertEqual((code, out.strip()), (0, f".agents/memory/render/{TODAY}-shadow-bias.md"))
+        self.assertIn(".agents/memory/render/INDEX.md still says `<one line: what belongs in this folder>`", err)
+        self.assertIn("--about", err)
+        self.assertIn(("MEM_INDEX_PLACEHOLDER", ".agents/memory/render/INDEX.md"), self.codes())
+        code, out, err = self.p.aw("memory", "new", "render", "shadow-cascade", "--type", "learning", "--description", "x", "--json")
+        self.assertEqual(code, 0)
+        self.assertIn("still says", err)             # until the line is written
+        json.loads(out)                              # and the JSON on stdout stays clean
         # a slug is unique across the tree; a project has one status memory; names are kebab-case
         self.assertEqual(self.p.aw("memory", "new", "other", "frame-pacing", "--type", "report", "--description", "x")[0], 2)
         self.assertEqual(self.p.aw("memory", "new", "project", "status-two", "--type", "status", "--description", "x")[0], 2)
@@ -139,7 +160,7 @@ class Memory(unittest.TestCase):
         self.assertIn(f"- [linker-flags]({TODAY}-linker-flags.md) — report — What LTO cost", self.p.read(".agents/memory/tooling/INDEX.md"))
         self.assertEqual((self.p.root / ".agents/memory/project/INDEX.md").read_bytes(), before)  # stale, and left so
         self.assertEqual((self.p.root / ".agents/memory/INDEX.md").read_bytes(), root)
-        self.assertEqual(self.codes(), [("MEM_INDEX_STALE", ".agents/memory/project/INDEX.md")])
+        self.assertEqual(self.codes(), [("MEM_INDEX_PLACEHOLDER", ".agents/memory/project/INDEX.md"), ("MEM_INDEX_STALE", ".agents/memory/project/INDEX.md")])
 
     def test_touch_renames_and_fixes_links(self):
         self.p.aw("memory", "index")
@@ -162,7 +183,7 @@ class Memory(unittest.TestCase):
                          f"# Root\r\n\r\nSee [the trap](.agents/memory/tooling/{TODAY}-compiler-memory.md).\r\n")
         self.assertIn(f"- [compiler-memory]({TODAY}-compiler-memory.md)", self.p.read(".agents/memory/tooling/INDEX.md"))
         self.assertEqual((self.p.root / ".agents/memory/project/INDEX.md").read_bytes(), before)  # no other folder's index
-        self.assertEqual(self.codes(), [("MEM_INDEX_STALE", ".agents/memory/project/INDEX.md")])
+        self.assertEqual(self.codes(), [("MEM_INDEX_PLACEHOLDER", ".agents/memory/project/INDEX.md"), ("MEM_INDEX_STALE", ".agents/memory/project/INDEX.md")])
         self.assertIn("already dated today", self.p.aw("memory", "touch", "compiler-memory")[1])
         self.assertEqual(self.p.aw("memory", "touch", "no-such")[0], 2)
         code, out, _ = self.p.aw("memory", "touch", "why-ninja", "--date", "2026-02-01")
@@ -170,6 +191,7 @@ class Memory(unittest.TestCase):
         self.assertIn("renamed without git", out)
 
     def test_lint_json_and_a_project_without_memory(self):
+        self.p.write(".agents/memory/project/INDEX.md", f"# project/\n{G}\n\nThe living status.\n")
         self.p.aw("memory", "index")
         code, out, _ = self.p.aw("memory", "lint", "--json")
         self.assertEqual((code, json.loads(out)), (0, {"summary": {"critical": 0, "warning": 0, "info": 0}, "findings": []}))
@@ -285,9 +307,14 @@ class HandWritten(unittest.TestCase):
         self.assertEqual(out.splitlines(), ["adopted .agents/memory/INDEX.md", "adopted .agents/memory/project/INDEX.md",
                                             "adopted .agents/memory/tooling/INDEX.md"])
         tooling = self.raw(".agents/memory/tooling/INDEX.md").splitlines()
-        self.assertEqual(tooling[:4], ["# tooling/", G, "", "Traps of the build tools. Parent: [../INDEX.md](../INDEX.md)."])
+        # the description is kept without the parent link it carried; the generator writes that link on its own line
+        self.assertEqual(tooling[:7], ["# tooling/", G, "", "Traps of the build tools.", "", "Parent: [../INDEX.md](../INDEX.md)", ""])
+        root_index = self.raw(".agents/memory/INDEX.md")
+        self.assertIn("- [tooling/](tooling/INDEX.md) — Traps of the build tools.\n", root_index)
+        self.assertNotIn("Parent:", root_index)
         self.assertEqual(tooling[-1], "- [compiler-memory](2026-01-05-compiler-memory.md) — learning — What is in it and when it matters")
-        self.assertEqual(memory.findings(self.p.root), [])
+        # the one index that had no description line of its own now says so
+        self.assertEqual([(f.code, f.path) for f in memory.findings(self.p.root)], [("MEM_INDEX_PLACEHOLDER", ".agents/memory/project/INDEX.md")])
         self.assertEqual(self.p.aw("memory", "index")[1].strip(), "memory indexes are up to date")  # generated now: no flag needed
 
     def test_check_tells_hand_written_from_stale(self):

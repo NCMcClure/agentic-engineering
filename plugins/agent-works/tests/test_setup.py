@@ -54,6 +54,8 @@ class Setup(unittest.TestCase):
             f".agents/memory/project/{common.today()}-project-status.md", ".gitignore", "AGENTS.md", "CLAUDE.md", "src/a.py"]))
         cfg = json.loads(self.p.read(".agents/agent-works.json"))
         self.assertEqual((cfg["version"], cfg["claude"]["twins"]), (1, "generated"))
+        import decisions
+        self.assertEqual(decisions.index_kind(self.p.root / ".agents/decisions/README.md"), "generated")  # it carries the marker
         self.assertIn(f"agent-works contract v{common.plugin_version()}", self.p.read(".agents/README.md"))
         self.assertIn("CLAUDE.md", self.p.read(".gitignore").splitlines())
         self.assertEqual(self.p.read("CLAUDE.md"), "@AGENTS.md\n")
