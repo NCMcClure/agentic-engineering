@@ -77,16 +77,23 @@ Follow the first convention that exists; impose the default only at the end:
    [USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — when it exists,
    its stack section and page map **pin** the layout; the steps below apply
    only to brownfield projects and pre-3.7 trees that don't carry the page.
-1. A docs-site config — `mkdocs.yml`, `docusaurus.config.*`, `conf.py`
-   (Sphinx), `book.toml` (mdBook) — write pages into that site's source tree
-   and wire them into its nav.
-2. A `docs/` (or `doc/`) directory of prose pages — match its structure and
+1. `.agents/docs-parity.json` — when the `docs-parity` plugin adopted the
+   project, its `target`, `docsRoot`, nav manifest and roots pin the layout
+   exactly as the spec's page would.
+2. A docs-site config — `mkdocs.yml`, `docusaurus.config.*`, `conf.py`
+   (Sphinx), `book.toml` (mdBook), Fumadocs' `source.config.ts`,
+   `.vitepress/config.*`, an Astro Starlight config — write pages into that
+   site's source tree and wire them into its nav.
+3. A wiki whose source lives in the repo (`wiki/` with `Home.md` and
+   `_Sidebar.md`) — write there and link the page from the sidebar; never edit
+   the published wiki itself, CI publishes it.
+4. A `docs/` (or `doc/`) directory of prose pages — match its structure and
    file naming.
-3. Man pages / a `--help`-driven CLI with no prose docs — README-only, kept
+5. Man pages / a `--help`-driven CLI with no prose docs — README-only, kept
    tight and current.
-4. README only — extend it while it stays scannable; split into `docs/` when
+6. README only — extend it while it stays scannable; split into `docs/` when
    install + quickstart + topics stop fitting comfortably.
-5. Nothing — the default follows the recorded user-docs posture
+7. Nothing — the default follows the recorded user-docs posture
    (`reference/adr/0003-user-docs-posture.md`): scaffold an MkDocs site —
    `mkdocs.yml` plus `docs/` pages, README kept to install + quickstart with a
    pointer to the site — all created and listed as managed. On a pre-3.7 tree

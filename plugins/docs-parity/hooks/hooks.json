@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "timeout": 5,
+            "statusMessage": "Loading the docs-parity kernel"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/stop_check.py\"",
+            "timeout": 20
+          }
+        ]
+      }
+    ]
+  }
+}

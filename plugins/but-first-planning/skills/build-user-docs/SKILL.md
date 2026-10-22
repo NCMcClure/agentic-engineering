@@ -13,6 +13,15 @@ work is genuinely done, it writes or refreshes the target project's end-user
 docs (README, `docs/`), so documentation grows sprint by sprint alongside the
 code instead of being one rushed pass at the end.
 
+With the `docs-parity` plugin installed, most docs land earlier: `build-tdd`
+updates the pages and screenshots of a `User-facing: yes` issue in the same
+change, through `docs-parity:docs-sync`. This skill is then the **coherence
+pass** over the whole set after a sprint verifies: it reads the managed pages as
+one document, fills what the per-issue passes could not see (a quickstart that
+now spans three features, a reference page), and runs the checker. It follows
+that plugin's writer contract (`.agents/contracts/docs.md`) and shot contract
+instead of the defaults below wherever they differ.
+
 It does not verify work (that's `build-next-issue`), and it never documents
 unverified work — the whole point is that docs describe only behaviour that
 demonstrably exists. It writes doc files in the target project and its own
@@ -112,6 +121,13 @@ Apply the ownership and coherence rules from [DOCS-STATE.md](DOCS-STATE.md):
   append-only changelog fragments, no "New in sprint 03" sections.
 - Forbidden content: internal architecture, the `.agents/plan/` workflow, anything
   behind a slice that has no ledger row.
+- Screenshots come from the project's capture harness, never by hand: retake
+  the groups whose surfaces this sprint changed and look at every image written.
+  No harness yet and the spec's screenshots posture is not `none`: say so in the
+  report (with `docs-parity`, `docs-shots` builds one).
+- With `.agents/docs-parity.json` present, finish with its checker
+  (`docs_check.py --changed <sprint base>..HEAD --stale`) and fix or report
+  every finding.
 
 ### 6. Commit per the run's git posture
 
@@ -135,7 +151,8 @@ sign-off.
 
 Every verified-but-undocumented issue is either documented or explicitly
 reported out-of-surface (`User-facing: no`); every command and example in the
-docs was executed against the built tree; `.agents/plan/progress/docs.md` records the
+docs was executed against the built tree; every screenshot on a touched page was
+made by the capture harness (or the gap is reported); `.agents/plan/progress/docs.md` records the
 pass; and the docs commit landed where the git posture says it should.
 
 ## Scope boundary

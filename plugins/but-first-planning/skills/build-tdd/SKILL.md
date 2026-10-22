@@ -159,6 +159,10 @@ For a plan issue: every acceptance criterion maps to a named passing test; the
 issue's testing-checkpoint command exits 0; if
 `.agents/plan/plan/verify-agents-tree.py` exists it reports no violations your change
 introduced (hubs created/updated per the codebase-organization duties above);
+an issue whose `**User-facing**` line says `yes` changed its end-user pages
+and retook its screenshots in this same change (through
+`docs-parity:docs-sync` when that plugin is installed; by hand per
+`user-docs-plan.md` otherwise), or says in the commit why none moved;
 status was flipped through `plan-status.py set EE-SS-II done` (never
 hand-edited); and control is handed back to `build-next-issue` to verify
 completion and name what's next. Without a `.agents/plan/` workspace: every behaviour

@@ -128,6 +128,17 @@ does not coordinate agents: locks, leases, machine load and the general half
 of orchestration are agent-works' job. Without it, each skill falls back to a
 few by-hand lines. [Read more →](plugins/perceptual-loop/README.md)
 
+### docs-parity
+
+User docs drift because they ship after the code. docs-parity makes them part
+of the change: the commit that moves a button rewrites the page and retakes
+the screenshot, through a writer contract (audiences, a page shape, grounded
+claims) and a capture harness that makes every picture from the built product
+deterministically, for web, desktop, CLI, Unreal, Qt or mobile. One checker
+maps code to pages and finds missing, stale and broken docs, warning in
+session and failing in CI, for a site, a `docs/` folder, a wiki or a README.
+[Read more →](plugins/docs-parity/README.md)
+
 ## Working in this repo
 
 The contribution contract (layout invariants, the versioning rule, how to

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "docs-parity",
+  "displayName": "Docs Parity",
+  "version": "0.1.0",
+  "description": "User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, and one checker that maps code to pages and finds missing, stale and broken docs in session and in CI.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": ["documentation", "docs", "screenshots", "parity", "user-docs", "wiki"]
+}
