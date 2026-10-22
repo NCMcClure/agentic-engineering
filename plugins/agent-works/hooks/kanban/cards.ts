@@ -353,7 +353,21 @@ export function serializeCard(card: Card): string {
  * What of a card the remote holds too: a change here is a change to push.
  */
 export function cardHash(card: Card): string {
-  const text = JSON.stringify([card.title, card.status, card.body.trim(), [...card.labels].sort()])
+  return hashOf(JSON.stringify([card.title, card.status, card.body.trim(), [...card.labels].sort()]))
+}
+
+/**
+ * What a linked card holds on the remote once sync maps planning too: its
+ * cardHash, plus its epic and sprint (a parent issue, a milestone) when either
+ * is set, so a card planned into neither keeps the hash it last synced under.
+ */
+export function remoteHash(card: Card): string {
+  if (card.epic === '' && card.sprint === '') return cardHash(card)
+
+  return hashOf(JSON.stringify([cardHash(card), card.epic, card.sprint]))
+}
+
+function hashOf(text: string): string {
   let hash = 5381
   for (let i = 0; i < text.length; i++) hash = ((hash << 5) + hash + text.charCodeAt(i)) >>> 0
 

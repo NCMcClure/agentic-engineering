@@ -260,11 +260,26 @@ test('with the queue toggle on, cards start in this session one per turn', async
   expect(w.spawned).toEqual([])
 })
 
-type Issue = { number: number; title: string; body: string; state: 'OPEN' | 'CLOSED'; labels: string[]; updatedAt: string }
+type Issue = {
+  number: number
+  title: string
+  body: string
+  state: 'OPEN' | 'CLOSED'
+  labels: string[]
+  updatedAt: string
+  milestone?: string | null
+  parent?: number | null
+}
 
-/** A GitHub repository with no project board, as `gh` answers for it. */
-function github(w: ReturnType<typeof world>, on: On) {
+type Milestone = { number: number; title: string; due_on: string | null; description: string }
+
+/**
+ * A GitHub repository with no project board, as `gh` answers for it: milestones,
+ * and sub-issues unless the server is one that has none.
+ */
+function github(w: ReturnType<typeof world>, on: On, { hasSubIssues = true } = {}) {
   const issues: Issue[] = []
+  const milestones: Milestone[] = []
   const asks: string[] = []
   let stamp = Date.parse('2026-03-02T00:00:00Z')
   const touch = (issue: Issue) => {
@@ -273,9 +288,18 @@ function github(w: ReturnType<typeof world>, on: On) {
   }
   const shown = (issue: Issue) => ({
     ...issue,
+    id: `I_${issue.number}`,
     url: `https://github.com/o/r/issues/${issue.number}`,
     labels: issue.labels.map(name => ({ name })),
+    milestone: issue.milestone ? { title: issue.milestone } : null,
+    parent: issue.parent ? { number: issue.parent } : null,
   })
+  const byNode = (id: string | undefined) => {
+    const issue = issues.find(one => `I_${one.number}` === id)
+    if (!issue) throw new Error(`no node ${id}`)
+
+    return issue
+  }
   const flags = (argv: readonly string[], flag: string) =>
     argv.flatMap((arg, index) => (arg === flag ? [argv[index + 1] ?? ''] : []))
   const numbered = (argv: readonly string[]) => {
@@ -297,12 +321,36 @@ function github(w: ReturnType<typeof world>, on: On) {
     if (verb === 'repo view') return JSON.stringify({ nameWithOwner: 'o/r' })
     if (verb === 'api graphql') {
       const query = flags(argv, '-f').find(field => field.startsWith('query=')) ?? ''
+      const vars = Object.fromEntries(flags(argv, '-f').map(field => [field.slice(0, field.indexOf('=')), field.slice(field.indexOf('=') + 1)]))
+      if (query.includes('SubIssue(')) {
+        const child = byNode(vars.subIssueId)
+        child.parent = query.includes('addSubIssue') ? byNode(vars.issueId).number : null
+        touch(child)
+
+        return '{}'
+      }
+      if (!hasSubIssues && query.includes('parent {')) throw new Error("gh: Field 'parent' doesn't exist on type 'Issue'")
       const nodes = query.includes('projectsV2') ? [] : issues.map(issue => ({ ...shown(issue), labels: { nodes: shown(issue).labels } }))
       const found = query.includes('projectsV2') ? { projectsV2: { nodes } } : { issues: { nodes } }
 
       return JSON.stringify({ data: { repository: found } })
     }
     if (verb === 'label create') return ''
+    if (argv[1] === 'api' && argv[2]?.startsWith('repos/o/r/milestones')) {
+      const fields = Object.fromEntries(flags(argv, '-f').map(field => [field.slice(0, field.indexOf('=')), field.slice(field.indexOf('=') + 1)]))
+      const method = flags(argv, '-X')[0] ?? 'GET'
+      if (method === 'GET') return JSON.stringify(milestones)
+      if (method === 'POST') {
+        const made = { number: milestones.length + 1, title: fields.title ?? '', due_on: fields.due_on ?? null, description: fields.description ?? '' }
+        milestones.push(made)
+
+        return JSON.stringify(made)
+      }
+      const milestone = milestones.find(one => one.number === Number((argv[2] ?? '').split('/').pop()))
+      if (milestone) milestone.due_on = fields.due_on ?? milestone.due_on
+
+      return JSON.stringify(milestone)
+    }
     if (verb === 'issue create') {
       const issue: Issue = {
         number: issues.length + 1,
@@ -311,6 +359,7 @@ function github(w: ReturnType<typeof world>, on: On) {
         state: 'OPEN',
         labels: flags(argv, '--label'),
         updatedAt: '',
+        milestone: flags(argv, '--milestone')[0] ?? null,
       }
       touch(issue)
       issues.push(issue)
@@ -324,6 +373,8 @@ function github(w: ReturnType<typeof world>, on: On) {
       issue.body = stdin ?? issue.body
       const removed = flags(argv, '--remove-label')
       issue.labels = [...issue.labels.filter(label => !removed.includes(label)), ...flags(argv, '--add-label')]
+      if (argv.includes('--remove-milestone')) issue.milestone = null
+      issue.milestone = flags(argv, '--milestone')[0] ?? issue.milestone ?? null
     } else if (verb === 'issue close') issue.state = 'CLOSED'
     else if (verb === 'issue reopen') issue.state = 'OPEN'
     touch(issue)
@@ -331,7 +382,15 @@ function github(w: ReturnType<typeof world>, on: On) {
     return ''
   }
 
-  return { issues, asks, touch }
+  return { issues, milestones, asks, touch }
+}
+
+/** Gives a sprint of board.json its dates, as a person editing the file would. */
+function dateSprint(w: ReturnType<typeof world>, id: string, end: string) {
+  const path = `${DIR}/board.json`
+  const config = JSON.parse(w.files.get(path) ?? '{}') as { sprints: { id: string; end: string }[] }
+  for (const sprint of config.sprints) if (sprint.id === id) sprint.end = end
+  w.files.set(path, `${JSON.stringify(config, null, 2)}\n`)
 }
 
 test('remote sync creates issues, pulls remote edits, pushes local moves and imports new issues', async ($, on) => {
@@ -377,6 +436,108 @@ test('remote sync creates issues, pulls remote edits, pushes local moves and imp
   const imported = w.cards().find(card => card.remote?.number === 3)
   expect([imported?.title, imported?.status, imported?.body]).toEqual(['Opened upstream', 'backlog', 'From the tracker.'])
   expect(hub.issues.length).toBe(3)
+})
+
+test('a sprint syncs as a milestone: made once with its due date, set on its cards, and read back', async ($, on) => {
+  const w = world(on)
+  const hub = github(w, on)
+  await $.command.run(slash('sprint new Polish'))
+  await $.command.run(slash('sprint new Later'))
+  dateSprint(w, 's1', '2026-03-14')
+  await $.command.run(slash('add In the sprint'))
+  await $.command.run(slash('add Also in it'))
+  await $.command.run(slash('add Not planned'))
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '1', sprint: 's1' })
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '2', sprint: 's1' })
+
+  await $.command.run(slash('sync on'))
+  expect(hub.milestones.map(one => [one.title, one.due_on])).toEqual([['Polish', '2026-03-14T12:00:00Z']])
+  expect(hub.issues.map(issue => issue.milestone)).toEqual(['Polish', 'Polish', null])
+
+  // Planned locally: the milestone follows, and the next sprint's is made when a card first needs it.
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '3', sprint: 's2' })
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '2', sprint: 'none' })
+  await w.clock.advance(6000)
+  expect(hub.issues.map(issue => issue.milestone)).toEqual(['Polish', null, 'Later'])
+  expect(hub.milestones.map(one => one.title)).toEqual(['Polish', 'Later'])
+
+  // Moved on the remote: a milestone the board knows is its sprint by title.
+  const [first] = hub.issues
+  if (!first) throw new Error('no issue')
+  first.milestone = 'Later'
+  hub.touch(first)
+  await $.command.run(slash('sync on'))
+  expect(w.cards()[0]?.sprint).toBe('s2')
+
+  // One the board does not know is said once, and never becomes a sprint.
+  first.milestone = 'Somebody else\'s'
+  hub.touch(first)
+  const sprints = JSON.parse(w.files.get(`${DIR}/board.json`) ?? '{}').sprints.length
+  await $.command.run(slash('sync on'))
+  hub.touch(first)
+  await $.command.run(slash('sync on'))
+  expect(w.cards()[0]?.sprint).toBe('s2')
+  expect(JSON.parse(w.files.get(`${DIR}/board.json`) ?? '{}').sprints.length).toBe(sprints)
+  expect(w.toasts.filter(toast => toast.includes('Somebody else')).length).toBe(1)
+})
+
+test('an epic syncs as the parent issue of its cards, read back from the remote', async ($, on) => {
+  const w = world(on)
+  const hub = github(w, on)
+  await $.command.run(slash('add Before the epic'))
+  await $.command.run(slash('epic Faster sync'))
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '1', epic: '0002' })
+
+  // The epic gets its issue first, so its card can hang from it in the same pass.
+  await $.command.run(slash('sync on'))
+  const epicIssue = hub.issues.find(issue => issue.title === 'Faster sync')
+  const child = hub.issues.find(issue => issue.title === 'Before the epic')
+  expect(child?.parent).toBe(epicIssue?.number)
+  expect(child?.labels).toEqual(['status:backlog'])
+
+  // Taken out of the epic on the remote: the card follows.
+  if (!child) throw new Error('no issue')
+  child.parent = null
+  hub.touch(child)
+  await $.command.run(slash('sync on'))
+  expect(w.cards()[0]?.epic).toBe('')
+
+  // An issue that issues hang from comes in as an epic, its sub-issue as its card.
+  hub.issues.push({ number: 3, title: 'Upstream epic', body: '', state: 'OPEN', labels: [], updatedAt: '' })
+  hub.issues.push({ number: 4, title: 'Upstream child', body: '', state: 'OPEN', labels: [], updatedAt: '', parent: 3 })
+  hub.touch(hub.issues[2] as Issue)
+  hub.touch(hub.issues[3] as Issue)
+  await $.command.run(slash('sync on'))
+  const upstream = w.cards().find(card => card.title === 'Upstream epic')
+  expect(upstream?.kind).toBe('epic')
+  expect(w.cards().find(card => card.title === 'Upstream child')?.epic).toBe(upstream?.id)
+})
+
+test('without sub-issues an epic\'s cards carry an epic label, and the label reads back', async ($, on) => {
+  const w = world(on)
+  const hub = github(w, on, { hasSubIssues: false })
+  await $.command.run(slash('epic Faster sync'))
+  await $.command.run(slash('add Page the query'))
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '2', epic: '0001' })
+
+  await $.command.run(slash('sync on'))
+  expect(hub.issues.map(issue => [issue.title, issue.labels, issue.parent ?? null])).toEqual([
+    ['Faster sync', ['status:backlog'], null],
+    ['Page the query', ['status:backlog', 'epic:0001'], null],
+  ])
+  expect(w.cards()[1]?.labels).toEqual([])
+
+  // Out of the epic locally: the label goes.
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '2', epic: 'none' })
+  await w.clock.advance(6000)
+  expect(hub.issues[1]?.labels).toEqual(['status:backlog'])
+
+  // Labelled on the remote: the card joins the epic.
+  const second = hub.issues[1] as Issue
+  second.labels = [...second.labels, 'epic:0001']
+  hub.touch(second)
+  await $.command.run(slash('sync on'))
+  expect([w.cards()[1]?.epic, w.cards()[1]?.labels]).toEqual(['0001', []])
 })
 
 test('a sync that cannot reach the remote says why and changes no card', async ($, on) => {

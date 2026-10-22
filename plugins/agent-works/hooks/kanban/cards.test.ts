@@ -18,6 +18,7 @@ import {
   parseScope,
   planMove,
   planSprintClose,
+  remoteHash,
   serializeCard,
   serializeConfig,
   toClientBoard,
@@ -183,6 +184,15 @@ describe('moves', () => {
     if (!first) throw new Error('no card')
     expect(cardHash({ ...first, order: 9, priority: 'high', owner: 'pat', extra: ['x: 1'] })).toBe(cardHash(first))
     expect(cardHash({ ...first, status: 'done' })).not.toBe(cardHash(first))
+  })
+
+  test('the remote hash adds the epic and sprint only once either is set', () => {
+    const [first] = cards
+    if (!first) throw new Error('no card')
+    const plain = { ...first, epic: '', sprint: '' }
+    expect(remoteHash(plain)).toBe(cardHash(plain))
+    expect(remoteHash({ ...plain, sprint: 's1' })).not.toBe(cardHash(plain))
+    expect(remoteHash({ ...plain, epic: '0042' })).not.toBe(remoteHash({ ...plain, sprint: '0042' }))
   })
 
   test('a finished card goes to the done column, else the last', () => {
