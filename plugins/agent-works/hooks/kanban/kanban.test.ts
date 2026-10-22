@@ -564,3 +564,99 @@ test('the command is /kanban: that name runs the mod, and no other does', async 
   expect(String(other?.text ?? '')).not.toContain('Kanban opened')
   expect(w.opened.length).toBe(1)
 })
+
+test('epics and sprints: plan, scope the listing, close the sprint', async ($, on) => {
+  const w = world(on)
+  const epic = await $.command.run(slash('epic Faster sync'))
+  expect(String(epic.text)).toContain('Added epic 0001')
+  const planned = await $.command.run(slash('sprint new Polish'))
+  expect(String(planned.text)).toContain('Planned sprint s1')
+  await $.command.run(slash('sprint new Next'))
+  expect(String((await $.command.run(slash('sprint start s1'))).text)).toContain('is active')
+  expect(String((await $.command.run(slash('sprint start s2'))).text)).toContain('still active')
+  expect(w.files.get(`${DIR}/board.json`)).toContain('"state": "active"')
+
+  // With a sprint active, the board is scoped to it: a card added from the pane joins it.
+  await $.command.run(slash('add In the sprint'))
+  expect(w.cards()[1]?.sprint).toBe('s1')
+  const surfaced = await $.tool.call({
+    tool: 'mcp__agent-works__surface_task',
+    title: 'Page the issue query',
+    details: 'One call per page.',
+    epic: '1',
+  })
+  expect(String(surfaced.result)).toContain('Suggested as card 0003')
+  expect(w.cards()[2]?.epic).toBe('0001')
+  const notEpic = await $.tool.call({ tool: 'mcp__agent-works__surface_task', title: 'X', details: 'Y', epic: '0002' })
+  expect(String(notEpic.result)).toContain('is no epic')
+  const gate = await $.tool.call({ tool: 'mcp__agent-works__owe_gate', title: 'Run the smoke', ref: '#1', needs: 'main' })
+  expect(String(gate.result)).toContain('0004')
+  expect(w.cards()[3]?.sprint).toBe('s1')
+
+  const plan = await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '3', sprint: 'active', epic: '0001' })
+  expect(String(plan.result)).toBe('Card 0003: epic 0001, sprint s1.')
+  expect(String((await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '3', sprint: 's9' })).result)).toContain(
+    'No open sprint "s9"',
+  )
+  await $.command.run(slash('sprint start s1'))
+  await $.tool.call({ tool: 'mcp__agent-works__plan_task', id: '2', sprint: 'none' })
+
+  const listed = String((await $.tool.call({ tool: 'mcp__agent-works__list_tasks' })).result).split('\n')
+  expect(listed).toEqual([
+    'Columns: backlog, in-progress, review, done (plus suggested)',
+    'Sprint s1 "Polish" (active)',
+    'Epic 0001 ▱▱▱▱▱▱▱▱ 0/0: Faster sync',
+    'Scope: sprint s1',
+    '0003 [suggested] task: Page the issue query (epic 0001; sprint s1)',
+    '0004 [backlog] gate: Run the smoke (for #1; needs main; sprint s1)',
+    '1 more open card(s) outside this scope (scope "all" lists them).',
+  ])
+  const all = String((await $.tool.call({ tool: 'mcp__agent-works__list_tasks', scope: 'all' })).result)
+  expect(all).toContain('0002 [backlog] task: In the sprint')
+  expect(String((await $.tool.call({ tool: 'mcp__agent-works__list_tasks', scope: 'nope' })).result)).toContain(
+    'No scope "nope"',
+  )
+
+  // Close: the settled gate is archived, the suggestion rolls on to the next planned sprint.
+  await $.tool.call({ tool: 'mcp__agent-works__settle_gate', id: '4', evidence: 'smoke: ok' })
+  const closed = await $.command.run(slash('sprint close'))
+  expect(String(closed.text)).toBe(
+    'Sprint s1 closed: 1 done card(s) archived, 1 unfinished card(s) to sprint s2.',
+  )
+  expect(w.cards().map(card => [card.id, card.status, card.sprint])).toEqual([
+    ['0001', 'backlog', ''],
+    ['0002', 'backlog', ''],
+    ['0003', 'suggested', 's2'],
+    ['0004', 'archived', 's1'],
+  ])
+  expect(w.files.get(`${DIR}/board.json`)).toContain('"rolled": 1')
+})
+
+test('the pane shows the active sprint, cycles its scope, and lists the epics', async ($, on) => {
+  const w = world(on)
+  await $.command.run(slash('epic Faster sync'))
+  await $.command.run(slash('add Outside'))
+  await $.command.run(slash('sprint new Polish'))
+  await $.command.run(slash('sprint start s1'))
+  await $.command.run(slash('add Inside'))
+  const ui = await $.ui.mount({ ...PANE, surface: 'terminal' })
+  const texts = async () => (await ui.findAll({ type: 'Text' })).map(one => one.text)
+  expect(await texts()).toContain('Sprint s1 · Polish · 0/1 done')
+  await ui.press({ key: 'scope' })
+  expect(await texts()).toContain('Backlog: 1 card(s) in no sprint')
+  await ui.press({ key: 'scope' })
+  expect(await texts()).toContain('All cards: 2')
+  await ui.press({ key: 'epics' })
+  await ui.press({ key: 'show-0001' })
+  expect(await texts()).toContain('Epic 0001 · Faster sync · ▱▱▱▱▱▱▱▱ 0/0')
+  await ui.press({ key: 'sprints' })
+  expect(await ui.find({ key: 'close-s1' })).toBeDefined()
+  await ui.unmount()
+
+  // The scope is the session's: another surface opens on the one chosen, and draws it as lists.
+  const phone = await $.ui.mount({ ...PANE, surface: 'mobile' })
+  await phone.press({ key: 'back' })
+  expect((await phone.findAll({ type: 'Text' })).map(one => one.text)).toContain('Epic 0001 · Faster sync · ▱▱▱▱▱▱▱▱ 0/0')
+  await phone.unmount()
+  expect(w.cards().find(card => card.title === 'Inside')?.sprint).toBe('s1')
+})

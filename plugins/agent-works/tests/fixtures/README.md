@@ -39,6 +39,8 @@ beside it is the card both parsers must return.
 | `0011-stale-docs-for-the-export-command.md` | `0011-stale-docs-for-the-export-command.json` | a card in the Suggested lane |
 | `0012-a-title-long-enough-that-its-slug-is-cut-at-fort.md` | `0012-a-title-long-enough-that-its-slug-is-cut-at-fort.json` | the slug cut at 48 characters; an archived card |
 | `0013-a-status-and-a-kind-of-its-own.md` | `0013-a-status-and-a-kind-of-its-own.json` | a status and a kind the board does not know, and a fractional `order`: kept, and named by lint |
+| `0014-move-the-sync-to-graphql.md` | `0014-move-the-sync-to-graphql.json` | a card in an epic and a sprint: `epic` and `sprint`, written after `ref` |
+| `0015-sync-that-scales-to-a-thousand-issues.md` | `0015-sync-that-scales-to-a-thousand-issues.json` | an epic: `kind: epic`, its goal in the body |
 
 ### Loose cards
 

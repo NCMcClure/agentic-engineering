@@ -10,10 +10,12 @@
   "source": "user",
   "created": "2026-01-11T00:00:00.000Z",
   "updated": "2026-01-11T00:00:00.000Z",
-  "kind": "epic",
+  "kind": "spike",
   "owner": "",
   "needs": "",
   "ref": "",
+  "epic": "",
+  "sprint": "",
   "body": "Shown in the first column; lint names both.",
   "remote": null,
   "extra": []

@@ -169,6 +169,8 @@ export async function addCard(host: Host, given: NewCard): Promise<Card> {
     owner: '',
     needs: '',
     ref: '',
+    epic: '',
+    sprint: '',
     body: '',
     remote: null,
     extra: [],

@@ -20,6 +20,8 @@
   "owner": "worker-2",
   "needs": "a quiet machine",
   "ref": "#41",
+  "epic": "",
+  "sprint": "",
   "body": "Two writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts",
   "remote": null,
   "extra": []

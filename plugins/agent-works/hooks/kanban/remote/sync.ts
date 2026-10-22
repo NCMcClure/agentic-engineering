@@ -128,6 +128,8 @@ export async function syncNow(host: Host): Promise<void> {
         owner: '',
         needs: '',
         ref: '',
+        epic: '',
+        sprint: '',
         body: issue.body,
         remote: null,
         extra: [],

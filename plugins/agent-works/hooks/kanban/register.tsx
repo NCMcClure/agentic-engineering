@@ -4,8 +4,15 @@ import type { EngineInterface, Register } from 'claude-code'
 import type { Card, CardPriority, SyncState, View } from '../../types'
 import {
   acceptCard,
+  addEpic,
+  addSprint,
   archiveCard,
+  closeSprint,
+  currentScope,
+  cycleScope,
   moveCard,
+  patchCard,
+  plannedFor,
   nudgeCard,
   placeCard,
   select,
@@ -14,24 +21,28 @@ import {
   setView,
   shiftCard,
   startCard,
+  startSprint,
   toggleGatesOnly,
 } from './actions'
 import {
   ARCHIVED,
   GATE,
   SUGGESTED,
-  cardLine,
+  activeSprint,
   doneColumnOf,
   findDuplicate,
+  isEpic,
   isGate,
   isKnownStatus,
+  listing,
+  parseScope,
   toClientBoard,
 } from './cards'
 import { drain } from './launch'
 import { scheduleSync, setRemoteEnabled, syncIfEnabled } from './remote/sync'
 import { addCard, configure, getBoard, locate, nowIso, reload, syncIntervalMs } from './store'
 import type { Host } from './host'
-import { cardView, listBoard, newView, settingsView, toolbar } from './views'
+import { cardView, epicsView, listBoard, newView, settingsView, sprintsView, toolbar } from './views'
 
 const PANE = 'kanban'
 const TITLE = 'Kanban'
@@ -44,6 +55,7 @@ const MOVE_TOOL = 'mcp__agent-works__move_task'
 const LIST_TOOL = 'mcp__agent-works__list_tasks'
 const OWE_TOOL = 'mcp__agent-works__owe_gate'
 const SETTLE_TOOL = 'mcp__agent-works__settle_gate'
+const PLAN_TOOL = 'mcp__agent-works__plan_task'
 
 const SURFACE_DESCRIPTION = `Put a task on the project's kanban board for the user to consider, without interrupting your current work.
 
@@ -64,6 +76,7 @@ const syncAtom = atom({ plugin: 'agent-works', key: 'sync' } as const, SYNC_OFF)
 const turnAtom = atom({ plugin: 'agent-works', key: 'isTurnRunning' } as const, false)
 const brokenAtom = atom({ plugin: 'agent-works', key: 'isClientBroken' } as const, false)
 const gatesAtom = atom({ plugin: 'agent-works', key: 'isGatesOnly' } as const, false)
+const scopeAtom = atom({ plugin: 'agent-works', key: 'scope' } as const, null)
 
 /** The engine as the mod's other files reach it: every call on `$` is spelled here. */
 function hostOf($: Engine): Host {
@@ -94,6 +107,7 @@ function hostOf($: Engine): Host {
       isTurnRunning: { get: () => read($, turnAtom), set: change => update($, turnAtom, change) },
       isClientBroken: { get: () => read($, brokenAtom), set: change => update($, brokenAtom, change) },
       isGatesOnly: { get: () => read($, gatesAtom), set: change => update($, gatesAtom, change) },
+      scope: { get: () => read($, scopeAtom), set: change => update($, scopeAtom, change) },
     },
   }
 }
@@ -155,6 +169,12 @@ async function onPost($: Engine, data: Record<string, unknown>): Promise<void> {
       return archiveCard(hostOf($), id)
     case 'filter':
       return toggleGatesOnly(hostOf($))
+    case 'scope':
+      return cycleScope(hostOf($))
+    case 'epics':
+      return setView(hostOf($), { kind: 'epics' })
+    case 'sprints':
+      return setView(hostOf($), { kind: 'sprints' })
     default:
   }
 }
@@ -175,7 +195,7 @@ export const register: Register = (on, options) => {
     await $.command.register({
       name: COMMAND,
       description: "Open this repository's kanban board",
-      argumentHint: '[add <title> | sync on|off]',
+      argumentHint: '[add <title> | epic <title> | sprint new <title>|start <id>|close [<id>] | sync on|off]',
     })
     await $.tool.register({
       name: 'surface_task',
@@ -197,6 +217,11 @@ export const register: Register = (on, options) => {
             items: { type: 'string' },
             description: 'Skills the agent that takes this task should use, by name.',
           },
+          epic: {
+            type: 'string',
+            description:
+              "The id of the epic card this task belongs to, as list_tasks shows them: when you slice an epic, or for a follow-up of an epic's card.",
+          },
         },
         required: ['title', 'details'],
       },
@@ -215,9 +240,28 @@ export const register: Register = (on, options) => {
     await $.tool.register({
       name: 'list_tasks',
       description:
-        "List the cards of the project's kanban board: each card's id, column, kind (task or gate), owner and title, what a gate is owed for, and the column ids.",
+        "List the cards of the project's kanban board: the column ids, the active sprint, the open epics with their progress, then each card's id, column, kind (task or gate), owner, title, what a gate is owed for, and its epic and sprint. Only the cards of one scope are listed, by default the active sprint (every card when none is active), with a count of the rest: ask for scope \"all\" when a card you look for is not there.",
       isDeferred: true,
-      inputSchema: { type: 'object', properties: {} },
+      inputSchema: {
+        type: 'object',
+        properties: {
+          scope: {
+            type: 'string',
+            description: '"sprint" (the active sprint, the default), "backlog" (cards in no sprint), "all", or an epic\'s card id.',
+          },
+        },
+      },
+    })
+    await $.tool.register({
+      name: 'plan_task',
+      description:
+        "Put a card of the project's kanban board in an epic or a sprint, by the card's id. `epic` is an epic's card id, `sprint` a sprint id (\"s3\") or \"active\"; \"none\" takes the card out of either. Starting and closing sprints is the owner's.",
+      isDeferred: true,
+      inputSchema: {
+        type: 'object',
+        properties: { id: { type: 'string' }, epic: { type: 'string' }, sprint: { type: 'string' } },
+        required: ['id'],
+      },
     })
     await $.tool.register({
       name: 'owe_gate',
@@ -272,10 +316,35 @@ export const register: Register = (on, options) => {
     const [verb = '', ...rest] = e.args.trim().split(/\s+/)
     const argument = rest.join(' ').trim()
     if (verb === 'add' && argument !== '') {
-      const card = await addCard(hostOf($), { title: argument, status: board.config.columns[0]?.id ?? 'backlog' })
+      const planned = plannedFor(board, await currentScope(hostOf($)))
+      const status = board.config.columns[0]?.id ?? 'backlog'
+      const card = await addCard(hostOf($), { title: argument, status, ...planned })
       scheduleSync(hostOf($))
 
       return { text: `Added card ${card.id}: ${card.title}` }
+    }
+    if (verb === 'epic' && argument !== '') {
+      const card = await addEpic(hostOf($), argument)
+
+      return { text: `Added epic ${card.id}: ${card.title}` }
+    }
+    if (verb === 'sprint') {
+      const [action = '', ...words] = rest
+      const what = words.join(' ').trim()
+      if (action === 'new' && what !== '') {
+        const sprint = await addSprint(hostOf($), what)
+
+        return { text: `Planned sprint ${sprint.id}: ${sprint.title}. Start it with /kanban sprint start ${sprint.id}.` }
+      }
+      if (action === 'start' && what !== '') return { text: await startSprint(hostOf($), what) }
+      if (action === 'close') {
+        const id = what !== '' ? what : activeSprint(board.config)?.id
+        if (id === undefined) return { text: 'No sprint is active: name the one to close.' }
+
+        return { text: await closeSprint(hostOf($), id) }
+      }
+
+      return { text: 'Usage: /kanban sprint new <title> | start <id> | close [<id>]' }
     }
     if (verb === 'sync' && (argument === 'on' || argument === 'off')) {
       await setRemoteEnabled(hostOf($), argument === 'on')
@@ -311,10 +380,16 @@ export const register: Register = (on, options) => {
     const files = texts(input.files)
     const kind = text(input.kind)
     const priority: CardPriority = input.priority === 'low' || input.priority === 'high' ? input.priority : 'normal'
+    const epicId = text(input.epic)
+    const epic = epicId === '' ? undefined : cardOf(board.cards, epicId)
+    if (epicId !== '' && (!epic || !isEpic(epic))) {
+      return { result: `Not added: "${epicId}" is no epic. list_tasks lists the open epics.` }
+    }
     const card = await addCard(hostOf($), {
       title,
       status: SUGGESTED,
       source: 'claude',
+      epic: epic?.id ?? '',
       priority,
       labels: kind === '' ? [] : [kind],
       skills: texts(input.skills),
@@ -344,12 +419,52 @@ export const register: Register = (on, options) => {
     return { result: `Card ${card.id} is now in ${column.title}.` }
   })
 
-  on('tool.call', { tool: LIST_TOOL }, async $ => {
+  on('tool.call', { tool: LIST_TOOL }, async ($, e) => {
+    const input: Record<string, unknown> = e
     const board = await reload(hostOf($))
-    const cards = board.cards.filter(card => card.status !== ARCHIVED)
-    const columns = board.config.columns.map(column => column.id).join(', ')
+    const asked = text(input.scope)
+    const scope = parseScope(asked, board)
+    if (!scope) return { result: `No scope "${asked}": sprint, backlog, all, or an epic's card id.` }
 
-    return { result: [`Columns: ${columns} (plus ${SUGGESTED})`, ...cards.map(cardLine)].join('\n') }
+    return { result: listing(board, scope).join('\n') }
+  })
+
+  on('tool.call', { tool: PLAN_TOOL }, async ($, e) => {
+    const input: Record<string, unknown> = e
+    const board = await reload(hostOf($))
+    const card = cardOf(board.cards, text(input.id))
+    if (!card) return { result: `No card with id "${text(input.id)}". list_tasks shows the ids.` }
+    const patch: Partial<Card> = {}
+    const epicId = text(input.epic)
+    if (epicId === 'none') patch.epic = ''
+    else if (epicId !== '') {
+      const epic = cardOf(board.cards, epicId)
+      if (!epic || !isEpic(epic)) return { result: `"${epicId}" is no epic. list_tasks lists the open epics.` }
+      if (epic.id === card.id) return { result: 'An epic is not a card of its own.' }
+      patch.epic = epic.id
+    }
+    const sprintId = text(input.sprint)
+    if (sprintId === 'none') patch.sprint = ''
+    else if (sprintId === 'active') {
+      const active = activeSprint(board.config)
+      if (!active) return { result: 'No sprint is active.' }
+      patch.sprint = active.id
+    } else if (sprintId !== '') {
+      const sprint = board.config.sprints.find(one => one.id === sprintId)
+      if (!sprint || sprint.state === 'closed') {
+        const open = board.config.sprints.filter(one => one.state !== 'closed').map(one => one.id)
+
+        return { result: `No open sprint "${sprintId}". Open sprints: ${open.join(', ') || 'none'}.` }
+      }
+      patch.sprint = sprint.id
+    }
+    if (Object.keys(patch).length === 0) return { result: 'Nothing to change: give an epic or a sprint.' }
+    await patchCard(hostOf($), card.id, patch)
+    const now = { ...card, ...patch }
+
+    return {
+      result: `Card ${card.id}: epic ${now.epic === '' ? 'none' : now.epic}, sprint ${now.sprint === '' ? 'none' : now.sprint}.`,
+    }
   })
 
   on('tool.call', { tool: OWE_TOOL }, async ($, e) => {
@@ -370,6 +485,7 @@ export const register: Register = (on, options) => {
       kind: GATE,
       ref,
       needs,
+      sprint: activeSprint(board.config)?.id ?? '',
       owner: text(input.owner),
       body: text(input.details),
     })
@@ -434,7 +550,13 @@ export const register: Register = (on, options) => {
     if (!board) return heard
 
     return {
-      props: toClientBoard(board, await read($, queueAtom), await read($, selectedAtom), await read($, gatesAtom)),
+      props: toClientBoard(
+        board,
+        await read($, queueAtom),
+        await read($, selectedAtom),
+        await read($, gatesAtom),
+        await currentScope(hostOf($)),
+      ),
     }
   })
 
@@ -452,8 +574,11 @@ export const register: Register = (on, options) => {
     const view = await read($, viewAtom)
     const sync = await read($, syncAtom)
 
+    const scope = await currentScope(hostOf($))
     if (view.kind === 'settings') return settingsView(ui, hostOf($), board, sync)
-    if (view.kind === 'new') return newView(ui, hostOf($), board, view.status)
+    if (view.kind === 'epics') return epicsView(ui, hostOf($), board)
+    if (view.kind === 'sprints') return sprintsView(ui, hostOf($), board)
+    if (view.kind === 'new') return newView(ui, hostOf($), board, view.status, scope)
     const card = view.kind === 'card' ? board.cards.find(one => one.id === view.id) : undefined
     if (card) {
       const commands = await $.command.list().catch(() => [])
@@ -464,7 +589,7 @@ export const register: Register = (on, options) => {
 
     const selected = await read($, selectedAtom)
     const isGatesOnly = await read($, gatesAtom)
-    const client = toClientBoard(board, await read($, queueAtom), selected, isGatesOnly)
+    const client = toClientBoard(board, await read($, queueAtom), selected, isGatesOnly, scope)
     const isBroken = await read($, brokenAtom)
     const unknown = board.cards.filter(one => !isKnownStatus(board.config, one.status)).length
     const warning = unknown > 0 && (
@@ -475,7 +600,7 @@ export const register: Register = (on, options) => {
 
       return (
         <Box flexDirection="column" gap={1}>
-          {toolbar(ui, hostOf($), board, selected, sync, isGatesOnly)}
+          {toolbar(ui, hostOf($), board, selected, sync, isGatesOnly, scope)}
           {warning}
           <Client key="board" module="./kanban.client.tsx" props={client} width={e.props.bodyColumns} />
         </Box>
@@ -484,7 +609,7 @@ export const register: Register = (on, options) => {
 
     return (
       <Box flexDirection="column" gap={1}>
-        {toolbar(ui, hostOf($), board, selected, sync, isGatesOnly)}
+        {toolbar(ui, hostOf($), board, selected, sync, isGatesOnly, scope)}
         {warning}
         {listBoard(ui, hostOf($), client.lanes)}
       </Box>

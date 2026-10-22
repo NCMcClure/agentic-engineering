@@ -14,6 +14,8 @@
   "owner": "the integrator",
   "needs": "the main checkout",
   "ref": "#213",
+  "epic": "",
+  "sprint": "",
   "body": "`npm run smoke` on main after the merge; passing is 27 of 27. Could not be run from a worktree.",
   "remote": null,
   "extra": []

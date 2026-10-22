@@ -1,5 +1,5 @@
 import type { Board, Card, StartMode } from '../../types'
-import { isGate } from './cards'
+import { ARCHIVED, cardLine, doneIds, epicProgress, isEpic, isGate, progressBar, sprintLine } from './cards'
 import { getBoard } from './store'
 import type { Host } from './host'
 
@@ -9,12 +9,65 @@ const SPAWN_TOOL = 'spawn_task'
 
 export type Launched = { isStarted: true; message: string } | { isStarted: false; message: string }
 
+/** How much of an epic's body a child card's prompt carries. */
+const EPIC_BODY_CHARS = 1500
+
+/** The open cards of an epic other than `except`, one line each. */
+function siblings(board: Board, epic: string, except: string): string[] {
+  const done = doneIds(board.config)
+
+  return board.cards
+    .filter(one => one.epic === epic && one.id !== except && !isEpic(one) && one.status !== ARCHIVED && !done.has(one.status))
+    .map(cardLine)
+}
+
 /**
- * The first user message of an agent handed a card: the task, where its card
- * lives, how to hand it back, and last the skills the person nudged it toward.
- * A gate is handed over to be run and settled with its evidence, not moved.
+ * What the agent should know of the larger work a card belongs to: its epic's
+ * goal and the other open cards of it, and the sprint it is planned into.
+ */
+function contextOf(board: Board, card: Card): string {
+  const epic = card.epic === '' ? undefined : board.cards.find(one => one.id === card.epic && isEpic(one))
+  const sprint = board.config.sprints.find(one => one.id === card.sprint)
+  const parts: string[] = []
+  if (epic) {
+    const body = epic.body.trim()
+    const others = siblings(board, epic.id, card.id)
+    parts.push(
+      `## Part of epic ${epic.id}: ${epic.title}`,
+      body.length > EPIC_BODY_CHARS ? `${body.slice(0, EPIC_BODY_CHARS)}…\n\n(The rest is in ${board.dir}/${epic.file}.)` : body,
+      others.length > 0 ? `Other open cards of this epic:\n${others.map(line => `- ${line}`).join('\n')}` : '',
+    )
+  }
+  if (sprint) parts.push(sprintLine(sprint))
+
+  return parts.filter(part => part !== '').join('\n\n')
+}
+
+/** The brief of an agent handed an epic: slice it into cards, do none of them. */
+function breakdown(board: Board, card: Card): string {
+  const { done, total } = epicProgress(board, card.id)
+  const others = siblings(board, card.id, card.id)
+
+  return [
+    'Break down this epic from the project kanban board into cards. Do not do the work itself.',
+    `# ${card.title}`,
+    card.body.trim(),
+    `Card file: ${board.dir}/${card.file}\nProgress: ${progressBar({ done, total })}`,
+    others.length > 0 ? `Its open cards so far:\n${others.map(line => `- ${line}`).join('\n')}` : 'It has no cards yet.',
+    `Read the code the epic touches, then file each missing slice as a card that stands alone (what, why, where, done looks like), in the order it should be done: \`aw kanban add "<title>" --epic ${card.id} --details "…"\`, or the mcp__agent-works__surface_task tool with epic "${card.id}". A slice is one session's work. Leave the epic card where it is, and end with the list of cards you filed.`,
+  ]
+    .filter(part => part !== '')
+    .join('\n\n')
+}
+
+/**
+ * The first user message of an agent handed a card: the task, the epic and
+ * sprint it belongs to, where its card lives, how to hand it back, and last the
+ * skills the person nudged it toward. A gate is handed over to be run and
+ * settled with its evidence, not moved; an epic, to be broken down into cards.
  */
 export function buildPrompt(board: Board, card: Card): string {
+  if (isEpic(card)) return breakdown(board, card)
   const start = board.config.columns.findIndex(column => column.role === 'start')
   const after = board.config.columns[start + 1]
   const facts = [
@@ -34,6 +87,7 @@ export function buildPrompt(board: Board, card: Card): string {
     isGate(card) ? 'Run this owed gate from the project kanban board.' : 'Work on this task from the project kanban board.',
     `# ${card.title}`,
     card.body.trim(),
+    contextOf(board, card),
     facts.join('\n'),
     isGate(card) ? settle : handBack,
     card.skills.length > 0
@@ -49,7 +103,9 @@ async function spawnSession(host: Host, board: Board, card: Card): Promise<Launc
     const answer = await host.mcp(SPAWN_SERVER, SPAWN_TOOL, {
       title: `Kanban: ${card.title}`.slice(0, 59),
       prompt: buildPrompt(board, card),
-      tldr: `Card ${card.id} was moved to in progress on the kanban board. The new session works on it.`,
+      tldr: isEpic(card)
+        ? `Epic ${card.id} of the kanban board is handed over to be broken down into cards.`
+        : `Card ${card.id} was moved to in progress on the kanban board. The new session works on it.`,
     })
     if (answer.isError) return { isStarted: false, message: 'the app refused to open a new session' }
 

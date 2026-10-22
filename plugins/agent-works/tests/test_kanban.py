@@ -141,10 +141,11 @@ class GoldenCards(unittest.TestCase):
         self.assertTrue(any(c["remote"] and c["remote"]["provider"] == "gitlab" for c in cards))
         self.assertTrue(any(c["extra"] for c in cards))
         self.assertTrue(any(c["kind"] == "gate" for c in cards))
+        self.assertTrue(any(c["kind"] == "epic" for c in cards))
         self.assertTrue(any(c["kind"] not in kanban.KINDS for c in cards))
         self.assertEqual({c["priority"] for c in cards}, {"low", "normal", "high"})
         self.assertEqual({c["source"] for c in cards}, {"user", "claude"})
-        for key in ("owner", "needs", "ref", "labels", "skills", "body"):
+        for key in ("owner", "needs", "ref", "epic", "sprint", "labels", "skills", "body"):
             self.assertTrue(any(c[key] for c in cards), key)
         self.assertTrue({"suggested", "archived", "backlog", "done"} <= {c["status"] for c in cards})
 
@@ -302,6 +303,112 @@ class Commands(unittest.TestCase):
         self.assertIn("settle", out)
 
 
+# The board.json of cards.test.ts's sprint test: both twins must read it to the same sprints.
+SPRINT_CONFIG = """{
+  "columns": [
+    { "id": "todo", "title": "To do" },
+    { "id": "doing", "title": "Doing", "role": "start" },
+    { "id": "done", "title": "Done", "role": "done" }
+  ],
+  "sprints": [
+    { "id": "s1", "title": "First", "state": "closed", "closed": { "at": "2026-01-14T00:00:00.000Z", "done": 4, "rolled": 1 } },
+    { "id": "s2", "title": "Second", "goal": "Ship it", "start": "2026-01-15", "end": "2026-01-29", "state": "active" },
+    { "id": "s3", "state": "active" },
+    { "title": "no id" },
+    { "id": "s4", "title": "", "state": "someday", "closed": "no" }
+  ]
+}"""
+
+
+def _sprint(sprint_id, state, **more):
+    return dict({"id": sprint_id, "title": f"Sprint {sprint_id}", "goal": "", "start": "", "end": "", "state": state,
+                 "closed": None}, **more)
+
+
+class EpicsAndSprints(unittest.TestCase):
+    def setUp(self):
+        self.p = Project()
+        self.addCleanup(self.p.close)
+        self.dir = self.p.root / ".agents" / "kanban"
+
+    def cards(self):
+        return {c["id"]: c for c in kanban.load(self.dir)["cards"]}
+
+    def aw(self, *args):
+        code, out, err = self.p.aw("kanban", *args, CLAUDECODE="")
+        self.assertEqual((code, err), (0, ""), args)
+        return out
+
+    def test_board_json_sprints_read_as_the_pane_reads_them(self):
+        config = kanban.parse_config(SPRINT_CONFIG)
+        self.assertEqual(config["sprints"], [
+            _sprint("s1", "closed", title="First", closed={"at": "2026-01-14T00:00:00.000Z", "done": 4, "rolled": 1}),
+            _sprint("s2", "active", title="Second", goal="Ship it", start="2026-01-15", end="2026-01-29"),
+            _sprint("s3", "planned", title="s3"),
+            _sprint("s4", "planned", title="s4"),
+        ])
+        self.assertEqual(kanban.next_sprint_id(config), "s5")
+        self.assertEqual(kanban.parse_config(kanban.serialize_config(config)), config)
+        self.assertNotIn("sprints", kanban.serialize_config(kanban.parse_config(None)))
+
+    def test_plan_scope_and_close(self):
+        self.aw("add", "Faster sync", "--kind", "epic")
+        self.aw("sprint", "new", "Polish", "--goal", "Ship", "--end", "2026-03-01")
+        self.aw("sprint", "new", "Next")
+        self.assertIn("is active", self.aw("sprint", "start", "s1"))
+        code, _, err = self.p.aw("kanban", "sprint", "start", "s2")
+        self.assertEqual(code, 2)
+        self.assertIn("still active", err)
+
+        self.aw("add", "In the sprint", "--sprint", "active", "--epic", "1")
+        self.aw("add", "Outside")
+        self.assertEqual((self.cards()["0002"]["sprint"], self.cards()["0002"]["epic"]), ("s1", "0001"))
+        code, _, err = self.p.aw("kanban", "add", "Bad", "--epic", "0003")
+        self.assertIn("is no epic", err)
+        self.aw("owe", "Run the smoke", "--ref", "#1", "--needs", "main")
+        self.assertEqual(self.cards()["0004"]["sprint"], "s1")
+
+        self.assertEqual(self.aw("list").splitlines(), [
+            "Columns: backlog, in-progress, review, done (plus suggested)",
+            'Sprint s1 "Polish" (active, ends 2026-03-01): Ship',
+            "Epic 0001 ▱▱▱▱▱▱▱▱ 0/1: Faster sync",
+            "Scope: sprint s1",
+            "0002 [backlog] task: In the sprint (epic 0001; sprint s1)",
+            "0004 [backlog] gate: Run the smoke (for #1; needs main; sprint s1)",
+            '1 more open card(s) outside this scope (scope "all" lists them).',
+        ])
+        self.assertIn("0003 [backlog] task: Outside", self.aw("list", "--scope", "backlog"))
+        self.assertIn("0001 ▱▱▱▱▱▱▱▱ 0/1: Faster sync", self.aw("epics"))
+        self.assertIn("Card 0003: epic 0001, sprint s2.", self.aw("plan", "3", "--epic", "0001", "--sprint", "s2"))
+        self.assertIn("Card 0003: epic none", self.aw("plan", "3", "--epic", "none"))
+
+        self.aw("move", "0002", "done")
+        self.assertEqual(self.aw("sprint", "close").strip(),
+                         "Sprint s1 closed: 1 done card(s) archived, 1 unfinished card(s) to sprint s2.")
+        cards = self.cards()
+        self.assertEqual([(c["status"], c["sprint"]) for c in (cards["0002"], cards["0004"])],
+                         [("archived", "s1"), ("backlog", "s2")])
+        sprints = kanban.load(self.dir)["config"]["sprints"]
+        self.assertEqual([s["state"] for s in sprints], ["closed", "planned"])
+        self.assertEqual(sprints[0]["closed"]["done"], 1)
+        self.assertIn('Sprint s1 "Polish" (closed', self.aw("sprint"))
+
+    def test_the_pane_and_the_cli_write_the_same_board_json(self):
+        self.aw("sprint", "new", "Polish")
+        text = (self.dir / kanban.CONFIG_FILE).read_text(encoding="utf-8")
+        self.assertEqual(text, kanban.serialize_config(kanban.parse_config(text)))
+        self.assertIn('"sprints": [\n    {\n      "id": "s1",', text)
+
+    def test_lint_names_unknown_epics_and_sprints_and_an_overdue_sprint(self):
+        config = kanban.parse_config(None)
+        config["sprints"] = [_sprint("s1", "active", end="2020-01-01")]
+        self.p.write(".agents/kanban/board.json", kanban.serialize_config(config))
+        card = kanban.new_card("0001", "Lost", "backlog", 0, kanban.now_iso(), epic="0009", sprint="s7")
+        self.p.write(f".agents/kanban/{card['file']}", kanban.serialize_card(card))
+        codes = sorted(f.code for f in kanban.findings(self.p.root) if f.code != "KANBAN_UNTRACKED")
+        self.assertEqual(codes, ["KANBAN_EPIC_UNKNOWN", "KANBAN_SPRINT_OVERDUE", "KANBAN_SPRINT_UNKNOWN"])
+
+
 class Folder(unittest.TestCase):
     def setUp(self):
         self.p = Project()
@@ -371,13 +478,13 @@ class Lint(unittest.TestCase):
         self.card("0004", "Twin")
         self.p.write(".agents/kanban/0005-twin-two.md", kanban.serialize_card(
             kanban.new_card("0004", "Twin two", "backlog", 1, kanban.now_iso())))
-        self.card("0006", "An epic", kind="epic")
+        self.card("0006", "A spike", kind="spike")
         self.card("0007", "Gate with no ref", kind="gate")
         found = kanban.findings(self.p.root)
         self.assertEqual({f.code for f in found}, {"KANBAN_CARD_INVALID"})
         self.assertEqual({f.level for f in found}, {"warning"})
         text = "\n".join(f"{f.path} {f.message}" for f in found)
-        for part in ("0003-broken.md", "also the id of 0004-twin.md", "disagree", 'kind "epic"', "a gate without ref"):
+        for part in ("0003-broken.md", "also the id of 0004-twin.md", "disagree", 'kind "spike"', "a gate without ref"):
             self.assertIn(part, text)
 
     def test_unknown_status_stale_start_and_old_gate(self):

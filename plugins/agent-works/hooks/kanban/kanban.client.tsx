@@ -80,6 +80,8 @@ const Kanban: ClientModule<ClientBoard, Local> = (props, surface) => {
     const isShifted = event.shift === true || (key.length === 1 && key !== key.toLowerCase())
     if (key === 'n') {
       surface.post({ type: 'new', to: at ? (lanes[at.lane]?.id ?? null) : null })
+    } else if (key === 'v' || key === 'e' || key === 'p') {
+      surface.post({ type: key === 'v' ? 'scope' : key === 'e' ? 'epics' : 'sprints' })
     } else if (!at) {
       if (isLeft || isRight || isUp || isDown) choose(lanes.find(lane => lane.cards.length > 0)?.cards[0]?.id ?? null)
     } else if (isShifted && (isLeft || isRight)) {
@@ -146,7 +148,7 @@ const Kanban: ClientModule<ClientBoard, Local> = (props, surface) => {
           </Box>
         ))}
       </Box>
-      {total === 0 && <Text dimColor>No cards yet. Add one with + New, or press n here.</Text>}
+      {total === 0 && <Text dimColor>{props.empty}</Text>}
       {drag && (
         <Box position="absolute" top={LANE_HEAD + drag.slot * CARD_ROWS} left={drag.lane * laneWidth}>
           <Text color="claude">{`▶${'━'.repeat(Math.max(1, laneWidth - 3))}`}</Text>

@@ -16,6 +16,8 @@
   "owner": "",
   "needs": "",
   "ref": "0005",
+  "epic": "",
+  "sprint": "",
   "body": "Its lines come back as they were, after the board's own keys.",
   "remote": {
     "provider": "github",

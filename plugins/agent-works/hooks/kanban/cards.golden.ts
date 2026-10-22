@@ -26,6 +26,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "",
       "remote": null,
       "extra": []
@@ -57,6 +59,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "worker-2",
       "needs": "a quiet machine",
       "ref": "#41",
+      "epic": "",
+      "sprint": "",
       "body": "Two writers, no lock.\n\nFiles:\n- src/cache.ts\n- src/session/store.ts",
       "remote": null,
       "extra": []
@@ -84,6 +88,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "The issue's body, as the last sync left it.",
       "remote": {
         "provider": "github",
@@ -118,6 +124,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "sam",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "Closed upstream.",
       "remote": {
         "provider": "gitlab",
@@ -149,6 +157,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "Written by a script that keeps its own keys beside the board's.",
       "remote": null,
       "extra": [
@@ -181,6 +191,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "0005",
+      "epic": "",
+      "sprint": "",
       "body": "Its lines come back as they were, after the board's own keys.",
       "remote": {
         "provider": "github",
@@ -227,6 +239,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "Line one.\n\n- a\n- b",
       "remote": null,
       "extra": []
@@ -252,6 +266,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "A body with a rule in it:\n\n---\n\nand a fence:\n\n```yaml\n---\nstatus: not-frontmatter\n---\n```",
       "remote": null,
       "extra": []
@@ -277,6 +293,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "the integrator",
       "needs": "the main checkout",
       "ref": "#213",
+      "epic": "",
+      "sprint": "",
       "body": "`npm run smoke` on main after the merge; passing is 27 of 27. Could not be run from a worktree.",
       "remote": null,
       "extra": []
@@ -302,6 +320,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "a free GPU",
       "ref": "PR 214",
+      "epic": "",
+      "sprint": "",
       "body": "The whole suite, once, when the work is finished.\n\nSettled 2026-01-09T16:45:10.000Z by worker-1: `npm test` 412 passed, 0 failed",
       "remote": null,
       "extra": []
@@ -329,6 +349,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "The README names a flag that was removed.\n\nFiles:\n- README.md",
       "remote": null,
       "extra": []
@@ -354,6 +376,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "",
       "remote": null,
       "extra": []
@@ -361,8 +385,8 @@ export const GOLDEN: readonly Golden[] = [
   },
   {
     "file": "0013-a-status-and-a-kind-of-its-own.md",
-    "text": "---\nid: \"0013\"\ntitle: \"A status and a kind of its own\"\nstatus: blocked\norder: 1.5\npriority: normal\nlabels: []\nskills: []\nsource: user\ncreated: 2026-01-11T00:00:00.000Z\nupdated: 2026-01-11T00:00:00.000Z\nkind: epic\n---\n\nShown in the first column; lint names both.\n",
-    "canon": "---\nid: \"0013\"\ntitle: \"A status and a kind of its own\"\nstatus: blocked\norder: 1.5\npriority: normal\nlabels: []\nskills: []\nsource: user\ncreated: 2026-01-11T00:00:00.000Z\nupdated: 2026-01-11T00:00:00.000Z\nkind: epic\n---\n\nShown in the first column; lint names both.\n",
+    "text": "---\nid: \"0013\"\ntitle: \"A status and a kind of its own\"\nstatus: blocked\norder: 1.5\npriority: normal\nlabels: []\nskills: []\nsource: user\ncreated: 2026-01-11T00:00:00.000Z\nupdated: 2026-01-11T00:00:00.000Z\nkind: spike\n---\n\nShown in the first column; lint names both.\n",
+    "canon": "---\nid: \"0013\"\ntitle: \"A status and a kind of its own\"\nstatus: blocked\norder: 1.5\npriority: normal\nlabels: []\nskills: []\nsource: user\ncreated: 2026-01-11T00:00:00.000Z\nupdated: 2026-01-11T00:00:00.000Z\nkind: spike\n---\n\nShown in the first column; lint names both.\n",
     "card": {
       "id": "0013",
       "file": "0013-a-status-and-a-kind-of-its-own.md",
@@ -375,11 +399,69 @@ export const GOLDEN: readonly Golden[] = [
       "source": "user",
       "created": "2026-01-11T00:00:00.000Z",
       "updated": "2026-01-11T00:00:00.000Z",
+      "kind": "spike",
+      "owner": "",
+      "needs": "",
+      "ref": "",
+      "epic": "",
+      "sprint": "",
+      "body": "Shown in the first column; lint names both.",
+      "remote": null,
+      "extra": []
+    }
+  },
+  {
+    "file": "0014-move-the-sync-to-graphql.md",
+    "text": "---\nid: \"0014\"\ntitle: \"Move the sync to GraphQL\"\nstatus: in-progress\norder: 0\npriority: normal\nlabels: [\"sync\"]\nskills: []\nsource: user\ncreated: 2026-02-02T09:00:00.000Z\nupdated: 2026-02-03T10:30:00.000Z\nepic: \"0015\"\nsprint: \"s2\"\n---\n\nOne query for the issues and their project columns instead of one call per issue.\n",
+    "canon": "---\nid: \"0014\"\ntitle: \"Move the sync to GraphQL\"\nstatus: in-progress\norder: 0\npriority: normal\nlabels: [\"sync\"]\nskills: []\nsource: user\ncreated: 2026-02-02T09:00:00.000Z\nupdated: 2026-02-03T10:30:00.000Z\nepic: \"0015\"\nsprint: \"s2\"\n---\n\nOne query for the issues and their project columns instead of one call per issue.\n",
+    "card": {
+      "id": "0014",
+      "file": "0014-move-the-sync-to-graphql.md",
+      "title": "Move the sync to GraphQL",
+      "status": "in-progress",
+      "order": 0,
+      "priority": "normal",
+      "labels": [
+        "sync"
+      ],
+      "skills": [],
+      "source": "user",
+      "created": "2026-02-02T09:00:00.000Z",
+      "updated": "2026-02-03T10:30:00.000Z",
+      "kind": "task",
+      "owner": "",
+      "needs": "",
+      "ref": "",
+      "epic": "0015",
+      "sprint": "s2",
+      "body": "One query for the issues and their project columns instead of one call per issue.",
+      "remote": null,
+      "extra": []
+    }
+  },
+  {
+    "file": "0015-sync-that-scales-to-a-thousand-issues.md",
+    "text": "---\nid: \"0015\"\ntitle: \"Sync that scales to a thousand issues\"\nstatus: backlog\norder: 1\npriority: high\nlabels: []\nskills: []\nsource: user\ncreated: 2026-02-01T09:00:00.000Z\nupdated: 2026-02-01T09:00:00.000Z\nkind: epic\n---\n\n## Goal\n\nA board linked to a repository with a thousand open issues syncs in under ten seconds.\n\n## Done looks like\n\n- One GraphQL round trip per page of issues.\n- No pull rewrites a card that did not change.\n",
+    "canon": "---\nid: \"0015\"\ntitle: \"Sync that scales to a thousand issues\"\nstatus: backlog\norder: 1\npriority: high\nlabels: []\nskills: []\nsource: user\ncreated: 2026-02-01T09:00:00.000Z\nupdated: 2026-02-01T09:00:00.000Z\nkind: epic\n---\n\n## Goal\n\nA board linked to a repository with a thousand open issues syncs in under ten seconds.\n\n## Done looks like\n\n- One GraphQL round trip per page of issues.\n- No pull rewrites a card that did not change.\n",
+    "card": {
+      "id": "0015",
+      "file": "0015-sync-that-scales-to-a-thousand-issues.md",
+      "title": "Sync that scales to a thousand issues",
+      "status": "backlog",
+      "order": 1,
+      "priority": "high",
+      "labels": [],
+      "skills": [],
+      "source": "user",
+      "created": "2026-02-01T09:00:00.000Z",
+      "updated": "2026-02-01T09:00:00.000Z",
       "kind": "epic",
       "owner": "",
       "needs": "",
       "ref": "",
-      "body": "Shown in the first column; lint names both.",
+      "epic": "",
+      "sprint": "",
+      "body": "## Goal\n\nA board linked to a repository with a thousand open issues syncs in under ten seconds.\n\n## Done looks like\n\n- One GraphQL round trip per page of issues.\n- No pull rewrites a card that did not change.",
       "remote": null,
       "extra": []
     }
@@ -407,6 +489,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "Body",
       "remote": null,
       "extra": []
@@ -437,6 +521,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "pat",
       "needs": "",
       "ref": "#7",
+      "epic": "",
+      "sprint": "",
       "body": "\nFirst line.\n\nLast line.",
       "remote": null,
       "extra": [
@@ -464,6 +550,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "Body right after the rule.",
       "remote": {
         "provider": "github",
@@ -499,6 +587,8 @@ export const GOLDEN: readonly Golden[] = [
       "owner": "",
       "needs": "",
       "ref": "",
+      "epic": "",
+      "sprint": "",
       "body": "",
       "remote": null,
       "extra": []
