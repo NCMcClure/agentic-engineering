@@ -1,0 +1,19 @@
+{
+  "target": "docs-folder",
+  "docsRoot": "docs",
+  "nav": "auto",
+  "frontmatter": ["title", "description"],
+  "summary": true,
+  "pageBudget": 120,
+  "roots": [
+    {"name": "guide", "path": "guide", "deny": ["`[^`]*/[^`]*\\.(ts|tsx|js|py|rs|cpp|h|go)`", "\\b[A-Z][A-Z0-9]+_[A-Z0-9_]+\\b"]},
+    {"name": "developers", "path": "developers"},
+    {"name": "admin", "path": "admin", "private": true}
+  ],
+  "images": {"dir": "docs/images", "themes": ["light", "dark"]},
+  "capture": "<the command that runs one capture group, with {group}>",
+  "surfaces": [
+    {"name": "<a screen family, command group, or endpoint family>", "code": ["src/<area>/**"], "pages": ["docs/guide/<page>.md"], "shots": ["docs/images/<section>/**"], "group": "<capture group>"}
+  ],
+  "accept": []
+}

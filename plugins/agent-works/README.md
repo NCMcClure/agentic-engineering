@@ -95,6 +95,7 @@ Each defers at run time with one sentence and keeps a few lines of fallback, so 
 | codebase-optimizer | hub verification (`aw hubs`), decision records and the glossary |
 | but-first-planning | the hub verifier, scarce resources, notes and briefs; its workspace is `.agents/plan/` |
 | perceptual-loop | locks, leases, machine load, and the general half of orchestration |
+| docs-parity | the home of its writer contract (`.agents/contracts/docs.md`) and its config; owed harness work goes on the kanban |
 | agentic-teamwork | nothing; it draws the boundary above |
 
 ## Install
@@ -161,6 +162,9 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.1.5**: docs-parity joins the plugins block: `plugins` may name it, and the root `AGENTS.md` then says when to
+  open `docs-sync`, `docs-shots`, `docs-init` and `docs-audit`. `homes.md` names the writer contract's home,
+  `.agents/contracts/docs.md`, beside the user docs folder.
 - **0.1.4**: **A worktree no longer names the project after itself**: `aw setup --apply` run in a linked worktree
   (`.claude/worktrees/agent-abc123`) titled `.agents/README.md` and a new root `AGENTS.md` with that folder's name,
   and the main checkout then saw the page as different. The name is now the main working tree's folder name, or

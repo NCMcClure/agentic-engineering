@@ -34,7 +34,8 @@ repo that actually holds `.agents/plan/`.
 exist (the `agent-works` plugin keeps memory, decisions and its kanban there).
 Add `plan/` beside what is there and touch nothing else in it. Nothing this
 skill scaffolds goes into `./docs`: that folder is for end-user documentation
-only, and `build-user-docs` is the one skill that writes there.
+only, written by `build-user-docs` (and, with the `docs-parity` plugin, by its
+`docs-sync` in the same change as the code).
 
 ## When NOT to scaffold
 
@@ -132,6 +133,8 @@ Ask only what you can't infer. Keep it to a few questions, one at a time:
   - **docs-site** (default) — a structured multi-page site: `docs/` pages plus a static-site config (MkDocs unless the user names another generator).
   - **readme-only** — a single README carries install + usage; for tiny tools where a second page would be padding.
   - **existing-convention** — a brownfield project already has a docs convention; the spec captures it as the constraint.
+
+  Two follow-ups, asked in the same breath and recorded in the same ADR: **where readers read it** (a site, a `docs/` folder read on the forge, or a GitHub/GitLab wiki whose source lives in the repo under `wiki/` and is published by CI; default: follow the posture) and the **screenshots posture** (`themed-pair` for a product with light and dark themes, `single`, or `none` for a library or API; default: `themed-pair` when ADR-0002 is anything but no-ui, else `none`). With the `docs-parity` plugin installed, these answers are exactly what its `docs-init` writes into `.agents/docs-parity.json`; run it once the code has a first surface.
 
   Load-bearing: it shapes `spec-1-specify`'s mandatory `user-docs-plan.md` page ([USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)), the docs-skeleton issue `plan-0-decompose` cuts, and where `build-user-docs` writes after every verified sprint — so it becomes ADR-0003.
 - **Claude Code support** — asked **exactly once**, here. AGENTS.md orientation hubs are unconditional (root + every non-leaf code directory; rules in [CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)); this question only decides whether every AGENTS.md also gets a sibling `CLAUDE.md` containing exactly `@AGENTS.md`, so Claude Code sessions load the hubs natively. Default **yes** when the interview happens inside Claude Code. Recorded as ADR-0004.

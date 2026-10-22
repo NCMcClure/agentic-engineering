@@ -37,9 +37,13 @@ three things:
 ### 1. The stack
 
 One short section restating the posture concretely: generator and theme (or
-"README only"), where the config lives, where pages live, how the site is
-served/published if that's decided. Nothing here is prose about documentation
-philosophy — it's the answer to "what files exist and what builds them".
+"README only", or a wiki whose source lives under `wiki/` and CI publishes),
+where the config lives, where pages live, how the site is served/published if
+that's decided, and the screenshots posture from ADR-0003 with the capture
+harness that will make them (the recipe for the stack, when the `docs-parity`
+plugin is installed: its `capture-recipes.md`). Nothing here is prose about
+documentation philosophy — it's the answer to "what files exist and what
+builds them".
 
 ### 2. The page map
 
@@ -48,12 +52,17 @@ The load-bearing section. A table of the end-user pages, **logically paced**
 topic → reference. One topic per page, same discipline as spec content files.
 
 ```markdown
-| Page | Purpose | Fed by epic |
-|------|---------|-------------|
-| `index.md` | what this is, install, 5-minute quickstart | E01 |
-| `importing.md` | getting data in: sources, formats, failure modes | E02 |
-| `queries.md` | the query language, one worked example per verb | E03 |
-| `reference/cli.md` | every command and flag, generated tone | all |
+| Page | Audience | Purpose | Shots | Fed by epic |
+|------|----------|---------|-------|-------------|
+| `index.md` | guide | what this is, install, 5-minute quickstart | the first screen | E01 |
+| `importing.md` | guide | getting data in: sources, formats, failure modes | the import dialog, an error | E02 |
+| `queries.md` | developers | the query language, one worked example per verb | none | E03 |
+| `reference/cli.md` | developers | every command and flag, generated tone | none (output captured as text) | all |
+
+**Audience** is the root the page belongs to (guide, developers, admin; one
+root for a project with one kind of reader). **Shots** names the screenshots
+the page will carry, so the capture harness is planned with the pages rather
+than bolted on.
 ```
 
 The map is a plan, not a promise — pages appear when the behaviour they

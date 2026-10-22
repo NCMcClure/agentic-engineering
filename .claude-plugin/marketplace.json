@@ -67,6 +67,12 @@
       "source": "./plugins/perceptual-loop",
       "description": "An agent can't iterate on what it can't measure: reproducible shots, metrics that gate regressions, sheets the agent and you can look at, motion and audio checks, and a batched queue for the judgements only a human should make.",
       "category": "evaluation"
+    },
+    {
+      "name": "docs-parity",
+      "source": "./plugins/docs-parity",
+      "description": "User docs drift because they ship after the code, so make them move in the same change: a writer contract, screenshots only from a deterministic capture harness, and one checker that finds missing, stale and broken docs in session and in CI.",
+      "category": "documentation"
     }
   ]
 }

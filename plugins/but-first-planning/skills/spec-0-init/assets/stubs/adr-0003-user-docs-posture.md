@@ -9,6 +9,9 @@ updated: {{MONTH}}
 
 {{DOCS_POSTURE_DECISION}}
 
+- **Where readers read it:** {{DOCS_TARGET}}
+- **Screenshots:** {{DOCS_SCREENSHOTS}}
+
 This governs the shape of the *end-user* documentation (the product docs, not
 this spec site). `spec-1-specify` reads it to write the mandatory
 `user-docs-plan.md` page (docs stack + page map); `plan-0-decompose` cuts the

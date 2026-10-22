@@ -27,7 +27,8 @@ and one command checks them all: `aw doctor`. Everything agent-facing lives unde
 | Reports | the agent's final message, the pull request's body, the card | never a file | by reading |
 | Files for one tool | a `CLAUDE.md` twin beside every `AGENTS.md`, one line: `@AGENTS.md` | one line | `aw twins --check` |
 | The plugin's settings | `.agents/agent-works.json` (`guard-config.md` documents it) | none | `aw doctor` (`CONFIG_INVALID`) |
-| User-facing documentation | `./docs`, and nothing else lives there | none | `aw doctor` (`DOCS_AGENT_FILE`) |
+| User-facing documentation | `./docs` (or the folder the docs-parity config names), and nothing else lives there | none | `aw doctor` (`DOCS_AGENT_FILE`); with docs-parity, its `docs_check.py` |
+| How the user docs are written: audiences, page shape, screenshots | `.agents/contracts/docs.md`, written by docs-parity's `docs-init` | none | `docs_check.py` and review |
 | What holds on any project of this machine | shared learnings in the machine's store, through `aw learn` (`coordination.md`) | none | by reading |
 
 The budgets are `budgets.*` in `.agents/agent-works.json`. A budget is where a file stops being read; raise one
