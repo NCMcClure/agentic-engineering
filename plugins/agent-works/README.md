@@ -84,6 +84,13 @@ A board that only grows stops being read, by you or by an agent. Two things keep
 
 A board without sprints works as it always did.
 
+**Remote sync** (`/kanban sync on`) mirrors the board on GitHub (`gh`) or GitLab (`glab`) issues: a card is an
+issue, its column a project-board status or a `status:` label. A sprint is a milestone of the same title, made
+the first time a card needs it and due on the sprint's `end`; an epic is the parent of its cards' issues (GitHub
+sub-issues, a GitLab group epic), or an `epic:<id>` label where the tracker has neither. Pulls map back: a
+milestone is the sprint of its title, a parent the epic card it is; a milestone the board has no sprint for is
+said once and left alone, never turned into a sprint. A board with sync off changes nothing.
+
 ### The guard
 
 With `.agents/agent-works.json` present, a hook refuses the mistakes agents repeat: staging the whole tree,
@@ -173,6 +180,10 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.3.0**: **Remote sync carries epics and sprints.** A card's sprint sets its issue's milestone (made when
+  missing, due on the sprint's end); a card's epic hangs its issue from the epic's (GitHub sub-issues, GitLab
+  group epics), with an `epic:<id>` label where the tracker has neither. Pulls read both back without inventing
+  sprints. Cards planned into neither keep the sync hash they had, so turning this on pushes nothing new.
 - **0.2.0**: **Epics and sprints on the kanban board**, so the board stays short. A sprint (in `board.json`) is
   the board's default scope while it is active; closing it archives its done cards and rolls the rest on. An epic
   is a card of `kind: epic`; cards join one with `epic:`, and an agent starting one of them gets the epic's goal in
