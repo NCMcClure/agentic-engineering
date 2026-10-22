@@ -8,7 +8,7 @@ import type {
   Timer,
 } from 'claude-code'
 
-import type { Board, SyncState, View } from '../../types'
+import type { Board, Scope, SyncState, View } from '../../types'
 
 /** One value the session holds for the mod: read, or changed from what it was. */
 export type Cell<T> = {
@@ -48,5 +48,6 @@ export type Host = {
     isTurnRunning: Cell<boolean>
     isClientBroken: Cell<boolean>
     isGatesOnly: Cell<boolean>
+    scope: Cell<Scope | null>
   }
 }

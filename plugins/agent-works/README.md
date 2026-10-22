@@ -69,9 +69,20 @@ Leases are declarations, not enforcement; `aw sys` prints live readings beside t
 
 Tasks and their status have one place: cards on the project's board. `/kanban` opens it as a pane (columns, a
 Suggested lane for what agents propose, optional sync with GitHub or GitLab issues). Agents reach the same cards
-through tools (`surface_task`, `list_tasks`, `move_task`, `owe_gate`, `settle_gate`) or through `aw kanban` from
-any shell. A check that could not be run is not forgotten: it becomes a **gate** card that says what it is owed
-for and what running it needs, and is settled with its evidence.
+through tools (`surface_task`, `list_tasks`, `move_task`, `plan_task`, `owe_gate`, `settle_gate`) or through
+`aw kanban` from any shell. A check that could not be run is not forgotten: it becomes a **gate** card that says
+what it is owed for and what running it needs, and is settled with its evidence.
+
+A board that only grows stops being read, by you or by an agent. Two things keep it short:
+
+- **Sprints** time-box the work. While one is active, the board and `list_tasks` show its cards and nothing else
+  (`v` in the pane, or `--scope`, switches to the backlog, one epic, or everything). Closing it archives its done
+  cards and moves the rest to the next planned sprint, or back to the backlog. `aw kanban sprint new|start|close`.
+- **Epics** hold a goal larger than one session: an epic is a card of `kind: epic`, and its cards say `epic: "0042"`.
+  An agent handed one of those cards gets the epic's goal and its sibling cards in its first message; an agent
+  handed the epic itself is asked to slice it into cards, not to do it. `aw kanban epics` shows the progress.
+
+A board without sprints works as it always did.
 
 ### The guard
 
@@ -162,6 +173,13 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.2.0**: **Epics and sprints on the kanban board**, so the board stays short. A sprint (in `board.json`) is
+  the board's default scope while it is active; closing it archives its done cards and rolls the rest on. An epic
+  is a card of `kind: epic`; cards join one with `epic:`, and an agent starting one of them gets the epic's goal in
+  its prompt (starting the epic itself asks for a breakdown). The pane gains a scope switch (`v`), an Epics view
+  (`e`) and a Sprints view (`p`); `list_tasks` lists one scope and counts the rest; a new `plan_task` tool and
+  `aw kanban plan|epics|sprint` commands; lint names unknown epics and sprints and an overdue sprint. Remote sync
+  leaves both fields local.
 - **0.1.5**: docs-parity joins the plugins block: `plugins` may name it, and the root `AGENTS.md` then says when to
   open `docs-sync`, `docs-shots`, `docs-init` and `docs-audit`. `homes.md` names the writer contract's home,
   `.agents/contracts/docs.md`, beside the user docs folder.

@@ -16,6 +16,8 @@
   "owner": "",
   "needs": "",
   "ref": "",
+  "epic": "",
+  "sprint": "",
   "body": "The README names a flag that was removed.\n\nFiles:\n- README.md",
   "remote": null,
   "extra": []

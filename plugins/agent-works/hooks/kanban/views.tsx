@@ -1,18 +1,41 @@
 import type { Elements, RenderElement } from 'claude-code'
 
-import type { Board, Card, CardPriority, ClientBoard, SyncState } from '../../types'
+import type { Board, Card, CardPriority, ClientBoard, Scope, SyncState } from '../../types'
 import {
   acceptCard,
+  addEpic,
+  addSprint,
   archiveCard,
+  closePreview,
+  closeSprint,
+  cycleScope,
   moveCard,
   patchCard,
   patchConfig,
+  patchSprint,
+  plannedFor,
+  setScope,
   setView,
   shiftCard,
   startCard,
+  startSprint,
   toggleGatesOnly,
 } from './actions'
-import { ARCHIVED, GATE, SUGGESTED, TASK, isGate } from './cards'
+import {
+  ARCHIVED,
+  EPIC,
+  GATE,
+  SUGGESTED,
+  TASK,
+  activeSprint,
+  doneIds,
+  epicProgress,
+  inScope,
+  isEpic,
+  isGate,
+  openEpics,
+  progressBar,
+} from './cards'
 import { setRemoteEnabled, syncNow } from './remote/sync'
 import { addCard } from './store'
 import type { Host } from './host'
@@ -39,6 +62,34 @@ function syncLine(board: Board, sync: SyncState): string {
   return sync.message === '' ? 'sync on' : `synced: ${sync.message}`
 }
 
+/** What the lanes are narrowed to, in a line: the sprint and its progress, the backlog, an epic, or all. */
+export function scopeLine(board: Board, scope: Scope): string {
+  const lanes = board.cards.filter(card => card.status !== ARCHIVED && inScope(board.config, card, scope))
+  const done = doneIds(board.config)
+  const finished = lanes.filter(card => done.has(card.status)).length
+  if (scope.kind === 'sprint') {
+    const active = activeSprint(board.config)
+    if (active) {
+      return [
+        `Sprint ${active.id}`,
+        active.title,
+        active.end === '' ? '' : `ends ${active.end}`,
+        `${finished}/${lanes.length} done`,
+      ]
+        .filter(part => part !== '')
+        .join(' · ')
+    }
+  }
+  if (scope.kind === 'backlog') return `Backlog: ${lanes.length} card(s) in no sprint`
+  if (scope.kind === 'epic') {
+    const epic = board.cards.find(one => one.id === scope.id)
+
+    return `Epic ${scope.id} · ${epic?.title ?? '(gone)'} · ${progressBar(epicProgress(board, scope.id))}`
+  }
+
+  return `All cards: ${lanes.length}`
+}
+
 /** The row of controls above the board: what the keys and the drag do, as buttons. */
 export function toolbar(
   ui: Table,
@@ -47,18 +98,32 @@ export function toolbar(
   selected: string | null,
   sync: SyncState,
   isGatesOnly: boolean,
+  scope: Scope,
 ): RenderElement {
   const { Box, Text, Button } = ui
   const card = board.cards.find(one => one.id === selected)
   const isQueue = board.config.startMode === 'queue'
   const first = board.config.columns[0]?.id ?? 'backlog'
   const gates = board.cards.filter(one => isGate(one) && one.status !== ARCHIVED).length
+  const epics = openEpics(board).length
 
   return (
     <Box flexDirection="column">
+      <Text bold color="claude" wrap="truncate-end">
+        {scopeLine(board, scope)}
+      </Text>
       <Box flexDirection="row" gap={1} flexWrap="wrap">
         <Button key="new" hotkey="n" onPress={() => void setView(host, { kind: 'new', status: first })}>
           + New
+        </Button>
+        <Button key="scope" hotkey="v" onPress={() => void cycleScope(host)}>
+          {`Scope: ${scope.kind}`}
+        </Button>
+        <Button key="epics" hotkey="e" onPress={() => void setView(host, { kind: 'epics' })}>
+          {`Epics ${epics}`}
+        </Button>
+        <Button key="sprints" hotkey="p" onPress={() => void setView(host, { kind: 'sprints' })}>
+          Sprints
         </Button>
         {card && (
           <Button key="open" hotkey="o" onPress={() => void setView(host, { kind: 'card', id: card.id })}>
@@ -133,17 +198,22 @@ export function listBoard(ui: Table, host: Host, lanes: ClientBoard['lanes']): R
   )
 }
 
-export function newView(ui: Table, host: Host, board: Board, status: string): RenderElement {
+export function newView(ui: Table, host: Host, board: Board, status: string, scope: Scope): RenderElement {
   const { Box, Text, Button, Input, Select } = ui
+  const planned = plannedFor(board, scope)
   const create = async (title: string) => {
     if (title.trim() === '') return
-    await addCard(host, { title: title.trim(), status })
+    await addCard(host, { title: title.trim(), status, ...planned })
     await setView(host, BOARD)
   }
+  const into = [planned.sprint === '' ? '' : `sprint ${planned.sprint}`, planned.epic === '' ? '' : `epic ${planned.epic}`]
+    .filter(part => part !== '')
+    .join(', ')
 
   return (
     <Box flexDirection="column" gap={1} paddingX={1}>
       <Text bold>New card</Text>
+      {into !== '' && <Text dimColor>{`Goes into ${into}: the scope the board shows.`}</Text>}
       {Select && (
         <Select
           key="new-status"
@@ -183,7 +253,21 @@ export function cardView(ui: Table, host: Host, board: Board, card: Card, skills
   ]
     .filter(part => part !== '')
     .join(' · ')
-  const kinds = [TASK, GATE, ...(card.kind === TASK || card.kind === GATE ? [] : [card.kind])]
+  const kinds = [TASK, GATE, EPIC, ...([TASK, GATE, EPIC].includes(card.kind) ? [] : [card.kind])]
+  const epics = openEpics(board).filter(one => one.id !== card.id)
+  const epicOptions = [
+    { value: '', label: 'No epic' },
+    ...epics.map(one => ({ value: one.id, label: `${one.id} ${one.title}` })),
+    ...(card.epic !== '' && !epics.some(one => one.id === card.epic) ? [{ value: card.epic, label: card.epic }] : []),
+  ]
+  const sprints = board.config.sprints.filter(one => one.state !== 'closed' || one.id === card.sprint)
+  const sprintOptions = [
+    { value: '', label: 'No sprint (backlog)' },
+    ...sprints.map(one => ({ value: one.id, label: `${one.id} ${one.title} (${one.state})` })),
+    ...(card.sprint !== '' && !sprints.some(one => one.id === card.sprint) ? [{ value: card.sprint, label: card.sprint }] : []),
+  ]
+  const isAnEpic = isEpic(card)
+  const children = isAnEpic ? board.cards.filter(one => one.epic === card.id && one.status !== ARCHIVED) : []
 
   return (
     <Box flexDirection="column" gap={1} paddingX={1}>
@@ -192,11 +276,19 @@ export function cardView(ui: Table, host: Host, board: Board, card: Card, skills
           ‹ Kanban
         </Button>
         <Button key="start-new" variant="primary" onPress={() => void startCard(host, card.id, 'new-session')}>
-          Start in new session
+          {isAnEpic ? 'Break down in new session' : 'Start in new session'}
         </Button>
         <Button key="start-queue" onPress={() => void startCard(host, card.id, 'queue')}>
-          Queue in this session
+          {isAnEpic ? 'Break down here' : 'Queue in this session'}
         </Button>
+        {isAnEpic && (
+          <Button
+            key="epic-cards"
+            onPress={() => void setScope(host, { kind: 'epic', id: card.id }).then(() => setView(host, BOARD))}
+          >
+            Show its cards
+          </Button>
+        )}
         {isSuggested && (
           <Button key="accept" onPress={() => void acceptCard(host, card.id)}>
             Accept
@@ -208,6 +300,7 @@ export function cardView(ui: Table, host: Host, board: Board, card: Card, skills
       </Box>
       <Text bold>
         {isGate(card) ? <Text color="warning">gate </Text> : ''}
+        {isAnEpic ? <Text color="claude">epic </Text> : ''}
         {card.title} <Text dimColor>{`${card.id}${card.source === 'claude' ? ' · by Claude' : ''}`}</Text>
       </Text>
       {owed !== '' && <Text dimColor>{owed}</Text>}
@@ -239,6 +332,38 @@ export function cardView(ui: Table, host: Host, board: Board, card: Card, skills
           options={kinds.map(value => ({ value }))}
           onSelect={value => void patchCard(host, card.id, { kind: value })}
         />
+      )}
+      {Select && !isAnEpic && (
+        <Select
+          key="epic"
+          label="Epic"
+          value={card.epic}
+          options={epicOptions}
+          onSelect={value => void patchCard(host, card.id, { epic: value })}
+        />
+      )}
+      {Select && (
+        <Select
+          key="sprint"
+          label="Sprint"
+          value={card.sprint}
+          options={sprintOptions}
+          onSelect={value => void patchCard(host, card.id, { sprint: value })}
+        />
+      )}
+      {isAnEpic && (
+        <Box flexDirection="column">
+          <Text bold>
+            {'Cards '}
+            <Text dimColor>{progressBar(epicProgress(board, card.id))}</Text>
+          </Text>
+          {children.length === 0 && <Text dimColor>None yet: Break down hands the epic to an agent to slice.</Text>}
+          {children.map(one => (
+            <Button key={`child-${one.id}`} plain onPress={() => void setView(host, { kind: 'card', id: one.id })}>
+              {`${one.id} [${one.status}] ${one.title}`}
+            </Button>
+          ))}
+        </Box>
       )}
       {Input && (
         <Input
@@ -328,6 +453,145 @@ export function cardView(ui: Table, host: Host, board: Board, card: Card, skills
         />
       )}
       <Text dimColor wrap="truncate-start">{`${board.dir}/${card.file}`}</Text>
+    </Box>
+  )
+}
+
+/** The open epics with their progress: open one, show its cards on the board, or start a new one. */
+export function epicsView(ui: Table, host: Host, board: Board): RenderElement {
+  const { Box, Text, Button, Input } = ui
+  const epics = openEpics(board)
+  const create = async (title: string) => {
+    if (title.trim() === '') return
+    const card = await addEpic(host, title.trim())
+    await setView(host, { kind: 'card', id: card.id })
+  }
+
+  return (
+    <Box flexDirection="column" gap={1} paddingX={1}>
+      <Box flexDirection="row">
+        <Button key="back" hotkey="b" onPress={() => void setView(host, BOARD)}>
+          ‹ Kanban
+        </Button>
+      </Box>
+      <Text bold>Epics</Text>
+      <Text dimColor>
+        An epic holds a goal larger than one session. Its cards carry its goal into every agent that takes one.
+      </Text>
+      {epics.length === 0 && <Text dimColor>No open epics.</Text>}
+      {epics.map(epic => (
+        <Box key={`epic-${epic.id}`} flexDirection="row" gap={1} flexWrap="wrap">
+          <Text>
+            {`${progressBar(epicProgress(board, epic.id))}  `}
+            <Text bold>{epic.title}</Text> <Text dimColor>{epic.id}</Text>
+          </Text>
+          <Button key={`open-${epic.id}`} plain onPress={() => void setView(host, { kind: 'card', id: epic.id })}>
+            Open
+          </Button>
+          <Button
+            key={`show-${epic.id}`}
+            plain
+            onPress={() => void setScope(host, { kind: 'epic', id: epic.id }).then(() => setView(host, BOARD))}
+          >
+            Show cards
+          </Button>
+        </Box>
+      ))}
+      {Input ? (
+        <Input key="new-epic" label="New epic" placeholder="the goal, as a title" submitLabel="add" onSubmit={title => void create(title)} />
+      ) : (
+        <Text dimColor>Add one with /kanban epic &lt;title&gt;.</Text>
+      )}
+    </Box>
+  )
+}
+
+/** The sprints: plan one, start it, close it. Closing archives its done cards and rolls the rest on. */
+export function sprintsView(ui: Table, host: Host, board: Board): RenderElement {
+  const { Box, Text, Button, Input } = ui
+  const active = activeSprint(board.config)
+  const open = board.config.sprints.filter(sprint => sprint.state !== 'closed')
+  const closed = board.config.sprints.filter(sprint => sprint.state === 'closed').slice(-5).reverse()
+  const counts = (id: string) => board.cards.filter(card => card.sprint === id && card.status !== ARCHIVED).length
+  const close = async (id: string) => {
+    const preview = closePreview(board, id)
+    if (preview === undefined) return
+    const answer = await host.ask(`Close sprint ${id}? ${preview}`, ['Close it', 'Keep it open'])
+    if (answer === 'Close it') host.toast(await closeSprint(host, id))
+  }
+
+  return (
+    <Box flexDirection="column" gap={1} paddingX={1}>
+      <Box flexDirection="row">
+        <Button key="back" hotkey="b" onPress={() => void setView(host, BOARD)}>
+          ‹ Kanban
+        </Button>
+      </Box>
+      <Text bold>Sprints</Text>
+      <Text dimColor>
+        The board shows the active sprint. Closing it archives its done cards and moves the rest to the next planned
+        sprint, or to the backlog.
+      </Text>
+      {open.length === 0 && <Text dimColor>No sprint planned.</Text>}
+      {open.map(sprint => (
+        <Box key={`sprint-${sprint.id}`} flexDirection="column">
+          <Box flexDirection="row" gap={1} flexWrap="wrap">
+            <Text>
+              <Text bold color={sprint.state === 'active' ? 'claude' : 'text'}>
+                {`${sprint.id} ${sprint.title}`}
+              </Text>
+              <Text dimColor>{` ${sprint.state} · ${counts(sprint.id)} card(s)${sprint.end === '' ? '' : ` · ends ${sprint.end}`}`}</Text>
+            </Text>
+            {sprint.state === 'planned' && !active && (
+              <Button key={`start-${sprint.id}`} plain onPress={() => void startSprint(host, sprint.id).then(host.toast)}>
+                Start
+              </Button>
+            )}
+            <Button key={`close-${sprint.id}`} plain onPress={() => void close(sprint.id)}>
+              Close
+            </Button>
+          </Box>
+          {sprint.goal !== '' && <Text dimColor>{sprint.goal}</Text>}
+          {Input && (
+            <Input
+              key={`goal-${sprint.id}`}
+              label="Goal"
+              value={sprint.goal}
+              submitLabel="save"
+              onSubmit={goal => void patchSprint(host, sprint.id, { goal: goal.trim() })}
+            />
+          )}
+          {Input && (
+            <Input
+              key={`end-${sprint.id}`}
+              label="Ends"
+              value={sprint.end}
+              placeholder="YYYY-MM-DD"
+              submitLabel="save"
+              onSubmit={end => void patchSprint(host, sprint.id, { end: end.trim() })}
+            />
+          )}
+        </Box>
+      ))}
+      {Input ? (
+        <Input
+          key="new-sprint"
+          label="New sprint"
+          placeholder="its title"
+          submitLabel="plan"
+          onSubmit={title => {
+            if (title.trim() !== '') void addSprint(host, title.trim())
+          }}
+        />
+      ) : (
+        <Text dimColor>Plan one with /kanban sprint new &lt;title&gt;.</Text>
+      )}
+      {closed.length > 0 && <Text bold>Closed</Text>}
+      {closed.map(sprint => (
+        <Text key={`closed-${sprint.id}`} dimColor>
+          {`${sprint.id} ${sprint.title}: ${sprint.closed?.done ?? 0} done, ${sprint.closed?.rolled ?? 0} rolled on${sprint.closed?.at ? `, ${sprint.closed.at.slice(0, 10)}` : ''}`}
+        </Text>
+      ))}
     </Box>
   )
 }

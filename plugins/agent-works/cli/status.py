@@ -2,7 +2,8 @@
 
     aw status [--json] [--merges N]
 
-  the board    cards per column of the kanban folder, the open ones by title, and the gates still owed
+  the board    the active sprint, the open epics with their progress, cards per column of the kanban folder, the
+               open ones by title, and the gates still owed
   resources    locks held, leases in force and counters claimed, from the machine-wide store
   done         the last merges on this branch (git log), which is the project's record of what is finished
   status file  the status memory's place and size (its text is the goal and the current focus)
@@ -32,8 +33,13 @@ def board(root: Path) -> Optional[Dict[str, Any]]:
         done = kanban.done_column(data["config"])
         cards = [{"id": c.get("id"), "title": c.get("title"), "status": c.get("status"), "kind": c.get("kind") or "task",
                   "owner": c.get("owner") or "", "needs": c.get("needs") or "", "ref": c.get("ref") or "",
-                  "priority": c.get("priority") or "", "updated": c.get("updated") or ""} for c in data["cards"]]
+                  "priority": c.get("priority") or "", "updated": c.get("updated") or "",
+                  "epic": c.get("epic") or "", "sprint": c.get("sprint") or ""} for c in data["cards"]]
         done_id = (done or {}).get("id")
+        active = kanban.active_sprint(data["config"])
+        sprint = dict(active, line=kanban.sprint_line(active)) if active else None
+        epics = [{"id": e["id"], "title": e["title"], "done": d, "total": t, "bar": kanban.progress_bar(d, t)}
+                 for e in kanban.open_epics(data) for d, t in [kanban.epic_progress(data, e["id"])]]
     except Exception:
         cfg = common.load_config(root)
         folder = common.kanban_dir(cfg, common.main_root(root) or root)
@@ -42,6 +48,7 @@ def board(root: Path) -> Optional[Dict[str, Any]]:
         doc = common.read_json(folder / "board.json", {}) or {}
         columns = [{"id": c.get("id"), "title": c.get("title") or c.get("id")} for c in doc.get("columns") or [] if isinstance(c, dict)]
         done_id = next((c.get("id") for c in doc.get("columns") or [] if isinstance(c, dict) and c.get("done")), "done")
+        sprint, epics = None, []
         cards = []
         for p in sorted(folder.glob("*.md")):
             f, _ = common.parse_frontmatter(common.read_text(p, "") or "")
@@ -49,7 +56,8 @@ def board(root: Path) -> Optional[Dict[str, Any]]:
                 cards.append({"id": str(f["id"]), "title": str(f.get("title") or p.stem), "status": str(f["status"]),
                               "kind": str(f.get("kind") or "task"), "owner": str(f.get("owner") or ""),
                               "needs": str(f.get("needs") or ""), "ref": str(f.get("ref") or ""),
-                              "priority": str(f.get("priority") or ""), "updated": str(f.get("updated") or "")})
+                              "priority": str(f.get("priority") or ""), "updated": str(f.get("updated") or ""),
+                              "epic": str(f.get("epic") or ""), "sprint": str(f.get("sprint") or "")})
     known = [c["id"] for c in columns]
     for c in cards:
         if c["status"] not in known:
@@ -58,7 +66,8 @@ def board(root: Path) -> Optional[Dict[str, Any]]:
     for col in columns:
         col["count"] = sum(1 for c in cards if c["status"] == col["id"])
     gates = [c for c in cards if c["kind"] == "gate" and c["status"] != done_id]
-    return {"dir": common.posix(folder), "done": done_id, "columns": columns, "cards": cards, "gates": gates}
+    return {"dir": common.posix(folder), "done": done_id, "columns": columns, "cards": cards, "gates": gates,
+            "sprint": sprint, "epics": epics}
 
 
 def coordination(root: Path) -> Optional[Dict[str, Any]]:
@@ -137,10 +146,17 @@ def text_of(doc: Dict[str, Any]) -> str:
     lines.append("")
     if b:
         lines.append("board: " + ", ".join(f"{c['title']} {c['count']}" for c in b["columns"]))
+        sprint = b.get("sprint")
+        if sprint:
+            lines.append(sprint["line"])
+        for e in b.get("epics") or []:
+            lines.append(f"  epic {e['id']} {e['bar']}: {e['title']}")
         for col in b["columns"]:
             if col["id"] == b["done"]:
                 continue
-            for c in [c for c in b["cards"] if c["status"] == col["id"] and c["kind"] != "gate"][:12]:
+            # With a sprint active, the cards listed are the sprint's: the rest wait in the backlog.
+            for c in [c for c in b["cards"] if c["status"] == col["id"] and c["kind"] not in ("gate", "epic")
+                      and (not sprint or c["sprint"] == sprint["id"] or c["status"] == "suggested")][:12]:
                 lines.append(f"  [{col['title']}] {c['id']} {c['title']}" + (f"  ({c['owner']})" if c["owner"] else ""))
         if b["gates"]:
             lines.append(f"gates owed: {len(b['gates'])}")

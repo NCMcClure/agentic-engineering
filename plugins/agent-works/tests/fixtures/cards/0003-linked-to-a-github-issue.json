@@ -16,6 +16,8 @@
   "owner": "",
   "needs": "",
   "ref": "",
+  "epic": "",
+  "sprint": "",
   "body": "The issue's body, as the last sync left it.",
   "remote": {
     "provider": "github",

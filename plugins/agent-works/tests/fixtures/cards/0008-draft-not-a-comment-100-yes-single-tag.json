@@ -14,6 +14,8 @@
   "owner": "",
   "needs": "",
   "ref": "",
+  "epic": "",
+  "sprint": "",
   "body": "A body with a rule in it:\n\n---\n\nand a fence:\n\n```yaml\n---\nstatus: not-frontmatter\n---\n```",
   "remote": null,
   "extra": []

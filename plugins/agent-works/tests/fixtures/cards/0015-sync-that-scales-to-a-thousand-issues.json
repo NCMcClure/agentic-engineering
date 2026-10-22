@@ -1,0 +1,22 @@
+{
+  "id": "0015",
+  "file": "0015-sync-that-scales-to-a-thousand-issues.md",
+  "title": "Sync that scales to a thousand issues",
+  "status": "backlog",
+  "order": 1,
+  "priority": "high",
+  "labels": [],
+  "skills": [],
+  "source": "user",
+  "created": "2026-02-01T09:00:00.000Z",
+  "updated": "2026-02-01T09:00:00.000Z",
+  "kind": "epic",
+  "owner": "",
+  "needs": "",
+  "ref": "",
+  "epic": "",
+  "sprint": "",
+  "body": "## Goal\n\nA board linked to a repository with a thousand open issues syncs in under ten seconds.\n\n## Done looks like\n\n- One GraphQL round trip per page of issues.\n- No pull rewrites a card that did not change.",
+  "remote": null,
+  "extra": []
+}

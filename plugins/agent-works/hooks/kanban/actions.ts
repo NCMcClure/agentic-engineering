@@ -1,7 +1,17 @@
-import type { BoardConfig, Card, StartMode, View } from '../../types'
-import { ARCHIVED, SUGGESTED, doneColumnOf, planMove } from './cards'
+import type { Board, BoardConfig, Card, Scope, Sprint, StartMode, View } from '../../types'
+import {
+  ARCHIVED,
+  EPIC,
+  SUGGESTED,
+  activeSprint,
+  defaultScope,
+  doneColumnOf,
+  nextSprintId,
+  planMove,
+  planSprintClose,
+} from './cards'
 import { launch } from './launch'
-import { getBoard, writeCards, writeConfig } from './store'
+import { addCard, getBoard, nowIso, writeCards, writeConfig } from './store'
 import type { Host } from './host'
 
 let onChange: (host: Host) => void = () => undefined
@@ -70,7 +80,8 @@ export async function startCard(host: Host, id: string, mode?: StartMode): Promi
   const card = board.cards.find(one => one.id === id)
   const start = board.config.columns.find(column => column.role === 'start')
   if (!card) return
-  if (start && card.status !== start.id) {
+  // An epic is handed over to be broken down; it stays where it is.
+  if (start && card.status !== start.id && card.kind !== EPIC) {
     await moveCard(host, id, start.id, undefined, mode)
 
     return
@@ -100,11 +111,125 @@ export async function nudgeCard(host: Host, id: string, by: -1 | 1): Promise<voi
   await moveCard(host, id, card.status, Math.max(0, at + by))
 }
 
+/** Accepts a suggested card into the first column, and into the sprint or epic the board is scoped to. */
 export async function acceptCard(host: Host, id: string): Promise<void> {
   const board = await getBoard(host)
   const first = board.config.columns[0]
   const card = board.cards.find(one => one.id === id)
-  if (first && card?.status === SUGGESTED) await moveCard(host, id, first.id)
+  if (!first || card?.status !== SUGGESTED) return
+  const planned = plannedFor(board, await currentScope(host))
+  const patch = {
+    sprint: card.sprint === '' ? planned.sprint : card.sprint,
+    epic: card.epic === '' ? planned.epic : card.epic,
+  }
+  if (patch.sprint !== card.sprint || patch.epic !== card.epic) await patchCard(host, id, patch)
+  await moveCard(host, id, first.id)
+}
+
+/** The scope the lanes show: the person's choice, else the board's default. */
+export async function currentScope(host: Host): Promise<Scope> {
+  return (await host.state.scope.get()) ?? defaultScope((await getBoard(host)).config)
+}
+
+export async function setScope(host: Host, scope: Scope): Promise<void> {
+  await host.state.scope.set(() => scope)
+  await select(host, null)
+}
+
+/** The next scope of the toolbar's button: sprint (while one is active), backlog, all, and round. */
+export async function cycleScope(host: Host): Promise<void> {
+  const board = await getBoard(host)
+  const order: Scope['kind'][] = activeSprint(board.config) ? ['sprint', 'backlog', 'all'] : ['backlog', 'all']
+  const at = order.indexOf((await currentScope(host)).kind)
+  const kind = order[(at + 1) % order.length] ?? 'all'
+  await setScope(host, kind === 'sprint' ? { kind } : kind === 'backlog' ? { kind } : { kind: 'all' })
+}
+
+/** The sprint and epic a card made while the board shows `scope` belongs to. */
+export function plannedFor(board: Board, scope: Scope): { sprint: string; epic: string } {
+  const active = activeSprint(board.config)
+
+  return {
+    sprint: scope.kind === 'sprint' && active ? active.id : '',
+    epic: scope.kind === 'epic' ? scope.id : '',
+  }
+}
+
+/** A new epic card, in the first column. */
+export async function addEpic(host: Host, title: string, body = ''): Promise<Card> {
+  const board = await getBoard(host)
+  const card = await addCard(host, { title, status: board.config.columns[0]?.id ?? 'backlog', kind: EPIC, body })
+  onChange(host)
+
+  return card
+}
+
+async function today(host: Host): Promise<string> {
+  return (await nowIso(host)).slice(0, 10)
+}
+
+/** A new sprint, planned: it starts when the person starts it. */
+export async function addSprint(host: Host, title: string, goal = '', end = ''): Promise<Sprint> {
+  const board = await getBoard(host)
+  const sprint: Sprint = {
+    id: nextSprintId(board.config),
+    title,
+    goal,
+    start: '',
+    end,
+    state: 'planned',
+    closed: null,
+  }
+  await writeConfig(host, { ...board.config, sprints: [...board.config.sprints, sprint] })
+
+  return sprint
+}
+
+export async function patchSprint(host: Host, id: string, patch: Partial<Omit<Sprint, 'id'>>): Promise<void> {
+  const board = await getBoard(host)
+  if (!board.config.sprints.some(one => one.id === id)) return
+  await writeConfig(host, {
+    ...board.config,
+    sprints: board.config.sprints.map(one => (one.id === id ? { ...one, ...patch } : one)),
+  })
+}
+
+/** Starts a planned sprint, when none is active, and narrows the board to it. Answers what happened. */
+export async function startSprint(host: Host, id: string): Promise<string> {
+  const board = await getBoard(host)
+  const sprint = board.config.sprints.find(one => one.id === id)
+  const active = activeSprint(board.config)
+  if (!sprint) return `No sprint "${id}".`
+  if (sprint.state !== 'planned') return `Sprint ${id} is ${sprint.state}; only a planned sprint starts.`
+  if (active) return `Sprint ${active.id} is still active: close it first.`
+  await patchSprint(host, id, { state: 'active', start: sprint.start === '' ? await today(host) : sprint.start })
+  await setScope(host, { kind: 'sprint' })
+
+  return `Sprint ${id} "${sprint.title}" is active.`
+}
+
+/** What closing a sprint will do, in a sentence; undefined when it cannot close. */
+export function closePreview(board: Board, id: string): string | undefined {
+  const plan = planSprintClose(board, id, '')
+  if (!plan) return undefined
+  const done = plan.cards.filter(card => card.status === ARCHIVED).length
+  const rolled = plan.cards.length - done
+
+  return `${done} done card(s) archived, ${rolled} unfinished card(s) to ${plan.next ? `sprint ${plan.next.id}` : 'the backlog'}.`
+}
+
+/** Closes a sprint: its done cards are archived and the rest roll on, in one pass. Answers what happened. */
+export async function closeSprint(host: Host, id: string): Promise<string> {
+  const board = await getBoard(host)
+  const plan = planSprintClose(board, id, await nowIso(host))
+  if (!plan) return `No open sprint "${id}".`
+  const said = closePreview(board, id) ?? ''
+  if (plan.cards.length > 0) await writeCards(host, plan.cards)
+  await writeConfig(host, plan.config)
+  if ((await host.state.scope.get())?.kind === 'sprint') await host.state.scope.set(() => null)
+  onChange(host)
+
+  return `Sprint ${id} closed: ${said}`
 }
 
 export async function archiveCard(host: Host, id: string): Promise<void> {

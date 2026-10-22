@@ -4,6 +4,9 @@
     aw kanban add "<title>" [--details T | --from-file F] [--kind K] [--priority P] [--labels a,b] [--skills a,b]
                             [--owner O] [--ref R] [--needs N] [--status S | --suggest] [--source user|claude]
     aw kanban move <id> <status>
+    aw kanban plan <id> [--epic ID|none] [--sprint ID|active|none]
+    aw kanban epics
+    aw kanban sprint list | new "<title>" [--goal G] [--end YYYY-MM-DD] | start <id> | close [<id>]
     aw kanban owe "<title>" --ref R --needs N [--details T | --from-file F] [--owner O]
     aw kanban settle <id> --evidence "<the command and its result>"
     aw kanban lint [--json]
@@ -50,7 +53,9 @@ ARCHIVED = "archived"
 CONFIG_FILE = "board.json"
 TASK = "task"
 GATE = "gate"
-KINDS = (TASK, GATE)
+EPIC = "epic"
+KINDS = (TASK, GATE, EPIC)
+SPRINT_STATES = ("planned", "active", "closed")
 PRIORITIES = ("low", "normal", "high")
 LOCK_FILE = ".aw-kanban.lock"
 
@@ -67,7 +72,7 @@ DEFAULT_COLUMNS: List[Dict[str, Any]] = [
 
 KNOWN_KEYS = frozenset(
     ["id", "title", "status", "order", "priority", "labels", "skills", "source", "created", "updated",
-     "kind", "owner", "needs", "ref", "remote"])
+     "kind", "owner", "needs", "ref", "epic", "sprint", "remote"])
 
 _FRONTMATTER = re.compile(r"---\r?\n(.*?)\r?\n---[ \t]*(?:\r?\n|\Z)(.*)\Z", re.S)
 _PAIR = re.compile(r"^([ \t]*)([\w-]+):[ \t]*(.*)$", re.A)
@@ -262,6 +267,8 @@ def parse_card(file: str, text: str) -> Optional[Dict[str, Any]]:
         "owner": _text(data.get("owner")),
         "needs": _text(data.get("needs")),
         "ref": _text(data.get("ref")),
+        "epic": _text(data.get("epic")),
+        "sprint": _text(data.get("sprint")),
         "body": body,
         "remote": _remote(data.get("remote")),
         "extra": extra,
@@ -285,7 +292,7 @@ def serialize_card(card: Dict[str, Any]) -> str:
     ]
     if card.get("kind") not in (TASK, "", None):
         lines.append(f"kind: {card['kind']}")
-    for key in ("owner", "needs", "ref"):
+    for key in ("owner", "needs", "ref", "epic", "sprint"):
         if card.get(key):
             lines.append(f"{key}: {_dumps(card[key])}")
     remote = card.get("remote")
@@ -310,7 +317,8 @@ def new_card(card_id: str, title: str, status: str, order: int, now: str, **more
     card: Dict[str, Any] = {
         "id": card_id, "file": file_name(card_id, title), "title": title, "status": status, "order": order,
         "priority": "normal", "labels": [], "skills": [], "source": "user", "created": now, "updated": now,
-        "kind": TASK, "owner": "", "needs": "", "ref": "", "body": "", "remote": None, "extra": [],
+        "kind": TASK, "owner": "", "needs": "", "ref": "", "epic": "", "sprint": "", "body": "", "remote": None,
+        "extra": [],
     }
     card.update(more)
     return card
@@ -320,11 +328,46 @@ def is_gate(card: Dict[str, Any]) -> bool:
     return card.get("kind") == GATE
 
 
+def is_epic(card: Dict[str, Any]) -> bool:
+    return card.get("kind") == EPIC
+
+
 # -------------------------------------------------------------------------------------------------------- the board
 
+def _count(value: Any) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+
+
+def _sprints(value: Any) -> List[Dict[str, Any]]:
+    """The sprints of board.json as the pane reads them: no id, no sprint; only the first active one stays active."""
+    out: List[Dict[str, Any]] = []
+    has_active = False
+    for one in value if isinstance(value, list) else []:
+        if not isinstance(one, dict) or not isinstance(one.get("id"), str) or one["id"] == "":
+            continue
+        state = one.get("state") if one.get("state") in ("active", "closed") else "planned"
+        if state == "active" and has_active:
+            state = "planned"
+        has_active = has_active or state == "active"
+        closed = one.get("closed")
+        out.append({
+            "id": one["id"],
+            "title": one["title"] if isinstance(one.get("title"), str) and one["title"] != "" else one["id"],
+            "goal": one["goal"] if isinstance(one.get("goal"), str) else "",
+            "start": one["start"] if isinstance(one.get("start"), str) else "",
+            "end": one["end"] if isinstance(one.get("end"), str) else "",
+            "state": state,
+            "closed": {"at": closed["at"] if isinstance(closed.get("at"), str) else "",
+                       "done": _count(closed.get("done")), "rolled": _count(closed.get("rolled"))}
+            if isinstance(closed, dict) else None,
+        })
+    return out
+
+
 def parse_config(text: Optional[str]) -> Dict[str, Any]:
-    """``board.json`` as the pane reads it: its columns, else the four default ones."""
-    fallback = {"columns": [dict(c) for c in DEFAULT_COLUMNS], "startMode": "new-session", "remote": {"enabled": False}}
+    """``board.json`` as the pane reads it: its columns, else the four default ones, and its sprints."""
+    fallback = {"columns": [dict(c) for c in DEFAULT_COLUMNS], "startMode": "new-session", "remote": {"enabled": False},
+                "sprints": []}
     try:
         raw = json.loads(text or "")
     except ValueError:
@@ -343,7 +386,16 @@ def parse_config(text: Optional[str]) -> Dict[str, Any]:
         "columns": columns or fallback["columns"],
         "startMode": raw.get("startMode") if raw.get("startMode") in ("queue", "new-session") else "new-session",
         "remote": {"enabled": remote.get("enabled") is True},
+        "sprints": _sprints(raw.get("sprints")),
     }
+
+
+def serialize_config(config: Dict[str, Any]) -> str:
+    """board.json byte for byte as the pane's ``serializeConfig`` writes it: ``sprints`` only once there is one."""
+    out = {key: config[key] for key in ("columns", "startMode", "remote")}
+    if config.get("sprints"):
+        out["sprints"] = config["sprints"]
+    return json.dumps(out, ensure_ascii=False, indent=2) + "\n"
 
 
 def resolve(start: common.Pathish = None) -> Tuple[Path, bool, Path]:
@@ -434,8 +486,131 @@ def find_duplicate(board: Dict[str, Any], title: str, ref: Optional[str] = None)
 def card_line(card: Dict[str, Any]) -> str:
     owner = f" @{card['owner']}" if card["owner"] else ""
     owed = "; ".join(p for p in (f"for {card['ref']}" if card["ref"] else "",
-                                 f"needs {card['needs']}" if card["needs"] else "") if p)
+                                 f"needs {card['needs']}" if card["needs"] else "",
+                                 f"epic {card['epic']}" if card.get("epic") else "",
+                                 f"sprint {card['sprint']}" if card.get("sprint") else "") if p)
     return f"{card['id']} [{card['status']}] {card['kind']}{owner}: {card['title']}" + (f" ({owed})" if owed else "")
+
+
+# ----------------------------------------------------------------------------------------------- epics and sprints
+
+def active_sprint(config: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    return next((s for s in config.get("sprints") or [] if s["state"] == "active"), None)
+
+
+def next_sprint_id(config: Dict[str, Any]) -> str:
+    return f"s{max([_leading_int(s['id'][1:] if s['id'].startswith('s') else s['id']) for s in config.get('sprints') or []] + [0]) + 1}"
+
+
+def default_scope(config: Dict[str, Any]) -> Dict[str, Any]:
+    return {"kind": "sprint"} if active_sprint(config) else {"kind": "all"}
+
+
+def in_scope(config: Dict[str, Any], card: Dict[str, Any], scope: Dict[str, Any]) -> bool:
+    """The pane's ``inScope``: epics are in no lane, Suggested is in every scope, no active sprint is every card."""
+    if is_epic(card):
+        return False
+    if card["status"] == SUGGESTED:
+        return True
+    kind = scope["kind"]
+    if kind == "sprint":
+        active = active_sprint(config)
+        return active is None or card["sprint"] == active["id"]
+    if kind == "backlog":
+        return card["sprint"] == ""
+    if kind == "epic":
+        return card["epic"] == scope["id"]
+    return True
+
+
+def scope_label(config: Dict[str, Any], scope: Dict[str, Any]) -> str:
+    if scope["kind"] == "sprint":
+        active = active_sprint(config)
+        return f"sprint {active['id']}" if active else "all"
+    if scope["kind"] == "epic":
+        return f"epic {scope['id']}"
+    return scope["kind"]
+
+
+def parse_scope(text: str, board: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """``sprint``, ``backlog``, ``all`` or an epic's id; empty is the board's default; None names nothing."""
+    wanted = (text or "").strip().lower()
+    if wanted == "":
+        return default_scope(board["config"])
+    if wanted in ("sprint", "backlog", "all"):
+        return {"kind": wanted}
+    epic = next((c for c in board["cards"] if is_epic(c) and c["id"] in (wanted, wanted.rjust(4, "0"))), None)
+    return {"kind": "epic", "id": epic["id"]} if epic else None
+
+
+def done_ids(config: Dict[str, Any]) -> set:
+    return {c["id"] for c in config["columns"] if c["role"] == "done"}
+
+
+def epic_progress(board: Dict[str, Any], epic_id: str) -> Tuple[int, int]:
+    """(done, total) of an epic's cards; an archived card counts as finished."""
+    done = done_ids(board["config"])
+    children = [c for c in board["cards"] if c["epic"] == epic_id and not is_epic(c) and c["status"] != SUGGESTED]
+    return sum(1 for c in children if c["status"] == ARCHIVED or c["status"] in done), len(children)
+
+
+def open_epics(board: Dict[str, Any]) -> List[Dict[str, Any]]:
+    done = done_ids(board["config"])
+    return sorted((c for c in board["cards"] if is_epic(c) and c["status"] != ARCHIVED and c["status"] not in done),
+                  key=_by_order)
+
+
+def progress_bar(done: int, total: int, width: int = 8) -> str:
+    filled = 0 if total == 0 else int(done / total * width + 0.5)  # Math.round, for the halves a count can make
+    return f"{'▰' * filled}{'▱' * (width - filled)} {done}/{total}"
+
+
+def sprint_line(sprint: Dict[str, Any]) -> str:
+    when = f", ends {sprint['end']}" if sprint["end"] else ""
+    goal = f": {sprint['goal']}" if sprint["goal"] else ""
+    return f'Sprint {sprint["id"]} "{sprint["title"]}" ({sprint["state"]}{when}){goal}'
+
+
+def listing(board: Dict[str, Any], scope: Dict[str, Any], kind: Optional[str] = None) -> List[str]:
+    """The pane's ``listing``: columns, active sprint, open epics, the scope's cards, and how many it left out."""
+    config = board["config"]
+    order = [SUGGESTED, *column_ids(config)]
+    rank = {cid: i for i, cid in enumerate(order)}
+    open_cards = [c for c in board["cards"] if c["status"] != ARCHIVED and not is_epic(c)]
+    shown = sorted((c for c in open_cards if in_scope(config, c, scope) and (kind is None or c["kind"] == kind)),
+                   key=lambda c: (rank.get(c["status"], len(order)), c["order"], c["id"]))
+    active = active_sprint(config)
+    hidden = len([c for c in open_cards if kind is None or c["kind"] == kind]) - len(shown)
+    label = scope_label(config, scope)
+    lines = [f"Columns: {', '.join(column_ids(config))} (plus {SUGGESTED})"]
+    if active:
+        lines.append(sprint_line(active))
+    lines += [f"Epic {e['id']} {progress_bar(*epic_progress(board, e['id']))}: {e['title']}" for e in open_epics(board)]
+    if label != "all":
+        lines.append(f"Scope: {label}")
+    lines += [card_line(c) for c in shown]
+    if not shown:
+        lines.append("No cards in this scope.")
+    if hidden > 0:
+        lines.append(f'{hidden} more open card(s) outside this scope (scope "all" lists them).')
+    return lines
+
+
+def plan_sprint_close(board: Dict[str, Any], sprint_id: str, now: str
+                      ) -> Optional[Tuple[List[Dict[str, Any]], Dict[str, Any], Optional[Dict[str, Any]]]]:
+    """The pane's ``planSprintClose``: (changed cards, new config, the sprint the rest rolls to); None if not open."""
+    config = board["config"]
+    sprint = next((s for s in config["sprints"] if s["id"] == sprint_id), None)
+    if sprint is None or sprint["state"] == "closed":
+        return None
+    done = done_ids(config)
+    nxt = next((s for s in config["sprints"] if s["id"] != sprint_id and s["state"] == "planned"), None)
+    cards = [dict(c, status=ARCHIVED) if c["status"] in done else dict(c, sprint=nxt["id"] if nxt else "")
+             for c in board["cards"] if c["sprint"] == sprint_id and c["status"] != ARCHIVED]
+    archived = sum(1 for c in cards if c["status"] == ARCHIVED)
+    closed = {"at": now, "done": archived, "rolled": len(cards) - archived}
+    sprints = [dict(s, state="closed", closed=closed) if s["id"] == sprint_id else s for s in config["sprints"]]
+    return cards, dict(config, sprints=sprints), nxt
 
 
 def find_card(cards: List[Dict[str, Any]], card_id: str) -> Optional[Dict[str, Any]]:
@@ -483,6 +658,10 @@ def write_cards(folder: Path, cards: List[Dict[str, Any]], stamp: Optional[str] 
         common.atomic_write(folder / card["file"], serialize_card(dict(card, updated=stamp)))
 
 
+def write_config(folder: Path, config: Dict[str, Any]) -> None:
+    common.atomic_write(folder / CONFIG_FILE, serialize_config(config))
+
+
 def add_card(folder: Path, title: str, status: Optional[str] = None, **more: Any) -> Dict[str, Any]:
     """Allocate the next id and write the card at the end of its lane (the first column unless ``status``)."""
     folder.mkdir(parents=True, exist_ok=True)
@@ -508,6 +687,90 @@ def move_card(folder: Path, card_id: str, status: str) -> Dict[str, Any]:
                 f"(plus {SUGGESTED} and {ARCHIVED})")
         write_cards(folder, plan_move(board["cards"], card["id"], status))
         return dict(card, status=status)
+
+
+def _epic_of(board: Dict[str, Any], epic_id: str) -> Dict[str, Any]:
+    epic = find_card(board["cards"], epic_id)
+    if epic is None or not is_epic(epic):
+        raise common.AwError(f'"{epic_id}" is no epic (aw kanban epics lists them)')
+    return epic
+
+
+def _sprint_of(config: Dict[str, Any], sprint_id: str) -> Dict[str, Any]:
+    """An open sprint by id, or ``active`` for the active one."""
+    if sprint_id == "active":
+        active = active_sprint(config)
+        if active is None:
+            raise common.AwError("no sprint is active")
+        return active
+    sprint = next((s for s in config["sprints"] if s["id"] == sprint_id and s["state"] != "closed"), None)
+    if sprint is None:
+        open_ids = [s["id"] for s in config["sprints"] if s["state"] != "closed"]
+        raise common.AwError(f'no open sprint "{sprint_id}" (open: {", ".join(open_ids) or "none"})')
+    return sprint
+
+
+def plan_card(folder: Path, card_id: str, epic: Optional[str], sprint: Optional[str]) -> Dict[str, Any]:
+    """Puts a card in an epic and/or a sprint; ``none`` takes it out."""
+    with _Lock(folder):
+        board = load(folder)
+        card = find_card(board["cards"], card_id)
+        if card is None:
+            raise common.AwError(f'no card with id "{card_id}" (aw kanban list shows the ids)')
+        changed = dict(card)
+        if epic is not None:
+            changed["epic"] = "" if epic == "none" else _epic_of(board, epic)["id"]
+            if changed["epic"] == card["id"]:
+                raise common.AwError("an epic is not a card of its own")
+        if sprint is not None:
+            changed["sprint"] = "" if sprint == "none" else _sprint_of(board["config"], sprint)["id"]
+        write_cards(folder, [changed])
+        return changed
+
+
+def add_sprint(folder: Path, title: str, goal: str = "", end: str = "") -> Dict[str, Any]:
+    folder.mkdir(parents=True, exist_ok=True)
+    with _Lock(folder):
+        config = load(folder)["config"]
+        sprint = {"id": next_sprint_id(config), "title": title, "goal": goal, "start": "", "end": end,
+                  "state": "planned", "closed": None}
+        write_config(folder, dict(config, sprints=[*config["sprints"], sprint]))
+        return sprint
+
+
+def start_sprint(folder: Path, sprint_id: str) -> Dict[str, Any]:
+    with _Lock(folder):
+        config = load(folder)["config"]
+        sprint = next((s for s in config["sprints"] if s["id"] == sprint_id), None)
+        if sprint is None:
+            raise common.AwError(f'no sprint "{sprint_id}" (aw kanban sprint list shows them)')
+        if sprint["state"] != "planned":
+            raise common.AwError(f"sprint {sprint_id} is {sprint['state']}; only a planned sprint starts")
+        active = active_sprint(config)
+        if active is not None:
+            raise common.AwError(f"sprint {active['id']} is still active: close it first")
+        started = dict(sprint, state="active", start=sprint["start"] or now_iso()[:10])
+        write_config(folder, dict(config, sprints=[started if s["id"] == sprint_id else s for s in config["sprints"]]))
+        return started
+
+
+def close_sprint(folder: Path, sprint_id: Optional[str]) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
+    """Archives the sprint's done cards and rolls the rest on; (the closed sprint, the sprint they rolled to)."""
+    with _Lock(folder):
+        board = load(folder)
+        if not sprint_id:
+            active = active_sprint(board["config"])
+            if active is None:
+                raise common.AwError("no sprint is active: name the one to close")
+            sprint_id = active["id"]
+        stamp = now_iso()
+        plan = plan_sprint_close(board, sprint_id, stamp)
+        if plan is None:
+            raise common.AwError(f'no open sprint "{sprint_id}"')
+        cards, config, nxt = plan
+        write_cards(folder, cards, stamp)
+        write_config(folder, config)
+        return next(s for s in config["sprints"] if s["id"] == sprint_id), nxt
 
 
 def settle_gate(folder: Path, card_id: str, evidence: str, by: Optional[str] = None) -> Dict[str, Any]:
@@ -597,6 +860,15 @@ def findings(start: common.Pathish = None) -> List[Finding]:
     seen: Dict[str, str] = {}
     start_ids = {c["id"] for c in config["columns"] if c["role"] == "start"}
     done_ids = {c["id"] for c in config["columns"] if c["role"] == "done"}
+    epic_ids = {c["id"] for c in board["cards"] if is_epic(c)}
+    sprint_ids = {s["id"] for s in config["sprints"]}
+    active = active_sprint(config)
+    if active is not None and active["end"]:
+        age = _age_days(active["end"])
+        if age is not None and age > 1:  # the end day itself still counts
+            out.append(Finding("KANBAN_SPRINT_OVERDUE", "warning", f"{where}/{CONFIG_FILE}", 0,
+                               f"sprint {active['id']} ended {active['end']} and is still active: close it "
+                               "(aw kanban sprint close) or move its end"))
     stale_after = _days(cfg, "staleStartDays", STALE_START_DAYS)
     owed_after = _days(cfg, "gateOwedDays", GATE_OWED_DAYS)
     for card in board["cards"]:
@@ -613,7 +885,7 @@ def findings(start: common.Pathish = None) -> List[Finding]:
         if card["title"].strip() == "":
             problems.append("no title")
         if card["kind"] not in KINDS:
-            problems.append(f'kind "{card["kind"]}" is neither task nor gate')
+            problems.append(f'kind "{card["kind"]}" is not task, gate or epic')
         if is_gate(card) and not card["ref"]:
             problems.append("a gate without ref: what is it owed for?")
         for key in ("created", "updated"):
@@ -621,6 +893,12 @@ def findings(start: common.Pathish = None) -> List[Finding]:
                 problems.append(f"{key} is not a date")
         for problem in problems:
             out.append(Finding("KANBAN_CARD_INVALID", "warning", path, 0, problem))
+        if card["epic"] and card["epic"] not in epic_ids:
+            out.append(Finding("KANBAN_EPIC_UNKNOWN", "warning", path, 0,
+                               f'epic "{card["epic"]}" is no epic card of this board'))
+        if card["sprint"] and card["sprint"] not in sprint_ids:
+            out.append(Finding("KANBAN_SPRINT_UNKNOWN", "warning", path, 0,
+                               f'sprint "{card["sprint"]}" is no sprint of this board (aw kanban sprint list)'))
         if not is_known_status(config, card["status"]):
             out.append(Finding("KANBAN_STATUS_UNKNOWN", "warning", path, 0,
                                f'status "{card["status"]}" is no column of this board '
@@ -675,17 +953,28 @@ def card_json(card: Dict[str, Any]) -> Dict[str, Any]:
 def cmd_list(args: argparse.Namespace) -> int:
     folder, is_old, _root = resolve()
     board = load(folder)
+    # --status and --all look across the whole board; otherwise the listing is the scope's, as list_tasks gives it.
+    scope = {"kind": "all"} if args.status or args.all else parse_scope(args.scope or "", board)
+    if scope is None:
+        raise common.AwError(f'no scope "{args.scope}": sprint, backlog, all, or an epic\'s card id')
+    if not args.json and not args.status and not args.all:
+        if not folder.is_dir():
+            common.emit(f"No board yet: {common.posix(folder)} does not exist.")
+            return 0
+        common.emit("\n".join(listing(board, scope, args.kind)))
+        return 0
     cards = sorted(board["cards"], key=lambda c: (c["status"], c["order"], c["id"]))
     if args.status:
         cards = [c for c in cards if c["status"] == args.status]
     elif not args.all:
-        cards = [c for c in cards if c["status"] != ARCHIVED]
+        cards = [c for c in cards if c["status"] != ARCHIVED and (is_epic(c) or in_scope(board["config"], c, scope))]
     if args.kind:
         cards = [c for c in cards if c["kind"] == args.kind]
     order = {cid: i for i, cid in enumerate([SUGGESTED, *column_ids(board["config"])])}
     cards.sort(key=lambda c: (order.get(c["status"], len(order)), c["order"], c["id"]))
     if args.json:
         common.emit({"dir": common.posix(folder), "oldFolder": is_old, "columns": board["config"]["columns"],
+                     "sprints": board["config"]["sprints"], "scope": scope_label(board["config"], scope),
                      "cards": [card_json(c) for c in cards]}, True)
         return 0
     lines = [f"Columns: {', '.join(column_ids(board['config']))} (plus {SUGGESTED})"]
@@ -706,13 +995,15 @@ def cmd_add(args: argparse.Namespace) -> int:
     if status and not is_known_status(board["config"], status):
         raise common.AwError(f'no column "{status}": the columns are {", ".join(column_ids(board["config"]))}')
     kind = args.kind or TASK
+    epic = _epic_of(board, args.epic)["id"] if args.epic else ""
+    sprint = _sprint_of(board["config"], args.sprint)["id"] if args.sprint else ""
     twin = find_duplicate(board, title, args.ref if kind == GATE else None)
     if twin is not None and not args.allow_duplicate:
         common.emit(f"Already on the kanban board as card {twin['id']} ({twin['status']}); nothing added.")
         return 1
     card = add_card(folder, title, status, kind=kind, priority=args.priority or "normal", labels=_list(args.labels),
                     skills=_list(args.skills), owner=(args.owner or "").strip(), ref=(args.ref or "").strip(),
-                    needs=(args.needs or "").strip(), source=_source(args), body=_body(args))
+                    needs=(args.needs or "").strip(), epic=epic, sprint=sprint, source=_source(args), body=_body(args))
     common.emit(card_json(card) if args.json else f"Added card {card['id']} [{card['status']}]: {card['title']}",
                 args.json)
     return 0
@@ -730,12 +1021,14 @@ def cmd_owe(args: argparse.Namespace) -> int:
     if not title or not ref or not needs:
         raise common.AwError("a gate needs a title, what it is owed for (--ref) and what running it needs (--needs)")
     folder, _is_old, _root = resolve()
-    twin = find_duplicate(load(folder), title, ref)
+    board = load(folder)
+    twin = find_duplicate(board, title, ref)
     if twin is not None:
         common.emit(f"Already owed as card {twin['id']} ({twin['status']}); nothing added.")
         return 1
+    active = active_sprint(board["config"])  # an owed gate stays in view: it joins the sprint the board shows
     card = add_card(folder, title, None, kind=GATE, ref=ref, needs=needs, owner=(args.owner or "").strip(),
-                    source=_source(args), body=_body(args))
+                    sprint=active["id"] if active else "", source=_source(args), body=_body(args))
     common.emit(card_json(card) if args.json else
                 f"Owed as gate card {card['id']}: {card['title']} (for {ref}; needs {needs}). "
                 f"Settle it with: aw kanban settle {card['id']} --evidence \"…\"", args.json)
@@ -749,6 +1042,60 @@ def cmd_settle(args: argparse.Namespace) -> int:
     folder, _is_old, _root = resolve()
     card = settle_gate(folder, args.id, evidence, common.agent_name())
     common.emit(f"Gate {card['id']} is settled and in {card['status']}.")
+    return 0
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    if args.epic is None and args.sprint is None:
+        raise common.AwError("nothing to change: give --epic or --sprint")
+    folder, _is_old, _root = resolve()
+    card = plan_card(folder, args.id, args.epic, args.sprint)
+    common.emit(f"Card {card['id']}: epic {card['epic'] or 'none'}, sprint {card['sprint'] or 'none'}.")
+    return 0
+
+
+def cmd_epics(args: argparse.Namespace) -> int:
+    folder, _is_old, _root = resolve()
+    board = load(folder)
+    epics = open_epics(board)
+    if args.json:
+        common.emit([dict(card_json(e), progress=dict(zip(("done", "total"), epic_progress(board, e["id"]))))
+                     for e in epics], True)
+        return 0
+    lines = [f"{e['id']} {progress_bar(*epic_progress(board, e['id']))}: {e['title']}" for e in epics]
+    common.emit("\n".join(lines) if lines else 'No open epics. Add one: aw kanban add "<goal>" --kind epic')
+    return 0
+
+
+def cmd_sprint(args: argparse.Namespace) -> int:
+    folder, _is_old, _root = resolve()
+    action = args.sprint_command
+    if action == "new":
+        title = args.title.strip()
+        if not title:
+            raise common.AwError("a sprint needs a title")
+        sprint = add_sprint(folder, title, (args.goal or "").strip(), (args.end or "").strip())
+        common.emit(f"Planned sprint {sprint['id']}: {sprint['title']}. Start it: aw kanban sprint start {sprint['id']}")
+    elif action == "start":
+        sprint = start_sprint(folder, args.id)
+        common.emit(f"Sprint {sprint['id']} \"{sprint['title']}\" is active.")
+    elif action == "close":
+        sprint, nxt = close_sprint(folder, args.id)
+        closed = sprint["closed"]
+        common.emit(f"Sprint {sprint['id']} closed: {closed['done']} done card(s) archived, {closed['rolled']} "
+                    f"unfinished card(s) to {'sprint ' + nxt['id'] if nxt else 'the backlog'}.")
+    else:
+        board = load(folder)
+        if args.json:
+            common.emit(board["config"]["sprints"], True)
+            return 0
+        lines = []
+        for s in board["config"]["sprints"]:
+            count = sum(1 for c in board["cards"] if c["sprint"] == s["id"] and c["status"] != ARCHIVED)
+            lines.append(sprint_line(s) + (f" · {count} card(s)" if s["state"] != "closed" else
+                                           f" · {s['closed']['done']} done, {s['closed']['rolled']} rolled on"
+                                           if s["closed"] else ""))
+        common.emit("\n".join(lines) if lines else 'No sprints. Plan one: aw kanban sprint new "<title>"')
     return 0
 
 
@@ -768,7 +1115,7 @@ def _guarded(func: Any) -> Any:
 
 def register(subparsers: Any) -> None:
     parser = subparsers.add_parser(
-        "kanban", help="the task board: list, add, move, owe, settle, lint",
+        "kanban", help="the task board: list, add, move, plan, epics, sprint, owe, settle, lint",
         description="The project's kanban board, for agents and scripts: the same cards the /kanban pane shows. "
                     "Cards live in the main working tree's kanban folder, so every worktree works one board.")
     sub = parser.add_subparsers(dest="kanban_command", metavar="<action>")
@@ -777,7 +1124,8 @@ def register(subparsers: Any) -> None:
     p.add_argument("--json", action="store_true")
     p.add_argument("--status", help="only the cards of this column (or suggested, archived)")
     p.add_argument("--kind", help="only cards of this kind: task or gate")
-    p.add_argument("--all", action="store_true", help="archived cards too")
+    p.add_argument("--all", action="store_true", help="every card, archived ones too")
+    p.add_argument("--scope", help="sprint (the active one, the default), backlog (no sprint), all, or an epic's id")
     p.set_defaults(func=_guarded(cmd_list))
 
     def details(p: argparse.ArgumentParser) -> None:
@@ -798,6 +1146,8 @@ def register(subparsers: Any) -> None:
     p.add_argument("--ref", help="what the card is for: a pull request, an issue, another card")
     p.add_argument("--needs", help="what doing it needs")
     p.add_argument("--status", help="the column to add it to (default: the first)")
+    p.add_argument("--epic", help="the id of the epic card it belongs to")
+    p.add_argument("--sprint", help="the sprint it is planned into: an id, or active")
     p.add_argument("--suggest", action="store_true", help="add it to the Suggested lane, for the owner to accept")
     p.add_argument("--allow-duplicate", action="store_true", help="add it although an open card has this title")
     p.set_defaults(func=_guarded(cmd_add))
@@ -806,6 +1156,30 @@ def register(subparsers: Any) -> None:
     p.add_argument("id")
     p.add_argument("status", help="a column id, or suggested, or archived")
     p.set_defaults(func=_guarded(cmd_move))
+
+    p = sub.add_parser("plan", help="put a card in an epic or a sprint (none takes it out)")
+    p.add_argument("id")
+    p.add_argument("--epic", help="an epic's card id, or none")
+    p.add_argument("--sprint", help="a sprint id, active, or none")
+    p.set_defaults(func=_guarded(cmd_plan))
+
+    p = sub.add_parser("epics", help="the open epics with their progress")
+    p.add_argument("--json", action="store_true")
+    p.set_defaults(func=_guarded(cmd_epics))
+
+    p = sub.add_parser("sprint", help="plan, start and close sprints")
+    p.set_defaults(func=_guarded(cmd_sprint), sprint_command="list", json=False)
+    ssub = p.add_subparsers(dest="sprint_command", metavar="<list|new|start|close>")
+    q = ssub.add_parser("list", help="the sprints")
+    q.add_argument("--json", action="store_true")
+    q = ssub.add_parser("new", help="plan a sprint")
+    q.add_argument("title")
+    q.add_argument("--goal", help="what the sprint is for, in a sentence")
+    q.add_argument("--end", help="its last day, YYYY-MM-DD")
+    q = ssub.add_parser("start", help="make a planned sprint the active one")
+    q.add_argument("id")
+    q = ssub.add_parser("close", help="archive its done cards, roll the rest to the next planned sprint or the backlog")
+    q.add_argument("id", nargs="?")
 
     p = sub.add_parser("owe", help="record a gate that is owed: a check still to be run")
     p.add_argument("title")

@@ -1,18 +1,25 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import type { Board, Card } from '../../types'
+import type { Board, Card, Sprint } from '../../types'
 import {
   cardHash,
   cardLine,
   defaultConfig,
+  defaultScope,
   doneColumnOf,
+  epicProgress,
   fileName,
   findDuplicate,
+  listing,
   nextId,
+  nextSprintId,
   parseCard,
   parseConfig,
+  parseScope,
   planMove,
+  planSprintClose,
   serializeCard,
+  serializeConfig,
   toClientBoard,
 } from './cards'
 import { GOLDEN } from './cards.golden'
@@ -35,6 +42,8 @@ function card(id: string, status: string, order: number, more: Partial<Card> = {
     owner: '',
     needs: '',
     ref: '',
+    epic: '',
+    sprint: '',
     body: '',
     remote: null,
     extra: [],
@@ -233,7 +242,150 @@ describe('the board drawn', () => {
   })
 })
 
+function sprint(id: string, state: Sprint['state'], more: Partial<Sprint> = {}): Sprint {
+  return { id, title: `Sprint ${id}`, goal: '', start: '', end: '', state, closed: null, ...more }
+}
+
+function planned(cards: Card[], sprints: Sprint[]): Board {
+  const held = board(cards)
+
+  return { ...held, config: { ...held.config, sprints } }
+}
+
+/** The board.json both twins read: tests/test_kanban.py holds cli/kanban.py to the same values. */
+const SPRINT_CONFIG = `{
+  "columns": [
+    { "id": "todo", "title": "To do" },
+    { "id": "doing", "title": "Doing", "role": "start" },
+    { "id": "done", "title": "Done", "role": "done" }
+  ],
+  "sprints": [
+    { "id": "s1", "title": "First", "state": "closed", "closed": { "at": "2026-01-14T00:00:00.000Z", "done": 4, "rolled": 1 } },
+    { "id": "s2", "title": "Second", "goal": "Ship it", "start": "2026-01-15", "end": "2026-01-29", "state": "active" },
+    { "id": "s3", "state": "active" },
+    { "title": "no id" },
+    { "id": "s4", "title": "", "state": "someday", "closed": "no" }
+  ]
+}`
+
+describe('epics and sprints', () => {
+  test('board.json sprints parse, a second active one waits as planned, and an empty list is not written', () => {
+    const config = parseConfig(SPRINT_CONFIG, defaultConfig('new-session'))
+    expect(config.sprints).toEqual([
+      sprint('s1', 'closed', { title: 'First', closed: { at: '2026-01-14T00:00:00.000Z', done: 4, rolled: 1 } }),
+      sprint('s2', 'active', { title: 'Second', goal: 'Ship it', start: '2026-01-15', end: '2026-01-29' }),
+      sprint('s3', 'planned', { title: 's3' }),
+      sprint('s4', 'planned', { title: 's4' }),
+    ])
+    expect(nextSprintId(config)).toBe('s5')
+    expect(parseConfig(serializeConfig(config), defaultConfig('queue'))).toEqual(config)
+    expect(serializeConfig(defaultConfig('queue'))).not.toContain('sprints')
+  })
+
+  test('the default scope is the active sprint, and every card while none is active', () => {
+    const cards = [
+      card('0001', 'todo', 0, { sprint: 's2' }),
+      card('0002', 'todo', 1),
+      card('0003', 'suggested', 0),
+      card('0004', 'todo', 2, { kind: 'epic' }),
+      card('0005', 'todo', 3, { epic: '0004' }),
+    ]
+    const held = planned(cards, [sprint('s2', 'active')])
+    const ids = (scope: Parameters<typeof toClientBoard>[4]) =>
+      toClientBoard(held, [], null, false, scope).lanes.flatMap(lane => lane.cards.map(one => one.id))
+    expect(defaultScope(held.config)).toEqual({ kind: 'sprint' })
+    expect(ids({ kind: 'sprint' })).toEqual(['0003', '0001'])
+    expect(ids({ kind: 'backlog' })).toEqual(['0003', '0002', '0005'])
+    expect(ids({ kind: 'epic', id: '0004' })).toEqual(['0003', '0005'])
+    expect(ids({ kind: 'all' })).toEqual(['0003', '0001', '0002', '0005'])
+    const idle = planned(cards, [sprint('s2', 'planned')])
+    expect(defaultScope(idle.config)).toEqual({ kind: 'all' })
+    expect(parseScope('', idle)).toEqual({ kind: 'all' })
+    expect(parseScope('4', held)).toEqual({ kind: 'epic', id: '0004' })
+    expect(parseScope('0001', held)).toBeUndefined()
+  })
+
+  test('a card in an epic carries the epic in its meta; the epic counts its finished cards', () => {
+    const held = board([
+      card('0001', 'backlog', 0, { kind: 'epic', title: 'Faster sync' }),
+      card('0002', 'done', 0, { epic: '0001' }),
+      card('0003', 'archived', 0, { epic: '0001' }),
+      card('0004', 'backlog', 1, { epic: '0001' }),
+      card('0005', 'suggested', 0, { epic: '0001' }),
+    ])
+    expect(epicProgress(held, '0001')).toEqual({ done: 2, total: 3 })
+    const drawn = toClientBoard(held, [], null).lanes.flatMap(lane => lane.cards)
+    expect(drawn.find(one => one.id === '0004')?.meta).toBe('◆ Faster sync')
+    expect(cardLine(card('0004', 'backlog', 1, { epic: '0001', sprint: 's2' }))).toBe(
+      '0004 [backlog] task: Card 0004 (epic 0001; sprint s2)',
+    )
+  })
+
+  test('closing a sprint archives its done cards and rolls the rest to the next planned sprint', () => {
+    const held = planned(
+      [
+        card('0001', 'done', 0, { sprint: 's1' }),
+        card('0002', 'in-progress', 0, { sprint: 's1' }),
+        card('0003', 'archived', 0, { sprint: 's1' }),
+        card('0004', 'backlog', 0, { sprint: 's2' }),
+      ],
+      [sprint('s1', 'active'), sprint('s2', 'planned'), sprint('s3', 'planned')],
+    )
+    const plan = planSprintClose(held, 's1', '2026-02-01T00:00:00.000Z')
+    expect(plan?.next?.id).toBe('s2')
+    expect(plan?.cards.map(one => [one.id, one.status, one.sprint])).toEqual([
+      ['0001', 'archived', 's1'],
+      ['0002', 'in-progress', 's2'],
+    ])
+    expect(plan?.config.sprints[0]).toEqual(
+      sprint('s1', 'closed', { closed: { at: '2026-02-01T00:00:00.000Z', done: 1, rolled: 1 } }),
+    )
+    const last = planned([card('0002', 'backlog', 0, { sprint: 's1' })], [sprint('s1', 'active')])
+    expect(planSprintClose(last, 's1', '')?.cards[0]?.sprint).toBe('')
+    expect(planSprintClose(last, 's9', '')).toBeUndefined()
+  })
+
+  test('the listing is the scope, with the sprint, the epics and how many cards it left out', () => {
+    const held = planned(
+      [
+        card('0001', 'backlog', 0, { sprint: 's1' }),
+        card('0002', 'backlog', 1),
+        card('0003', 'backlog', 2, { kind: 'epic', title: 'Big' }),
+      ],
+      [sprint('s1', 'active', { goal: 'Ship', end: '2026-03-01' })],
+    )
+    expect(listing(held, { kind: 'sprint' })).toEqual([
+      'Columns: backlog, in-progress, review, done (plus suggested)',
+      'Sprint s1 "Sprint s1" (active, ends 2026-03-01): Ship',
+      'Epic 0003 ▱▱▱▱▱▱▱▱ 0/0: Big',
+      'Scope: sprint s1',
+      '0001 [backlog] task: Card 0001 (sprint s1)',
+      '1 more open card(s) outside this scope (scope "all" lists them).',
+    ])
+  })
+})
+
 describe('the launch prompt', () => {
+  test('a card of an epic carries the epic, its other open cards and the sprint', () => {
+    const epic = card('0001', 'backlog', 0, { kind: 'epic', title: 'Faster sync', body: 'One query per page.' })
+    const one = card('0002', 'backlog', 0, { epic: '0001', sprint: 's1' })
+    const other = card('0003', 'backlog', 1, { epic: '0001' })
+    const held = planned([epic, one, other], [sprint('s1', 'active', { goal: 'Ship' })])
+    const prompt = buildPrompt(held, one)
+    expect(prompt).toContain('## Part of epic 0001: Faster sync')
+    expect(prompt).toContain('One query per page.')
+    expect(prompt).toContain('- 0003 [backlog] task: Card 0003 (epic 0001)')
+    expect(prompt).toContain('Sprint s1 "Sprint s1" (active): Ship')
+  })
+
+  test('an epic is handed over to be broken down into cards', () => {
+    const epic = card('0001', 'backlog', 0, { kind: 'epic', title: 'Faster sync' })
+    const prompt = buildPrompt(board([epic]), epic)
+    expect(prompt).toContain('Break down this epic')
+    expect(prompt).toContain('aw kanban add "<title>" --epic 0001')
+    expect(prompt).not.toContain('move_task')
+  })
+
   test('it carries the task, the hand-back, and the skill nudges last', () => {
     const one = card('0004', 'backlog', 0, {
       title: 'Tune the glow',
