@@ -1,0 +1,84 @@
+{
+  "file": "0006-a-nested-block-the-board-does-not-know.md",
+  "slug": "a-nested-block-the-board-does-not-know",
+  "card": {
+    "id": "0006",
+    "file": "0006-a-nested-block-the-board-does-not-know.md",
+    "title": "A nested block the board does not know",
+    "status": "backlog",
+    "order": 3,
+    "priority": "normal",
+    "labels": [
+      "tooling"
+    ],
+    "skills": [],
+    "source": "claude",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "created": "2026-01-05T10:00:00.000Z",
+    "updated": "2026-01-05T10:00:00.000Z",
+    "ref": "0005",
+    "remote": {
+      "provider": "github",
+      "number": 31,
+      "url": "https://github.com/example/repo/issues/31",
+      "updatedAt": "2026-01-05T10:00:00Z",
+      "syncedHash": "abc123"
+    },
+    "unknown": [
+      {
+        "key": "links",
+        "text": "links:\n  - https://example.com/a\n  - https://example.com/b"
+      },
+      {
+        "key": "review",
+        "text": "review:\n  by: sam\n  state: \"changes requested\"\n"
+      },
+      {
+        "key": null,
+        "text": "# a comment a person left"
+      }
+    ],
+    "body": "Its lines come back as they were, after the board's own keys."
+  },
+  "view": {
+    "id": "0006",
+    "file": "0006-a-nested-block-the-board-does-not-know.md",
+    "title": "A nested block the board does not know",
+    "status": "backlog",
+    "order": 3,
+    "priority": "normal",
+    "labels": [
+      "tooling"
+    ],
+    "skills": [],
+    "source": "claude",
+    "created": "2026-01-05T10:00:00.000Z",
+    "updated": "2026-01-05T10:00:00.000Z",
+    "kind": "task",
+    "owner": "",
+    "needs": "",
+    "ref": "0005",
+    "epic": "",
+    "sprint": "",
+    "body": "Its lines come back as they were, after the board's own keys.",
+    "remote": {
+      "provider": "github",
+      "number": 31,
+      "url": "https://github.com/example/repo/issues/31",
+      "updatedAt": "2026-01-05T10:00:00Z",
+      "syncedHash": "abc123"
+    },
+    "extra": [
+      "links:",
+      "  - https://example.com/a",
+      "  - https://example.com/b",
+      "review:",
+      "  by: sam",
+      "  state: \"changes requested\"",
+      "",
+      "# a comment a person left"
+    ]
+  }
+}

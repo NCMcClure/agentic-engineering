@@ -1,0 +1,29 @@
+{
+  "file": "0035-keep-what-is-not-ours.md",
+  "slug": "keep-what-is-not-ours",
+  "card": {
+    "id": "0035",
+    "file": "0035-keep-what-is-not-ours.md",
+    "title": "Keep what is not ours",
+    "status": "backlog",
+    "order": 0,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "unknown": [
+      {
+        "key": "estimate",
+        "text": "estimate: 3"
+      },
+      {
+        "key": "reviewers",
+        "text": "reviewers: [kim, lee]"
+      }
+    ],
+    "body": ""
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "file": "0033-claim-writes-the-push-grant.md",
+  "slug": "claim-writes-the-push-grant",
+  "card": {
+    "id": "0033",
+    "file": "0033-claim-writes-the-push-grant.md",
+    "title": "Claim writes the push grant",
+    "status": "review",
+    "order": 2,
+    "priority": "low",
+    "labels": [
+      "loop"
+    ],
+    "skills": [
+      "tdd"
+    ],
+    "source": "user",
+    "kind": "task",
+    "after": [
+      "0031",
+      "0032"
+    ],
+    "files": [
+      "scripts/board.mjs",
+      "lib/board.mjs"
+    ],
+    "created": "2026-10-12T08:00:00.000Z",
+    "updated": "2026-10-13T16:45:00.000Z",
+    "epic": "0040",
+    "sprint": "s2",
+    "grant": "sam, 2026-10-12 09:00: push feat/claim-grant and open the pull or merge request (card 0033)",
+    "session": "card-0033",
+    "branch": "feat/claim-grant",
+    "worktree": ".claude/worktrees/card-0033",
+    "merged": "4f2c9e1",
+    "mr": 31,
+    "unknown": [],
+    "body": "## Done when\n\n- [x] Claim records the branch and the worktree.\n\n## Review\n\n- The grant is unset on abandon."
+  }
+}

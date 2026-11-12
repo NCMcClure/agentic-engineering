@@ -1,6 +1,7 @@
 ---
 name: setup
-description: Use to set a repository up for agent work, adopt its agent files, or install aw.
+description: Run to set a repository up for agent work, adopt the agent files it already has, or install the aw launcher. A person starts it.
+disable-model-invocation: true
 ---
 
 # setup
@@ -8,24 +9,28 @@ description: Use to set a repository up for agent work, adopt its agent files, o
 `aw setup` writes what is missing and never overwrites what is there. On a repository that already has agent
 files it keeps the prose, reports what is in the wrong place, and leaves every move to you and the owner.
 
-## Step 1 — Plan
+## Step 1: Plan
 
 ```
-aw setup --plan
+node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs" setup --plan
 ```
+
+`aw` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs"`: call it that way.
 
 It writes nothing. Read every line: `create`, `add to`, `regenerate`, `move`, `twins` are what `--apply` will do;
 `keep` is yours and stays; `REPORT` is something in the wrong place, with the commands that move it.
 
 *Done when: you can say whether the repository is fresh or adopted, and you have the list of REPORT lines.*
 
-## Step 2 — Interview the owner
+## Step 2: Interview the owner
 
 Ask only what the plan and the tree did not answer, in one batch:
 
-1. **CLAUDE.md twins:** `generated` (git-ignored, healed at session start; the default), `committed`, or `off`.
-2. **The kanban board:** `tracked` (committed, shared through git; the default) or `ignored` (local, or synced
-   with GitHub or GitLab issues from the `/kanban` pane).
+1. **CLAUDE.md twins:** `link` (a tracked symlink to `AGENTS.md`; the default, and the one-line file on Windows),
+   `generated` (git-ignored one-line files, healed at session start), `committed`, or `off`.
+2. **The kanban board:** local to this machine (the default: working state, kept out of git, and it may follow
+   GitHub or GitLab issues with `aw board remote on`), or shared through git (`"kanban": { "tracked": true }` in
+   the config, and the folder committed).
 3. **Owner files:** files local to the owner's machine that must never be staged or edited by an agent.
 4. **Generated files:** paths written by a tool, and the command that writes them.
 5. **Scarce resources:** applications or devices of which one runs at a time, the commands that start them, and
@@ -37,23 +42,24 @@ Ask only what the plan and the tree did not answer, in one batch:
    - decision records under the user docs (`docs/adr`), a glossary at the root or under the docs: move with
      `git mv`, or leave for later;
    - an old `.agents/board`: move it (it keeps working until then);
-   - a `.plan/` workspace: but-first-planning 4.0 moves it to `.agents/plan/` itself;
+   - a `.plan/` workspace: but-first-planning moves it to `.agents/plan/` itself;
    - a `.perceptual-loop/` folder: its applications become `resources` in the config;
    - a root `CLAUDE.md` with content of its own: move the content into `AGENTS.md`;
    - an `.agents/README.md` this plugin did not write: merge it into `AGENTS.md`, or delete it.
 
 *Done when: every question has an answer or an explicit "later", and each "later" is a line in your report.*
 
-## Step 3 — Apply
+## Step 3: Apply
 
 ```
-aw setup --apply --twins <generated|committed|off> --kanban <tracked|ignored>
+aw setup --apply --twins <link|generated|committed|off> --kanban <tracked|ignored>
 ```
 
-Then, for each move the owner agreed to, run the `git mv` the plan printed (a tracked `.agents/board` moves with
+`--kanban ignored` also names the board's folder in `.gitignore`; for a shared board pass `--kanban tracked`, which
+records `"kanban": { "tracked": true }` in the config it writes. Then, for each move the owner agreed to, run the `git mv` the plan printed (a tracked `.agents/board` moves with
 `git mv .agents/board .agents/kanban`; an untracked one with `--move-board`), then `aw decisions index` and
 `aw links` to find what the moves broke. Fill answers 3 to 7 into `.agents/agent-works.json`: that is the `guard`
-skill's Step 2, and `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md` documents every key. The generated
+skill's Step 2, and `${CLAUDE_PLUGIN_ROOT}/references/guard-config.md` documents every key. The generated
 files name the project after the folder of its main working tree (a worktree's own folder is never the name); when
 the folder is not the project's name, set `"name"` in the config and run `aw setup --apply` again.
 
@@ -63,7 +69,7 @@ the folder is not the project's name, set `"name"` in the config and run `aw set
 
 *Done when: a second `aw setup --plan` shows no `create` line and only the REPORT lines the owner deferred.*
 
-## Step 4 — Fill what only a reader of the code can write
+## Step 4: Fill what only a reader of the code can write
 
 - A new root `AGENTS.md` has four placeholders in angle brackets: what the project is, the repo map, the
   commands, the rules. Fill them from the code and the README. 200 lines at most.
@@ -77,19 +83,20 @@ the folder is not the project's name, set `"name"` in the config and run `aw set
 
 *Done when: no `<…>` placeholder is left in the root `AGENTS.md` or the status memory.*
 
-## Step 5 — The launcher and the permission rule
+## Step 5: The launcher and the permission rule
 
 Both change the owner's own machine. **Ask before each; do neither unasked.**
 
 - `aw setup --install-launcher [DIR]` writes `aw` and `aw.cmd` into a folder on the PATH (default `~/.local/bin`),
-  so `aw` also runs in PowerShell, in hooks and in the owner's terminal. The Bash tool needs none.
+  so plain `aw` runs in the owner's terminal and in PowerShell. The skills need none: they call the script by its
+  path.
 - One allow rule lets agents and sub-agents run `aw` without a prompt: `Bash(aw:*)` in `permissions.allow` of the
-  owner's Claude Code settings. Everything outside the repository goes through that one command, so one rule
-  covers it. Show the owner the line; add it only on a yes.
+  owner's Claude Code settings, for sessions where `aw` is on the PATH. Everything outside the repository goes
+  through that one command, so one rule covers it. Show the owner the line; add it only on a yes.
 
 *Done when: the owner has answered both, and `aw --help` runs in the shell the owner uses.*
 
-## Step 6 — Baseline
+## Step 6: Baseline
 
 ```
 aw doctor --baseline

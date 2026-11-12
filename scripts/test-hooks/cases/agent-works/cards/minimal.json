@@ -1,0 +1,22 @@
+{
+  "file": "0031-add-a-health-route.md",
+  "slug": "add-a-health-route",
+  "card": {
+    "id": "0031",
+    "file": "0031-add-a-health-route.md",
+    "title": "Add a health route",
+    "status": "backlog",
+    "order": 1,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "created": "2026-10-01T09:00:00.000Z",
+    "updated": "2026-10-01T09:00:00.000Z",
+    "unknown": [],
+    "body": ""
+  }
+}

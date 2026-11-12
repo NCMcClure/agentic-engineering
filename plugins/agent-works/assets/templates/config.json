@@ -2,6 +2,7 @@
   "version": 1,
   "claude": { "twins": "{{twins}}" },
   "guard": {
+    "locks": "warn",
     "ownerFiles": [],
     "generated": [],
     "rules": []

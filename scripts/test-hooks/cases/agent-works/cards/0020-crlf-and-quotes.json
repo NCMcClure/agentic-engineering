@@ -1,0 +1,61 @@
+{
+  "file": "0020-crlf-and-quotes.md",
+  "slug": "single-quoted",
+  "card": {
+    "id": "20",
+    "file": "0020-crlf-and-quotes.md",
+    "title": "Single quoted",
+    "status": "review",
+    "order": 2,
+    "priority": "normal",
+    "labels": [
+      "bug"
+    ],
+    "skills": [
+      "a",
+      "b"
+    ],
+    "source": "user",
+    "kind": "gate",
+    "after": [],
+    "files": [],
+    "owner": "pat",
+    "ref": "#7",
+    "unknown": [
+      {
+        "key": "custom",
+        "text": "custom: kept"
+      }
+    ],
+    "body": "\nFirst line.\n\nLast line."
+  },
+  "view": {
+    "id": "20",
+    "file": "0020-crlf-and-quotes.md",
+    "title": "Single quoted",
+    "status": "review",
+    "order": 2,
+    "priority": "normal",
+    "labels": [
+      "bug"
+    ],
+    "skills": [
+      "a",
+      "b"
+    ],
+    "source": "user",
+    "created": "",
+    "updated": "",
+    "kind": "gate",
+    "owner": "pat",
+    "needs": "",
+    "ref": "#7",
+    "epic": "",
+    "sprint": "",
+    "body": "\nFirst line.\n\nLast line.",
+    "remote": null,
+    "extra": [
+      "custom: kept"
+    ]
+  }
+}

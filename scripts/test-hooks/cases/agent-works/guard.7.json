@@ -1,0 +1,13 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "bare",
+  "project": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "cwd": "{{REPO}}",
+    "tool_input": { "command": "git add -A" }
+  },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

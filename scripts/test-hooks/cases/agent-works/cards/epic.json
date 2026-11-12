@@ -1,0 +1,22 @@
+{
+  "file": "0040-a-board-that-reads-the-plan.md",
+  "slug": "a-board-that-reads-the-plan",
+  "card": {
+    "id": "0040",
+    "file": "0040-a-board-that-reads-the-plan.md",
+    "title": "A board that reads the plan",
+    "status": "backlog",
+    "order": 5,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "epic",
+    "after": [],
+    "files": [],
+    "created": "2026-10-01T08:00:00.000Z",
+    "updated": "2026-10-01T08:00:00.000Z",
+    "unknown": [],
+    "body": "## Goal\n\nPlan issues show up as cards."
+  }
+}

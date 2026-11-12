@@ -1,0 +1,12 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "cwd": "{{REPO}}",
+    "tool_input": { "command": "git add -A && git push --force" }
+  },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

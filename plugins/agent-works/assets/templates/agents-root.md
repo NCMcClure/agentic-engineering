@@ -33,7 +33,7 @@ a hook enforces say so. No status here, and no history.>
 |---|---|---|
 | A reason, a measurement, a lesson | project memory | `aw memory new`, `aw memory touch` |
 | Where the project stands | the status memory, and the board | `aw status` |
-| Work to do, a check still owed | a card on the kanban board | `aw kanban add`, `aw kanban owe` |
+| Work to do, a check still owed | a card on the kanban board | `aw board add`, `aw board owe` |
 | A choice that is hard to reverse | a decision record | `aw decisions new` |
 | The meaning of a word | the glossary | one row, in the same change |
 | A protocol, a format, how to extend | a contracts page under .agents | changed with the code |

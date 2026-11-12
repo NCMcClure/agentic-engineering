@@ -79,7 +79,7 @@ on your branch while you work. When you are about to merge: merge `<default bran
 - `aw notes` before you start and whenever you come back from a long step.
 - `aw note "<one line>"` when you merged something others must pull (say what changed for them), when you are
   about to change a file another agent is in, when you wait for someone, and when you finish.
-- Work you notice that is not your task: `aw kanban add "<title>" --suggest --details "<…>"`, then carry on.
+- Work you notice that is not your task: `aw board add "<title>" --suggest --details "<…>"`, then carry on.
 
 ## Verification, in proportion
 
@@ -88,7 +88,7 @@ on your branch while you work. When you are about to merge: merge `<default bran
 - A failure on something you did not touch: run it again before anything else. If it also fails on an unchanged
   `<default branch>`, it is not yours: add a card and say so.
 - A check you cannot run (it needs the main checkout, a resource you could not get, the owner) is owed:
-  `aw kanban owe "<the check>" --ref <PR or card> --needs "<what it needs>"`. Never skip one silently, and never
+  `aw board owe "<the check>" --ref <PR or card> --needs "<what it needs>"`. Never skip one silently, and never
   report it as passed.
 - <The project's end-of-work gates, each with its command and its cost.>
 

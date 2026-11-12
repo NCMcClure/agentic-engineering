@@ -143,6 +143,9 @@ function currentMarkers(dir, teamwork) {
   everyMarker(dir);
   fs.rmSync(path.join(dir, ".claude"), { recursive: true, force: true });
   fs.renameSync(path.join(dir, ".perceptual-loop"), path.join(dir, ".agents", "perceptual"));
+  const works = path.join(dir, ".agents", "agent-works.json");
+  const doc = JSON.parse(fs.readFileSync(works, "utf8"));
+  writeJson(dir, ".agents/agent-works.json", { ...doc, guard: { ...doc.guard, locks: "warn" } });
   const config = path.join(dir, ".agents", "perceptual", "config.json");
   fs.writeFileSync(config, fs.readFileSync(config, "utf8").replaceAll(".perceptual-loop/", ".agents/perceptual/"));
   manifest(dir, teamwork);

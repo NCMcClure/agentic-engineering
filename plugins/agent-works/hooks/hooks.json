@@ -1,24 +1,70 @@
 {
-  "description": "The agent guard (staging, owner and generated files, resource locks, run budgets, project rules), the session start (CLAUDE.md twins, who is running) and the kanban board",
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agent-works hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Reading the board"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "case \"$(command -v python3)\" in ''|*/WindowsApps/*) py=python;; *) py=python3;; esac; \"$py\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.py\" 2>/dev/null || true",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs\"",
             "timeout": 5
           }
         ]
       }
     ],
-    "SessionStart": [
+    "PostToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit|mcp__agent-works__(move_task|plan_task|settle_gate)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/card-sync.mjs\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Stop": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "case \"$(command -v python3)\" in ''|*/WindowsApps/*) py=python;; *) py=python3;; esac; \"$py\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/session.py\" 2>/dev/null || true",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/card-sync.mjs\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/card-sync.mjs\"",
             "timeout": 10
           }
         ]
@@ -26,6 +72,6 @@
     ]
   },
   "modules": [
-    "./kanban/register.tsx"
+    "./kanban/register.mjs"
   ]
 }
