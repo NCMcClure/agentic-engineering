@@ -130,7 +130,9 @@ function runCase(plugin, c) {
 
 for (const { plugin, file, path: casePath } of files) {
   const c = JSON.parse(fs.readFileSync(casePath, "utf8"));
-  test(`${plugin}/${file}${c.gap ? ` (known gap: ${c.gap})` : ""}`, () => {
+  // A stock Windows has no sh and no python3, so only Node hooks are held to it.
+  const skip = process.platform === "win32" && !/^\s*node\b/.test(String(registered(plugin, c.event, c.script)?.command ?? "")) ? "not a Node hook, not run on Windows" : false;
+  test(`${plugin}/${file}${c.gap ? ` (known gap: ${c.gap})` : ""}`, { skip }, () => {
     if (!c.gap) return runCase(plugin, c);
     let failed = false;
     try { runCase(plugin, c); } catch { failed = true; }

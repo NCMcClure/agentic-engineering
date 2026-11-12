@@ -114,7 +114,9 @@ that problem on one rubric: create-plugin interviews you, scaffolds the
 layout, and authors against the six evaluation dimensions; evaluate-plugin
 scores any path or git URL into an HTML scorecard with an adopt/rework
 verdict; improve-plugin applies the fixes ranked by how many points each one
-buys back.
+buys back. context-lens then checks the result against reality: it reads a
+session's transcript and shows what each plugin put in the agent's context,
+who saw it, and what a compaction threw away.
 [Read more →](plugins/plugin-workbench/README.md)
 
 ### perceptual-loop
@@ -142,9 +144,10 @@ session and failing in CI, for a site, a `docs/` folder, a wiki or a README.
 ## Working in this repo
 
 The contribution contract (layout invariants, the versioning rule, how to
-add or update a plugin) lives in [.claude/rules/dev-rules.md](.claude/rules/dev-rules.md).
-`bash scripts/validate.sh` checks the enforceable parts; CI runs it on every
-push. Agents maintaining this repo read the same rules you do.
+add or update a plugin) lives in [.agents/rules/dev-rules.md](.agents/rules/dev-rules.md).
+`npm run validate` checks the enforceable parts and `npm test` runs every hook;
+CI runs both on every push. Agents maintaining this repo read the same rules
+you do, and [CONTRIBUTING.md](CONTRIBUTING.md) has the dev loop.
 
 ## License
 
