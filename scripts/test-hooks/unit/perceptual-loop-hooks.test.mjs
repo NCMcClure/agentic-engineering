@@ -53,10 +53,10 @@ function session(dir, payload = {}) {
 
 // ---- the lines -------------------------------------------------------------------------------
 
-test("critical.json: four lines for every agent in any opted-in repo, no chains, under the cap", () => {
+test("critical.json: four lines for every agent in any opted-in repo, a chain to each partner, under the cap", () => {
   assert.equal(CRITICAL.plugin, "perceptual-loop");
   assert.equal(CRITICAL.lines.length, 4);
-  assert.deepEqual(CRITICAL.chains, []);
+  assert.deepEqual(CRITICAL.chains.map((c) => c.partner), ["agent-works", "but-first-planning"]);
   for (const line of CRITICAL.lines) assert.deepEqual([line.for, line.mode, line.when], ["all", "any", undefined]);
   assert.ok(CRITICAL.lines.some((l) => l.text === TASTE), "the taste line is quoted elsewhere and stays word for word");
   assert.match(CRITICAL.lines[0].text, /starts with \/perceptual-loop:perceptual-loop and its doctrine/);

@@ -1,26 +1,13 @@
 {
   "plugin": "perceptual-loop",
   "lines": [
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "Work judged by eye or ear (a render, an image, an animation, a sound) starts with /perceptual-loop:perceptual-loop and its doctrine, before the first change."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "A metric that moved is not a verdict: open the picture yourself and classify the difference (wrong, less-plausible, more-correct, different-ok, noise, stale)."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "Defects are yours to fix; taste (how bright, how much, which of two plausible looks) is the owner's to decide."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "Render the smallest run that answers the question: the 1 to 3 proving shots per iteration, the whole suite once, when the work is finished. The gate compares a candidate with its own accepted run; never set a target against the reference."
-    }
+    {"for": "all", "mode": "any", "text": "Work judged by eye or ear (a render, an image, an animation, a sound) starts with /perceptual-loop:perceptual-loop and its doctrine, before the first change."},
+    {"for": "all", "mode": "any", "text": "A metric that moved is not a verdict: open the picture yourself and classify the difference (wrong, less-plausible, more-correct, different-ok, noise, stale)."},
+    {"for": "all", "mode": "any", "text": "Defects are yours to fix; taste (how bright, how much, which of two plausible looks) is the owner's to decide."},
+    {"for": "all", "mode": "any", "text": "Render the smallest run that answers the question: the 1 to 3 proving shots per iteration, the whole suite once, when the work is finished. The gate compares a candidate with its own accepted run; never set a target against the reference."}
   ],
-  "chains": []
+  "chains": [
+    {"partner": "agent-works", "for": "all", "mode": "any", "text": "An owed full run or a stale baseline becomes a gate card (`aw board owe`), and a render only one session may run at a time goes under /agent-works:resource-locks."},
+    {"partner": "but-first-planning", "for": "all", "mode": "any", "when": ".agents/plan", "text": "A ruling with reach (how every sky should look) becomes a decision record through /but-first-planning:spec-edit."}
+  ]
 }

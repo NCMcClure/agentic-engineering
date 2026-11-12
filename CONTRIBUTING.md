@@ -35,6 +35,17 @@ the name at your checkout and parks the old entry; `--uninstall` puts it back.
 node scripts/install.mjs --uninstall
 ```
 
+## The plugin guide
+
+`docs/plugins.md` is generated. After a version bump, a new skill, or a
+reworded description:
+
+```bash
+npm run guide
+```
+
+The gate fails a stale copy.
+
 ## Shared files
 
 A file under `scripts/shared/` ships inside every plugin that lists it. Edit it

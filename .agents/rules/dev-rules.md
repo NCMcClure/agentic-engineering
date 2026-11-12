@@ -8,11 +8,8 @@ When a rule changes, change the check in the same commit.
 
 - Node 22, stdlib only, `.mjs`. No dependencies in `package.json`, no lockfile,
   no build step. One runtime to install, one to test on three operating systems.
-- Plugins run on Node. A plugin that still ships Python or shell carries
-  `"legacy": true` in `scripts/plugins/<name>.json`. The flag waives the three
-  Node-only rules (non-Node files, extra `SKILL.md` frontmatter keys, hook modules
-  that are not `.mjs`/`.js`) and nothing else. Validate fails a flag the plugin no
-  longer needs, so flags only come off. A new plugin never gets one.
+- Plugins run on Node: no Python, no shell scripts, and a hook module is a `.mjs`
+  or `.js` file.
 - A non-Node file that has to stay is listed by exact path in
   `NON_NODE_ALLOWLIST` in `scripts/validate.mjs`, with the reason beside it.
 - Set `process.exitCode` and let Node unwind. Never call `process.exit()` after
@@ -105,6 +102,14 @@ subagents.
   It lives inside the plugin so the history ships with the installed copy.
   Validate fails a missing file, a top entry that is not the `plugin.json`
   version, and a README that still carries a `## Changelog` section.
+
+## The plugin guide
+
+- `docs/plugins.md` lists every plugin, its version and its skills. It is
+  generated (`npm run guide`) from the catalog, each `plugin.json`, and each
+  skill's frontmatter, and never edited by hand. Validate fails a stale copy, so
+  regenerate it in the same change as a version bump, a new skill, or a reworded
+  description.
 
 ## Tests
 

@@ -38,7 +38,7 @@ the contract `.agents/docs-contract.md`):
 One table, most severe first: page, finding, evidence (what you ran or saw), the fix. Then the uncovered
 surfaces, then a proposed `surfaces` change for `.agents/docs-parity.json` if the map missed something. With
 the user's go-ahead, add the fixes as tasks in the project's tracker (with agent-works, cards:
-`aw kanban add`). Write no file.
+`aw board add`). Write no file.
 
 ## Done when
 

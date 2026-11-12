@@ -8,12 +8,9 @@
 // against a tree that is meant to fail. --tag checks one thing only: that the
 // tag names a plugin at the version its plugin.json carries.
 //
-// The ratchet: scripts/plugins/<name>.json may carry `"legacy": true`. A legacy
-// plugin is waived on the rules marked (legacy) below and on nothing else, and
-// the flag fails the tree once the plugin no longer needs it, so it can only
-// ever be removed. The same file carries the plugin's other gate data:
-// `shared` (its copies of files in scripts/shared/) and `critical` (the cap
-// on its critical lines, and the allowance for its session briefing).
+// scripts/plugins/<name>.json carries a plugin's gate data: `shared` (its
+// copies of files in scripts/shared/) and `critical` (the cap on its critical
+// lines, and the allowance for its session briefing).
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -104,25 +101,15 @@ async function validate() {
   }
   if (external.length && failures() === externalFailures) ok(`${external.length} external entr${external.length === 1 ? "y" : "ies"}: github or git source, nothing vendored`);
 
-  // ---- the legacy ratchet ----------------------------------------------
+  // ---- per-plugin gate data --------------------------------------------
   const pluginDirs = listDirs(at("plugins"));
-  const legacy = new Set();
   const meta = new Map();
-  const waived = new Map();
   for (const file of isDir(at("scripts", "plugins")) ? fs.readdirSync(at("scripts", "plugins")).filter((f) => f.endsWith(".json")).sort() : []) {
     const name = file.slice(0, -5);
     const where = `scripts/plugins/${file}`;
     if (!pluginDirs.includes(name)) { fail(`${where} describes a plugin that is not under plugins/`, where); continue; }
-    try {
-      meta.set(name, readJson(at(where)));
-      if (meta.get(name).legacy === true) legacy.add(name);
-    } catch (e) { fail(`${where} does not parse (${e.message})`, where); }
+    try { meta.set(name, readJson(at(where))); } catch (e) { fail(`${where} does not parse (${e.message})`, where); }
   }
-  /** A finding on a rule a legacy plugin is waived on: counted for a legacy plugin, a failure for any other. */
-  const strict = (plugin, what, where) => {
-    if (legacy.has(plugin)) waived.set(plugin, (waived.get(plugin) ?? 0) + 1);
-    else fail(what, where);
-  };
 
   // ---- per plugin ------------------------------------------------------
   const entryNames = new Set(catalog.plugins.map((p) => p.name));
@@ -168,8 +155,8 @@ async function validate() {
       if (!fm) { fail(`${name}/${skill}: SKILL.md has no frontmatter`, rel(md)); continue; }
       if (fm.name !== skill) fail(`${name}/${skill}: frontmatter name is "${fm.name}"`, rel(md));
       if (!fm.description) fail(`${name}/${skill}: frontmatter has no description`, rel(md));
-      // (legacy) Four keys, so a listing costs what its description costs.
-      for (const key of Object.keys(fm)) if (!SKILL_KEYS.has(key)) strict(name, `${name}/${skill}: frontmatter key "${key}" is not one of the four allowed`, rel(md));
+      // Four keys, so a listing costs what its description costs.
+      for (const key of Object.keys(fm)) if (!SKILL_KEYS.has(key)) fail(`${name}/${skill}: frontmatter key "${key}" is not one of the four allowed`, rel(md));
     }
 
     // Hooks: known events, commands that point inside the plugin, and a hooks
@@ -203,29 +190,22 @@ async function validate() {
         if (!target) fail(`${name}/hooks/hooks.json: module ${JSON.stringify(mod)} is not a path`, rel(hooks));
         else if (!target.startsWith(dir + path.sep)) fail(`${name}/hooks/hooks.json: module ${mod} is outside the plugin`, rel(hooks));
         else if (!exists(target)) fail(`${name}/hooks/hooks.json: module ${mod} does not exist`, rel(hooks));
-        // (legacy) A module the host loads without a build step.
-        else if (!/\.(mjs|js)$/.test(target)) strict(name, `${name}/hooks/hooks.json: module ${mod} is not a .mjs or .js file`, rel(hooks));
+        // A module the host loads without a build step.
+        else if (!/\.(mjs|js)$/.test(target)) fail(`${name}/hooks/hooks.json: module ${mod} is not a .mjs or .js file`, rel(hooks));
       }
     }
 
-    // (legacy) Plugins run on Node: one runtime to install, one to test on
+    // Plugins run on Node: one runtime to install, one to test on
     // three operating systems. Extension first, then the shebang for files
     // that carry none.
     for (const f of tracked.filter((t) => t.startsWith(`plugins/${name}/`) && !VENDORED.test(t) && !NON_NODE_ALLOWLIST.has(t))) {
-      if (NON_NODE_EXT.test(f)) { strict(name, `${f} is not Node`, f); continue; }
+      if (NON_NODE_EXT.test(f)) { fail(`${f} is not Node`, f); continue; }
       if (path.extname(f) || !exists(at(f))) continue;
       const shebang = /^#!(.*)/.exec(fs.readFileSync(at(f), "utf8").slice(0, 200))?.[1];
-      if (shebang && !/\bnode\b/.test(shebang)) strict(name, `${f} runs under "${shebang.trim()}", not Node`, f);
+      if (shebang && !/\bnode\b/.test(shebang)) fail(`${f} runs under "${shebang.trim()}", not Node`, f);
     }
   }
   if (failures() === pluginFailures) ok(`${pluginDirs.length} plugin director${pluginDirs.length === 1 ? "y" : "ies"}: manifests, names, README, CHANGELOG, skills, hooks`);
-
-  const ratchetFailures = failures();
-  for (const name of [...legacy].sort()) {
-    if (waived.get(name)) note(`${name} is legacy: ${waived.get(name)} finding(s) waived`);
-    else fail(`${name} no longer needs its legacy flag: remove it from scripts/plugins/${name}.json`, `scripts/plugins/${name}.json`);
-  }
-  if (failures() === ratchetFailures) ok(legacy.size ? `${legacy.size} legacy plugin(s), each still needing its flag` : "no legacy plugins");
 
   // ---- shared files ---------------------------------------------------
   // A file several plugins ship has one copy that is edited, in
@@ -288,6 +268,17 @@ async function validate() {
   }
   if (total > CRITICAL_TOTAL) fail(`critical lines total ${total} characters across the plugins, over the ${CRITICAL_TOTAL} target`, "plugins");
   if (failures() === criticalFailures) ok(`critical lines within budget (${total} of ${CRITICAL_TOTAL} characters across ${speakers.length} plugin(s))`);
+
+  // ---- the generated guide ---------------------------------------------
+  // docs/plugins.md is written from the catalog, the manifests and the skills'
+  // own descriptions, so a copy that differs from a fresh one is stale.
+  try {
+    const { GUIDE, guide } = await import(pathToFileURL(at("scripts", "gen-guide.mjs")).href);
+    const have = exists(at(GUIDE)) ? fs.readFileSync(at(GUIDE), "utf8") : null;
+    if (have === null) fail(`${GUIDE} is missing: node scripts/gen-guide.mjs --write`, GUIDE);
+    else if (have !== guide(ROOT)) fail(`${GUIDE} is stale: node scripts/gen-guide.mjs --write`, GUIDE);
+    else ok(`${GUIDE} matches the catalog, the manifests and the skills`);
+  } catch (e) { fail(`the plugin guide could not be generated (${e.message})`, "scripts/gen-guide.mjs"); }
 
   // ---- tree-wide -------------------------------------------------------
   let text = 0, crlf = 0, abs = 0, junk = 0;

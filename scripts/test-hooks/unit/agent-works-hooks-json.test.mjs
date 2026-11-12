@@ -75,10 +75,10 @@ test("agent-works hooks.json: every script it names is shipped, and the pane is 
   assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "kanban", "register.mjs")));
 });
 
-test("agent-works critical.json: seven lines within the cap, the hub line only where the repo is set up, and no chains yet", () => {
+test("agent-works critical.json: seven lines within the cap, the hub line only where the repo is set up, and a chain to each partner", () => {
   const data = read("hooks/critical.json");
   assert.equal(data.plugin, "agent-works");
-  assert.deepEqual(data.chains, []);
+  assert.deepEqual(data.chains.map((c) => c.partner), ["perceptual-loop", "but-first-planning", "agentic-teamwork"]);
   assert.deepEqual(data.lines.map((l) => [l.for, l.mode, l.when ?? null]), [
     ["main", "any", null], ["main", "any", null], ["main", "any", null], ["main", "any", null],
     ["all", "any", null], ["all", "any", null], ["all", "any", ".agents/agent-works.json"],

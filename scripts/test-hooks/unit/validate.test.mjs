@@ -9,10 +9,16 @@ import { hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tree } from "./helpers.mjs";
 
 const CATALOG = ".claude-plugin/marketplace.json";
-const validate = (dir, ...args) => runNode("scripts/validate.mjs", ["--root", dir, ...args]);
+const gate = (dir, ...args) => runNode("scripts/validate.mjs", ["--root", dir, ...args]);
+// A tree with a plugin added or renamed needs its guide written again; every
+// case but the guide's own wants that done, so it is not what fails.
+const validate = (dir, ...args) => {
+  runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]);
+  return gate(dir, ...args);
+};
 const entry = (name, fn) => (m) => ({ ...m, plugins: m.plugins.map((p) => (p.name === name ? fn(p) : p)) });
 
-// A plugin that meets every rule with no legacy flag: what a new one looks like.
+// A plugin that meets every rule: what a new one looks like.
 const TIDY = {
   "plugins/tidy/.claude-plugin/plugin.json": `${JSON.stringify({ name: "tidy", version: "0.1.0", description: "A plugin with nothing to waive." }, null, 2)}\n`,
   "plugins/tidy/README.md": "# tidy\n\nNothing to waive.\n",
@@ -72,9 +78,8 @@ test("a README that still carries a ## Changelog section fails", (t) => {
   assert.match(result.stdout, /^FAIL: code-diet: README carries a "## Changelog" section/m);
 });
 
-// The ratchet: a legacy flag waives the Node-only rules, and only for as long
-// as the plugin breaks one of them.
-test("a plugin with no legacy flag is held to the Node-only rules", (t) => {
+// Plugins run on Node, and a skill's frontmatter carries four keys.
+test("a plugin is held to the Node-only rules", (t) => {
   const result = validate(tree(t, withTidy({
     "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n",
     "plugins/tidy/hooks/guard.py": "print('swept')\n",
@@ -84,24 +89,9 @@ test("a plugin with no legacy flag is held to the Node-only rules", (t) => {
   assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the four allowed/m);
 });
 
-test("a legacy flag waives the Node-only rules for a plugin that still breaks one", (t) => {
-  const result = validate(tree(t, withTidy({
-    "plugins/tidy/hooks/guard.py": "print('swept')\n",
-    "scripts/plugins/tidy.json": '{\n  "legacy": true\n}\n',
-  })));
-  assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^note: tidy is legacy: 1 finding\(s\) waived/m);
-});
-
-test("a new plugin that meets every rule passes without a flag", (t) => {
+test("a new plugin that meets every rule passes", (t) => {
   const result = validate(tree(t, withTidy()));
   assert.equal(result.status, 0, result.stdout);
-});
-
-test("a legacy flag on a plugin that no longer needs it fails", (t) => {
-  const result = validate(tree(t, withTidy({ "scripts/plugins/tidy.json": '{\n  "legacy": true\n}\n' })));
-  assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy no longer needs its legacy flag: remove it from scripts\/plugins\/tidy\.json/m);
 });
 
 test("a file with no extension is judged by its shebang", (t) => {
@@ -175,10 +165,10 @@ test("a Node hook with no guard, a quiet one at session start, or no status mess
 // Shared files: one copy is edited, in scripts/shared/, and a plugin's copy
 // is that file byte for byte.
 const KERNEL = fs.readFileSync(path.join(REPO, "scripts/shared/critical-context.mjs"), "utf8");
-const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: (m) => ({ ...m, shared: list }) });
+const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: `${JSON.stringify({ shared: list })}\n` });
 
 test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
-  const dir = tree(t, { json: shares("write-like-me", ["hooks/critical-context.mjs"]), write: { "plugins/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
+  const dir = tree(t, { write: { ...shares("write-like-me", ["hooks/critical-context.mjs"]), "plugins/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
   const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/workflow-studio.json"), `${JSON.stringify({ shared })}\n`);
   data(["hooks/critical-context.mjs", "lib/no-such-file.mjs"]);
   const result = validate(dir);
@@ -210,7 +200,7 @@ test("a shared file with no suite of its own fails", (t) => {
 });
 
 test("a shared path that leaves the plugin fails", (t) => {
-  const result = validate(tree(t, { json: shares("write-like-me", ["../docs-parity/hooks/critical-context.mjs"]) }));
+  const result = validate(tree(t, { write: shares("write-like-me", ["../docs-parity/hooks/critical-context.mjs"]) }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: scripts\/plugins\/write-like-me\.json: "\.\.\/docs-parity\/hooks\/critical-context\.mjs" is not a path inside the plugin/m);
 });
@@ -255,7 +245,7 @@ test("critical lines over the plugin's cap, or with a bad audience, mode or part
 test("critical lines with no kernel copy listed, no cap, the wrong name, or no subagent hook fail", (t) => {
   const result = validate(tree(t, {
     ...speaks("docs-parity", { plugin: "docs", lines: [line("Docs change with the code.")] }, { shared: [], events: ["SessionStart"] }),
-    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/docs-parity.json": (m) => ({ legacy: m.legacy }) },
+    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/docs-parity.json": () => ({}) },
   }));
   assert.equal(result.status, 1);
   const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";
@@ -277,6 +267,18 @@ test("critical lines from a plugin the kernel's ORDER does not name fail", (t) =
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/critical\.json: tidy is not in ORDER in scripts\/shared\/critical-context\.mjs/m);
   assert.equal(result.stdout.match(/^FAIL:/gm).length, 1, result.stdout);
+});
+
+// The guide is generated, so a copy that differs from a fresh one is stale.
+test("a plugin guide that is missing or stale fails, and gen-guide --write repairs it", (t) => {
+  const dir = tree(t, { json: { "plugins/code-diet/.claude-plugin/plugin.json": (m) => ({ ...m, version: "9.9.9" }) }, text: { "plugins/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a bump the guide has not seen.\n") } });
+  assert.match(gate(dir).stdout, /^FAIL: docs\/plugins\.md is stale: node scripts\/gen-guide\.mjs --write/m);
+  assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
+  assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
+  assert.match(fs.readFileSync(path.join(dir, "docs/plugins.md"), "utf8"), /\| \[code-diet\]\(#code-diet\) \| 9\.9\.9 \|/);
+  assert.equal(gate(dir).status, 0);
+  fs.rmSync(path.join(dir, "docs/plugins.md"));
+  assert.match(gate(dir).stdout, /^FAIL: docs\/plugins\.md is missing/m);
 });
 
 // A tag releases one plugin: it names the version that plugin's plugin.json carries.
