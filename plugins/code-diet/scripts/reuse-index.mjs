@@ -128,7 +128,8 @@ function main(argv) {
 
   const cwd = process.cwd();
   const home = git(cwd, "rev-parse", "--show-toplevel")?.trim() || cwd;
-  const real = (p) => { try { return fs.realpathSync(p); } catch { return null; } };
+  // The native call, so one folder reached by two spellings (a symlink, a Windows short name) is one folder.
+  const real = (p) => { try { return fs.realpathSync.native(p); } catch { return null; } };
   const seen = new Set([real(home)]);
   const results = search(query, HERE, home, limit);
   const searched = [HERE];
