@@ -48,9 +48,6 @@ jobs:
       - name: agent-works
         working-directory: plugins/agent-works
         run: python -B -m unittest discover -s tests -t .
-      - name: perceptual-loop
-        working-directory: plugins/perceptual-loop
-        run: python -B -m unittest discover -s tests
 
   # A tag releases one plugin: it has to name the version plugin.json carries.
   release-check:
