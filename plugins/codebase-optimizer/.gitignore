@@ -1,9 +1,0 @@
-# Python caches
-.venv/
-venv/
-__pycache__/
-*.pyc
-*.pyo
-
-# macOS
-.DS_Store
