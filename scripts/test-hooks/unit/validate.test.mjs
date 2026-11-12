@@ -1,6 +1,7 @@
 // validate.mjs against a copy of this checkout with one thing broken at a
 // time. Each case asserts the finding it expects, not only the exit code.
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
@@ -74,10 +75,10 @@ test("a README that still carries a ## Changelog section fails", (t) => {
 // The ratchet: a legacy flag waives the Node-only rules, and only for as long
 // as the plugin breaks one of them.
 test("a plugin with no legacy flag is held to the Node-only rules", (t) => {
-  const result = validate(tree(t, { remove: ["scripts/plugins/code-diet.json"] }));
+  const result = validate(tree(t, { ...withTidy({ "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n" }), remove: ["scripts/plugins/write-like-me.json"] }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/code-diet\/hooks\/kernel_inject\.py is not Node/m);
-  assert.match(result.stdout, /^FAIL: code-diet\/ladder: frontmatter key "license" is not one of the four allowed/m);
+  assert.match(result.stdout, /^FAIL: plugins\/write-like-me\/hooks\/session_start\.py is not Node/m);
+  assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the four allowed/m);
 });
 
 test("a new plugin that meets every rule passes without a flag", (t) => {
@@ -88,7 +89,7 @@ test("a new plugin that meets every rule passes without a flag", (t) => {
 test("a legacy flag on a plugin that no longer needs it fails", (t) => {
   const result = validate(tree(t, withTidy({ "scripts/plugins/tidy.json": '{\n  "legacy": true\n}\n' })));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy no longer needs its legacy flag: delete scripts\/plugins\/tidy\.json/m);
+  assert.match(result.stdout, /^FAIL: tidy no longer needs its legacy flag: remove it from scripts\/plugins\/tidy\.json/m);
 });
 
 test("a file with no extension is judged by its shebang", (t) => {
@@ -165,25 +166,29 @@ const KERNEL = fs.readFileSync(path.join(REPO, "scripts/shared/critical-context.
 const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: (m) => ({ ...m, shared: list }) });
 
 test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
-  const dir = tree(t, { json: shares("code-diet", ["hooks/critical-context.mjs"]), write: { "plugins/docs-parity/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
-  fs.writeFileSync(path.join(dir, "scripts/plugins/docs-parity.json"), `${JSON.stringify({ legacy: true, shared: ["hooks/critical-context.mjs", "lib/no-such-file.mjs"] })}\n`);
+  const dir = tree(t, { json: shares("write-like-me", ["hooks/critical-context.mjs"]), write: { "plugins/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
+  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/workflow-studio.json"), `${JSON.stringify({ legacy: true, shared })}\n`);
+  data(["hooks/critical-context.mjs", "lib/no-such-file.mjs"]);
   const result = validate(dir);
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/code-diet\/hooks\/critical-context\.mjs is missing: node scripts\/sync-shared\.mjs --write/m);
-  assert.match(result.stdout, /^FAIL: plugins\/docs-parity\/hooks\/critical-context\.mjs has drifted from scripts\/shared\/critical-context\.mjs/m);
-  assert.match(result.stdout, /^FAIL: plugins\/docs-parity\/lib\/no-such-file\.mjs is listed as shared, but scripts\/shared\/no-such-file\.mjs does not exist/m);
+  assert.match(result.stdout, /^FAIL: plugins\/write-like-me\/hooks\/critical-context\.mjs is missing: node scripts\/sync-shared\.mjs --write/m);
+  assert.match(result.stdout, /^FAIL: plugins\/workflow-studio\/hooks\/critical-context\.mjs has drifted from scripts\/shared\/critical-context\.mjs/m);
+  assert.match(result.stdout, /^FAIL: plugins\/workflow-studio\/lib\/no-such-file\.mjs is listed as shared, but scripts\/shared\/no-such-file\.mjs does not exist/m);
 
   const check = runNode("scripts/sync-shared.mjs", ["--root", dir]);
   assert.equal(check.status, 1);
-  assert.match(check.stdout, /^missing: plugins\/code-diet\/hooks\/critical-context\.mjs/m);
-  assert.match(check.stdout, /^drifted: plugins\/docs-parity\/hooks\/critical-context\.mjs/m);
-  assert.equal(fs.existsSync(path.join(dir, "plugins/code-diet/hooks/critical-context.mjs")), false, "a check writes nothing");
+  assert.match(check.stdout, /^missing: plugins\/write-like-me\/hooks\/critical-context\.mjs/m);
+  assert.match(check.stdout, /^drifted: plugins\/workflow-studio\/hooks\/critical-context\.mjs/m);
+  assert.equal(fs.existsSync(path.join(dir, "plugins/write-like-me/hooks/critical-context.mjs")), false, "a check writes nothing");
 
-  fs.writeFileSync(path.join(dir, "scripts/plugins/docs-parity.json"), `${JSON.stringify({ legacy: true, shared: ["hooks/critical-context.mjs"] })}\n`);
+  data(["hooks/critical-context.mjs"]);
   assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir, "--write"]).status, 0);
-  for (const plugin of ["code-diet", "docs-parity"]) assert.equal(fs.readFileSync(path.join(dir, "plugins", plugin, "hooks/critical-context.mjs"), "utf8"), KERNEL, plugin);
+  for (const plugin of ["write-like-me", "workflow-studio"]) assert.equal(fs.readFileSync(path.join(dir, "plugins", plugin, "hooks/critical-context.mjs"), "utf8"), KERNEL, plugin);
   assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir]).status, 0);
-  assert.match(validate(dir).stdout, /^ok: 2 shared copy\/copies match scripts\/shared, /m);
+  execFileSync("git", ["-C", dir, "add", "-A"]);
+  const after = validate(dir);
+  assert.equal(after.status, 0, after.stdout);
+  assert.match(after.stdout, /^ok: \d+ shared copy\/copies match scripts\/shared, /m);
 });
 
 test("a shared file with no suite of its own fails", (t) => {
@@ -193,9 +198,9 @@ test("a shared file with no suite of its own fails", (t) => {
 });
 
 test("a shared path that leaves the plugin fails", (t) => {
-  const result = validate(tree(t, { json: shares("code-diet", ["../docs-parity/hooks/critical-context.mjs"]) }));
+  const result = validate(tree(t, { json: shares("write-like-me", ["../docs-parity/hooks/critical-context.mjs"]) }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: scripts\/plugins\/code-diet\.json: "\.\.\/docs-parity\/hooks\/critical-context\.mjs" is not a path inside the plugin/m);
+  assert.match(result.stdout, /^FAIL: scripts\/plugins\/write-like-me\.json: "\.\.\/docs-parity\/hooks\/critical-context\.mjs" is not a path inside the plugin/m);
 });
 
 // Critical lines: a plugin that ships them ships the kernel beside them, runs
@@ -206,7 +211,7 @@ function speaks(plugin, data, { cap = 500, shared = ["hooks/critical-context.mjs
   return {
     json: {
       [`scripts/plugins/${plugin}.json`]: (m) => ({ ...m, shared, critical: { cap } }),
-      [`plugins/${plugin}/hooks/hooks.json`]: (m) => ({ ...m, hooks: { ...m.hooks, ...Object.fromEntries(events.map((e) => [e, [run(e)]])) } }),
+      [`plugins/${plugin}/hooks/hooks.json`]: (m) => ({ ...m, hooks: { ...m.hooks, SessionStart: undefined, SubagentStart: undefined, ...Object.fromEntries(events.map((e) => [e, [run(e)]])) } }),
     },
     write: {
       [`plugins/${plugin}/hooks/critical.json`]: `${JSON.stringify({ plugin, ...data }, null, 2)}\n`,
@@ -219,8 +224,8 @@ function speaks(plugin, data, { cap = 500, shared = ["hooks/critical-context.mjs
 test("a plugin's critical lines pass within its cap and are counted against the total", (t) => {
   const result = validate(tree(t, speaks("docs-parity", { lines: [line("Docs change with the code.")], chains: [line("Shots go through the loop.", { partner: "perceptual-loop", for: "main" })] })));
   assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^ok: 1 shared copy\/copies match scripts\/shared, /m);
-  assert.match(result.stdout, /^ok: critical lines within budget \(\d+ of 7500 characters across 1 plugin\(s\)\)$/m);
+  assert.match(result.stdout, /^ok: \d+ shared copy\/copies match scripts\/shared, /m);
+  assert.match(result.stdout, /^ok: critical lines within budget \(\d+ of 7500 characters across \d+ plugin\(s\)\)$/m);
 });
 
 test("critical lines over the plugin's cap, or with a bad audience, mode or partner, fail", (t) => {

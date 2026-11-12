@@ -221,7 +221,7 @@ async function validate() {
   const ratchetFailures = failures();
   for (const name of [...legacy].sort()) {
     if (waived.get(name)) note(`${name} is legacy: ${waived.get(name)} finding(s) waived`);
-    else fail(`${name} no longer needs its legacy flag: delete scripts/plugins/${name}.json`, `scripts/plugins/${name}.json`);
+    else fail(`${name} no longer needs its legacy flag: remove it from scripts/plugins/${name}.json`, `scripts/plugins/${name}.json`);
   }
   if (failures() === ratchetFailures) ok(legacy.size ? `${legacy.size} legacy plugin(s), each still needing its flag` : "no legacy plugins");
 
