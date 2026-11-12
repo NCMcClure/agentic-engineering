@@ -162,7 +162,7 @@ test("the sheet command writes each kind, gates a diff, and refuses a bad box", 
   const dir = project();
   const ref = path.join(dir, "pics/ref.png"), after = path.join(dir, "pics/after.png");
   const trip = json(pl(dir, ["sheet", "triptych", ref, after, "--box", "0.1,0.1,0.5,0.5", "--zoom", "2", "--json"]));
-  assert.match(trip.sheet, /runs\/sheets\/triptych-\d{8}-\d{6}\.png$/);
+  assert.match(trip.sheet, /runs[\\/]sheets[\\/]triptych-\d{8}-\d{6}\.png$/);
   decodePng(fs.readFileSync(trip.sheet));
   const out = path.join(dir, "out/d.png");
   const diff = pl(dir, ["sheet", "diff", ref, after, "--max-delta-e", "0.001", "--out", out, "--json"]);
