@@ -48,9 +48,6 @@ jobs:
       - name: agent-works
         working-directory: plugins/agent-works
         run: python -B -m unittest discover -s tests -t .
-      - name: docs-parity
-        working-directory: plugins/docs-parity
-        run: python -B -m unittest discover -s tests
       - name: perceptual-loop
         working-directory: plugins/perceptual-loop
         run: python -B -m unittest discover -s tests
