@@ -51,8 +51,8 @@ Record a new baseline in the same change that fixes one.
 
 - `fixtures.mjs` - the fixture repos both lanes use, written as static trees.
 - `hooks.test.mjs`, `cases/` - the hook cases.
-- `unit/` - tests of the repo's own tooling: the validator and the installer,
-  each run against a throwaway copy.
+- `unit/` - tests of the repo's own tooling (the validator and the installer,
+  each run against a throwaway copy) and one suite per file in `scripts/shared/`.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check. The transcript reader is
   `plugins/plugin-workbench/skills/context-lens/scripts/`.

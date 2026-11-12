@@ -1,3 +1,6 @@
 {
-  "legacy": true
+  "legacy": true,
+  "critical": {
+    "cap": 1100
+  }
 }

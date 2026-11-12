@@ -11,11 +11,14 @@
 // The ratchet: scripts/plugins/<name>.json may carry `"legacy": true`. A legacy
 // plugin is waived on the rules marked (legacy) below and on nothing else, and
 // the flag fails the tree once the plugin no longer needs it, so it can only
-// ever be removed.
+// ever be removed. The same file carries the plugin's other gate data:
+// `shared` (its copies of files in scripts/shared/) and `critical` (the cap
+// on its critical lines, and the allowance for its session briefing).
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { fail, failures, gitLsFiles, note, ok, parseFrontmatter, readJson } from "./lib.mjs";
+import { pathToFileURL } from "node:url";
+import { fail, failures, gitLsFiles, note, ok, parseFrontmatter, parseHookCommand, readJson, sha256, sharedCopies } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -40,6 +43,16 @@ const NON_NODE_EXT = /\.(py|sh|bash|zsh|ps1|rb|pl)$/;
 // A vendored app tree carries its toolchain's own files; path rules skip it.
 const VENDORED = /^plugins\/[^/]+\/app\//;
 const ABS_PATH = new RegExp("/(?:Users|home/[a-z]|fast)/");
+// Critical lines are paid for on every request of every session, so each
+// plugin's lines and chain lines stay under its own cap, all of them together
+// under the combined target, and each session hook's worst case under the
+// host's limit on a hook's output, past which the model reads a preview.
+const CRITICAL_TOTAL = 7500;
+const HOOK_OUTPUT_CAP = 10000;
+// What the first enabled plugin can add to its own block: the catalog notices
+// or the question, and a migration's report.
+const ASKER_ALLOWANCE = 2600;
+const KERNEL = "scripts/shared/critical-context.mjs";
 
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
 const exists = (p) => fs.existsSync(p);
@@ -56,10 +69,10 @@ if (arg("--tag")) {
   else ok(`tag ${tag} matches plugin.json`);
   process.exitCode = failures() ? 1 : 0;
 } else {
-  validate();
+  await validate();
 }
 
-function validate() {
+async function validate() {
   const tracked = gitLsFiles(ROOT);
 
   // ---- catalog ---------------------------------------------------------
@@ -92,12 +105,16 @@ function validate() {
   // ---- the legacy ratchet ----------------------------------------------
   const pluginDirs = listDirs(at("plugins"));
   const legacy = new Set();
+  const meta = new Map();
   const waived = new Map();
   for (const file of isDir(at("scripts", "plugins")) ? fs.readdirSync(at("scripts", "plugins")).filter((f) => f.endsWith(".json")).sort() : []) {
     const name = file.slice(0, -5);
     const where = `scripts/plugins/${file}`;
     if (!pluginDirs.includes(name)) { fail(`${where} describes a plugin that is not under plugins/`, where); continue; }
-    try { if (readJson(at(where)).legacy === true) legacy.add(name); } catch (e) { fail(`${where} does not parse (${e.message})`, where); }
+    try {
+      meta.set(name, readJson(at(where)));
+      if (meta.get(name).legacy === true) legacy.add(name);
+    } catch (e) { fail(`${where} does not parse (${e.message})`, where); }
   }
   /** A finding on a rule a legacy plugin is waived on: counted for a legacy plugin, a failure for any other. */
   const strict = (plugin, what, where) => {
@@ -166,6 +183,19 @@ function validate() {
       for (const m of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+)/g)) {
         if (!exists(path.join(dir, m[1]))) fail(`${name}/hooks/hooks.json points at ${m[1]}, which is not in the plugin`, rel(hooks));
       }
+      // A Node hook sits behind a guard, so a machine without Node hears about
+      // it once at session start instead of failing on every event.
+      for (const [event, groups] of Object.entries(map?.hooks ?? {})) {
+        for (const hook of [].concat(groups ?? []).flatMap((g) => g?.hooks ?? [])) {
+          if (!/\bnode\b/.test(String(hook.command ?? "")) || !/\.m?js\b/.test(String(hook.command))) continue;
+          const parsed = parseHookCommand(hook.command, name);
+          const what = `${name}/hooks/hooks.json: the ${event} command`;
+          if (!parsed) fail(`${what} is not a guard followed by node "\${CLAUDE_PLUGIN_ROOT}/<file>"`, rel(hooks));
+          else if (!parsed.guard) fail(`${what} for ${parsed.script} has no guard for a machine without Node`, rel(hooks));
+          else if (event === "SessionStart" && parsed.guard !== "loud") fail(`${what} for ${parsed.script} must use the guard that tells the person Node is missing`, rel(hooks));
+          if (parsed && event === "SessionStart" && !hook.statusMessage) fail(`${what} for ${parsed.script} has no statusMessage`, rel(hooks));
+        }
+      }
       for (const mod of [].concat(map?.modules ?? [])) {
         const target = typeof mod === "string" ? path.resolve(path.dirname(hooks), mod) : "";
         if (!target) fail(`${name}/hooks/hooks.json: module ${JSON.stringify(mod)} is not a path`, rel(hooks));
@@ -194,6 +224,68 @@ function validate() {
     else fail(`${name} no longer needs its legacy flag: delete scripts/plugins/${name}.json`, `scripts/plugins/${name}.json`);
   }
   if (failures() === ratchetFailures) ok(legacy.size ? `${legacy.size} legacy plugin(s), each still needing its flag` : "no legacy plugins");
+
+  // ---- shared files ---------------------------------------------------
+  // A file several plugins ship has one copy that is edited, in
+  // scripts/shared/, and every plugin's copy is byte-identical to it.
+  const { copies, problems } = sharedCopies(ROOT);
+  const sharedFailures = failures();
+  for (const problem of problems) fail(problem, "scripts/plugins");
+  for (const { copy, canonical } of copies) {
+    if (!exists(at(canonical))) fail(`${copy} is listed as shared, but ${canonical} does not exist`, canonical);
+    else if (!exists(at(copy))) fail(`${copy} is missing: node scripts/sync-shared.mjs --write`, copy);
+    else if (sha256(at(copy)) !== sha256(at(canonical))) fail(`${copy} has drifted from ${canonical}: edit that one, then node scripts/sync-shared.mjs --write`, copy);
+  }
+  // What ships in several plugins is tested once, where it is edited.
+  const sharedFiles = isDir(at("scripts", "shared")) ? fs.readdirSync(at("scripts", "shared")).sort() : [];
+  for (const f of sharedFiles) {
+    if (!f.endsWith(".mjs")) fail(`scripts/shared/${f} is not a .mjs file`, `scripts/shared/${f}`);
+    else if (!exists(at("scripts", "test-hooks", "unit", f.replace(/\.mjs$/, ".test.mjs")))) fail(`scripts/shared/${f} has no scripts/test-hooks/unit/${f.replace(/\.mjs$/, ".test.mjs")}`, `scripts/shared/${f}`);
+  }
+  if (failures() === sharedFailures) ok(`${copies.length} shared copy/copies match scripts/shared, ${sharedFiles.length} shared file(s) each with a suite`);
+
+  // ---- critical lines --------------------------------------------------
+  const speakers = pluginDirs.filter((p) => exists(at("plugins", p, "hooks", "critical.json")));
+  const criticalFailures = failures();
+  let kernel = null;
+  if (speakers.length) {
+    try { kernel = await import(pathToFileURL(at(KERNEL)).href); } catch (e) { fail(`${KERNEL} does not load (${e.message})`, KERNEL); }
+  }
+  let total = kernel ? kernel.SHARED_LINE.length + 3 : 0;
+  for (const plugin of kernel ? speakers : []) {
+    const file = `plugins/${plugin}/hooks/critical.json`;
+    const bad = (what) => fail(`${file}: ${what}`, file);
+    if (!kernel.ORDER.includes(plugin)) bad(`${plugin} is not in ORDER in ${KERNEL}`);
+    if (!copies.some((c) => c.copy === `plugins/${plugin}/hooks/critical-context.mjs`)) bad(`scripts/plugins/${plugin}.json does not list hooks/critical-context.mjs under shared`);
+    let registered = {};
+    try { registered = readJson(at("plugins", plugin, "hooks", "hooks.json")).hooks ?? {}; } catch { /* reported above */ }
+    for (const event of ["SessionStart", "SubagentStart"]) {
+      if (!JSON.stringify(registered[event] ?? "").includes("/hooks/session-start.mjs")) bad(`hooks.json does not run hooks/session-start.mjs on ${event}`);
+    }
+    let data;
+    try { data = readJson(at(file)); } catch (e) { bad(e.message); continue; }
+    if (data.plugin !== plugin) bad(`plugin is ${JSON.stringify(data.plugin)}, expected ${plugin}`);
+    const entries = [...(data.lines ?? []), ...(data.chains ?? [])];
+    for (const l of entries) {
+      const which = `"${String(l.text).slice(0, 40)}"`;
+      if (typeof l.text !== "string" || !l.text) bad(`${which} has no text`);
+      if (!kernel.AUDIENCES.includes(l.for)) bad(`${which} needs for: ${kernel.AUDIENCES.join(" or ")}`);
+      if (!kernel.MODES.includes(l.mode)) bad(`${which} needs mode: ${kernel.MODES.join(", ")}`);
+    }
+    for (const c of data.chains ?? []) {
+      if (!kernel.ORDER.includes(c.partner) || c.partner === plugin) bad(`chain partner ${JSON.stringify(c.partner)} is not another plugin in ORDER`);
+    }
+    // What the block costs as printed: a header, and "- " plus a newline a line.
+    const size = `Critical, from ${plugin}:`.length + entries.reduce((n, l) => n + String(l.text).length + 3, 0);
+    total += size;
+    const { cap, briefing = 0 } = meta.get(plugin)?.critical ?? {};
+    if (!Number.isInteger(cap)) bad(`scripts/plugins/${plugin}.json carries no critical.cap`);
+    else if (size > cap) bad(`critical and chain lines are ${size} characters, over the ${cap} cap`);
+    const worst = size + kernel.SHARED_LINE.length + 3 + briefing + ASKER_ALLOWANCE;
+    if (worst > HOOK_OUTPUT_CAP) bad(`the session hook can print ${worst} characters, over the host's ${HOOK_OUTPUT_CAP}`);
+  }
+  if (total > CRITICAL_TOTAL) fail(`critical lines total ${total} characters across the plugins, over the ${CRITICAL_TOTAL} target`, "plugins");
+  if (failures() === criticalFailures) ok(`critical lines within budget (${total} of ${CRITICAL_TOTAL} characters across ${speakers.length} plugin(s))`);
 
   // ---- tree-wide -------------------------------------------------------
   let text = 0, crlf = 0, abs = 0, junk = 0;

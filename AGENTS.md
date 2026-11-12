@@ -19,9 +19,12 @@ enforces.
 - `plugins/` - the shipped plugins, one self-contained directory each. Its
   `AGENTS.md` says what each one is for. Descend to change what an agent does.
 - `scripts/` - repo tooling, never shipped: `validate.mjs` (the structural
-  gate), `plugins/<name>.json` (per-plugin gate data, today the `legacy` flag),
-  `install.mjs` and `refresh.mjs` (the local dev loop), `lib.mjs`, and
-  `test-hooks/` (the unit and live lanes; its README has the detail).
+  gate), `plugins/<name>.json` (per-plugin gate data: the `legacy` flag, the
+  `shared` copies, the `critical` cap), `install.mjs` and `refresh.mjs` (the
+  local dev loop), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its
+  README has the detail).
+- `scripts/shared/` - the files several plugins ship unchanged, each edited
+  here and nowhere else. `scripts/sync-shared.mjs --write` rewrites the copies.
 - `.github/workflows/validate.yml` - CI: the gate, the unit lane on three
   operating systems, and the tag check.
 - `package.json` - the npm script names. No dependencies, ever.
