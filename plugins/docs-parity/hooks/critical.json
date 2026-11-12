@@ -1,0 +1,12 @@
+{
+  "plugin": "docs-parity",
+  "lines": [
+    {
+      "for": "all",
+      "mode": "any",
+      "when": ".agents/docs-parity.json",
+      "text": "User docs move in the same change as the code they describe: update the pages, retake the shots it made wrong through the capture harness (never by hand), and put `Docs: <pages>` or `Docs: none, <why>` in the commit or PR body (/docs-parity:docs-sync). The writer contract is .agents/docs-contract.md."
+    }
+  ],
+  "chains": []
+}

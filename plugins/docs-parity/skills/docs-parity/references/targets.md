@@ -98,10 +98,15 @@ The published wiki is a derived copy: nobody edits it in the browser. Say so on 
 For a small tool, one `README.md` carries what it is, install, a quickstart, and usage. Set `"target":
 "readme"`, `"docsRoot": "."`, `"include": ["README.md"]` (so the checker reads that page and not every
 `AGENTS.md` in the tree), `"nav": "none"`, `"summary": false` if the README opens with badges, and point each
-surface's `pages` at `README.md`. Split into `docs/` when install, quickstart and topics stop fitting on one
-screen of contents.
+surface's `pages` at `README.md`. The README's shape is not the 120-line page budget: `readme-check.mjs`
+holds it to 800 words and standard-readme's sections, and the `readme` skill rewrites one that fails. Split into
+`docs/` when install, quickstart and topics stop fitting in those 800 words.
 
 ## CI, whatever the target
+
+CI has no plugin installed, so it runs a copy of the checker kept in the repository:
+`.agents/scripts/docs-check.mjs`, one file with no dependencies, which `/docs-parity:docs-init` copies in on
+request. Refresh the copy when the plugin updates.
 
 ```yaml
 # GitHub Actions
@@ -110,17 +115,22 @@ docs-parity:
   steps:
     - uses: actions/checkout@v4
       with: { fetch-depth: 0 }
-    - run: python3 tools/docs_check.py --changed "origin/${{ github.base_ref || 'main' }}..HEAD" --stale --note "${{ github.event.pull_request.body }}"
+    - uses: actions/setup-node@v4
+      with: { node-version: 22 }
+    - run: node .agents/scripts/docs-check.mjs --changed "origin/${{ github.base_ref || 'main' }}..HEAD" --stale --note "$PR_BODY"
+      env: { PR_BODY: "${{ github.event.pull_request.body }}" }
 ```
 
 ```yaml
 # GitLab CI
 docs-parity:
+  image: node:22
   variables: { GIT_DEPTH: 0 }
   script:
-    - python3 tools/docs_check.py --changed "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}..HEAD" --stale --note "$CI_MERGE_REQUEST_DESCRIPTION"
+    - node .agents/scripts/docs-check.mjs --changed "origin/${CI_MERGE_REQUEST_TARGET_BRANCH_NAME:-$CI_DEFAULT_BRANCH}..HEAD" --stale --note "$CI_MERGE_REQUEST_DESCRIPTION"
 ```
 
-`tools/docs_check.py` is a copy of the plugin's script (one file, stdlib only), so CI needs no plugin install;
-refresh the copy when the plugin updates. A full clone matters: `--changed` and `--stale` read history. Any
-nonzero exit fails the job; accept a finding in the config, with its why, rather than loosening the job.
+A full clone matters: `--changed` and `--stale` read history. Any nonzero exit fails the job; accept a finding
+in the config, with its why, rather than loosening the job. The same command runs locally before you push. A
+repo that opted its READMEs in (`readme` in the config) adds `node .agents/scripts/readme-check.mjs`, a copy
+of the plugin's second script, to the same job.

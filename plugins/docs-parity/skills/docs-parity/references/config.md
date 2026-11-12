@@ -1,7 +1,7 @@
 # `.agents/docs-parity.json` and the finding codes
 
 One file says where the docs are, who they are for, how pictures are made, and which code each page and shot
-describes. `docs_check.py` reads it; the hooks look for it to decide whether the project opted in. Paths and
+describes. `docs-check.mjs` reads it; the hooks look for it to decide whether the project opted in. Paths and
 globs are repo-relative; `**` matches any depth, `*` stays inside one folder.
 
 ## Fields
@@ -28,6 +28,7 @@ globs are repo-relative; `**` matches any depth, `*` stays inside one folder.
 | `surfaces` | `[]` | the code-to-docs map, below |
 | `ignore` | hubs, `CLAUDE.md`, test files | globs never counted as a surface's code change |
 | `accept` | `[]` | `{code, path?, why}`: findings the owner accepted; never a critical one in spirit |
+| `readme` | none | opts the READMEs into `readme-check.mjs` at Stop, below |
 
 ## Surfaces
 
@@ -44,17 +45,45 @@ and a reported refactor teaches everyone to write `Docs: none` without reading.
 
 ## Modes and exit codes
 
+The skills run the plugin's copy, `node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs"`; CI runs the copy a
+repo keeps at `.agents/scripts/docs-check.mjs`. The flags are the same:
+
 ```bash
-python3 docs_check.py                        # the tree checks
-python3 docs_check.py --changed HEAD         # plus parity of the working tree against the last commit
-python3 docs_check.py --changed main..HEAD   # plus parity of a branch; reads Docs: lines in its commits
-python3 docs_check.py --stale                # plus shots older than their surface's last code change
-python3 docs_check.py --no-tree --stale --json
+docs-check.mjs                        # the tree checks
+docs-check.mjs --changed HEAD         # plus parity of the working tree against the last commit
+docs-check.mjs --changed main..HEAD   # plus parity of a branch; reads Docs: lines in its commits
+docs-check.mjs --stale                # plus shots older than their surface's last code change
+docs-check.mjs --no-tree --stale --json
 ```
 
 `--note TEXT` adds text (a pull request body) to search for a `Docs: none, <why>` line, which turns
-`PARITY_MISSING` into info for that range. `--config PATH` reads a config from elsewhere. Exit 0 when only
-info remains, 1 on warnings, 2 on a critical finding.
+`PARITY_MISSING` into info for that range. `--config PATH` reads a config from elsewhere. `--root DIR` names
+the project; without it the checker takes the nearest folder at or above the current one that holds the
+config, then the git top level. Exit 0 when only info remains, 1 on warnings, 2 on a critical finding, an
+unreadable config, or an argument it does not know.
+
+A `deny` pattern is a JavaScript regular expression, tested against one line at a time. Named groups written
+`(?P<name>...)`, `\A`, `\Z`, and a leading `(?i)` are read too, so a config written for another engine keeps
+working.
+
+## The `readme` block
+
+Optional. Its presence opts the repo's READMEs into the Stop hook's README check; `readme-check.mjs` reads it
+whenever it runs. `{}` is enough to opt in.
+
+```json
+"readme": {
+  "name": "widget",
+  "paths": ["packages/*/README.md"],
+  "accept": [{ "path": "README.md", "term": ".claude", "why": "Install tells a person where their own settings file lives" }]
+}
+```
+
+`name` is what the root README's title must be; without it the checker uses the origin remote's repository
+name, then the checkout's folder. `paths` opts further READMEs in, each named for its directory. `accept`
+clears one plumbing term in one file, and needs its `why`. The `readme` skill's references have the rules a
+README is held to. A repo that carries `.agents/manifest.json` may keep the same block there, and its
+`project` names the root README when no `name` does; both files are read.
 
 ## Finding codes
 

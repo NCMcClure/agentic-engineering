@@ -1,6 +1,6 @@
 # Writing the user docs
 
-The contract for every author of `{{DOCS_ROOT}}`, human or agent. docs-parity's `docs_check.py` checks what a
+The contract for every author of `{{DOCS_ROOT}}`, human or agent. docs-parity's `docs-check.mjs` checks what a
 script can; review checks the rest. Fill in every `{{...}}` at adoption and keep this page current when the
 docs' shape changes.
 

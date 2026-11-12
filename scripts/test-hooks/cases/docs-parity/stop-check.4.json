@@ -1,0 +1,6 @@
+{
+  "script": "stop-check.mjs",
+  "event": "Stop",
+  "stdin": "{\"stop_hook_active\": fals",
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}
