@@ -2,7 +2,7 @@
 
 `build-user-docs` records its state in one file, `.agents/plan/progress/docs.md`,
 created lazily on the skill's first run (no scaffolding step, no backfill
-exception — like drift files). This skill owns the format; `build-next-issue`
+exception, like drift files). This skill owns the format; `build-next-issue`
 consumes it read-only for its docs-freshness report line.
 
 ```markdown
@@ -10,7 +10,7 @@ consumes it read-only for its docs-freshness report line.
 
 Maintained by `build-user-docs`. Which verified sprints have end-user
 documentation, and which doc files the skill manages. See that skill for the
-gate rule and grounding rule — nothing lands here that wasn't verified first.
+gate rule and grounding rule, nothing lands here that wasn't verified first.
 
 ## Documented sprints
 
@@ -34,12 +34,11 @@ pass. Every other doc file is user-authored: section-level edits only.
 
 - **One row per documented sprint**, appended when a pass covers that sprint's
   verified issues. A sprint can appear twice if a later reconcile verifies
-  issues that were deferred (e.g. past a `verifyLimit` cap or a HITL draft) —
-  the ledger records passes, not promises.
+  issues that were deferred (e.g. past a `verifyLimit` cap or a HITL draft), the ledger records passes, not promises.
 - **`Docs commit`** is the sha of the docs commit (or `uncommitted` when the
   git posture said to leave it). It's the pointer from "documented" back to
   "exactly what was written".
-- **`## Managed files`** is the ownership boundary — the load-bearing list.
+- **`## Managed files`** is the ownership boundary, the load-bearing list.
 - **`## Notes`** is optional: ahead-of-REVIEW flags, ungroundable claims,
   conflicts with user-authored files.
 
@@ -48,8 +47,7 @@ pass. Every other doc file is user-authored: section-level edits only.
 - A file goes on the managed list **only if this skill created it**. Once
   listed, any pass may rewrite, merge, split, or rename it (updating the list)
   to keep the doc set coherent.
-- A file not on the list — a user-authored README, a pre-existing docs page —
-  gets **surgical, section-level edits**: add or update the section the new
+- A file not on the list, a user-authored README, a pre-existing docs page, gets **surgical, section-level edits**: add or update the section the new
   behaviour belongs in, leave the rest byte-for-byte alone. If the needed
   change conflicts with what a human wrote (their quickstart contradicts the
   built behaviour), report the conflict; never silently overwrite prose you
@@ -64,7 +62,7 @@ pass. Every other doc file is user-authored: section-level edits only.
   sections, no stale examples left because they were true last sprint.
 - End-user docs answer: what is this, how do I install it, how do I do the
   things it's for. They never document internal architecture, agent workflow,
-  or anything under `.agents/plan/` — that's what the spec site is for.
+  or anything under `.agents/plan/`, that's what the spec site is for.
 - Every command, flag, path, and example is grounded by execution against the
   built tree before it's written (the grounding rule in
   [SKILL.md](SKILL.md)). An ungroundable claim is a report line, not a doc line.
@@ -74,27 +72,26 @@ pass. Every other doc file is user-authored: section-level edits only.
 Follow the first convention that exists; impose the default only at the end:
 
 0. The spec's `user-docs-plan.md` page (contract:
-   [USER-DOCS-SPEC.md](../spec-1-specify/USER-DOCS-SPEC.md)) — when it exists,
+   [USER-DOCS-SPEC.md](../spec-write/USER-DOCS-SPEC.md)), when it exists,
    its stack section and page map **pin** the layout; the steps below apply
-   only to brownfield projects and pre-3.7 trees that don't carry the page.
-1. `.agents/docs-parity.json` — when the `docs-parity` plugin adopted the
-   project, its `target`, `docsRoot`, nav manifest and roots pin the layout
-   exactly as the spec's page would.
-2. A docs-site config — `mkdocs.yml`, `docusaurus.config.*`, `conf.py`
+   only to brownfield projects and older trees that do not carry the page.
+1. `.agents/docs-parity.json`, when the repo adopted the docs checks: its
+   `target`, `docsRoot`, nav manifest, and roots pin the layout exactly as the
+   spec's page would.
+2. A docs-site config, `mkdocs.yml`, `docusaurus.config.*`, `conf.py`
    (Sphinx), `book.toml` (mdBook), Fumadocs' `source.config.ts`,
-   `.vitepress/config.*`, an Astro Starlight config — write pages into that
+   `.vitepress/config.*`, an Astro Starlight config: write pages into that
    site's source tree and wire them into its nav.
 3. A wiki whose source lives in the repo (`wiki/` with `Home.md` and
-   `_Sidebar.md`) — write there and link the page from the sidebar; never edit
+   `_Sidebar.md`): write there and link the page from the sidebar; never edit
    the published wiki itself, CI publishes it.
-4. A `docs/` (or `doc/`) directory of prose pages — match its structure and
+4. A `docs/` (or `doc/`) directory of prose pages, match its structure and
    file naming.
-5. Man pages / a `--help`-driven CLI with no prose docs — README-only, kept
+5. Man pages / a `--help`-driven CLI with no prose docs, README-only, kept
    tight and current.
-6. README only — extend it while it stays scannable; split into `docs/` when
+6. README only, extend it while it stays scannable; split into `docs/` when
    install + quickstart + topics stop fitting comfortably.
-7. Nothing — the default follows the recorded user-docs posture
-   (`reference/adr/0003-user-docs-posture.md`): scaffold an MkDocs site —
-   `mkdocs.yml` plus `docs/` pages, README kept to install + quickstart with a
-   pointer to the site — all created and listed as managed. On a pre-3.7 tree
+7. Nothing, the default follows the recorded user-docs posture
+   (`reference/adr/0003-user-docs-posture.md`): scaffold an MkDocs site, `mkdocs.yml` plus `docs/` pages, README kept to install + quickstart with a
+   pointer to the site, all created and listed as managed. On a tree without the page
    with no ADR-0003, fall back to README + `docs/` topic pages.

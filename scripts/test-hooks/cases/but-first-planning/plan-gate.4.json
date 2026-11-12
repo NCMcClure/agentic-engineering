@@ -1,0 +1,16 @@
+{
+  "script": "plan-gate.mjs",
+  "event": "TaskCompleted",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "TaskCompleted",
+    "session_id": "bfp-g4",
+    "cwd": "{{REPO}}",
+    "task_id": "1",
+    "task_subject": "Build the slice"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

@@ -1,6 +1,10 @@
 {
-  "legacy": true,
   "critical": {
-    "cap": 700
-  }
+    "cap": 700,
+    "briefing": 500
+  },
+  "shared": [
+    "hooks/critical-context.mjs",
+    "skills/spec-init/assets/provider.mjs"
+  ]
 }

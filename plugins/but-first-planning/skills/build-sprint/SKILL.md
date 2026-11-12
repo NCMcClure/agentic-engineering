@@ -1,11 +1,14 @@
 ---
 name: build-sprint
-description: Build a whole sprint with coordinated builder subagents from build-next-issue's dispatch plan, integrating serially with HITL gates. Use for autonomy asks — "build the sprint", "agents build epic N".
+description: >
+  Builds a whole sprint from build-next-issue's dispatch plan: a builder
+  subagent per issue, integrated serially on one branch, stopping at human
+  gates. Use when the user asks agents to build a sprint or an epic.
 ---
 
-# build-sprint — run the builders that build a sprint
+# build-sprint: run the builders that build a sprint
 
-`build-next-issue` says *what* to build — it hands back a dispatch plan:
+`build-next-issue` says *what* to build, it hands back a dispatch plan:
 the parallel-safe frontier, the true dependency DAG, the HITL gates, the
 checkpoint health. This skill **runs the builders that build it**. It is the
 build-phase orchestrator: one coordinator drives a sprint to completion by fanning
@@ -19,29 +22,39 @@ human-gated cadence.**
 
 ### 0. Enter plan mode
 
-If not already in plan mode, enter it now: investigate, then propose — nothing
+If not already in plan mode, enter it now: investigate, then propose, nothing
 is edited or created until the user approves. Exit plan mode once the user
 approves the cadence, then build.
+
+## Which route builds the sprint
+
+This skill builds a sprint inside one session and lands it as one pull or
+merge request. If agent-works is installed, its board is the other route: each
+issue is a card built by its own session in its own git worktree, running
+`build-tdd`, and lands as its own change request, so isolation is real by
+construction and the person can open, steer, or review any builder. Prefer
+that route where it is available and the person wants one change per issue;
+stay here for a `Workflow()` run, for subagents, and for a sprint the person
+wants as one change. Ask which, when it is not obvious.
 
 ## Before you start: settle the cadence with the user
 
 These are the user's calls, and they change the run. Surface them first:
 
-- **HITL issues** — pause and ask, auto-implement, or skip-and-flag? (Default: pause and ask — HITL issues were flagged for a human on purpose.) `REVIEW` issues sit outside this policy: they are never built or drafted by agents under any setting — they surface as pending human walkthroughs in the sprint report.
-- **Git discipline** — commit per issue with a PR per sprint, leave uncommitted, push as you go? (Default: commit per issue, one PR per sprint.)
-- **Cadence** — stop at each sprint boundary for go-ahead, run to epic completion, or one issue at a time? (Default: stop at each sprint boundary.)
-- **Parallelism** — how aggressively to fan out (see the file-overlap rule below).
+- **HITL issues**: pause and ask, auto-implement, or skip-and-flag? (Default: pause and ask, HITL issues were flagged for a human on purpose.) `REVIEW` issues sit outside this policy: they are never built or drafted by agents under any setting, they surface as pending human walkthroughs in the sprint report.
+- **Git discipline**: commit per issue with a PR per sprint, leave uncommitted, push as you go? (Default: commit per issue, one PR per sprint.)
+- **Cadence**: stop at each sprint boundary for go-ahead, run to epic completion, or one issue at a time? (Default: stop at each sprint boundary.)
+- **Parallelism**: how aggressively to fan out (see the file-overlap rule below).
 
 ## The per-sprint loop
 
 1. **Get a fresh dispatch plan.** Run `build-next-issue` (or read its latest report) for the
    current sprint: the wave-ordered frontier, the true DAG, file-overlaps, HITL
-   gates, and checkpoint health. If there is no dispatch plan, you are not ready —
-   produce one first.
+   gates, and checkpoint health. If there is no dispatch plan, you are not ready, produce one first.
 2. **Gate on HITL/REVIEW.** If the frontier's lead is a HITL issue, or an AFK
    issue implicitly depends on one, handle it per the chosen policy *before*
-   fanning out. The reliable pattern for "pause and ask" — draft → review →
-   sign-off → commit, with factual claims grounded before sign-off — is in
+   fanning out. The reliable pattern for "pause and ask", draft → review →
+   sign-off → commit, with factual claims grounded before sign-off, is in
    [ORCHESTRATION.md](ORCHESTRATION.md), along with the REVIEW-gate pattern
    (prepare the walkthrough, never perform it). In an interactive run you tell
    the human directly; when a *headless* run defers a gate it wasn't authorized
@@ -52,20 +65,18 @@ These are the user's calls, and they change the run. Surface them first:
    issues to builders; cluster issues that touch the same module into one builder /
    one commit. Each builder implements test-first (`build-tdd`), makes its checkpoint
    *genuinely* runnable (flagging any drift), updates its issue file to `done`, and
-   commits. The dispatch and isolation rules — including the ones learned the hard
-   way — are in [ORCHESTRATION.md](ORCHESTRATION.md).
+   commits. The dispatch and isolation rules, including the ones learned the hard
+   way, are in [ORCHESTRATION.md](ORCHESTRATION.md).
 5. **Integrate serially, re-checkpoint each time.** Bring each builder's work onto the
    sprint branch one at a time and re-run the full checkpoint suite after each. A
    green sprint branch is the invariant you never break.
 6. **Run the sprint-exit checkpoints.** All issues `done`, the Layer-1 tests green,
    the plan-tree verifier green, the hub row of the sprint's checkpoint table
-   when it has one (`verify-agents-tree.py`, present only where the agent-works
-   hub check is wired) reporting no new violations, plus any
-   sprint-specific E2E. If a checkpoint is *broken by construction*, say so and
-   route it to `spec-4-edit` — don't let a false-negative gate stall a
+   (when it has one) reporting no new violations, plus any sprint-specific E2E. If a checkpoint is *broken by construction*, say so and
+   route it to `spec-edit`, don't let a false-negative gate stall a
    genuinely-complete sprint.
-7. **Record and hand back to build-next-issue.** Run `plan-status.py set EE-SS-II done` per
-   built issue (the sprint, epic, and index roll up automatically — no separate
+7. **Record and hand back to build-next-issue.** Run `plan-status.mjs set EE-SS-II done` per
+   built issue (the sprint, epic, and index roll up automatically, no separate
    "mark the sprint done" step). Write the per-run narrative to
    `.agents/plan/progress/notes/` and mirror any drift/smells into their own files under
    `.agents/plan/progress/drift/` (one `drift-<slug>.md` each; format in `build-next-issue`).
@@ -74,16 +85,15 @@ These are the user's calls, and they change the run. Surface them first:
 8. **Stop at the boundary** per the cadence, and report: what shipped, verification
    results, any drift flagged, and the next sprint's HITL gates so the human knows
    whether the next leg is autonomous. Make sure no builder subagent is still
-   running at the stop point — wait for (or stop) stragglers before reporting.
+   running at the stop point, wait for (or stop) stragglers before reporting.
 
 Then loop: re-assess with `build-next-issue`, and once its verification has
-written the sprint's ledger rows, run `build-user-docs` — the end-user docs
-commit lands on the still-open sprint PR, so docs are reviewed with the code —
-before merging and building the next sprint.
+written the sprint's ledger rows, run `build-user-docs`, the end-user docs
+commit lands on the still-open sprint PR, so docs are reviewed with the code, before merging and building the next sprint.
 
 ## The coordination model
 
-- **One coordinator** (you) stays in the driving loop so it can human-gate — pause
+- **One coordinator** (you) stays in the driving loop so it can human-gate, pause
   for HITL, stop at sprint boundaries, decide merges. A fire-and-forget background
   run cannot cleanly pause to ask a person.
 - **Ephemeral builder subagents**, one per issue or per same-module cluster, each
@@ -93,21 +103,24 @@ before merging and building the next sprint.
   a running builder can be nudged or queried mid-run via `SendMessage`.
 - **The build-next-issue DAG is the work list.** Mirror it into the session task
   list (`TaskCreate`, one task per issue, encoding the true dependencies) so
-  progress and blocking stay visible, and dispatch strictly in wave order — a task
+  progress and blocking stay visible, and dispatch strictly in wave order, a task
   is claimable only once its prerequisites have landed and re-checkpointed green.
 - The coordinator **never lets two agents write the same working tree concurrently.**
   This is the rule that keeps integration clean; the rationale, the isolation
   model, and the failure mode are in [ORCHESTRATION.md](ORCHESTRATION.md).
 - **Giving builders the test-first role:** brief each builder subagent to follow
-  `build-tdd` for its slice — the issue's acceptance criteria and spec anchors drive
-  its tests. The builder briefing checklist is in
-  [ORCHESTRATION.md](ORCHESTRATION.md).
+  `build-tdd` for its slice: the issue's acceptance criteria and spec anchors
+  drive its tests. A subagent loads no skill you do not name, so name the
+  ones this session has: `/agentic-teamwork:tdd` (the loop and the lane
+  commands) and `/code-diet:ladder` (the shape of the production code) when
+  those plugins are installed, and the `AGENTS.md` duty it owes in the same
+  commit. The full briefing checklist is in [ORCHESTRATION.md](ORCHESTRATION.md).
 
 ## Autonomous mode
 
 For a fully AFK sprint, offer the bundled workflow instead of coordinating
 inline. The cadence questions above become its args; **"pause and ask" is not a
-workflow option** (a workflow can't stop mid-run) — map that cadence to
+workflow option** (a workflow can't stop mid-run), map that cadence to
 `draft-and-defer`, or stay with the interactive coordinator. One run = one
 sprint; for an epic or backlog, loop in the caller: reconcile → build → re-verify,
 next sprint.
@@ -124,38 +137,43 @@ Workflow({
     // hitlPolicy: "skip-and-flag" (default) | "draft-and-defer" | "auto-implement",
     // parallelism: "serial" (default, robust) | "worktree" (parallel file-disjoint units),
     // openPr: true, maxFailures: 2, prBase: "main",
-    // models: {build: "fable", exit: "fable"} — per-stage model overrides
+    // models: {build: "fable", exit: "fable"}, per-stage model overrides
     //   (stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr)
   }
 })
 ```
 
-Run `build-next-issue`'s reconcile workflow with `dispatch: true` first — the
+Run `build-next-issue`'s reconcile workflow with `dispatch: true` first, the
 dispatch JSON is this workflow's required input. Pre-approve the project's
-build/test/`gh` commands in permissions before launching, per
+build, test, and `gh` or `glab` commands in permissions before launching, per
 [ORCHESTRATION.md](ORCHESTRATION.md), so builders don't stall.
 
 **Converged when** the sprint is complete (or the failure budget stopped the
-run — `stoppedEarly`). **The human re-enters through the returned report** —
-walk the user through it in this order:
+run, `stoppedEarly`). **The human re-enters through the returned report**: walk the user through it in this order:
 
-1. **`drafts`** (draft-and-defer) — each drafted artifact's path and its
+1. **`drafts`** (draft-and-defer), each drafted artifact's path and its
    judgement calls; the human signs off, then the drafts are committed and their
    issues built next run.
-2. **`reviewPending`** — the REVIEW gates awaiting a human walkthrough; the
+2. **`reviewPending`**: the REVIEW gates awaiting a human walkthrough; the
    human walks each issue's walkthrough table on the sprint branch, records the
    sign-off (who, ref), and flips it through the funnel. **`notified`** lists
    the tracker issues that already got a `Human gate` @mention comment.
-3. **`autoDecisions`** (auto-implement) — every decision an agent made, each
+3. **`autoDecisions`** (auto-implement), every decision an agent made, each
    recorded as an ADR; review or reverse them deliberately.
-4. **`failed`** — each failed unit with its route (`spec-4-edit` for
+4. **`failed`**: each failed unit with its route (`spec-edit` for
    plan/checkpoint defects, `retry`, or `spec`).
-5. **`drift`**, **`sprintExit`**, and the **`prUrl`** — then hand back to
+5. **`drift`**, **`sprintExit`**, and the **`prUrl`**: then hand back to
    `build-next-issue`, whose reconcile independently re-verifies everything
    before any ledger row is written.
-6. Once the reconcile has written the ledger rows, run **`build-user-docs`** —
-   end-user docs for the verified work, committed onto the still-open sprint
+6. Once the reconcile has written the ledger rows, run **`build-user-docs`**: end-user docs for the verified work, committed onto the still-open sprint
    PR (per the run's docs posture) before it merges.
+
+Where the session has no `Workflow()` tool, run the same phases with parallel
+subagents instead, in the same order, with the parent session owning every
+shared file and the status funnel:
+[references/subagent-fallback.md](../../references/subagent-fallback.md) is
+the contract, and it is what keeps an autonomous run there from quietly
+becoming a different, unverified run.
 
 ## Hand off
 
@@ -163,7 +181,7 @@ When the cadence says stop, report the sprint result and point back at
 `build-next-issue` to re-derive the next dispatch plan; once its verification
 has written the sprint's ledger rows, `build-user-docs` writes the end-user
 docs for that verified work onto the open sprint PR before merge. If the build
-surfaced a *plan* problem — a broken checkpoint, an under-declared dependency, a
-spec anchor that no longer fits — route it to `spec-4-edit` rather than papering
+surfaced a *plan* problem, a broken checkpoint, an under-declared dependency, a
+spec anchor that no longer fits, route it to `spec-edit` rather than papering
 over it in the build. If a slice needs deeper test-first work than a wave allows,
 that's `build-tdd` on its own.

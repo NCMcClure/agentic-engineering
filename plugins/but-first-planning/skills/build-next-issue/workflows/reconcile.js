@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-next-reconcile',
-  description: 'Reconcile plan tree, tracker, git, and progress ledger in parallel; independently verify every claimed-done issue against its checkpoint; record through the status funnel; select the next issue — and optionally derive the dispatch-plan JSON that build-sprint consumes',
-  whenToUse: "build-next-issue's autonomous mode — when 5+ done-claims need verification or a parallel build needs a dispatch plan; the interactive read stays the default for quick what's-next questions. Args: {root, skillDir, scope?, dispatch?, verifyLimit?}. scope bounds the run to an epic (EE) or sprint (EE-SS); dispatch:true also derives and writes .agents/plan/progress/dispatch/EE-SS.json; verifyLimit caps the verification fan-out (default 20).",
+  description: 'Reconcile plan tree, tracker, git, and progress ledger in parallel; independently verify every claimed-done issue against its checkpoint; record through the status funnel; select the next issue, and optionally derive the dispatch-plan JSON that build-sprint consumes',
+  whenToUse: "build-next-issue's autonomous mode, when 5+ done-claims need verification or a parallel build needs a dispatch plan; the interactive read stays the default for quick what's-next questions. Args: {root, skillDir, scope?, dispatch?, verifyLimit?}. scope bounds the run to an epic (EE) or sprint (EE-SS); dispatch:true also derives and writes .agents/plan/progress/dispatch/EE-SS.json; verifyLimit caps the verification fan-out (default 20).",
   phases: [
     { title: 'Gather', detail: 'four parallel state readers: plan, tracker, git, drift+ledger', model: 'haiku' },
     { title: 'Verify', detail: 'one verifier per unverified done-claim, per ASSESSMENT.md', model: 'sonnet' },
@@ -12,10 +12,10 @@ export const meta = {
 
 // Model-tier policy: haiku = the four Gather readers (pure retrieval, no judgment);
 // sonnet = checkpoint verification + the serial funnel/bookkeeping agent; the
-// Select/Dispatch stage inherits the session model — recovering implicit
+// Select/Dispatch stage inherits the session model, recovering implicit
 // dependencies and wave-ordering the frontier is the judgment core of this run.
 
-// ---------- args (may arrive as a JSON string — coerce defensively) ----------
+// ---------- args (may arrive as a JSON string, coerce defensively) ----------
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) {
@@ -29,16 +29,16 @@ const SCOPE = typeof A.scope === 'string' && /^\d\d(-\d\d)?$/.test(A.scope) ? A.
 const DISPATCH = A.dispatch === true
 const VERIFY_LIMIT = Math.max(parseInt(A.verifyLimit, 10) || 20, 1)
 
-const BRIEF = 'Be terse in every string field — telegraphic phrases, no filler. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
+const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
 CONTEXT. You are part of a reconciliation pipeline for the plan workspace at ${ROOT}/.agents/plan/:
 the plan tree is ${PLANDIR}/ (epic/sprint/issue files; issue coords are EE-SS-II and an issue
 file matches ${PLANDIR}/EE-*/SS-*/issues/II_issue_*.md), the tracker config is
 ${ROOT}/.agents/plan/tracker.md, and the progress records live under ${PROG}/ (completed/ ledgers,
-notes/, drift/). The status funnel is: python3 ${PLANDIR}/plan-status.py — NEVER hand-edit a
+notes/, drift/). The status funnel is: node ${PLANDIR}/plan-status.mjs, NEVER hand-edit a
 Status field or ledger row.
-${SCOPE ? `SCOPE: this run is bounded to ${SCOPE} — ignore issues outside it.` : ''}
+${SCOPE ? `SCOPE: this run is bounded to ${SCOPE}, ignore issues outside it.` : ''}
 `
 
 // ---------- Phase 1: gather state (four parallel readers) ----------
@@ -46,7 +46,7 @@ phase('Gather')
 // barrier justified: the verification delta is a set computation over all four signals
 const [planState, trackerState, gitState, progressState] = await parallel([
   () => agent(
-    `${CTX}\nRead plan-tree state, mechanically. Run: python3 ${PLANDIR}/plan-status.py check${SCOPE ? ' ' + SCOPE : ''} (report exit code + rolled-up line). Then grep the issue files${SCOPE ? ` under the ${SCOPE} subtree` : ''} for their bold fields: report every issue whose Status is NOT not-started as {coords, ref (#NNN or <unassigned>), status, title(H1)}, and separately EVERY published issue (ref != <unassigned>) as a {ref, coords} map entry regardless of status. Also name the first sprint (EE-SS) that still has not-started issues. If ${PLANDIR}/verify-agents-tree.py exists, run it too (cwd ${ROOT}) and report its exit code + first 3 WARN/FAIL lines; if absent report agentsExit=-1. Pure retrieval — no judgment. ${BRIEF}`,
+    `${CTX}\nRead plan-tree state, mechanically. Run: node ${PLANDIR}/plan-status.mjs check${SCOPE ? ' ' + SCOPE : ''} (report exit code + rolled-up line). Then grep the issue files${SCOPE ? ` under the ${SCOPE} subtree` : ''} for their bold fields: report every issue whose Status is NOT not-started as {coords, ref (#NNN, or <unassigned>), status, title(H1)}, and separately EVERY published issue (ref != <unassigned>) as a {ref, coords} map entry regardless of status. Also name the first sprint (EE-SS) that still has not-started issues. If a sprint.md or epic.md checkpoint table under ${PLANDIR} carries a "Codebase hubs current" row, run that row's command too (cwd ${ROOT}) and report its exit code + first 3 WARN/FAIL lines; if no table has one report agentsExit=-1. Pure retrieval, no judgment. ${BRIEF}`,
     {
       label: 'gather:plan', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
@@ -57,14 +57,14 @@ const [planState, trackerState, gitState, progressState] = await parallel([
           currentSprint: { type: 'string', description: 'first sprint with not-started issues, EE-SS' },
           checkExit: { type: 'integer' },
           checkSummary: { type: 'string' },
-          agentsExit: { type: 'integer', description: 'verify-agents-tree.py exit code, -1 when the script is absent' },
+          agentsExit: { type: 'integer', description: 'the hub check row exit code, -1 when no checkpoint table has one' },
           agentsFirstWarnings: { type: 'string', description: 'first WARN/FAIL lines, empty when clean/absent' },
         },
       },
     }
   ),
   () => agent(
-    `${CTX}\nRead tracker state, mechanically. Read ${ROOT}/.agents/plan/tracker.md for the backend. GitHub: gh issue list --state closed --limit 200 (and --state open) — report closed and open refs as "#NNN" lists. GitLab: the glab equivalent per tracker.md. Local mode: report backend "local" and empty lists (the plan is the tracker). Pure retrieval. ${BRIEF}`,
+    `${CTX}\nRead tracker state, mechanically. Read ${ROOT}/.agents/plan/tracker.md for the backend. GitHub or GitLab: run node ${PLANDIR}/publish-issues.mjs status --json (cwd ${ROOT}); it reads every published ticket back through gh or glab. Report backend "github" or "gitlab", the refs whose tracker value is "done" as the closed list and every other published ref as the open list, each as "#NNN". If a row's tracker value starts with "unread", say so in notes (the CLI is missing, signed out, or offline) and leave that ref out of both lists. Local mode: report backend "local" and empty lists (the plan is the tracker). Pure retrieval. ${BRIEF}`,
     {
       label: 'gather:tracker', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
@@ -74,7 +74,7 @@ const [planState, trackerState, gitState, progressState] = await parallel([
     }
   ),
   () => agent(
-    `${CTX}\nRead git signals, mechanically. Run git -C ${ROOT} log --oneline -150 and git -C ${ROOT} branch -a --merged. Report every commit/branch whose message or name references an issue coord (EE-SS-II), an issue slug (UPPERCASE-HYPHENATED), or a ticket ref (#NNN): {ref: <what it referenced>, sha, summary}. Pure retrieval — do not judge whether the work is complete. ${BRIEF}`,
+    `${CTX}\nRead git signals, mechanically. Run git -C ${ROOT} log --oneline -150 and git -C ${ROOT} branch -a --merged. Report every commit/branch whose message or name references an issue coord (EE-SS-II), an issue slug (UPPERCASE-HYPHENATED), or a ticket ref (#NNN): {ref: <what it referenced>, sha, summary}. Pure retrieval, do not judge whether the work is complete. ${BRIEF}`,
     {
       label: 'gather:git', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
@@ -84,7 +84,7 @@ const [planState, trackerState, gitState, progressState] = await parallel([
     }
   ),
   () => agent(
-    `${CTX}\nRead progress state, mechanically. (a) The verified-complete ledgers: every coords that appears as a row in ${PROG}/completed/*.md. (b) Run python3 ${PROG}/drift-status.py --open — report each open/routed item {id, status, kind, route}. (c) Any "follow-up issue #NNN" refs named in those routes. Pure retrieval. ${BRIEF}`,
+    `${CTX}\nRead progress state, mechanically. (a) The verified-complete ledgers: every coords that appears as a row in ${PROG}/completed/*.md. (b) Run node ${PROG}/drift-status.mjs --open, report each open/routed item {id, status, kind, route}. (c) Any "follow-up issue #NNN" refs named in those routes. Pure retrieval. ${BRIEF}`,
     {
       label: 'gather:progress', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
@@ -98,7 +98,7 @@ const [planState, trackerState, gitState, progressState] = await parallel([
     }
   ),
 ])
-if (!planState || !planState.issues) throw new Error('plan-state gather failed — cannot reconcile without it')
+if (!planState || !planState.issues) throw new Error('plan-state gather failed, cannot reconcile without it')
 const tracker = trackerState || { backend: 'unknown', closedRefs: [], openRefs: [] }
 const progress = progressState || { ledgerCoords: [], openDrift: [], routedFollowUps: [] }
 const gitSignals = (gitState && gitState.signals) || []
@@ -115,7 +115,7 @@ if (delta.length > VERIFY_LIMIT) {
   deltaTruncated = delta.length - VERIFY_LIMIT
   delta = delta.slice(0, VERIFY_LIMIT)
 }
-log(`Gather: ${planState.issues.length} non-not-started issues, ${tracker.closedRefs.length} closed tickets, ${progress.ledgerCoords.length} ledgered; ${delta.length} done-claims to verify${deltaTruncated ? ` (${deltaTruncated} deferred by verifyLimit — NOT silently passed)` : ''}`)
+log(`Gather: ${planState.issues.length} non-not-started issues, ${tracker.closedRefs.length} closed tickets, ${progress.ledgerCoords.length} ledgered; ${delta.length} done-claims to verify${deltaTruncated ? ` (${deltaTruncated} deferred by verifyLimit, NOT silently passed)` : ''}`)
 
 // ---------- Phase 2: verify each unverified done-claim ----------
 phase('Verify')
@@ -133,7 +133,7 @@ const VERIFY_SCHEMA = {
 }
 const verdicts = (await parallel(delta.map(c => () =>
   agent(
-    `${CTX}\nYou are the completion verifier for exactly one issue: ${c}. Read ${SKILL}/ASSESSMENT.md FIRST and follow its method and strictness. Find the issue file (glob ${PLANDIR}/${c.slice(0, 2)}-*/${c.slice(3, 5)}-*/issues/${c.slice(6)}_issue_*.md). Re-derive completion from evidence: run its ## Testing checkpoint command from ${ROOT}, walk each acceptance criterion against the working tree, confirm the spec anchors resolve, and cross-check these git signals: ${JSON.stringify(gitSignals.filter(s => s.ref.includes(c) || (byCoords.get(c) && s.summary.includes(byCoords.get(c).title.slice(0, 20)))).slice(0, 5))}. Verdicts: verified (checkpoint passes AND criteria hold); failed (claimed done but checkpoint fails or a criterion is unmet); not-yet-runnable (checkpoint needs tooling that legitimately isn't built yet); broken-checkpoint (the command can never pass by construction — an issue defect, not a work failure). Set coords="${c}". Do not edit anything. ${BRIEF}`,
+    `${CTX}\nYou are the completion verifier for exactly one issue: ${c}. Read ${SKILL}/ASSESSMENT.md FIRST and follow its method and strictness. Find the issue file (glob ${PLANDIR}/${c.slice(0, 2)}-*/${c.slice(3, 5)}-*/issues/${c.slice(6)}_issue_*.md). Re-derive completion from evidence: run its ## Testing checkpoint command from ${ROOT}, walk each acceptance criterion against the working tree, confirm the spec anchors resolve, and cross-check these git signals: ${JSON.stringify(gitSignals.filter(s => s.ref.includes(c) || (byCoords.get(c) && s.summary.includes(byCoords.get(c).title.slice(0, 20)))).slice(0, 5))}. Verdicts: verified (checkpoint passes AND criteria hold); failed (claimed done but checkpoint fails or a criterion is unmet); not-yet-runnable (checkpoint needs tooling that legitimately isn't built yet); broken-checkpoint (the command can never pass by construction, an issue defect, not a work failure). Set coords="${c}". Do not edit anything. ${BRIEF}`,
     { label: `verify:${c}`, phase: 'Verify', model: 'sonnet', effort: 'medium', schema: VERIFY_SCHEMA }
   )
 ))).filter(Boolean)
@@ -143,16 +143,16 @@ const brokenCheckpoints = verdicts.filter(v => v.verdict === 'broken-checkpoint'
 log(`Verify: ${verified.length} verified, ${failed.length} failed, ${brokenCheckpoints.length} broken checkpoints, ${verdicts.filter(v => v.verdict === 'not-yet-runnable').length} not-yet-runnable`)
 
 // ---------- Phase 3: record through the funnel (ONE serial agent) ----------
-// serialized on purpose: plan-status.py rewrites shared parent files (sprint.md, epic.md,
-// index.md) on every set — funnel calls must never fan out across agents
+// serialized on purpose: plan-status.mjs rewrites shared parent files (sprint.md, epic.md,
+// index.md) on every set, funnel calls must never fan out across agents
 phase('Record')
 const record = await agent(
-  `${CTX}\nYou are the reconciliation recorder — the ONLY agent in this run allowed to mutate state, and everything goes through the funnel or its owned files. Inputs below. Steps, in order:
-1. For each VERIFIED issue not already ledgered: python3 ${PLANDIR}/plan-status.py set <coords> done --evidence "<its evidence, one line>" (the --evidence flag is what appends the ledger row — use it only here, where verification actually happened this run).
-2. For each FAILED issue: python3 ${PLANDIR}/plan-status.py set <coords> in-progress (it claimed done but is not).
-3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/SKILL.md (kind: checkpoint-bug, route: spec-4-edit, status: open) — reuse an existing item's file (bump it) rather than duplicating.
+  `${CTX}\nYou are the reconciliation recorder, the ONLY agent in this run allowed to mutate state, and everything goes through the funnel or its owned files. Inputs below. Steps, in order:
+1. For each VERIFIED issue not already ledgered: node ${PLANDIR}/plan-status.mjs set <coords> done --evidence "<its evidence, one line>" (the --evidence flag is what appends the ledger row, use it only here, where verification actually happened this run).
+2. For each FAILED issue: node ${PLANDIR}/plan-status.mjs set <coords> in-progress (it claimed done but is not).
+3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/SKILL.md (kind: checkpoint-bug, route: spec-edit, status: open), reuse an existing item's file (bump it) rather than duplicating.
 4. Write this run's reconciliation narrative to a NEW ${PROG}/notes/<today>-<scope-or-all>-reconcile.md (derive today via date +%F): verification method, per-issue outcomes, plan/tracker disagreements you can see in the inputs, checkpoint health.
-5. Refresh the "## Status snapshot" and "## Open cross-cutting items" sections of ${PROG}/index.md from python3 ${PLANDIR}/plan-status.py check and python3 ${PROG}/drift-status.py --open.
+5. Refresh the "## Status snapshot" and "## Open cross-cutting items" sections of ${PROG}/index.md from node ${PLANDIR}/plan-status.mjs check and node ${PROG}/drift-status.mjs --open.
 Do not run git. Report exactly what you ran and wrote.
 INPUTS:\nVERIFIED: ${JSON.stringify(verified, null, 1)}\nFAILED: ${JSON.stringify(failed, null, 1)}\nBROKEN CHECKPOINTS: ${JSON.stringify(brokenCheckpoints, null, 1)}\nALREADY LEDGERED: ${JSON.stringify([...ledger].filter(inScope))}\n${BRIEF}`,
   {
@@ -160,7 +160,7 @@ INPUTS:\nVERIFIED: ${JSON.stringify(verified, null, 1)}\nFAILED: ${JSON.stringif
     schema: {
       type: 'object', required: ['funnelSets', 'notesFile', 'driftFiles'],
       properties: {
-        funnelSets: { type: 'array', items: { type: 'string' }, description: 'each plan-status.py set command run, with outcome' },
+        funnelSets: { type: 'array', items: { type: 'string' }, description: 'each plan-status.mjs set command run, with outcome' },
         notesFile: { type: 'string' },
         driftFiles: { type: 'array', items: { type: 'string' } },
         problems: { type: 'array', items: { type: 'string' } },
@@ -221,31 +221,31 @@ const SELECT_SCHEMA = {
         coords: { type: 'string' }, title: { type: 'string' }, type: { type: 'string' }, ref: { type: 'string' },
         anchors: { type: 'array', items: { type: 'string' } },
         acceptanceCriteria: { type: 'array', items: { type: 'string' } },
-        unpublishedSprint: { type: 'boolean', description: 'true if its sprint still needs plan-1-publish-issues' },
+        unpublishedSprint: { type: 'boolean', description: 'true if its sprint still needs plan-publish' },
       },
     },
     onDeck: { type: 'array', items: { type: 'object', required: ['coords', 'title'], properties: { coords: { type: 'string' }, title: { type: 'string' } } } },
-    frontierBlocked: { type: 'string', description: 'set when nothing is buildable — what unblocks it' },
+    frontierBlocked: { type: 'string', description: 'set when nothing is buildable, what unblocks it' },
     dispatch: DISPATCH_SCHEMA,
   },
 }
-// judgment core — inherits the session model
+// judgment core, inherits the session model
 const selection = await agent(
-  `${CTX}\nYou are the next-issue selector${DISPATCH ? ' and dispatch planner' : ''}. Read ${SKILL}/NEXT-SELECTION.md${DISPATCH ? ` and ${SKILL}/DISPATCH-PLAN.md (including its JSON-contract section)` : ''} FIRST and apply them exactly. The freshly verified state: use the plan tree on disk (the Record step just reconciled it) plus these inputs — treat routed drift follow-up issues as buildable candidates alongside plan issues.
+  `${CTX}\nYou are the next-issue selector${DISPATCH ? ' and dispatch planner' : ''}. Read ${SKILL}/NEXT-SELECTION.md${DISPATCH ? ` and ${SKILL}/DISPATCH-PLAN.md (including its JSON-contract section)` : ''} FIRST and apply them exactly. The freshly verified state: use the plan tree on disk (the Record step just reconciled it) plus these inputs, treat routed drift follow-up issues as buildable candidates alongside plan issues.
 Select the single next issue (lowest-numbered not-started whose blockers are ALL verified-complete, respecting sprint/epic order) with its anchors and acceptance criteria read from its file. List the 1-3 on-deck issues that unlock after it.${DISPATCH ? `
-Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies — read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map the human gates (HITL and REVIEW — REVIEW issues are human visual-verification gates: list them in hitlGates and never place them in a wave an agent would build), order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to spec-4-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
+Then derive the FULL dispatch plan for sprint ${planState.currentSprint || '(current)'}: recover implicit dependencies from checkpoint commands and What-to-build (a "Blocked by: None" routinely lies, read every issue file in the sprint), predict per-issue file sets, cluster same-module issues into single units, map the human gates (HITL and REVIEW, REVIEW issues are human visual-verification gates: list them in hitlGates and never place them in a wave an agent would build), order into waves per DISPATCH-PLAN.md, and record declared-vs-implied mismatches (they route to spec-edit; do not silently reroute). Write the dispatch object as JSON to ${PROG}/dispatch/${planState.currentSprint || 'EE-SS'}.json (mkdir -p the directory; set "generated" via date +%F) AND return it in your structured output.` : ''}
 INPUTS:\nVERIFIED THIS RUN: ${JSON.stringify(verified.map(v => v.coords))}\nSTILL FAILED: ${JSON.stringify(failed.map(v => v.coords))}\nOPEN DRIFT: ${JSON.stringify(progress.openDrift, null, 1)}\nDRIFT FOLLOW-UPS: ${JSON.stringify(progress.routedFollowUps)}\nCHECKPOINT HEALTH FROM VERIFY: ${JSON.stringify(brokenCheckpoints, null, 1)}\n${BRIEF}`,
   { label: DISPATCH ? 'select+dispatch' : 'select', phase: 'Select', effort: 'high', schema: SELECT_SCHEMA }
 )
 
 // ---------- Phase 4b: notify on a human-gated "next" (headless runs) ----------
-// The developer isn't in this loop — if the frontier now waits on a human, say so
+// The developer isn't in this loop, if the frontier now waits on a human, say so
 // where they'll hear it: an @mention comment on the tracker issue.
 let notify = null
 const gated = selection && selection.nextIssue && ['HITL', 'REVIEW'].includes(selection.nextIssue.type)
 if (gated && selection.nextIssue.ref && selection.nextIssue.ref !== '<unassigned>') {
   notify = await agent(
-    `${CTX}\nYou are the gate notifier. Read ${ROOT}/.agents/plan/tracker.md. If it is local-mode, or has no "**Notify**:" field, or the handle is unset/a {{PLACEHOLDER}} — do nothing and report skipped with the reason. Otherwise the next actionable issue is a human gate: ${selection.nextIssue.type} ${selection.nextIssue.coords} "${selection.nextIssue.title}" (ref ${selection.nextIssue.ref}). IDEMPOTENCY FIRST: view the tracker issue's comments (gh issue view <n> --comments / glab issue note list equivalent); if any comment already contains "Human gate", report skipped=already-notified. Otherwise post ONE comment on it (gh issue comment / glab issue note) shaped: "**Human gate** — @<handle>: this ${selection.nextIssue.type} issue is now the frontier — ${selection.nextIssue.type === 'REVIEW' ? 'the walkthrough in the issue needs a human to perform it' : 'it needs a human decision before dependent work can proceed'}." Do not run git; touch nothing but the tracker CLI. ${BRIEF}`,
+    `${CTX}\nYou are the gate notifier. Read ${ROOT}/.agents/plan/tracker.md. If it is local-mode, or has no "**Notify**:" field, or the handle is unset/a {{PLACEHOLDER}}, do nothing and report skipped with the reason. Otherwise the next actionable issue is a human gate: ${selection.nextIssue.type} ${selection.nextIssue.coords} "${selection.nextIssue.title}" (ref ${selection.nextIssue.ref}). IDEMPOTENCY FIRST: read the ticket's comments (GitHub: gh issue view <n> --comments; GitLab: glab issue view <n> --comments); if any comment already contains "Human gate", report skipped=already-notified. Otherwise add ONE comment to it (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...) shaped: "**Human gate**: @<handle>: this ${selection.nextIssue.type} issue is now the frontier, ${selection.nextIssue.type === 'REVIEW' ? 'the walkthrough in the issue needs a human to perform it' : 'it needs a human decision before dependent work can proceed'}." Do not run git; touch nothing but that one comment. ${BRIEF}`,
     {
       label: 'notify:gate', phase: 'Select', model: 'sonnet', effort: 'low',
       schema: {
@@ -269,7 +269,7 @@ return {
   },
   anythingOff: {
     claimedDoneButFailed: failed.map(v => ({ coords: v.coords, evidence: v.evidence })),
-    brokenCheckpoints: brokenCheckpoints.map(v => ({ coords: v.coords, evidence: v.evidence, route: 'spec-4-edit' })),
+    brokenCheckpoints: brokenCheckpoints.map(v => ({ coords: v.coords, evidence: v.evidence, route: 'spec-edit' })),
     verifyDeferredByLimit: deltaTruncated,
     openDrift: progress.openDrift,
     recordProblems: (record && record.problems) || [],
