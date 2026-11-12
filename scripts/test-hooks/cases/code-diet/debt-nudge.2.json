@@ -1,0 +1,10 @@
+{
+  "script": "debt-nudge.mjs",
+  "event": "PostToolUse",
+  "fixture": "standard",
+  "stdin": "",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}
