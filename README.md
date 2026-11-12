@@ -22,7 +22,7 @@ Then install whichever plugins you want:
 ```
 
 Skills arrive namespaced: `/but-first-planning:spec-0-init`,
-`/agentic-teamwork:teamwork-init`, and so on.
+`/agentic-teamwork:bootstrap`, and so on.
 
 ## The plugins
 
@@ -50,12 +50,13 @@ autopilot that runs the whole graph hands-off.
 ### agentic-teamwork
 
 Mixed-skill teams shouldn't rely on discipline to keep prototypes off main.
-Deterministic guardrails block commits to protected branches, force-pushes,
-secrets, junk files, and failing tests. The hooks run inside Claude Code and
-again in the terminal, with CI as the backstop for anything that slips
-through. GitHub and GitLab are both first-class. Owns team version-control
-guardrails; agent-specific guards and how agents share a codebase are
-agent-works' job. The two are meant to run together.
+A repo opts in with one committed file, and from then on session hooks judge
+every commit and push the way a shell would read it: protected branches, force
+pushes, `--no-verify`, credentials and junk are refused, and a push asks first.
+A pre-commit hook covers the terminal and a CI gate backs both. Skills scaffold
+a repo, ship and land a change on GitHub or GitLab, and keep tests honest; a
+hard test gate is one opt-in away. Owns team version-control conventions; how
+agents share a codebase is agent-works' job. The two are meant to run together.
 [Read more →](plugins/agentic-teamwork/README.md)
 
 ### codebase-optimizer
@@ -100,10 +101,11 @@ Prose only: code and commit messages stay out of scope.
 Every line an agent writes gets paid for more than once: at generation, at
 review, and in every future session that loads it as context. code-diet makes
 the agent build at the lowest rung that works (a 7-rung ladder with hard
-safety carve-outs, injected as a token-budgeted kernel), reviews diffs with
-script-located candidates and cuts applied behind revert-on-red, and tracks
-every deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved
-from the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
+safety carve-outs, kept in context as one line where the repo has opted in),
+checks what already exists before building, reviews diffs with script-located
+candidates and cuts applied behind validate-or-revert, and tracks every
+deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved from
+the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
 [Read more →](plugins/code-diet/README.md)
 
 ### plugin-workbench
@@ -137,8 +139,9 @@ of the change: the commit that moves a button rewrites the page and retakes
 the screenshot, through a writer contract (audiences, a page shape, grounded
 claims) and a capture harness that makes every picture from the built product
 deterministically, for web, desktop, CLI, Unreal, Qt or mobile. One checker
-maps code to pages and finds missing, stale and broken docs, warning in
-session and failing in CI, for a site, a `docs/` folder, a wiki or a README.
+maps code to pages and finds missing, stale and broken docs, telling the
+agent in session and failing in CI, for a site, a `docs/` folder, a wiki or a
+README. A README check keeps the front page written for people.
 [Read more →](plugins/docs-parity/README.md)
 
 ## Working in this repo

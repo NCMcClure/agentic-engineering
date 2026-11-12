@@ -29,7 +29,7 @@
     {
       "name": "agentic-teamwork",
       "source": "./plugins/agentic-teamwork",
-      "description": "Deterministic version-control guardrails for mixed-skill teams — hooks that block commits to protected branches, force-pushes, secrets, and failing tests, in Claude Code, the terminal, and CI. GitHub and GitLab first-class.",
+      "description": "Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.",
       "category": "collaboration"
     },
     {
@@ -53,7 +53,7 @@
     {
       "name": "code-diet",
       "source": "./plugins/code-diet",
-      "description": "Your agent's code is tomorrow's context: code-diet makes the agent write only what the task needs, deletes what it didn't behind revert-on-red, and prices its own instructions like it prices your code.",
+      "description": "Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.",
       "category": "code-quality"
     },
     {
@@ -71,7 +71,7 @@
     {
       "name": "docs-parity",
       "source": "./plugins/docs-parity",
-      "description": "User docs drift because they ship after the code, so make them move in the same change: a writer contract, screenshots only from a deterministic capture harness, and one checker that finds missing, stale and broken docs in session and in CI.",
+      "description": "User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.",
       "category": "documentation"
     }
   ]
