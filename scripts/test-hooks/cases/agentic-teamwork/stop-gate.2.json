@@ -1,0 +1,6 @@
+{
+  "script": "stop-gate.sh",
+  "event": "Stop",
+  "stdin": { "hook_event_name": "Stop", "session_id": "sg-2", "cwd": "{{REPO}}", "stop_hook_active": true },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

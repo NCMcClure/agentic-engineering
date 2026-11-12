@@ -1,0 +1,9 @@
+{
+  "script": "git-guard.sh",
+  "event": "PreToolUse",
+  "fixture": "adopted",
+  "project": "bare",
+  "gap": "a session working in another work tree is judged by the main checkout, so its guard is off",
+  "stdin": { "hook_event_name": "PreToolUse", "session_id": "gg-6", "cwd": "{{REPO}}", "tool_name": "Bash", "tool_input": { "command": "git push --force origin main" } },
+  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+}

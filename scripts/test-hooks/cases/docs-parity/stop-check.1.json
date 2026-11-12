@@ -1,0 +1,7 @@
+{
+  "script": "stop_check.py",
+  "event": "Stop",
+  "gap": "what the docs check finds reaches the person only, never the model",
+  "stdin": { "hook_event_name": "Stop", "session_id": "sc-1", "cwd": "{{REPO}}", "stop_hook_active": false },
+  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+}

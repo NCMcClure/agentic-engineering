@@ -129,7 +129,7 @@ class Shipping(unittest.TestCase):
     def test_no_machine_paths_in_my_files(self):
         import re
 
-        bad = re.compile(r"(/fast/|/Users/|/home/[a-z]|\b[A-Z]:\\\\?Users\b|Personal Projects)")
+        bad = re.compile(r"(/fast" r"/|/Users" r"/|/home" r"/[a-z]|\b[A-Z]:\\\\?Users\b|Personal Projects)")
         names = ["bin/aw", "bin/aw.cmd", "hooks/hooks.json", "hooks/guard.py", "hooks/session.py", "core/references/guard-config.md",
                  *[f"cli/{n}.py" for n in ("aw", "common", "hubs", "twins", "memory", "decisions", "links", "dup", "status", "doctor", "setup")]]
         for name in names:

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Context Lens</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #ffffff; --text: #1d1f21; --muted: #62666d; --line: #e3e3df; --hover: #f0f0ec;
+    --accent: #2b59c3; --model: #2b59c3; --person: #a35a00; --silent: #8a8f98; --error: #b3261e;
+    --kept: #2e7d4f; --lost: #b3261e; --new: #2b59c3; --wait: #8a8f98;
+    --bar: #9db2e6; --bar-focus: #2b59c3; --mark: #b3261e;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141517; --panel: #1c1d20; --text: #e6e6e3; --muted: #9a9ea6; --line: #2c2e33; --hover: #24262a;
+      --accent: #8fb0ff; --model: #8fb0ff; --person: #f0b45c; --silent: #80858e; --error: #ff8a80;
+      --kept: #7fd1a0; --lost: #ff8a80; --new: #8fb0ff; --wait: #80858e;
+      --bar: #3d4f7a; --bar-focus: #8fb0ff; --mark: #ff8a80;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .app { display: grid; grid-template-columns: 320px minmax(0, 1fr); min-height: 100vh; }
+  aside { border-right: 1px solid var(--line); background: var(--panel); display: flex; flex-direction: column; max-height: 100vh; position: sticky; top: 0; }
+  aside header { padding: 16px; border-bottom: 1px solid var(--line); }
+  aside h1 { font-size: 16px; margin: 0 0 8px; }
+  aside input { width: 100%; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); font: inherit; }
+  #sessions { overflow-y: auto; flex: 1; padding: 6px 0; }
+  .session { display: block; width: 100%; text-align: left; border: 0; background: none; color: inherit; font: inherit; padding: 8px 16px; cursor: pointer; }
+  .session:hover { background: var(--hover); }
+  .session.active { background: var(--hover); box-shadow: inset 3px 0 0 var(--accent); }
+  .session .t { display: block; font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session .m { display: block; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .session.sub { padding-left: 32px; }
+  .session.sub .t { font-weight: 450; font-size: 13px; }
+  main { padding: 20px 28px 80px; min-width: 0; }
+  .empty { color: var(--muted); padding: 40px 0; }
+  .head h2 { margin: 0; font-size: 20px; }
+  .head .cwd { color: var(--muted); font-family: var(--mono); font-size: 12px; margin: 4px 0 10px; overflow-wrap: anywhere; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 999px; padding: 1px 9px; font-size: 12px; background: var(--panel); white-space: nowrap; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin: 16px 0; }
+  .card h3 { margin: 0 0 10px; font-size: 14px; }
+  .card p.note { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+  svg text { fill: var(--muted); font-size: 11px; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; }
+  td:first-child { white-space: nowrap; }
+  th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .toolbar { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 18px 0 6px; position: sticky; top: 0; background: var(--bg); padding: 8px 0; z-index: 2; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .seg button { border: 0; background: var(--panel); color: var(--text); font: inherit; padding: 4px 12px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--panel); }
+  label.vis { display: inline-flex; gap: 5px; align-items: center; font-size: 13px; cursor: pointer; }
+  .segment > h3 { font-size: 15px; margin: 26px 0 4px; }
+  .segment > .sub { color: var(--muted); font-size: 12px; margin-bottom: 8px; }
+  details.phase { margin: 6px 0; border-left: 2px solid var(--line); padding-left: 12px; }
+  details.phase > summary { cursor: pointer; padding: 4px 0; font-weight: 550; list-style-position: outside; }
+  details.phase > summary .muted { font-weight: 400; }
+  .row { display: grid; grid-template-columns: 168px 170px 58px 60px minmax(0, 1fr); gap: 8px; align-items: baseline; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+  .row:hover { background: var(--hover); }
+  .row .what { font-family: var(--mono); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .row .src { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .row .tok { font-variant-numeric: tabular-nums; text-align: right; color: var(--muted); font-size: 12px; }
+  .row .pv { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .vis-model { color: var(--model); } .vis-person { color: var(--person); } .vis-silent { color: var(--silent); } .vis-error { color: var(--error); }
+  .badge { font-size: 11px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+  .full { margin: 2px 6px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+  .full .meta { font-size: 12px; color: var(--muted); padding: 8px 10px 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .full pre { margin: 0; padding: 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.5 var(--mono); max-height: 480px; overflow: auto; }
+  .compaction { border-color: var(--mark); }
+  .status { font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
+  .status.kept { color: var(--kept); } .status.lost { color: var(--lost); } .status.new { color: var(--new); } .status.wait { color: var(--wait); }
+  .muted { color: var(--muted); }
+  .warn { color: var(--person); }
+  /* Narrower than the five columns need: the preview takes its own line. */
+  @media (max-width: 1280px) {
+    .row { grid-template-columns: 168px minmax(0, 1fr) 58px 60px; }
+    .row .pv { grid-column: 1 / -1; padding-left: 12px; font-size: 13px; }
+  }
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    aside { position: static; max-height: 40vh; border-right: 0; border-bottom: 1px solid var(--line); }
+    main { padding: 16px; }
+    .row { grid-template-columns: minmax(0, 1fr) auto auto; }
+    .row .what { grid-column: 1 / -1; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <header>
+      <h1>Context Lens</h1>
+      <input id="filter" type="search" placeholder="Filter sessions by title or folder" aria-label="Filter sessions">
+    </header>
+    <div id="sessions" role="list"></div>
+  </aside>
+  <main id="main"><p class="empty">Pick a session on the left. The newest is first.</p></main>
+</div>
+<script src="/app.js"></script>
+</body>
+</html>
