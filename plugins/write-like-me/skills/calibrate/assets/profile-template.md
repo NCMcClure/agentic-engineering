@@ -1,7 +1,7 @@
 # Writing profile
 
 <!-- Maintained by the write-like-me plugin. Line budget enforced by
-     scripts/wlm/profile_budget.py — every line is an actionable instruction,
+     scripts/wlm/profile-budget.mjs — every line is an actionable instruction,
      loaded into every session. -->
 
 Applies to human-facing prose (emails, docs, posts, reports, messages) — not

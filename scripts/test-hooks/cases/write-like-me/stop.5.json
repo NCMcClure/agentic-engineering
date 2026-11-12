@@ -1,0 +1,20 @@
+{
+  "script": "stop.mjs",
+  "event": "Stop",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "st-5",
+    "cwd": "{{REPO}}",
+    "stop_hook_active": false
+  },
+  "env": {
+    "WLM_HOME": "",
+    "CLAUDE_PLUGIN_DATA": "",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

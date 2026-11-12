@@ -1,0 +1,19 @@
+{
+  "script": "stop.mjs",
+  "event": "Stop",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "st-1",
+    "cwd": "{{REPO}}",
+    "stop_hook_active": false
+  },
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-stop-1",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

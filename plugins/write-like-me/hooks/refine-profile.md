@@ -29,11 +29,11 @@ The message that invoked you names two resolved paths — use those, not guesses
      line only when nothing covers the preference.
    - One line per preference, written as an instruction in the profile's own
      style (e.g. `- Contractions always; "do not" only for emphasis.`).
-   - The profile must stay at or under the line budget —
-     `scripts/wlm/profile_budget.py` (next to the paths resolver) owns the
-     number; run it after editing and it must exit 0. If your edit would
-     exceed the budget, merge overlapping lines or evict the least
-     load-bearing one to make room.
+   - The profile must stay at or under the line budget.
+     `../scripts/wlm/profile-budget.mjs`, relative to this file, owns the
+     number: run `node <that script> <profile>` after editing and it must
+     exit 0. If your edit would exceed the budget, merge overlapping lines or
+     evict the least load-bearing one to make room.
    - When feedback contradicts an existing line, the feedback wins — revise
      the line, and flag the change prominently in your report so the user can
      reverse it via `/write-like-me:review`. The changelog entry (step 3) is

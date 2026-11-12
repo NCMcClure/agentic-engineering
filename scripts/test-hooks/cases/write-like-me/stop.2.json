@@ -1,0 +1,14 @@
+{
+  "script": "stop.mjs",
+  "event": "Stop",
+  "fixture": "bare",
+  "stdin": "",
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-stop-2",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}
