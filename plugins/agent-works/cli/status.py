@@ -179,7 +179,9 @@ def text_of(doc: Dict[str, Any]) -> str:
     if d:
         lines.append("")
         lines.append(f"done (the last {len(d['rows'])} {d['kind']} on this branch):")
-        lines += [f"  {r['date']} {r['commit']} {re.sub(r'\\s+', ' ', r['subject'])[:110]}" for r in d["rows"]]
+        # The subject is collapsed outside the f-string: a backslash in an f-string expression is a SyntaxError before 3.12.
+        subjects = [re.sub(r"\s+", " ", r["subject"])[:110] for r in d["rows"]]
+        lines += [f"  {r['date']} {r['commit']} {s}" for r, s in zip(d["rows"], subjects)]
     return "\n".join(lines)
 
 
