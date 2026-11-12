@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root {
+  --bg: #f4f4f1; --card: #ffffff; --ink: #1b1c1e; --muted: #5f636a; --line: #d9d9d3; --accent: #2457b3; --accent-ink: #ffffff;
+  --soft: #ebf0f8; --done: #1f7a48; --stage: #808080; --radius: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #141518; --card: #1d1f24; --ink: #e8e8ea; --muted: #9ba0a8; --line: #343740; --accent: #82b1ff; --accent-ink: #0f1218;
+          --soft: #252a35; --done: #66c690; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 72px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, textarea { font: inherit; color: inherit; }
+header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+.top { max-width: 1200px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.top h1 { font-size: 17px; margin: 0; font-weight: 650; }
+.progress { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
+.track { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--done); transition: width .2s; }
+.btn { border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+.btn:hover, .btn:focus-visible { border-color: var(--accent); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.on { background: var(--soft); border-color: var(--accent); }
+main { max-width: 1200px; margin: 0 auto; padding: 18px 16px 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin: 0 0 18px; }
+.card.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent); }
+.head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.head h2 { font-size: 20px; margin: 0; flex: 1; min-width: 200px; }
+.num { color: var(--muted); font-variant-numeric: tabular-nums; }
+.chip { font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
+.chip.done { color: var(--done); border-color: var(--done); }
+.context { color: var(--muted); white-space: pre-wrap; margin: 8px 0 0; }
+.modes { display: flex; gap: 6px; margin: 14px 0 8px; flex-wrap: wrap; align-items: center; font-size: 14px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 10px; margin-top: 14px; }
+.modes + .shots { margin-top: 0; }
+.shots.one { grid-template-columns: 1fr; }
+figure { margin: 0; background: var(--stage); border-radius: 8px; overflow: hidden; position: relative; }
+figure img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+figcaption, .tag { position: absolute; left: 8px; top: 8px; font-size: 12px; padding: 2px 8px; border-radius: 5px; background: rgba(0,0,0,.65); color: #fff; pointer-events: none; }
+.tag.right { left: auto; right: 8px; }
+.missing { padding: 28px 12px; color: #f1f1f1; font-size: 13px; text-align: center; word-break: break-all; }
+.cmp { position: relative; background: var(--stage); border-radius: 8px; overflow: hidden; user-select: none; }
+.cmp img { display: block; width: 100%; height: auto; }
+.cmp img.over { position: absolute; inset: 0; height: 100%; }
+.cmp .rule { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); pointer-events: none; }
+.cmp input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.question { font-size: 18px; font-weight: 600; margin: 16px 0 10px; }
+table.evidence { border-collapse: collapse; margin: 0 0 12px; font-size: 14px; }
+table.evidence th { text-align: left; font-weight: 500; color: var(--muted); padding: 3px 16px 3px 0; vertical-align: top; }
+table.evidence td { padding: 3px 0; font-variant-numeric: tabular-nums; }
+.verdicts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.verdicts b { color: var(--ink); font-weight: 600; }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+legend { position: absolute; left: -9999px; }
+label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+label.opt:hover { border-color: var(--accent); }
+label.opt.picked { border-color: var(--accent); background: var(--soft); }
+label.opt input { margin-top: 5px; accent-color: var(--accent); }
+kbd { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--muted); }
+.mark { font-size: 12px; color: var(--accent); margin-left: 6px; white-space: nowrap; }
+textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; resize: vertical; }
+textarea.note { min-height: 62px; margin-top: 10px; }
+.row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; color: var(--muted); gap: 12px; }
+.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; }
+#out { max-width: 1200px; margin: 0 auto 18px; padding: 0 16px; }
+#out .card { margin: 0; }
+#out textarea { min-height: 220px; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
+footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 13px; }
+#zoom { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.92); overflow: auto; cursor: zoom-out; display: grid; place-items: center; }
+#zoom img { max-width: 100%; height: auto; image-rendering: auto; }
+#zoom.full { display: block; }
+#zoom.full img { max-width: none; image-rendering: pixelated; }
+.empty { text-align: center; color: var(--muted); padding: 60px 0; }
+</style>
+</head>
+<body>
+<header><div class="top">
+  <h1>__TITLE__</h1>
+  <div class="progress"><div class="track"><div class="fill" id="fill"></div></div><span id="count"></span></div>
+  <button class="btn primary" id="export" type="button">Export decisions</button>
+</div></header>
+<main id="cards"></main>
+<section id="out" hidden><div class="card">
+  <div class="question" style="margin-top:0">decisions.json</div>
+  <p class="context" style="margin:0 0 10px">Downloaded as <b>decisions.json</b>. If the download did not start, copy the text below into a file of that name and hand it to the agent, which applies it with <code>pl.mjs review apply decisions.json</code>.</p>
+  <textarea id="json" readonly spellcheck="false" aria-label="decisions.json"></textarea>
+  <div class="row"><span id="summary"></span><button class="btn" id="copy" type="button">Copy</button></div>
+</div></section>
+<footer><kbd>j</kbd> <kbd>k</kbd> next and previous question, <kbd>1</kbd> to <kbd>9</kbd> pick an option, <kbd>b</kbd> blink between two pictures, <kbd>Esc</kbd> close a picture. Answers stay in this browser until you export them. Built __BUILT__.</footer>
+<div id="zoom" hidden><img alt=""></div>
+<script type="application/json" id="pl-data">__DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const data = JSON.parse(document.getElementById('pl-data').textContent);
+  const items = data.items;
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(data.storageKey) || '{}') || {}; } catch (e) { state = {}; }
+  // private browsing can refuse storage: the answers then last as long as the tab
+  const save = () => { try { localStorage.setItem(data.storageKey, JSON.stringify(state)); } catch (e) { /* kept in memory */ } };
+  const answer = id => state[id] || (state[id] = { option: null, note: '' });
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') n.className = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids) if (kid != null) n.append(kid);
+    return n;
+  };
+  const cards = [];
+  let active = 0;
+
+  const zoom = document.getElementById('zoom');
+  const openZoom = src => { zoom.firstElementChild.src = src; zoom.classList.remove('full'); zoom.hidden = false; };
+  // first click on the picture shows it at its own size; anything else closes
+  zoom.addEventListener('click', e => { if (e.target === zoom.firstElementChild && !zoom.classList.contains('full')) zoom.classList.add('full'); else zoom.hidden = true; });
+
+  const figure = im => im.src
+    ? el('figure', {}, el('img', { src: im.src, alt: im.label, loading: 'lazy', onclick: () => openZoom(im.src) }), el('figcaption', {}, im.label))
+    : el('figure', {}, el('div', { class: 'missing' }, 'missing: ' + im.label + ' (' + im.path + ')'));
+
+  function pictures(item) {
+    const box = el('div', {});
+    const images = item.images || [];
+    if (!images.length) return box;
+    const grid = el('div', { class: 'shots' }, ...images.map(figure));
+    const pair = images.filter(im => im.compare);
+    if (pair.length !== 2 || !pair.every(im => im.src)) { box.append(grid); return box; }
+    const [a, b] = pair;
+    const others = images.filter(im => !pair.includes(im));
+    // the slider: b underneath, a over it, cut at the rule
+    const over = el('img', { class: 'over', src: a.src, alt: a.label });
+    const rule = el('div', { class: 'rule' });
+    const range = el('input', { type: 'range', min: 0, max: 100, value: 50, 'aria-label': 'Where ' + a.label + ' gives way to ' + b.label });
+    const place = () => { over.style.clipPath = 'inset(0 ' + (100 - range.value) + '% 0 0)'; rule.style.left = 'calc(' + range.value + '% - 1px)'; };
+    range.addEventListener('input', place); place();
+    const slider = el('div', { class: 'cmp' }, el('img', { src: b.src, alt: b.label }), over, rule, el('span', { class: 'tag' }, a.label), el('span', { class: 'tag right' }, b.label), range);
+    // blink: one picture at a time in one place, so the eye sees what moves
+    let showB = false;
+    const blinkImg = el('img', { src: a.src, alt: a.label });
+    const blinkTag = el('span', { class: 'tag' }, a.label);
+    const flip = () => { showB = !showB; const im = showB ? b : a; blinkImg.src = im.src; blinkImg.alt = im.label; blinkTag.textContent = im.label; };
+    const blink = el('div', { class: 'cmp', onclick: flip, title: 'Click, or press b, to switch' }, blinkImg, blinkTag);
+    blink.style.cursor = 'pointer';
+    const views = { side: grid, slider: el('div', { class: 'shots one' }, slider), blink: el('div', { class: 'shots one' }, blink) };
+    for (const v of ['slider', 'blink']) for (const o of others) views[v].append(figure(o));
+    const buttons = {};
+    const show = mode => { for (const [k, v] of Object.entries(views)) { v.hidden = k !== mode; buttons[k].classList.toggle('on', k === mode); } box.dataset.mode = mode; };
+    const modes = el('div', { class: 'modes' }, 'Compare:');
+    for (const [k, text] of [['side', 'Side by side'], ['slider', 'Slider'], ['blink', 'Blink']]) modes.append(buttons[k] = el('button', { class: 'btn', type: 'button', onclick: () => show(k) }, text));
+    box.append(modes, views.side, views.slider, views.blink);
+    box.blink = () => { if (box.dataset.mode !== 'blink') show('blink'); else flip(); };
+    show('side');
+    return box;
+  }
+
+  function card(item, index) {
+    const a = answer(item.id);
+    const status = el('span', { class: 'chip' });
+    const node = el('article', { class: 'card', id: 'item-' + index, tabindex: -1, 'data-id': item.id });
+    node.append(el('div', { class: 'head' }, el('span', { class: 'num' }, (index + 1) + ' / ' + items.length), el('h2', {}, item.title || item.id), el('span', { class: 'chip' }, item.id), status));
+    if (item.context) node.append(el('p', { class: 'context' }, item.context));
+    const pics = pictures(item);
+    node.append(pics, el('div', { class: 'question' }, item.question || ''));
+    if ((item.evidence || []).length) node.append(el('table', { class: 'evidence' }, el('tbody', {}, ...item.evidence.map(e => el('tr', {}, el('th', { scope: 'row' }, e.label), el('td', {}, String(e.value)))))));
+    if ((item.verdicts || []).length) node.append(el('div', { class: 'verdicts' }, ...item.verdicts.map(v => el('span', {}, v.by ? v.by + ': ' : '', el('b', {}, v.verdict || ''), v.note ? ', ' + v.note : ''))));
+    const labels = [];
+    const refresh = () => {
+      for (const [id, label, input] of labels) { input.checked = a.option === id; label.classList.toggle('picked', a.option === id); }
+      status.textContent = a.option ? 'decided' : (a.note.trim() ? 'note only' : 'open');
+      status.classList.toggle('done', !!a.option);
+      progress();
+    };
+    const set = (field, value) => { a[field] = value; save(); refresh(); };
+    const fs = el('fieldset', {}, el('legend', {}, 'Options'));
+    (item.options || []).forEach((o, i) => {
+      const input = el('input', { type: 'radio', name: 'opt-' + index, value: o.id, onchange: () => set('option', o.id) });
+      const label = el('label', { class: 'opt' }, input, el('span', {}, i < 9 ? el('kbd', {}, String(i + 1)) : null, ' ', o.label,
+        o.id === item.recommended ? el('span', { class: 'mark' }, 'recommended') : null,
+        o.id === item.defaultOption ? el('span', { class: 'mark' }, 'taken if unanswered') : null));
+      labels.push([o.id, label, input]);
+      fs.append(label);
+    });
+    const note = el('textarea', { class: 'note', placeholder: 'A note for the agents (optional): what you saw, what to do instead', 'aria-label': 'Note' });
+    note.value = a.note || '';
+    note.addEventListener('input', () => set('note', note.value));
+    node.append(fs, note, el('div', { class: 'row' }, el('span', {}, ''), el('button', { class: 'link', type: 'button', onclick: () => set('option', null) }, 'clear the choice')));
+    node.addEventListener('focusin', () => setActive(index, false));
+    node.addEventListener('click', () => setActive(index, false));
+    node.pick = n => { const o = (item.options || [])[n]; if (o) set('option', o.id); };
+    node.blink = () => pics.blink && pics.blink();
+    refresh();
+    return node;
+  }
+
+  function progress() {
+    const done = items.filter(i => state[i.id] && state[i.id].option).length;
+    document.getElementById('fill').style.width = (items.length ? 100 * done / items.length : 0) + '%';
+    document.getElementById('count').textContent = done + ' of ' + items.length + ' decided';
+  }
+
+  function setActive(i, scroll) {
+    if (!cards.length) return;
+    active = Math.max(0, Math.min(cards.length - 1, i));
+    cards.forEach((c, k) => c.classList.toggle('active', k === active));
+    if (scroll) cards[active].scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
+  function exportDecisions() {
+    const out = { decidedAt: new Date().toISOString(), items: [] };
+    for (const item of items) {
+      const a = state[item.id];
+      if (a && (a.option || (a.note || '').trim())) out.items.push({ id: item.id, option: a.option || null, note: a.note || '' });
+    }
+    const text = JSON.stringify(out, null, 2);
+    document.getElementById('json').value = text;
+    document.getElementById('summary').textContent = out.items.length + ' of ' + items.length + ' questions answered';
+    const section = document.getElementById('out');
+    section.hidden = false;
+    section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    try {
+      const url = URL.createObjectURL(new Blob([text + '\n'], { type: 'application/json' }));
+      const link = el('a', { href: url, download: 'decisions.json' });
+      document.body.append(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) { /* the text is on the page to copy */ }
+    return out;
+  }
+
+  const main = document.getElementById('cards');
+  if (!items.length) main.append(el('p', { class: 'empty' }, 'No open questions.'));
+  items.forEach((item, i) => { const c = card(item, i); cards.push(c); main.append(c); });
+  progress();
+  setActive(0, false);
+  document.getElementById('export').addEventListener('click', exportDecisions);
+  document.getElementById('copy').addEventListener('click', () => {
+    const box = document.getElementById('json');
+    const copied = () => { document.getElementById('copy').textContent = 'Copied'; };
+    box.select();
+    const legacy = () => { try { document.execCommand('copy'); copied(); } catch (e) { /* select-all is the fallback */ } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(box.value).then(copied, legacy);
+    else legacy();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { zoom.hidden = true; return; }
+    const t = e.target;
+    if (e.ctrlKey || e.metaKey || e.altKey || (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'radio' && t.type !== 'range')))) return;
+    if (e.key === 'j') { setActive(active + 1, true); e.preventDefault(); }
+    else if (e.key === 'k') { setActive(active - 1, true); e.preventDefault(); }
+    else if (e.key === 'b' && cards[active]) cards[active].blink();
+    else if (/^[1-9]$/.test(e.key) && cards[active]) { cards[active].pick(Number(e.key) - 1); e.preventDefault(); }
+  });
+  window.plReview = { state, exportDecisions }; // for a test in a browser to read
+})();
+</script>
+</body>
+</html>

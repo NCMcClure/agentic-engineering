@@ -2,6 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["torch>=2.2", "torchvision>=0.17", "open_clip_torch>=2.24", "lpips>=0.1.4", "numpy>=1.24", "Pillow>=10.1"]
 # ///
+# debt: stays Python while the CLIP and LPIPS models it wraps ship for Python only, move to Node when that changes
 """semantic.py: how alike are two pictures, or a picture and a description, when no pixel lines up?
 
 For work with NO PIXEL-ALIGNED REFERENCE (generated images, a restyled scene, a redesign), where SSIM and ΔE say
@@ -30,6 +31,10 @@ under a second on a CPU once the models are loaded. For CUDA on Windows the CUDA
 this script, and the cached environment then stays on CUDA):
   uv run --no-project --index https://download.pytorch.org/whl/cu128 --reinstall-package torch --reinstall-package torchvision semantic.py …
 CPU and CUDA agree to about four decimals, not exactly: keep a baseline to one device.
+
+An optional extra of the perceptual-loop plugin, and its only Python beside keypoints.py: the rest of the plugin is Node and
+runs without this file. Start it through the CLI (`node pl.mjs semantic ...`, which finds uv or a Python) or directly
+(`uv run --no-project semantic.py ...`). It stands alone: nothing is imported from the plugin.
 """
 from __future__ import annotations
 
@@ -39,6 +44,8 @@ sys.dont_write_bytecode = True
 
 import argparse
 import contextlib
+import fnmatch
+import json
 import math
 import os
 import tempfile
@@ -47,9 +54,167 @@ import warnings
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import pl_common as pl  # noqa: E402
-import video as V  # noqa: E402
+# ------------------------------------------------------------------------------------------------------- the project
+# What this script shares with the Node CLI (scripts/lib/project.mjs), restated here so the file runs on its own:
+# where a project keeps its perceptual state, its config, its shots.
+
+DIR_NAME = ".agents/perceptual"
+OLD_DIR_NAME = ".perceptual-loop"  # the first layout's folder: read in place while a repo has not been moved
+DEFAULT_CONFIG: dict[str, Any] = {"version": 1, "reference": "reference", "candidates": ["candidate"], "shotsDir": f"{DIR_NAME}/shots"}
+PASS_SUFFIX = {"beauty": "", "mask": ".mask", "id": ".id", "depth": ".depth", "albedo": ".albedo"}
+IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tif", ".tiff")
+
+
+class PlError(Exception):
+    """A usage or environment error: the caller prints it and exits 2."""
+
+
+def fail(message: str, code: int = 2):
+    print(message, file=sys.stderr)
+    raise SystemExit(code)
+
+
+def emit(doc: Any, as_json: bool, text: str | None = None) -> None:
+    """Print one JSON document (--json) or the human text."""
+    if as_json:
+        json.dump(doc, sys.stdout, indent=2, sort_keys=False)
+        sys.stdout.write("\n")
+    elif text is not None:
+        print(text)
+
+
+def utf8_stdio() -> None:
+    """Windows pipes default to a legacy code page: a degree sign or a non-ASCII path would be garbled or raise."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, ValueError):
+            pass
+
+
+def _on_old_layout(root: Path) -> bool:
+    return not (root / DIR_NAME / "config.json").is_file() and (root / OLD_DIR_NAME / "config.json").is_file()
+
+
+def find_root(start: str | os.PathLike[str] | None = None) -> Path:
+    """The project root: the first ancestor holding the state folder's config.json, else the first with .git, else cwd."""
+    here = Path(start or os.getcwd()).resolve()
+    git_root: Path | None = None
+    for p in [here, *here.parents]:
+        if (p / DIR_NAME / "config.json").is_file() or (p / OLD_DIR_NAME / "config.json").is_file():
+            return p
+        if git_root is None and (p / ".git").exists():
+            git_root = p
+    return git_root or here
+
+
+def pl_dir(root: Path | None = None) -> Path:
+    env = os.environ.get("PL_DIR") or os.environ.get("PERCEPTUAL_LOOP_DIR")
+    if env:
+        return Path(env).resolve()
+    root = root or find_root()
+    return root / (OLD_DIR_NAME if _on_old_layout(root) else DIR_NAME)
+
+
+def load_config(root: Path | None = None) -> dict[str, Any]:
+    root = root or find_root()
+    path = pl_dir(root) / "config.json"
+    if not path.is_file():
+        return dict(DEFAULT_CONFIG)
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise PlError(f"{path} is not valid JSON: {e}") from e
+    config = {**DEFAULT_CONFIG, **doc}
+    if "shotsDir" not in doc and _on_old_layout(root):
+        config["shotsDir"] = f"{OLD_DIR_NAME}/shots"
+    return config
+
+
+def shots_dir(root: Path | None = None, config: dict[str, Any] | None = None) -> Path:
+    root = root or find_root()
+    env = os.environ.get("PL_SHOTS_DIR")
+    if env:
+        return Path(env).resolve()
+    rel = str((config or load_config(root))["shotsDir"]).replace("\\", "/")
+    # a config that still spells the first layout's folder is read from the state folder once that folder has moved
+    if (rel == OLD_DIR_NAME or rel.startswith(OLD_DIR_NAME + "/")) and not (root / OLD_DIR_NAME).exists():
+        return pl_dir(root) / rel[len(OLD_DIR_NAME):].lstrip("/")
+    p = Path(rel)
+    return p if p.is_absolute() else root / p
+
+
+def runs_dir(root: Path | None = None) -> Path:
+    return pl_dir(root) / "runs"
+
+
+def shot_path(shot: str, root: Path | None = None, config: dict[str, Any] | None = None) -> Path:
+    return shots_dir(root, config) / shot
+
+
+def pass_file(shot_dir: Path, source: str, pass_: str = "beauty") -> Path:
+    return shot_dir / f"{source}{PASS_SUFFIX[pass_]}.png"
+
+
+def read_json(path: Path, default: Any = None) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return default
+
+
+def write_json(path: Path, doc: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def list_frames(d: Path) -> list[Path]:
+    return sorted(p for p in Path(d).iterdir() if p.suffix.lower() in IMG_EXT and p.is_file())
+
+
+def all_shots(root: Path | None = None, config: dict[str, Any] | None = None) -> list[str]:
+    d = shots_dir(root, config)
+    if not d.is_dir():
+        return []
+    return sorted(p.name for p in d.iterdir() if p.is_dir() and (p / "shot.json").is_file())
+
+
+def load_groups(root: Path | None = None) -> dict[str, list[str]]:
+    return read_json(pl_dir(root) / "groups.json", {}) or {}
+
+
+def match_globs(names, globs) -> list[str]:
+    """Names matching any plain glob and no '!'-prefixed glob, order kept."""
+    globs = list(globs)
+    yes = [g for g in globs if not g.startswith("!")]
+    no = [g[1:] for g in globs if g.startswith("!")]
+    return [n for n in names if any(fnmatch.fnmatchcase(n, g) for g in yes) and not any(fnmatch.fnmatchcase(n, g) for g in no)]
+
+
+def resolve_shots(names: list[str] | None = None, group: str | None = None, match: str | None = None, all_: bool = False,
+                  root: Path | None = None, config: dict[str, Any] | None = None) -> list[str]:
+    """The shots a command means: explicit names (commas allowed), a group, --all, narrowed by --match (a glob)."""
+    root = root or find_root()
+    have = all_shots(root, config)
+    if group:
+        groups = load_groups(root)
+        if group not in groups:
+            raise PlError(f"no group '{group}' in groups.json (have: {', '.join(sorted(groups)) or 'none'})")
+        picked = match_globs(have, groups[group])
+    elif all_:
+        picked = list(have)
+    else:
+        flat = [n for raw in (names or []) for n in raw.split(",") if n]
+        missing = [n for n in flat if n not in have and not any(c in n for c in "*?[")]
+        if missing:
+            raise PlError(f"no such shot: {', '.join(missing)}")
+        picked = [n for raw in flat for n in (match_globs(have, [raw]) if any(c in raw for c in "*?[") else [raw])]
+    if match:
+        picked = match_globs(picked, [match])
+    seen: set[str] = set()
+    return [n for n in picked if not (n in seen or seen.add(n))]
 
 CAVEAT = ("similarity signals, not verdicts: CLIP is weak at counting, reading text, fine geometry, left/right and small details; "
           "LPIPS needs roughly the same layout. Use them to gate a candidate against its own earlier run and to rank; look before judging.")
@@ -69,12 +234,12 @@ class Models:
             with contextlib.redirect_stdout(sys.stderr):
                 import torch
         except ImportError as e:
-            pl.fail(f"semantic.py needs torch, which could not be imported on Python {sys.version.split()[0]} ({e}).\nRun it as `uv run --no-project semantic.py …`: uv installs it.")
+            fail(f"semantic.py needs torch, which could not be imported on Python {sys.version.split()[0]} ({e}).\nRun it as `uv run --no-project semantic.py …`: uv installs it.")
         self.torch = torch
         want = args.device
         have = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
         if want == "cuda" and have != "cuda":
-            pl.fail(f"--device cuda: this torch build ({torch.__version__}) has no CUDA. PyPI's torch for Windows and macOS is CPU-only; ask for the CUDA build:\n"
+            fail(f"--device cuda: this torch build ({torch.__version__}) has no CUDA. PyPI's torch for Windows and macOS is CPU-only; ask for the CUDA build:\n"
                     "  uv run --no-project --index https://download.pytorch.org/whl/cu128 --reinstall-package torch --reinstall-package torchvision semantic.py …\n"
                     "(2.6 GB, once) or use --device auto / cpu.")
         self.device = have if want == "auto" else want
@@ -90,7 +255,7 @@ class Models:
                 try:
                     model, _, pre = open_clip.create_model_and_transforms(self.args.model, pretrained=self.args.pretrained, device=self.device, **kw)
                 except Exception as e:  # noqa: BLE001  (no network, unknown model name, …)
-                    pl.fail(f"could not load CLIP {self.args.model}/{self.args.pretrained}: {e}\nThe first run downloads about 600 MB from huggingface.co; "
+                    fail(f"could not load CLIP {self.args.model}/{self.args.pretrained}: {e}\nThe first run downloads about 600 MB from huggingface.co; "
                             "see `python -c \"import open_clip; print(open_clip.list_pretrained())\"` for valid names.")
             self._clip = (model.eval(), pre, open_clip.get_tokenizer(self.args.model))
             print(f"semantic.py: CLIP {self.args.model}/{self.args.pretrained} on {self.device}, loaded in {time.time() - t0:.1f} s", file=sys.stderr)
@@ -105,7 +270,7 @@ class Models:
                 try:
                     self._lpips = lpips.LPIPS(net=self.args.lpips_net, verbose=False).to(self.device).eval()
                 except Exception as e:  # noqa: BLE001
-                    pl.fail(f"could not load LPIPS ({self.args.lpips_net}): {e}\nThe first run downloads the backbone's weights from download.pytorch.org.")
+                    fail(f"could not load LPIPS ({self.args.lpips_net}): {e}\nThe first run downloads the backbone's weights from download.pytorch.org.")
             print(f"semantic.py: LPIPS {self.args.lpips_net} on {self.device}, loaded in {time.time() - t0:.1f} s", file=sys.stderr)
         return self._lpips
 
@@ -168,7 +333,7 @@ def want(args, name: str) -> bool:
 def image(path: str | Path) -> Path:
     p = Path(path)
     if not p.is_file():
-        pl.fail(f"no such picture: {p}")
+        fail(f"no such picture: {p}")
     return p
 
 
@@ -240,7 +405,7 @@ def scores_against(m: Models, paths: list[Path], args) -> list[dict[str, Any]]:
     """Each picture against --ref (CLIP cosine, LPIPS) and/or --prompt (text cosine); `score` is the one that ranks:
     the prompt's cosine when a prompt is given, else the CLIP cosine with the reference, else minus LPIPS."""
     if not (args.prompt or args.ref):
-        pl.fail("give --prompt TEXT and/or --ref IMAGE to measure against")
+        fail("give --prompt TEXT and/or --ref IMAGE to measure against")
     rows: list[dict[str, Any]] = [{"image": str(p)} for p in paths]
     if args.prompt:
         cos, _ = text_scores(m, paths, [args.prompt])
@@ -264,9 +429,9 @@ def expand(items: list[str]) -> list[Path]:
     out: list[Path] = []
     for it in items:
         p = Path(it)
-        out += V.list_frames(p) if p.is_dir() else [image(p)]
+        out += list_frames(p) if p.is_dir() else [image(p)]
     if not out:
-        pl.fail("no pictures given")
+        fail("no pictures given")
     return out
 
 
@@ -316,17 +481,17 @@ def cmd_drift(args):
 
 
 def cmd_batch(args):
-    cfg = pl.load_config()
+    cfg = load_config()
     source, against = args.source or cfg["candidates"][0], args.against or cfg["reference"]
-    shots = pl.resolve_shots(args.shots, args.group, args.match, args.all)
+    shots = resolve_shots(args.shots, args.group, args.match, args.all)
     if not shots:
-        pl.fail("no shots: name them, or give --group NAME or --all")
-    run_dir = Path(args.out) if args.out else pl.runs_dir() / args.run
+        fail("no shots: name them, or give --group NAME or --all")
+    run_dir = Path(args.out) if args.out else runs_dir() / args.run
     m = models(args)
     docs, failed, lines = [], [], []
     for shot in shots:
-        d = pl.shot_path(shot)
-        cand, ref = pl.pass_file(d, source), pl.pass_file(d, against)
+        d = shot_path(shot)
+        cand, ref = pass_file(d, source), pass_file(d, against)
         doc: dict[str, Any] = {"shot": shot, "source": source, "against": against, "frame": {}, "model": model_names(args), "notes": [CAVEAT]}
         if not cand.is_file():
             doc["notes"].append(f"no picture of '{source}' ({cand.name}): nothing measured")
@@ -335,7 +500,7 @@ def cmd_batch(args):
                 doc["frame"].update(pair_scores(m, cand, ref, args))
             else:
                 doc["notes"].append(f"no picture of '{against}' ({ref.name}): no image-image scores")
-            prompt = args.prompt or ((pl.read_json(d / "shot.json", {}) or {}).get("meta") or {}).get("prompt")
+            prompt = args.prompt or ((read_json(d / "shot.json", {}) or {}).get("meta") or {}).get("prompt")
             if prompt and want(args, "clip"):
                 doc["prompt"] = prompt
                 doc["frame"]["clipText"] = r(float(text_scores(m, [cand], [prompt])[0][0, 0]))
@@ -344,7 +509,7 @@ def cmd_batch(args):
             limit = getattr(args, name[2:].replace("-", "_"))
             if limit is not None and (key not in f or bad(f[key])):
                 failed.append(f"{shot}: {key} {f.get(key, 'not measured')} fails {name} {limit:g}")
-        pl.write_json(run_dir / shot / f"semantic.{source}.json", doc)
+        write_json(run_dir / shot / f"semantic.{source}.json", doc)
         docs.append(doc)
         lines.append(f"  {shot:<{max(len(s) for s in shots)}}  " + ("  ".join(f"{k} {v:.4f}" for k, v in f.items()) or "nothing measured") + "".join(f"   ({n})" for n in doc["notes"][1:]))
     out = {"source": source, "against": against, "run": str(run_dir), "shots": docs, "gate": {"passed": not failed, "failed": failed}}
@@ -405,12 +570,12 @@ def self_test(argv: list[str]) -> int:
         # batch over a two-shot store in the temp folder
         root = tmp / "proj"
         for shot, (c, ref) in {"same": (red, red), "other": (blue, red)}.items():
-            d_ = root / ".perceptual-loop" / "shots" / shot
+            d_ = root / DIR_NAME / "shots" / shot
             d_.mkdir(parents=True)
-            pl.write_json(d_ / "shot.json", {"name": shot, "meta": {"prompt": "a red square"}})
+            write_json(d_ / "shot.json", {"name": shot, "meta": {"prompt": "a red square"}})
             c.save(d_ / "candidate.png")
             ref.save(d_ / "reference.png")
-        pl.write_json(root / ".perceptual-loop" / "config.json", {"version": 1})
+        write_json(root / ".agents" / "perceptual" / "config.json", {"version": 1})
         here = os.getcwd()
         os.chdir(root)
         try:
@@ -418,7 +583,7 @@ def self_test(argv: list[str]) -> int:
         finally:
             os.chdir(here)
         by = {x["shot"]: x["frame"] for x in d["shots"]}
-        wrote = (root / ".perceptual-loop" / "runs" / "t" / "other" / "semantic.candidate.json").is_file()
+        wrote = (root / DIR_NAME / "runs" / "t" / "other" / "semantic.candidate.json").is_file()
         check("batch: semantic.<source>.json per shot, the prompt read from shot.json, the differing shot fails --max-lpips",
               wrote and by["same"]["lpips"] < 1e-4 and by["other"]["lpips"] > 0.05 and by["same"]["clipText"] > by["other"]["clipText"] and code == 1 and len(d["gate"]["failed"]) == 1, f"{by}")
     print(f"semantic.py self-test: {'passed' if ok else 'FAILED'}   ({time.time() - t0:.1f} s including model loads)")
@@ -509,7 +674,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--source", help="the candidate source (default: the first candidate of config.json)")
     p.add_argument("--against", help="the source to compare with (default: config.reference)")
     p.add_argument("--prompt", help="one prompt for every shot (default: each shot's meta.prompt, when it has one)")
-    p.add_argument("--run", default="adhoc", help="run name: output goes to .perceptual-loop/runs/NAME/<shot>/ (default: adhoc; give the name of the compare run to sit beside its metrics)")
+    p.add_argument("--run", default="adhoc", help="run name: output goes to .agents/perceptual/runs/NAME/<shot>/ (default: adhoc; give the name of the compare run to sit beside its metrics)")
     p.add_argument("--out", metavar="DIR", help="write the run here instead (DIR/<shot>/semantic.<source>.json)")
     p.add_argument("--min-clip", type=float, help="gate: smallest allowed CLIP cosine of a shot")
     p.add_argument("--max-lpips", type=float, help="gate: largest allowed LPIPS of a shot")
@@ -519,7 +684,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run(argv: list[str] | None = None):
-    V.utf8_stdio()
+    utf8_stdio()
     argv = sys.argv[1:] if argv is None else argv
     ap = build_parser()
     args = ap.parse_args(argv)
@@ -529,17 +694,17 @@ def run(argv: list[str] | None = None):
         ap.print_help(sys.stderr)
         raise SystemExit(2)
     if not set(args.metrics.split(",")) <= {"clip", "lpips"} or not args.metrics:
-        pl.fail("--metrics: expected clip, lpips or clip,lpips")
+        fail("--metrics: expected clip, lpips or clip,lpips")
     try:
         doc, text, code = args.fn(args)
-    except pl.PlError as e:
-        pl.fail(str(e))
+    except PlError as e:
+        fail(str(e))
     return args, doc, text, code
 
 
 def main() -> None:
     args, doc, text, code = run()
-    pl.emit(doc, args.json, text)
+    emit(doc, args.json, text)
     raise SystemExit(code)
 
 

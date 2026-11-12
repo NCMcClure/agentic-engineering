@@ -1,0 +1,22 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "pl-g8",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "aw lock run renderer --for \"accept the sky shots\" -- bash -c 'node \"${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs\" baseline update --group smoke'"
+    },
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

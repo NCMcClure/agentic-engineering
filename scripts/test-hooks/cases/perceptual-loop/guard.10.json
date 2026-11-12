@@ -1,0 +1,18 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "pl-g10",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git commit -m 'docs: node ${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs baseline update needs --source'"
+    },
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}
