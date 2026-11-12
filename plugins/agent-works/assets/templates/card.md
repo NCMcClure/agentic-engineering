@@ -11,7 +11,7 @@ conversation.>
 
 <Paths with line numbers, the command that shows it, the memory or decision that bears on it.>
 
-## Done looks like
+## Done when
 
 <The observable result: the test that passes, the command and its output, the picture. Something a reviewer can
 check without asking you.>

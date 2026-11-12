@@ -1,0 +1,69 @@
+{
+  "file": "0021-keys-in-any-order.md",
+  "slug": "keys-in-any-order",
+  "card": {
+    "id": "0021",
+    "file": "0021-keys-in-any-order.md",
+    "title": "Keys in any order",
+    "status": "in-progress",
+    "order": 3,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "updated": "2026-01-03",
+    "remote": {
+      "provider": "github",
+      "number": 5,
+      "url": "https://github.com/example/repo/issues/5",
+      "updatedAt": "",
+      "syncedHash": ""
+    },
+    "unknown": [
+      {
+        "key": null,
+        "text": "# written by hand"
+      },
+      {
+        "key": "x-team",
+        "text": "x-team: core\n  lead: kim"
+      }
+    ],
+    "body": "Body right after the rule."
+  },
+  "view": {
+    "id": "0021",
+    "file": "0021-keys-in-any-order.md",
+    "title": "Keys in any order",
+    "status": "in-progress",
+    "order": 3,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "created": "",
+    "updated": "2026-01-03",
+    "kind": "task",
+    "owner": "",
+    "needs": "",
+    "ref": "",
+    "epic": "",
+    "sprint": "",
+    "body": "Body right after the rule.",
+    "remote": {
+      "provider": "github",
+      "number": 5,
+      "url": "https://github.com/example/repo/issues/5",
+      "updatedAt": "",
+      "syncedHash": ""
+    },
+    "extra": [
+      "# written by hand",
+      "x-team: core",
+      "  lead: kim"
+    ]
+  }
+}

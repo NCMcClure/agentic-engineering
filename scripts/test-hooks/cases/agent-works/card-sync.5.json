@@ -1,0 +1,17 @@
+{
+  "script": "card-sync.mjs",
+  "event": "SubagentStop",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "SubagentStop",
+    "session_id": "aw-card-sync-5",
+    "cwd": "{{REPO}}",
+    "agent_id": "a1",
+    "agent_type": "general-purpose",
+    "stop_hook_active": false
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

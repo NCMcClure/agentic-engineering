@@ -1,0 +1,22 @@
+{
+  "script": "card-sync.mjs",
+  "event": "PostToolUse",
+  "fixture": "adopted",
+  "stdin": {
+    "hook_event_name": "PostToolUse",
+    "session_id": "aw-card-sync-6",
+    "cwd": "{{REPO}}",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "gh pr create --fill"
+    },
+    "tool_response": {
+      "stdout": "https://github.com/someone/thing/pull/1\n",
+      "stderr": ""
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "script": "card-sync.mjs",
+  "event": "Stop",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "aw-card-sync-4",
+    "cwd": "{{REPO}}",
+    "stop_hook_active": false,
+    "last_assistant_message": "CARD 0001 review !1 lanes=- owed=-"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

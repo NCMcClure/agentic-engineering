@@ -1,0 +1,20 @@
+{
+  "file": "0042-a-lane-and-a-kind-of-its-own.md",
+  "slug": "a-lane-and-a-kind-of-its-own",
+  "card": {
+    "id": "0042",
+    "file": "0042-a-lane-and-a-kind-of-its-own.md",
+    "title": "A lane and a kind of its own",
+    "status": "parked",
+    "order": 0.5,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "spike",
+    "after": [],
+    "files": [],
+    "unknown": [],
+    "body": ""
+  }
+}

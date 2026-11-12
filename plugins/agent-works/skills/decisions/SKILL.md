@@ -7,9 +7,11 @@ description: Use for a hard-to-reverse choice, a new project term, or an agent c
 
 Three references live beside each other under `.agents/`: decision records (`.agents/decisions/`), the glossary
 (`.agents/CONTEXT.md`) and contract pages (`.agents/contracts/`). None of them goes under `./docs`, which is for
-the project's users. The contract is `${CLAUDE_PLUGIN_ROOT}/core/references/decisions.md`.
+the project's users. The contract is `${CLAUDE_PLUGIN_ROOT}/references/decisions.md`.
 
-## Step 1 — Does the choice deserve a record
+`aw` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs"`: call it that way.
+
+## Step 1: Does the choice deserve a record
 
 Write a record when at least one holds: the choice is **hard to reverse**; it is **surprising without context**
 (a later reader would "fix" it); it was a **real trade-off**. Otherwise it is a commit message, or a memory of
@@ -21,7 +23,7 @@ only `aw decisions index --adopt` replaces it.
 
 *Done when: you can name which of the three holds, or you have sent the choice elsewhere.*
 
-## Step 2 — Write the record
+## Step 2: Write the record
 
 ```
 aw decisions new "<title>"
@@ -37,7 +39,7 @@ whoever owns the choice, accepted it.
 
 *Done when: the five sections are filled, and Sources links to where the decision came from.*
 
-## Step 3 — A decision changed: supersede
+## Step 3: A decision changed: supersede
 
 A record takes one `## Amendment`, for a correction that leaves the choice as it is. When the choice itself
 changes: write a new record (Step 2) whose Context says what changed, and set the old record's Status to
@@ -45,7 +47,7 @@ changes: write a new record (Step 2) whose Context says what changed, and set th
 
 *Done when: the old record points at the new one, and no record carries a second amendment.*
 
-## Step 4 — Words
+## Step 4: Words
 
 A term the project uses with a meaning of its own gets one row in `.agents/CONTEXT.md` (Term, Meaning, Source), in
 the same change that introduces it. Before naming something, read the glossary and use its word. A second
@@ -53,14 +55,14 @@ glossary (a root `CONTEXT.md`, one under the user docs) is merged into this one.
 
 *Done when: every new term of your change has its row, and no term has two.*
 
-## Step 5 — Contract pages
+## Step 5: Contract pages
 
 A page an agent needs to change the project safely (a protocol, a file format, what an extension implements)
 lives in `.agents/contracts/` and changes in the same commit as the thing it describes.
 
 *Done when: the page and the code it describes agree after your change.*
 
-## Step 6 — Check
+## Step 6: Check
 
 ```
 aw decisions lint

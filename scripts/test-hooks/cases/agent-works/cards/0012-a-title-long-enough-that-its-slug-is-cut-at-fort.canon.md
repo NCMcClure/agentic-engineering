@@ -1,0 +1,10 @@
+---
+id: 0012
+title: A title long enough that its slug is cut at forty-eight characters, and then some more
+status: archived
+order: 7
+priority: low
+source: user
+created: 2025-12-01T00:00:00.000Z
+updated: 2025-12-24T00:00:00.000Z
+---

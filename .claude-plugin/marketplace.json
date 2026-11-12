@@ -11,7 +11,7 @@
     {
       "name": "agent-works",
       "source": "./plugins/agent-works",
-      "description": "Agent workflows rot the same way everywhere (a bloated AGENTS.md, one rule stated four times, task status in six places, sessions on one machine blind to each other), so give every kind of fact one home under .agents/ with a size budget, check them all with aw doctor, keep tasks and owed gates on a shared kanban board, guard the files and runs that need it, and coordinate locks, leases and learnings across projects through one CLI.",
+      "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.",
       "category": "orchestration"
     },
     {

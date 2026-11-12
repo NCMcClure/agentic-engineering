@@ -1,0 +1,66 @@
+{
+  "file": "0005-keys-the-board-does-not-know.md",
+  "slug": "keys-the-board-does-not-know",
+  "card": {
+    "id": "0005",
+    "file": "0005-keys-the-board-does-not-know.md",
+    "title": "Keys the board does not know",
+    "status": "backlog",
+    "order": 2,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "created": "2026-01-05T10:00:00.000Z",
+    "updated": "2026-01-05T10:00:00.000Z",
+    "unknown": [
+      {
+        "key": "estimate",
+        "text": "estimate: 3"
+      },
+      {
+        "key": "reviewer",
+        "text": "reviewer: \"sam\""
+      },
+      {
+        "key": "blocked-by",
+        "text": "blocked-by: [0002, 0003]"
+      },
+      {
+        "key": "due",
+        "text": "due: 2026-03-01"
+      }
+    ],
+    "body": "Written by a script that keeps its own keys beside the board's."
+  },
+  "view": {
+    "id": "0005",
+    "file": "0005-keys-the-board-does-not-know.md",
+    "title": "Keys the board does not know",
+    "status": "backlog",
+    "order": 2,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "created": "2026-01-05T10:00:00.000Z",
+    "updated": "2026-01-05T10:00:00.000Z",
+    "kind": "task",
+    "owner": "",
+    "needs": "",
+    "ref": "",
+    "epic": "",
+    "sprint": "",
+    "body": "Written by a script that keeps its own keys beside the board's.",
+    "remote": null,
+    "extra": [
+      "estimate: 3",
+      "reviewer: \"sam\"",
+      "blocked-by: [0002, 0003]",
+      "due: 2026-03-01"
+    ]
+  }
+}
