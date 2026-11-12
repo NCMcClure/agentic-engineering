@@ -35,6 +35,17 @@ the name at your checkout and parks the old entry; `--uninstall` puts it back.
 node scripts/install.mjs --uninstall
 ```
 
+## Shared files
+
+A file under `scripts/shared/` ships inside every plugin that lists it. Edit it
+there, never in a plugin, then rewrite the copies:
+
+```bash
+npm run sync-shared
+```
+
+The gate fails a copy that has drifted. Bump every plugin whose copy changed.
+
 ## When a change alters what an agent sees
 
 A hook, a skill description, a rule a hook injects: run the live lane. It

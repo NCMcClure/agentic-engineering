@@ -1,8 +1,11 @@
 // validate.mjs against a copy of this checkout with one thing broken at a
 // time. Each case asserts the finding it expects, not only the exit code.
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import path from "node:path";
 import { test } from "node:test";
-import { runNode, tree } from "./helpers.mjs";
+import { hookCommand } from "../../lib.mjs";
+import { REPO, runNode, tree } from "./helpers.mjs";
 
 const CATALOG = ".claude-plugin/marketplace.json";
 const validate = (dir, ...args) => runNode("scripts/validate.mjs", ["--root", dir, ...args]);
@@ -101,7 +104,7 @@ const hooks = (map) => withTidy({
   "plugins/tidy/hooks/start.mjs": "process.exitCode = 0;\n",
   "plugins/tidy/hooks/pane.tsx": "export {};\n",
 });
-const command = (file) => ({ hooks: [{ type: "command", command: `node "\${CLAUDE_PLUGIN_ROOT}/hooks/${file}"` }] });
+const command = (file, { plugin = "tidy", loud = true, ...rest } = {}) => ({ hooks: [{ type: "command", command: hookCommand(plugin, `hooks/${file}`, { loud }), statusMessage: "Tidying", ...rest }] });
 
 test("a hook on a known event that points inside the plugin passes", (t) => {
   const result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs")] }, modules: ["./start.mjs"] })));
@@ -135,6 +138,128 @@ test("a hub that is gone, or a CLAUDE.md that is its own file, fails", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/AGENTS\.md is missing/m);
   assert.match(result.stdout, /^FAIL: CLAUDE\.md is not a link to AGENTS\.md/m);
+});
+
+// A Node hook sits behind a guard, so a machine without Node hears about it
+// once, at session start, instead of failing on every event.
+test("a Node hook with no guard, a quiet one at session start, or no status message fails", (t) => {
+  const bare = { hooks: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.mjs"', statusMessage: "Tidying" }] };
+  let result = validate(tree(t, hooks({ hooks: { PreToolUse: [bare] } })));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the PreToolUse command for hooks\/start\.mjs has no guard for a machine without Node/m);
+
+  result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs", { loud: false, statusMessage: undefined })] } })));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: .*the SessionStart command for hooks\/start\.mjs must use the guard that tells the person Node is missing/m);
+  assert.match(result.stdout, /^FAIL: .*the SessionStart command for hooks\/start\.mjs has no statusMessage/m);
+
+  result = validate(tree(t, hooks({ hooks: { PreToolUse: [command("start.mjs", { loud: false })], Stop: [{ hooks: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.mjs" && echo done' }] }] } })));
+  assert.equal(result.status, 1);
+  assert.doesNotMatch(result.stdout, /PreToolUse/, "the quiet guard is enough off session start");
+  assert.match(result.stdout, /^FAIL: .*the Stop command is not a guard followed by node/m);
+});
+
+// Shared files: one copy is edited, in scripts/shared/, and a plugin's copy
+// is that file byte for byte.
+const KERNEL = fs.readFileSync(path.join(REPO, "scripts/shared/critical-context.mjs"), "utf8");
+const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: (m) => ({ ...m, shared: list }) });
+
+test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
+  const dir = tree(t, { json: shares("code-diet", ["hooks/critical-context.mjs"]), write: { "plugins/docs-parity/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
+  fs.writeFileSync(path.join(dir, "scripts/plugins/docs-parity.json"), `${JSON.stringify({ legacy: true, shared: ["hooks/critical-context.mjs", "lib/no-such-file.mjs"] })}\n`);
+  const result = validate(dir);
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: plugins\/code-diet\/hooks\/critical-context\.mjs is missing: node scripts\/sync-shared\.mjs --write/m);
+  assert.match(result.stdout, /^FAIL: plugins\/docs-parity\/hooks\/critical-context\.mjs has drifted from scripts\/shared\/critical-context\.mjs/m);
+  assert.match(result.stdout, /^FAIL: plugins\/docs-parity\/lib\/no-such-file\.mjs is listed as shared, but scripts\/shared\/no-such-file\.mjs does not exist/m);
+
+  const check = runNode("scripts/sync-shared.mjs", ["--root", dir]);
+  assert.equal(check.status, 1);
+  assert.match(check.stdout, /^missing: plugins\/code-diet\/hooks\/critical-context\.mjs/m);
+  assert.match(check.stdout, /^drifted: plugins\/docs-parity\/hooks\/critical-context\.mjs/m);
+  assert.equal(fs.existsSync(path.join(dir, "plugins/code-diet/hooks/critical-context.mjs")), false, "a check writes nothing");
+
+  fs.writeFileSync(path.join(dir, "scripts/plugins/docs-parity.json"), `${JSON.stringify({ legacy: true, shared: ["hooks/critical-context.mjs"] })}\n`);
+  assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir, "--write"]).status, 0);
+  for (const plugin of ["code-diet", "docs-parity"]) assert.equal(fs.readFileSync(path.join(dir, "plugins", plugin, "hooks/critical-context.mjs"), "utf8"), KERNEL, plugin);
+  assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir]).status, 0);
+  assert.match(validate(dir).stdout, /^ok: 2 shared copy\/copies match scripts\/shared, /m);
+});
+
+test("a shared file with no suite of its own fails", (t) => {
+  const result = validate(tree(t, { write: { "scripts/shared/untested.mjs": "export const nothing = null;\n" } }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: scripts\/shared\/untested\.mjs has no scripts\/test-hooks\/unit\/untested\.test\.mjs/m);
+});
+
+test("a shared path that leaves the plugin fails", (t) => {
+  const result = validate(tree(t, { json: shares("code-diet", ["../docs-parity/hooks/critical-context.mjs"]) }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: scripts\/plugins\/code-diet\.json: "\.\.\/docs-parity\/hooks\/critical-context\.mjs" is not a path inside the plugin/m);
+});
+
+// Critical lines: a plugin that ships them ships the kernel beside them, runs
+// it at session start and in subagents, and stays under its cap.
+const line = (text, extra = {}) => ({ for: "all", mode: "any", text, ...extra });
+function speaks(plugin, data, { cap = 500, shared = ["hooks/critical-context.mjs"], events = ["SessionStart", "SubagentStart"] } = {}) {
+  const run = (event) => command("session-start.mjs", { plugin, loud: event === "SessionStart" });
+  return {
+    json: {
+      [`scripts/plugins/${plugin}.json`]: (m) => ({ ...m, shared, critical: { cap } }),
+      [`plugins/${plugin}/hooks/hooks.json`]: (m) => ({ ...m, hooks: { ...m.hooks, ...Object.fromEntries(events.map((e) => [e, [run(e)]])) } }),
+    },
+    write: {
+      [`plugins/${plugin}/hooks/critical.json`]: `${JSON.stringify({ plugin, ...data }, null, 2)}\n`,
+      [`plugins/${plugin}/hooks/critical-context.mjs`]: KERNEL,
+      [`plugins/${plugin}/hooks/session-start.mjs`]: 'import { run } from "./critical-context.mjs";\n\nawait run();\n',
+    },
+  };
+}
+
+test("a plugin's critical lines pass within its cap and are counted against the total", (t) => {
+  const result = validate(tree(t, speaks("docs-parity", { lines: [line("Docs change with the code.")], chains: [line("Shots go through the loop.", { partner: "perceptual-loop", for: "main" })] })));
+  assert.equal(result.status, 0, result.stdout);
+  assert.match(result.stdout, /^ok: 1 shared copy\/copies match scripts\/shared, /m);
+  assert.match(result.stdout, /^ok: critical lines within budget \(\d+ of 7500 characters across 1 plugin\(s\)\)$/m);
+});
+
+test("critical lines over the plugin's cap, or with a bad audience, mode or partner, fail", (t) => {
+  const data = { lines: [line("x".repeat(600)), line("Wrong audience.", { for: "everyone" }), line("Wrong mode.", { mode: "sometimes" })], chains: [line("To itself.", { partner: "docs-parity" }), line("To nobody.", { partner: "no-such-plugin" })] };
+  const result = validate(tree(t, speaks("docs-parity", data)));
+  assert.equal(result.status, 1);
+  const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";
+  assert.match(result.stdout, new RegExp(`^${where}critical and chain lines are \\d+ characters, over the 500 cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}"Wrong audience\\." needs for: main or all`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}"Wrong mode\\." needs mode: full, portable, any`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}chain partner "docs-parity" is not another plugin in ORDER`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}chain partner "no-such-plugin" is not another plugin in ORDER`, "m"));
+});
+
+test("critical lines with no kernel copy listed, no cap, the wrong name, or no subagent hook fail", (t) => {
+  const result = validate(tree(t, {
+    ...speaks("docs-parity", { plugin: "docs", lines: [line("Docs change with the code.")] }, { shared: [], events: ["SessionStart"] }),
+    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/docs-parity.json": (m) => ({ legacy: m.legacy }) },
+  }));
+  assert.equal(result.status, 1);
+  const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";
+  assert.match(result.stdout, new RegExp(`^${where}scripts\\/plugins\\/docs-parity\\.json does not list hooks\\/critical-context\\.mjs under shared`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}hooks\\.json does not run hooks\\/session-start\\.mjs on SubagentStart`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}plugin is "docs", expected docs-parity`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where}scripts\\/plugins\\/docs-parity\\.json carries no critical\\.cap`, "m"));
+});
+
+test("critical lines from a plugin the kernel's ORDER does not name fail", (t) => {
+  const tidy = withTidy({
+    "plugins/tidy/hooks/critical.json": `${JSON.stringify({ plugin: "tidy", lines: [line("Sweep first.")] })}\n`,
+    "plugins/tidy/hooks/critical-context.mjs": KERNEL,
+    "plugins/tidy/hooks/session-start.mjs": 'import { run } from "./critical-context.mjs";\n\nawait run();\n',
+    "plugins/tidy/hooks/hooks.json": `${JSON.stringify({ hooks: { SessionStart: [command("session-start.mjs")], SubagentStart: [command("session-start.mjs", { loud: false })] } })}\n`,
+    "scripts/plugins/tidy.json": `${JSON.stringify({ shared: ["hooks/critical-context.mjs"], critical: { cap: 500 } })}\n`,
+  });
+  const result = validate(tree(t, tidy));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/critical\.json: tidy is not in ORDER in scripts\/shared\/critical-context\.mjs/m);
+  assert.equal(result.stdout.match(/^FAIL:/gm).length, 1, result.stdout);
 });
 
 // A tag releases one plugin: it names the version that plugin's plugin.json carries.
