@@ -1,25 +1,37 @@
 {
+  "description": "The git guard (protected branches, force pushes, credentials, junk, the opt-in test gate), the session briefing, lint and coupled-file feedback on edits, and the stop gate",
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup|resume",
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/session-start.sh",
-            "args": []
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agentic-teamwork hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Reading the team conventions"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "timeout": 10
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|PowerShell",
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/git-guard.sh",
-            "args": [],
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/git-guard.mjs\"",
             "timeout": 300
           }
         ]
@@ -31,9 +43,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/edit-check.sh",
-            "args": [],
-            "timeout": 60
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/edit-check.mjs\"",
+            "timeout": 15
           }
         ]
       }
@@ -43,8 +54,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/scripts/stop-gate.sh",
-            "args": [],
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop-gate.mjs\"",
             "timeout": 300
           }
         ]

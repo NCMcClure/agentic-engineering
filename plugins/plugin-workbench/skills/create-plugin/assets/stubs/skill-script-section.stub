@@ -1,0 +1,9 @@
+
+## The script
+
+TODO(author): what `scripts/{{SKILL_NAME}}.mjs` computes, the step that
+runs it, and how to read what it prints.
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/skills/{{SKILL_NAME}}/scripts/{{SKILL_NAME}}.mjs"
+```

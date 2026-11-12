@@ -2,7 +2,8 @@
 name: review
 description: >
   Show, prune, revert, or configure the user's writing profile and its
-  auto-refinement history — the human valve on the learning loop.
+  auto-refinement history. Use when the user runs /write-like-me:review to see
+  what the learning loop changed, undo a revision, or pause learning.
 disable-model-invocation: true
 ---
 
@@ -17,7 +18,7 @@ skill is the human valve on that loop.
 ## Steps
 
 1. **Show the current state.** Print the profile, run
-   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile_budget.py"` for the
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile-budget.mjs"` for the
    line count against the budget, then show the recent entries from
    `${CLAUDE_PLUGIN_DATA}/changelog.md` so the user can see what was
    auto-applied and when. Flag any auto-applied revision that overwrote a

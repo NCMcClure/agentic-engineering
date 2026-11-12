@@ -15,8 +15,8 @@ Every kind of fact has one home. Write a fact in its home and link to it from an
 | Words | `.agents/CONTEXT.md` | 300 characters a row | `aw decisions lint` |
 | Protocols, formats, how to extend | `.agents/contracts/` | | `aw links` |
 | Plans and specs | `.agents/plan/` | | the planning tool's own |
-| Tasks and their status | cards in `.agents/kanban/` of the main working tree | | `aw kanban lint` |
-| Checks still owed | cards of kind `gate` | | `aw kanban lint` |
+| Tasks and their status | cards in `.agents/kanban/` of the main working tree | | `aw board lint` |
+| Checks still owed | cards of kind `gate` | | `aw board lint` |
 | Briefs | `.agents/briefs/common.md`, `.agents/briefs/rounds/<date>-<slug>.md` | 120 / 80 lines | `aw doctor` |
 | Reports | the final message, the pull request, the card | never a file | |
 | Settings of these tools | `.agents/agent-works.json` | | `aw doctor` |
@@ -32,7 +32,7 @@ twin).
 Read the root `AGENTS.md`, then the hub of the folder you work in. A hub lists its direct children, one line each:
 what the child holds and when to open it. A directory with a hub holds no source files; a directory that holds
 source files has no hub. When you add, move, rename or repurpose something, fix its parent's hub in that change.
-`CLAUDE.md` beside an `AGENTS.md` is its one-line twin, written by `aw twins`.
+`CLAUDE.md` beside an `AGENTS.md` is its twin (a symlink to it, or the one line `@AGENTS.md`), written by `aw twins`.
 
 ## Memory
 
@@ -59,12 +59,12 @@ source files has no hub. When you add, move, rename or repurpose something, fix 
 
 ## Tasks
 
-- Something worth doing that is outside your change: a card. `aw kanban add "<title>" --suggest --details "<what
+- Something worth doing that is outside your change: a card. `aw board add "<title>" --suggest --details "<what
   you saw, why it matters, where to look, what done looks like>"`. Then carry on.
-- A card handed to you: do it, then `aw kanban move <id> review`. The owner moves it to done.
-- A check you cannot run now (it needs another checkout, a free machine, the owner): `aw kanban owe "<the check>"
+- A card handed to you: do it, then `aw board move <id> review`. The owner moves it to done.
+- A check you cannot run now (it needs another checkout, a free machine, the owner): `aw board owe "<the check>"
   --ref <what it is owed for> --needs "<what running it needs>"`. Once it ran and passed:
-  `aw kanban settle <id> --evidence "<the command and what it showed>"`. An owed check is never skipped silently.
+  `aw board settle <id> --evidence "<the command and what it showed>"`. An owed check is never skipped silently.
 - Where the project stands: `aw status` (the board, owed gates, locks, claims, the last merges).
 
 ## Working beside other agents

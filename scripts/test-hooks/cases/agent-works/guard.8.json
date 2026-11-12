@@ -1,0 +1,12 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Write",
+    "cwd": "{{REPO}}",
+    "tool_input": { "file_path": "{{REPO}}/src/app.py", "content": "x = 1\n" }
+  },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

@@ -1,0 +1,18 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "pl-g1",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git status --short"
+    },
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

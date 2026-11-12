@@ -4,16 +4,32 @@ An Unreal-Blueprint-style visual editor for Claude Code dynamic workflows:
 drag nodes, wire pins, and compile the graph losslessly to
 `.claude/workflows/*.js`. No blueprint compiler errors, though. Mostly.
 
-## Quick start
+## How it works
 
-1. Install the plugin.
-2. Run `/workflow-studio`.
-3. Open the printed `Local:` URL in your browser (Vite picks the port; trust
+The plugin bundles the studio, a Vite app, under `app/`. `/workflow-studio`
+runs `scripts/launch-studio.mjs`, which copies the app into a persistent
+install home (`~/.claude/plugins/data/workflow-studio/app`), runs `npm ci`
+there when the lockfile has changed since the last install, and starts the dev
+server with the studio root pointed at your project. Your graphs live in the
+project, never in the install home, so they survive restarts and plugin
+updates. The launcher is plain Node with no dependencies; the app's own
+dependencies come from npm on first launch.
+
+## Install
+
+```text
+/plugin marketplace add NCMcClure/agentic-engineering
+/plugin install workflow-studio@agentic-engineering
+```
+
+Then:
+
+1. Run `/workflow-studio`.
+2. Open the printed `Local:` URL in your browser (Vite picks the port; trust
    the printout, not 5173).
 
-First launch copies the app into `~/.claude/plugins/data/workflow-studio/app`
-and runs `npm ci`; expect 30–60 seconds, Node 20+, and network access, once.
-After that, launches are near-instant and offline-friendly.
+The first launch installs the app: expect 30–60 seconds, Node 20+, and network
+access, once. After that, launches are near-instant and offline-friendly.
 
 ## Skills
 

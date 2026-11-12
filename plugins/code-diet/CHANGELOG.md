@@ -1,3 +1,4 @@
 # Changelog
 
+- **1.0.0**: Node 22 throughout, no Python. The ladder now speaks only where the repo has opted in (a committed marker, or your answer to a one-time question), never to read-only agent types, and comes back after a compaction or `/clear`; until now it went into every session and every subagent everywhere. The edit nudge follows the same rule. `/code-diet:review` is now `/code-diet:review-diet`, and `--apply` starts from a clean tree, checks each cut with the repo's own commands through `review-scan.mjs --apply`, and never resets or cleans. New skills `reuse-first` (searches this repo and the checkouts listed under git config `code-diet.reuse`) and `capture-reusable`; `debt` and `review-diet` can now be model-invoked. Scripts moved to `scripts/` (`debt.mjs`, `review-scan.mjs`, `reuse-index.mjs`); the kernel budget checker is gone, its job done by the cap on `hooks/critical.json`.
 - **0.1.0**: initial release.

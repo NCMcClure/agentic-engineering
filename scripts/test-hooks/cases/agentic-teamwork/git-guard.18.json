@@ -1,0 +1,22 @@
+{
+  "script": "git-guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "project": "unplugged",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "gg-18",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git push --force origin main"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "project": "bare",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "PowerShell",
+    "cwd": "{{REPO}}",
+    "tool_input": { "command": "git push --force origin feat/x" }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": { "keysPresent": ["hookSpecificOutput"] }
+  }
+}

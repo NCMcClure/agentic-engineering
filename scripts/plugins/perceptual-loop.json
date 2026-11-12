@@ -1,3 +1,10 @@
 {
-  "legacy": true
+  "critical": {
+    "cap": 1100,
+    "briefing": 1400
+  },
+  "shared": [
+    "hooks/critical-context.mjs",
+    "hooks/shell-words.mjs"
+  ]
 }

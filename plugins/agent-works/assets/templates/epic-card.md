@@ -8,7 +8,7 @@ seconds." Not a list of tasks.>
 <What stays wrong while this is not done, and for whom. Every card of the epic carries this into its agent's
 prompt, so keep it short.>
 
-## Done looks like
+## Done when
 
 <The observable result for the whole epic: the measurement, the command and its output, the flow that works end
 to end. Each card has its own done; this is the one that closes the epic.>

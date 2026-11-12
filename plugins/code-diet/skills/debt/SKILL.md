@@ -1,81 +1,49 @@
 ---
 name: debt
-description: Inventory every `debt:` marker in the repo via scripts/debt.py, judge whether each deferral still holds, and flag trigger-less markers as rot risk; `--write <file>` also saves a ledger.
-disable-model-invocation: true
+description: "Inventory every `debt:` marker in the repo with scripts/debt.mjs, judge whether each deferral still holds, and flag trigger-less markers as rot risk. Use when auditing shortcuts already in the tree, before a release, or when the user asks what debt this repo carries; the ladder skill is what writes new markers."
 argument-hint: "[--write <file>]"
 ---
 
 # debt
 
-A `debt:` marker records a deliberate shortcut: `debt: <ceiling>, <trigger>`,
-where the ceiling is the limit the code accepts and the trigger is the
-condition that should make someone upgrade past it. This skill inventories
-every marker in the repo, then judges each one: does the deferral still hold,
-has its trigger tripped, or is it a trigger-less marker rotting toward
-permanent? Auditing deferred debt is a human act, so this skill is
-user-invoked and carries no passive cost.
+A `debt:` marker records a deliberate shortcut: `debt: <ceiling>, <trigger>`. The ceiling is the limit the code accepts, the trigger is the observable condition that should make someone upgrade past it. This skill inventories every marker, then judges each: does the deferral still hold, has its trigger tripped, or is it rotting toward permanent?
 
-The scan and all counting live in `scripts/debt.py` — the single canonical home
-of the marker grammar. This body never restates the regex, never recounts by
-hand, and never greps for markers itself; the model's only job here is
-judgment.
+The scan and every count live in `scripts/debt.mjs`, the single home of the grammar. Never grep for markers yourself and never recount in prose. Judgment is the only thing asked of you here.
 
-## Step 1 — Scan
-
-Run the scanner from the repo root, appending `--write <file>` when the user
-passed it:
+## Step 1: Scan
 
 ```
-python3 ${CLAUDE_PLUGIN_ROOT}/skills/debt/scripts/debt.py [--write <file>]
+node "${CLAUDE_PLUGIN_ROOT}/scripts/debt.mjs" --root . [--write <file>]
 ```
 
-It walks the tree (skipping `.git`, `node_modules`, and build output), matches
-every `debt:` comment, splits each into ceiling and trigger, and flags rows
-with no trigger. Parse its JSON: `{count, no_trigger_count, markers[]}`, where
-each marker carries `file`, `line`, `ceiling`, `trigger` (or null), and
-`no_trigger`.
+It walks the tree (skipping `.git`, `node_modules`, and build output), matches every `debt:` comment, and splits each into ceiling and trigger. Parse the JSON: `{count, no_trigger_count, markers[]}`, each marker carrying `file`, `line`, `ceiling`, `trigger` (or null), and `no_trigger`.
 
-*Done when: the script exited 0 and its JSON is parsed into memory.*
+*Done when: the script exited 0 and its JSON is parsed.*
 
-## Step 2 — Judge each marker
+## Step 2: Judge each marker
 
-For each marker row, read enough of the surrounding code and context to decide
-whether its upgrade trigger has tripped, then assign exactly one verdict:
+Read enough of the surrounding code to decide, then assign exactly one verdict:
 
-- **HOLDS** — the ceiling is still acceptable and the trigger has not tripped.
-- **UPGRADE** — the trigger condition is now true. Name the concrete next step
-  the trigger promised (the actual change to make, not "revisit this").
-- **NEEDS-TRIGGER** — the script flagged the row `no_trigger`: rot risk.
-  Propose a concrete trigger to add, or recommend deleting the marker if the
-  shortcut is now permanent-by-default and no upgrade is ever coming.
+- **HOLDS**: the ceiling is still acceptable and the trigger has not tripped.
+- **UPGRADE**: the trigger is now true. Name the concrete change the trigger promised, not "revisit this".
+- **NEEDS-TRIGGER**: the row is flagged `no_trigger`. Propose a concrete trigger, or recommend deleting the marker when the shortcut is permanent by decision and no upgrade is coming.
 
-*Done when: every marker row in the JSON carries exactly one of the three
-verdicts.*
+*Done when: every marker row carries exactly one of the three verdicts.*
 
-## Step 3 — Report
+## Step 3: Report
 
-Open with a header carrying the script's counts, then one line per marker,
-grouped UPGRADE first, then NEEDS-TRIGGER, then HOLDS:
+Header with the script's counts, then one line per marker, UPGRADE first, then NEEDS-TRIGGER, then HOLDS:
 
 ```
 <count> markers, <no_trigger_count> with no trigger.
 
-<file>:<line>: <verdict> — <ceiling> / <trigger or 'no trigger'>
+<file>:<line>: <verdict> - <ceiling> / <trigger or 'no trigger'>
 ```
 
-If `--write` was used, confirm the ledger path the script wrote. If the scan
-found zero markers, report instead: `No debt markers. Either disciplined or
-undocumented — check recent shortcuts carry markers.`
+Confirm the ledger path when `--write` was used. Zero markers reports: `No debt markers. Either disciplined or undocumented; check that recent shortcuts carry them.`
 
-*Done when: the number of marker lines in the report equals the script's
-`count` field exactly.*
+*Done when: the number of marker lines equals the script's `count` exactly.*
 
-## Sibling files
+## Where markers come from
 
-- `scripts/debt.py` — the marker grammar and all counting; this skill invokes
-  it and judges, never re-deriving what it computes. The plugin's advisory
-  `hooks/debt_nudge.py` reuses the same module at edit time to nudge on
-  trigger-less markers before they ever reach this audit.
-
-New markers get written by the ladder skill's step 4, in this same
-`debt: <ceiling>, <trigger>` shape; this skill only audits what already exists.
+The ladder skill's step 4 writes them, in this same shape. The plugin's edit hook (`hooks/debt-nudge.mjs`) reads the same grammar at edit time and nudges on a marker with no trigger, before it ever reaches this audit.

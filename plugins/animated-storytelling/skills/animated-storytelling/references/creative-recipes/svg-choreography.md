@@ -143,7 +143,7 @@ SVG groups with multi-axis animate arrays for elements moving between positions:
 
 ## Production Example: Lacing Animation
 
-Visualizes knowledge flowing between two laced repositories via a curved bezier bridge. From the loom-agent-website:
+Visualizes knowledge flowing between two laced repositories via a curved bezier bridge:
 
 ```tsx
 import { motion } from "motion/react"

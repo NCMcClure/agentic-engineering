@@ -1,0 +1,19 @@
+{
+  "script": "debt-nudge.mjs",
+  "event": "PostToolUse",
+  "fixture": "portable",
+  "stdin": {
+    "hook_event_name": "PostToolUse",
+    "tool_name": "Write",
+    "session_id": "dn-5",
+    "cwd": "{{REPO}}",
+    "tool_input": {
+      "file_path": "{{REPO}}/src/app.py",
+      "content": "LOCK = Lock()  # debt: global lock\n"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": { "keysPresent": ["hookSpecificOutput"] }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "script": "plan-gate.mjs",
+  "event": "TaskCompleted",
+  "stdin": "",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

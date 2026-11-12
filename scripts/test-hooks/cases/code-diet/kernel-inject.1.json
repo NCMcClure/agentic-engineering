@@ -1,6 +1,0 @@
-{
-  "script": "kernel_inject.py",
-  "event": "SessionStart",
-  "stdin": { "hook_event_name": "SessionStart", "source": "compact", "session_id": "ki-1", "cwd": "{{REPO}}" },
-  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
-}

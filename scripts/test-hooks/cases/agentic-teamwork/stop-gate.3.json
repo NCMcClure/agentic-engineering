@@ -1,0 +1,10 @@
+{
+  "script": "stop-gate.mjs",
+  "event": "Stop",
+  "fixture": "standard",
+  "stdin": "",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "file": "0041-watch-the-animation-on-a-phone.md",
+  "slug": "watch-the-animation-on-a-phone",
+  "card": {
+    "id": "0041",
+    "file": "0041-watch-the-animation-on-a-phone.md",
+    "title": "Watch the animation on a phone",
+    "status": "backlog",
+    "order": 6,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "claude",
+    "kind": "gate",
+    "after": [],
+    "files": [],
+    "created": "2026-10-09T08:00:00.000Z",
+    "updated": "2026-10-09T08:00:00.000Z",
+    "owner": "kim",
+    "needs": "a phone",
+    "ref": "!31",
+    "unknown": [],
+    "body": "## Evidence"
+  }
+}

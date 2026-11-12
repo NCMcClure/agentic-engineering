@@ -2,79 +2,53 @@
   "claudeCodeVersion": "2.1.314",
   "date": "2026-11-12",
   "model": "haiku",
-  "pluginsTree": "5c4c85731c4a9d8300a4753de248519b61174f90",
-  "costUsd": 0.1041,
-  "expectedFailures": {
-    "compaction.mjs": [
-      "adopted: SessionStart · agent-works was lost at compaction"
-    ],
-    "session-start.mjs": [
-      "adopted: agent-works said nothing to the model when a compaction opened segment 1",
-      "adopted: agentic-teamwork said nothing to the model when a compaction opened segment 1",
-      "adopted: but-first-planning said nothing to the model at the start of segment 0",
-      "adopted: but-first-planning said nothing to the model when a compaction opened segment 1",
-      "adopted: perceptual-loop said nothing to the model at the start of segment 0",
-      "adopted: perceptual-loop said nothing to the model when a compaction opened segment 1",
-      "teamwork-only: agentic-teamwork said nothing to the model when a compaction opened segment 1"
-    ],
-    "stop-visibility.mjs": [
-      "adopted: agentic-teamwork's Stop output reached the person only",
-      "adopted: docs-parity's Stop output reached the person only",
-      "teamwork-only: agentic-teamwork's Stop output reached the person only"
-    ],
-    "subagents.mjs": [
-      "adopted: Explore got SubagentStart context from code-diet or docs-parity",
-      "adopted: perceptual-loop:vision-critic got SubagentStart context from code-diet or docs-parity",
-      "bare: Explore got SubagentStart context from code-diet or docs-parity",
-      "bare: perceptual-loop:vision-critic got SubagentStart context from code-diet or docs-parity",
-      "outside: Explore got SubagentStart context from code-diet or docs-parity",
-      "outside: perceptual-loop:vision-critic got SubagentStart context from code-diet or docs-parity",
-      "teamwork-only: Explore got SubagentStart context from code-diet or docs-parity",
-      "teamwork-only: perceptual-loop:vision-critic got SubagentStart context from code-diet or docs-parity"
-    ]
-  },
+  "pluginsTree": "06e8716e9779539a44dac26afda2c826822f294a",
+  "costUsd": 0.2018,
+  "expectedFailures": {},
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 30434,
+      "firstRequestTokens": 33110,
       "start": {
-        "agent-works": 768,
-        "agentic-teamwork": 101,
+        "agent-works": 708,
+        "agentic-teamwork": 607,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "afterCompaction": {
-        "agent-works": 768,
-        "agentic-teamwork": 101,
+        "agent-works": 708,
+        "agentic-teamwork": 607,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "rulesTokens": 0,
       "sessionStart": {
-        "code-diet": 165
+        "agentic-teamwork": 128
       },
       "skills": {
         "agent-works": {
-          "tokens": 264,
-          "skills": 10,
+          "tokens": 644,
+          "skills": 14,
           "bare": 0
         },
         "agentic-teamwork": {
-          "tokens": 101,
-          "skills": 1,
+          "tokens": 479,
+          "skills": 4,
           "bare": 0
         },
         "animated-storytelling": {
@@ -83,32 +57,37 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 642,
-          "skills": 10,
+          "tokens": 900,
+          "skills": 14,
           "bare": 0
         },
         "code-diet": {
-          "tokens": 112,
-          "skills": 1,
+          "tokens": 544,
+          "skills": 5,
           "bare": 0
         },
         "codebase-optimizer": {
-          "tokens": 227,
+          "tokens": 387,
           "skills": 3,
           "bare": 0
         },
         "docs-parity": {
-          "tokens": 411,
-          "skills": 3,
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
           "bare": 0
         },
         "perceptual-loop": {
-          "tokens": 386,
+          "tokens": 389,
           "skills": 8,
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 309,
+          "tokens": 304,
           "skills": 3,
           "bare": 0
         },
@@ -124,6 +103,12 @@
         }
       },
       "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
         "agentic-teamwork": {
           "model": 0,
           "person": 0,
@@ -146,7 +131,7 @@
       "compaction": {
         "agents · perceptual-loop": "kept",
         "mcp-instructions · agent-works": "kept",
-        "SessionStart · code-diet": "kept",
+        "SessionStart · agentic-teamwork": "kept",
         "skills · agent-works": "kept",
         "skills · agentic-teamwork": "kept",
         "skills · animated-storytelling": "kept",
@@ -154,109 +139,104 @@
         "skills · code-diet": "kept",
         "skills · codebase-optimizer": "kept",
         "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
         "skills · perceptual-loop": "kept",
         "skills · plugin-workbench": "kept",
         "skills · workflow-studio": "kept",
         "skills · write-like-me": "kept",
-        "tool-definitions · agent-works": "kept",
-        "tools-deferred · agent-works": "kept"
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17854,
+          "firstRequestTokens": 20301,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20029,
+          "firstRequestTokens": 22475,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4814,
-          "focus": {
-            "code-diet or docs-parity": 165
-          },
+          "firstRequestTokens": 4596,
+          "focus": {},
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         }
       }
     },
     "outside": {
-      "firstRequestTokens": 30432,
+      "firstRequestTokens": 33072,
       "start": {
-        "agent-works": 768,
-        "agentic-teamwork": 101,
+        "agent-works": 708,
+        "agentic-teamwork": 607,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "afterCompaction": {
-        "agent-works": 768,
-        "agentic-teamwork": 101,
+        "agent-works": 708,
+        "agentic-teamwork": 607,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "rulesTokens": 0,
       "sessionStart": {
-        "code-diet": 165
+        "agentic-teamwork": 128
       },
       "skills": {
         "agent-works": {
-          "tokens": 264,
-          "skills": 10,
+          "tokens": 644,
+          "skills": 14,
           "bare": 0
         },
         "agentic-teamwork": {
-          "tokens": 101,
-          "skills": 1,
+          "tokens": 479,
+          "skills": 4,
           "bare": 0
         },
         "animated-storytelling": {
@@ -265,32 +245,37 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 642,
-          "skills": 10,
+          "tokens": 900,
+          "skills": 14,
           "bare": 0
         },
         "code-diet": {
-          "tokens": 112,
-          "skills": 1,
+          "tokens": 544,
+          "skills": 5,
           "bare": 0
         },
         "codebase-optimizer": {
-          "tokens": 227,
+          "tokens": 387,
           "skills": 3,
           "bare": 0
         },
         "docs-parity": {
-          "tokens": 411,
-          "skills": 3,
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
           "bare": 0
         },
         "perceptual-loop": {
-          "tokens": 386,
+          "tokens": 389,
           "skills": 8,
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 309,
+          "tokens": 304,
           "skills": 3,
           "bare": 0
         },
@@ -306,6 +291,12 @@
         }
       },
       "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
         "agentic-teamwork": {
           "model": 0,
           "person": 0,
@@ -328,7 +319,7 @@
       "compaction": {
         "agents · perceptual-loop": "kept",
         "mcp-instructions · agent-works": "kept",
-        "SessionStart · code-diet": "kept",
+        "SessionStart · agentic-teamwork": "kept",
         "skills · agent-works": "kept",
         "skills · agentic-teamwork": "kept",
         "skills · animated-storytelling": "kept",
@@ -336,112 +327,109 @@
         "skills · code-diet": "kept",
         "skills · codebase-optimizer": "kept",
         "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
         "skills · perceptual-loop": "kept",
         "skills · plugin-workbench": "kept",
         "skills · workflow-studio": "kept",
         "skills · write-like-me": "kept",
-        "tool-definitions · agent-works": "kept",
-        "tools-deferred · agent-works": "kept"
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17855,
+          "firstRequestTokens": 20299,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20029,
+          "firstRequestTokens": 22475,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4814,
-          "focus": {
-            "code-diet or docs-parity": 165
-          },
+          "firstRequestTokens": 4596,
+          "focus": {},
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         }
       }
     },
     "adopted": {
-      "firstRequestTokens": 30882,
+      "firstRequestTokens": 35435,
       "start": {
-        "agent-works": 832,
-        "agentic-teamwork": 212,
+        "agent-works": 1770,
+        "agentic-teamwork": 1168,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 523,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 1162,
+        "code-diet": 776,
+        "codebase-optimizer": 387,
+        "docs-parity": 773,
+        "marvelous-miro": 597,
+        "perceptual-loop": 1240,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "afterCompaction": {
-        "agent-works": 768,
-        "agentic-teamwork": 212,
+        "agent-works": 1160,
+        "agentic-teamwork": 758,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 442,
-        "codebase-optimizer": 227,
-        "docs-parity": 635,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 1031,
+        "code-diet": 660,
+        "codebase-optimizer": 387,
+        "docs-parity": 690,
+        "marvelous-miro": 597,
+        "perceptual-loop": 781,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "rulesTokens": 0,
       "sessionStart": {
-        "agent-works": 64,
-        "agentic-teamwork": 111,
-        "code-diet": 165,
-        "docs-parity": 112
+        "agent-works": 1062,
+        "agentic-teamwork": 689,
+        "but-first-planning": 262,
+        "code-diet": 232,
+        "docs-parity": 166,
+        "perceptual-loop": 795
       },
       "skills": {
         "agent-works": {
-          "tokens": 264,
-          "skills": 10,
+          "tokens": 644,
+          "skills": 14,
           "bare": 0
         },
         "agentic-teamwork": {
-          "tokens": 101,
-          "skills": 1,
+          "tokens": 479,
+          "skills": 4,
           "bare": 0
         },
         "animated-storytelling": {
@@ -450,32 +438,37 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 642,
-          "skills": 10,
+          "tokens": 900,
+          "skills": 14,
           "bare": 0
         },
         "code-diet": {
-          "tokens": 112,
-          "skills": 1,
+          "tokens": 544,
+          "skills": 5,
           "bare": 0
         },
         "codebase-optimizer": {
-          "tokens": 227,
+          "tokens": 387,
           "skills": 3,
           "bare": 0
         },
         "docs-parity": {
-          "tokens": 411,
-          "skills": 3,
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
           "bare": 0
         },
         "perceptual-loop": {
-          "tokens": 386,
+          "tokens": 389,
           "skills": 8,
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 309,
+          "tokens": 304,
           "skills": 3,
           "bare": 0
         },
@@ -491,14 +484,20 @@
         }
       },
       "stop": {
-        "agentic-teamwork": {
+        "agent-works": {
           "model": 0,
-          "person": 2,
-          "silent": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
+        "agentic-teamwork": {
+          "model": 1,
+          "person": 1,
+          "silent": 1,
           "error": 0
         },
         "docs-parity": {
-          "model": 0,
+          "model": 1,
           "person": 2,
           "silent": 0,
           "error": 0
@@ -511,12 +510,16 @@
         }
       },
       "compaction": {
-        "SessionStart · agent-works": "lost",
+        "Stop · agentic-teamwork": "not since",
+        "Stop · docs-parity": "not since",
         "agents · perceptual-loop": "kept",
         "mcp-instructions · agent-works": "kept",
+        "SessionStart · agent-works": "kept",
         "SessionStart · agentic-teamwork": "kept",
+        "SessionStart · but-first-planning": "kept",
         "SessionStart · code-diet": "kept",
         "SessionStart · docs-parity": "kept",
+        "SessionStart · perceptual-loop": "kept",
         "skills · agent-works": "kept",
         "skills · agentic-teamwork": "kept",
         "skills · animated-storytelling": "kept",
@@ -524,110 +527,111 @@
         "skills · code-diet": "kept",
         "skills · codebase-optimizer": "kept",
         "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
         "skills · perceptual-loop": "kept",
         "skills · plugin-workbench": "kept",
         "skills · workflow-studio": "kept",
         "skills · write-like-me": "kept",
-        "tool-definitions · agent-works": "kept",
-        "tools-deferred · agent-works": "kept"
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 18012,
+          "firstRequestTokens": 20303,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 277,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 277
-          }
+          "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20484,
+          "firstRequestTokens": 24109,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 277,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
           "subagentStart": {
-            "code-diet or docs-parity": 277
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5269,
-          "focus": {
-            "code-diet or docs-parity": 277
-          },
+          "firstRequestTokens": 4961,
+          "focus": {},
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 277
-          }
+          "subagentStart": {}
         }
       }
     },
     "teamwork-only": {
-      "firstRequestTokens": 30632,
+      "firstRequestTokens": 34511,
       "start": {
-        "agent-works": 768,
-        "agentic-teamwork": 212,
+        "agent-works": 1408,
+        "agentic-teamwork": 1168,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 277,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 1010,
+        "code-diet": 776,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 881,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "afterCompaction": {
-        "agent-works": 768,
-        "agentic-teamwork": 212,
+        "agent-works": 1058,
+        "agentic-teamwork": 758,
         "animated-storytelling": 140,
-        "but-first-planning": 642,
-        "code-diet": 442,
-        "codebase-optimizer": 227,
-        "docs-parity": 411,
-        "perceptual-loop": 432,
-        "plugin-workbench": 309,
+        "but-first-planning": 955,
+        "code-diet": 660,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 663,
+        "plugin-workbench": 304,
         "workflow-studio": 157,
         "write-like-me": 187
       },
       "rulesTokens": 0,
       "sessionStart": {
-        "agentic-teamwork": 111,
-        "code-diet": 165
+        "agent-works": 700,
+        "agentic-teamwork": 689,
+        "but-first-planning": 110,
+        "code-diet": 232,
+        "perceptual-loop": 436
       },
       "skills": {
         "agent-works": {
-          "tokens": 264,
-          "skills": 10,
+          "tokens": 644,
+          "skills": 14,
           "bare": 0
         },
         "agentic-teamwork": {
-          "tokens": 101,
-          "skills": 1,
+          "tokens": 479,
+          "skills": 4,
           "bare": 0
         },
         "animated-storytelling": {
@@ -636,32 +640,37 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 642,
-          "skills": 10,
+          "tokens": 900,
+          "skills": 14,
           "bare": 0
         },
         "code-diet": {
-          "tokens": 112,
-          "skills": 1,
+          "tokens": 544,
+          "skills": 5,
           "bare": 0
         },
         "codebase-optimizer": {
-          "tokens": 227,
+          "tokens": 387,
           "skills": 3,
           "bare": 0
         },
         "docs-parity": {
-          "tokens": 411,
-          "skills": 3,
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
           "bare": 0
         },
         "perceptual-loop": {
-          "tokens": 386,
+          "tokens": 389,
           "skills": 8,
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 309,
+          "tokens": 304,
           "skills": 3,
           "bare": 0
         },
@@ -677,10 +686,613 @@
         }
       },
       "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 3,
+          "error": 0
+        },
+        "agentic-teamwork": {
+          "model": 1,
+          "person": 1,
+          "silent": 2,
+          "error": 0
+        },
+        "docs-parity": {
+          "model": 0,
+          "person": 0,
+          "silent": 3,
+          "error": 0
+        },
+        "write-like-me": {
+          "model": 0,
+          "person": 0,
+          "silent": 3,
+          "error": 0
+        }
+      },
+      "compaction": {
+        "Stop · agentic-teamwork": "not since",
+        "agents · perceptual-loop": "kept",
+        "mcp-instructions · agent-works": "kept",
+        "SessionStart · agent-works": "kept",
+        "SessionStart · agentic-teamwork": "kept",
+        "SessionStart · but-first-planning": "kept",
+        "SessionStart · code-diet": "kept",
+        "SessionStart · perceptual-loop": "kept",
+        "skills · agent-works": "kept",
+        "skills · agentic-teamwork": "kept",
+        "skills · animated-storytelling": "kept",
+        "skills · but-first-planning": "kept",
+        "skills · code-diet": "kept",
+        "skills · codebase-optimizer": "kept",
+        "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
+        "skills · perceptual-loop": "kept",
+        "skills · plugin-workbench": "kept",
+        "skills · workflow-studio": "kept",
+        "skills · write-like-me": "kept",
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
+      },
+      "subagents": {
+        "Explore": {
+          "firstRequestTokens": 20303,
+          "focus": {
+            "agent-works": 687,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {}
+        },
+        "general-purpose": {
+          "firstRequestTokens": 23454,
+          "focus": {
+            "agent-works": 687,
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 680,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 680
+          }
+        },
+        "perceptual-loop:vision-critic": {
+          "firstRequestTokens": 4630,
+          "focus": {},
+          "rulesTokens": 0,
+          "subagentStart": {}
+        }
+      }
+    },
+    "standard": {
+      "firstRequestTokens": 34781,
+      "start": {
+        "agent-works": 1566,
+        "agentic-teamwork": 1037,
+        "animated-storytelling": 140,
+        "but-first-planning": 1162,
+        "code-diet": 776,
+        "codebase-optimizer": 387,
+        "docs-parity": 773,
+        "marvelous-miro": 597,
+        "perceptual-loop": 1015,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "afterCompaction": {
+        "agent-works": 1113,
+        "agentic-teamwork": 758,
+        "animated-storytelling": 140,
+        "but-first-planning": 1031,
+        "code-diet": 660,
+        "codebase-optimizer": 387,
+        "docs-parity": 690,
+        "marvelous-miro": 597,
+        "perceptual-loop": 730,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "rulesTokens": 0,
+      "sessionStart": {
+        "agent-works": 858,
+        "agentic-teamwork": 558,
+        "but-first-planning": 262,
+        "code-diet": 232,
+        "docs-parity": 166,
+        "perceptual-loop": 570
+      },
+      "skills": {
+        "agent-works": {
+          "tokens": 644,
+          "skills": 14,
+          "bare": 0
+        },
+        "agentic-teamwork": {
+          "tokens": 479,
+          "skills": 4,
+          "bare": 0
+        },
+        "animated-storytelling": {
+          "tokens": 140,
+          "skills": 1,
+          "bare": 0
+        },
+        "but-first-planning": {
+          "tokens": 900,
+          "skills": 14,
+          "bare": 0
+        },
+        "code-diet": {
+          "tokens": 544,
+          "skills": 5,
+          "bare": 0
+        },
+        "codebase-optimizer": {
+          "tokens": 387,
+          "skills": 3,
+          "bare": 0
+        },
+        "docs-parity": {
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
+          "bare": 0
+        },
+        "perceptual-loop": {
+          "tokens": 389,
+          "skills": 8,
+          "bare": 0
+        },
+        "plugin-workbench": {
+          "tokens": 304,
+          "skills": 3,
+          "bare": 0
+        },
+        "workflow-studio": {
+          "tokens": 157,
+          "skills": 2,
+          "bare": 0
+        },
+        "write-like-me": {
+          "tokens": 187,
+          "skills": 2,
+          "bare": 0
+        }
+      },
+      "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 3,
+          "error": 0
+        },
+        "agentic-teamwork": {
+          "model": 1,
+          "person": 1,
+          "silent": 2,
+          "error": 0
+        },
+        "docs-parity": {
+          "model": 1,
+          "person": 2,
+          "silent": 1,
+          "error": 0
+        },
+        "write-like-me": {
+          "model": 0,
+          "person": 0,
+          "silent": 3,
+          "error": 0
+        }
+      },
+      "compaction": {
+        "Stop · agentic-teamwork": "not since",
+        "Stop · docs-parity": "not since",
+        "agents · perceptual-loop": "kept",
+        "mcp-instructions · agent-works": "kept",
+        "SessionStart · agent-works": "kept",
+        "SessionStart · agentic-teamwork": "kept",
+        "SessionStart · but-first-planning": "kept",
+        "SessionStart · code-diet": "kept",
+        "SessionStart · docs-parity": "kept",
+        "SessionStart · perceptual-loop": "kept",
+        "skills · agent-works": "kept",
+        "skills · agentic-teamwork": "kept",
+        "skills · animated-storytelling": "kept",
+        "skills · but-first-planning": "kept",
+        "skills · code-diet": "kept",
+        "skills · codebase-optimizer": "kept",
+        "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
+        "skills · perceptual-loop": "kept",
+        "skills · plugin-workbench": "kept",
+        "skills · workflow-studio": "kept",
+        "skills · write-like-me": "kept",
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
+      },
+      "subagents": {
+        "Explore": {
+          "firstRequestTokens": 20302,
+          "focus": {
+            "agent-works": 687,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {}
+        },
+        "general-purpose": {
+          "firstRequestTokens": 24042,
+          "focus": {
+            "agent-works": 687,
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907
+          }
+        },
+        "perceptual-loop:vision-critic": {
+          "firstRequestTokens": 4894,
+          "focus": {},
+          "rulesTokens": 0,
+          "subagentStart": {}
+        }
+      }
+    },
+    "portable": {
+      "firstRequestTokens": 34128,
+      "start": {
+        "agent-works": 1029,
+        "agentic-teamwork": 663,
+        "animated-storytelling": 140,
+        "but-first-planning": 955,
+        "code-diet": 660,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 663,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "afterCompaction": {
+        "agent-works": 1029,
+        "agentic-teamwork": 663,
+        "animated-storytelling": 140,
+        "but-first-planning": 955,
+        "code-diet": 660,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 663,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "rulesTokens": 0,
+      "sessionStart": {
+        "agent-works": 321,
+        "agentic-teamwork": 184,
+        "but-first-planning": 55,
+        "code-diet": 116,
+        "perceptual-loop": 218
+      },
+      "skills": {
+        "agent-works": {
+          "tokens": 644,
+          "skills": 14,
+          "bare": 0
+        },
+        "agentic-teamwork": {
+          "tokens": 479,
+          "skills": 4,
+          "bare": 0
+        },
+        "animated-storytelling": {
+          "tokens": 140,
+          "skills": 1,
+          "bare": 0
+        },
+        "but-first-planning": {
+          "tokens": 900,
+          "skills": 14,
+          "bare": 0
+        },
+        "code-diet": {
+          "tokens": 544,
+          "skills": 5,
+          "bare": 0
+        },
+        "codebase-optimizer": {
+          "tokens": 387,
+          "skills": 3,
+          "bare": 0
+        },
+        "docs-parity": {
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
+          "bare": 0
+        },
+        "perceptual-loop": {
+          "tokens": 389,
+          "skills": 8,
+          "bare": 0
+        },
+        "plugin-workbench": {
+          "tokens": 304,
+          "skills": 3,
+          "bare": 0
+        },
+        "workflow-studio": {
+          "tokens": 157,
+          "skills": 2,
+          "bare": 0
+        },
+        "write-like-me": {
+          "tokens": 187,
+          "skills": 2,
+          "bare": 0
+        }
+      },
+      "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
+        "agentic-teamwork": {
+          "model": 1,
+          "person": 1,
+          "silent": 1,
+          "error": 0
+        },
+        "docs-parity": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
+        "write-like-me": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        }
+      },
+      "compaction": {
+        "Stop · agentic-teamwork": "not since",
+        "agents · perceptual-loop": "kept",
+        "mcp-instructions · agent-works": "kept",
+        "SessionStart · agent-works": "kept",
+        "SessionStart · agentic-teamwork": "kept",
+        "SessionStart · but-first-planning": "kept",
+        "SessionStart · code-diet": "kept",
+        "SessionStart · perceptual-loop": "kept",
+        "skills · agent-works": "kept",
+        "skills · agentic-teamwork": "kept",
+        "skills · animated-storytelling": "kept",
+        "skills · but-first-planning": "kept",
+        "skills · code-diet": "kept",
+        "skills · codebase-optimizer": "kept",
+        "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
+        "skills · perceptual-loop": "kept",
+        "skills · plugin-workbench": "kept",
+        "skills · workflow-studio": "kept",
+        "skills · write-like-me": "kept",
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
+      },
+      "subagents": {
+        "Explore": {
+          "firstRequestTokens": 20300,
+          "focus": {
+            "agent-works": 687,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {}
+        },
+        "general-purpose": {
+          "firstRequestTokens": 23326,
+          "focus": {
+            "agent-works": 687,
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 603,
+            "agentic-teamwork": 479,
+            "animated-storytelling": 140,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
+            "workflow-studio": 157,
+            "write-like-me": 187
+          },
+          "rulesTokens": 0,
+          "subagentStart": {
+            "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 603
+          }
+        },
+        "perceptual-loop:vision-critic": {
+          "firstRequestTokens": 4607,
+          "focus": {},
+          "rulesTokens": 0,
+          "subagentStart": {}
+        }
+      }
+    },
+    "unplugged": {
+      "firstRequestTokens": 32907,
+      "start": {
+        "agent-works": 708,
+        "agentic-teamwork": 479,
+        "animated-storytelling": 140,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "afterCompaction": {
+        "agent-works": 708,
+        "agentic-teamwork": 479,
+        "animated-storytelling": 140,
+        "but-first-planning": 900,
+        "code-diet": 544,
+        "codebase-optimizer": 387,
+        "docs-parity": 607,
+        "marvelous-miro": 597,
+        "perceptual-loop": 445,
+        "plugin-workbench": 304,
+        "workflow-studio": 157,
+        "write-like-me": 187
+      },
+      "rulesTokens": 0,
+      "sessionStart": {},
+      "skills": {
+        "agent-works": {
+          "tokens": 644,
+          "skills": 14,
+          "bare": 0
+        },
+        "agentic-teamwork": {
+          "tokens": 479,
+          "skills": 4,
+          "bare": 0
+        },
+        "animated-storytelling": {
+          "tokens": 140,
+          "skills": 1,
+          "bare": 0
+        },
+        "but-first-planning": {
+          "tokens": 900,
+          "skills": 14,
+          "bare": 0
+        },
+        "code-diet": {
+          "tokens": 544,
+          "skills": 5,
+          "bare": 0
+        },
+        "codebase-optimizer": {
+          "tokens": 387,
+          "skills": 3,
+          "bare": 0
+        },
+        "docs-parity": {
+          "tokens": 607,
+          "skills": 5,
+          "bare": 0
+        },
+        "marvelous-miro": {
+          "tokens": 262,
+          "skills": 2,
+          "bare": 0
+        },
+        "perceptual-loop": {
+          "tokens": 389,
+          "skills": 8,
+          "bare": 0
+        },
+        "plugin-workbench": {
+          "tokens": 304,
+          "skills": 3,
+          "bare": 0
+        },
+        "workflow-studio": {
+          "tokens": 157,
+          "skills": 2,
+          "bare": 0
+        },
+        "write-like-me": {
+          "tokens": 187,
+          "skills": 2,
+          "bare": 0
+        }
+      },
+      "stop": {
+        "agent-works": {
+          "model": 0,
+          "person": 0,
+          "silent": 2,
+          "error": 0
+        },
         "agentic-teamwork": {
           "model": 0,
-          "person": 2,
-          "silent": 0,
+          "person": 0,
+          "silent": 2,
           "error": 0
         },
         "docs-parity": {
@@ -699,8 +1311,6 @@
       "compaction": {
         "agents · perceptual-loop": "kept",
         "mcp-instructions · agent-works": "kept",
-        "SessionStart · agentic-teamwork": "kept",
-        "SessionStart · code-diet": "kept",
         "skills · agent-works": "kept",
         "skills · agentic-teamwork": "kept",
         "skills · animated-storytelling": "kept",
@@ -708,65 +1318,58 @@
         "skills · code-diet": "kept",
         "skills · codebase-optimizer": "kept",
         "skills · docs-parity": "kept",
+        "skills · marvelous-miro": "kept",
         "skills · perceptual-loop": "kept",
         "skills · plugin-workbench": "kept",
         "skills · workflow-studio": "kept",
         "skills · write-like-me": "kept",
-        "tool-definitions · agent-works": "kept",
-        "tools-deferred · agent-works": "kept"
+        "tools-deferred · agent-works": "kept",
+        "tools-deferred · marvelous-miro": "kept"
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17860,
+          "firstRequestTokens": 20301,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20044,
+          "firstRequestTokens": 22488,
           "focus": {
-            "agent-works": 747,
-            "agentic-teamwork": 101,
+            "agent-works": 687,
+            "agentic-teamwork": 479,
             "animated-storytelling": 140,
-            "but-first-planning": 642,
-            "code-diet": 112,
-            "code-diet or docs-parity": 165,
-            "codebase-optimizer": 227,
-            "docs-parity": 411,
-            "perceptual-loop": 386,
-            "plugin-workbench": 309,
+            "but-first-planning": 900,
+            "code-diet": 544,
+            "codebase-optimizer": 387,
+            "docs-parity": 607,
+            "marvelous-miro": 597,
+            "perceptual-loop": 389,
+            "plugin-workbench": 304,
             "workflow-studio": 157,
             "write-like-me": 187
           },
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4829,
-          "focus": {
-            "code-diet or docs-parity": 165
-          },
+          "firstRequestTokens": 4609,
+          "focus": {},
           "rulesTokens": 0,
-          "subagentStart": {
-            "code-diet or docs-parity": 165
-          }
+          "subagentStart": {}
         }
       }
     }

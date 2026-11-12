@@ -1,0 +1,7 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "stdin": { "hook_event_name": "SessionStart", "source": "startup", "session_id": "ds-1", "cwd": "{{REPO}}" },
+  "env": { "CLAUDE_CONFIG_DIR": "{{REPO}}/.no-settings" },
+  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+}

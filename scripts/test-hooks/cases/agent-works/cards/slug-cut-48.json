@@ -1,0 +1,20 @@
+{
+  "file": "0039-a-title-long-enough-that-the-slug-has-to-be-cut.md",
+  "slug": "a-title-long-enough-that-the-slug-has-to-be-cut",
+  "card": {
+    "id": "0039",
+    "file": "0039-a-title-long-enough-that-the-slug-has-to-be-cut.md",
+    "title": "A title long enough that the slug has to be cut somewhere sensible",
+    "status": "backlog",
+    "order": 4,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "unknown": [],
+    "body": ""
+  }
+}

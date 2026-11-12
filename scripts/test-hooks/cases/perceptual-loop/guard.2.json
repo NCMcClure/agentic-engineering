@@ -1,0 +1,10 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": "",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

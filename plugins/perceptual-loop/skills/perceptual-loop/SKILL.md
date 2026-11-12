@@ -1,54 +1,54 @@
 ---
 name: perceptual-loop
-description: "Measured loop for work judged by eye or ear. Use at the start of perceptual work, or when the output has no pixel-aligned reference (a generated image, a prompt as the reference)."
+description: "Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound. Routes to the skill for each step."
 ---
 
 # perceptual-loop
 
-Work that is judged by looking or listening fails in a particular way with agents: the agent cannot tell whether it
-got closer, so it either stops early or asks a person after every change. This plugin closes that loop. The agent
-makes the result **reproducible** (a shot), **measurable** (metrics against a reference), **gated** (a baseline with
-measured tolerances), **visible** (sheets it opens with its own vision) and **judged** by the right party (the agent
-for defects, the owner for taste, in batches).
+Work judged by looking or listening fails in one particular way with an agent: it cannot tell whether a change got closer, so it stops at the first plausible picture or asks a person after every change. This plugin closes that loop. The result becomes **reproducible** (a shot), **measured** (metrics against a reference), **gated** (a baseline with measured tolerances), **looked at** (the pictures, opened with your own vision), and **judged** by the right party (the agent for defects, the owner for taste, in batches).
 
-Read `${CLAUDE_PLUGIN_ROOT}/core/references/doctrine.md` once per session before any look work: nine short rules,
-each the lesson of a real failure. The two that are broken most often:
+Read `${CLAUDE_PLUGIN_ROOT}/references/doctrine.md` once per session before any look work: nine short rules. The two broken most often:
 
 - **A metric that moved is not a verdict.** Look at the picture and classify the difference.
 - **The smallest run that answers the question.** The few proving shots per iteration, never the suite.
 
+The words (shot, source, pass, region, gate, verdict, group, probe) and every file's shape are defined once in `${CLAUDE_PLUGIN_ROOT}/references/contract.md`. Use those words in plans, briefs, and reports.
+
 ## Route
 
 | The situation | Skill |
-|---|---|
+| --- | --- |
 | A perceptual task is about to start, or "how will we know it worked?" has no answer yet | `define-success` |
-| The project has no `.perceptual-loop/` folder, or cannot yet render a shot on command | `build-harness` |
-| A change is being made and checked | `iterate` |
-| A gate fails on something untouched, numbers wobble between runs, or a baseline is being accepted | `calibrate-gate` |
-| A difference from the reference needs explaining, or a rule is being guessed from pictures | `probe-the-source` |
-| A difference needs a verdict, a comparison for the owner, or open look questions are piling up | `judge-and-queue` |
-| The result changes over time: animation, transitions, smoothness, latency, a clip | `check-motion` |
-| The result is sound, or sound must stay in sync with a picture | `check-audio` |
-| Several agents work on looks at once: who proves what, how much each renders, who opens the pictures | `orchestrate-agents` |
+| The project has no `.agents/perceptual/` folder, or cannot render a shot on command yet | `shot-harness` |
+| A change is being made and checked | `iterate-shots` |
+| A gate fails on something untouched, numbers wobble between runs, or a baseline is about to be accepted | `calibrate-gate` |
+| A colour, brightness, shape, or timing differs and the cause is unknown, or a rule is about to be fitted to pictures | `probe-the-source` |
+| A difference needs a verdict, a finished change needs a blind second look, or taste questions wait for the owner | `judge-and-queue` |
+| Anything a still cannot show: an animation, a transition, smoothness, latency, a clip against a clip | `check-motion` |
+| A task produces or changes sound, or sound must stay in sync with a picture | `check-audio` |
 
-**No pixel-aligned reference** (a generated image, a restyle, a prompt as the reference): pixel metrics do not
-apply. `uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/semantic.py" --help` gives image–image and image–text
-similarity to gate and rank with, and `keypoints.py` checks a character's pose. Both are models with blind spots
-(counting, text, fine geometry, left and right): a signal between runs, never a verdict.
+`shot-harness` is a set-up skill the person starts (`/perceptual-loop:shot-harness`). When you need it mid-task, read `${CLAUDE_PLUGIN_ROOT}/skills/shot-harness/SKILL.md` and follow it.
 
-`build-harness` and `orchestrate-agents` are set-up skills the user starts (`/perceptual-loop:build-harness`); when
-you need one mid-task, read `${CLAUDE_PLUGIN_ROOT}/skills/<name>/SKILL.md` and follow it.
+**No pixel-aligned reference** (a generated image, a restyle, a prompt as the reference): the pixel metrics here do not apply between candidate and reference. Gate the candidate against its own earlier runs of the same seed, and queue the look itself for the owner.
 
-Sharing a codebase and a machine between agents (tasks, briefs, worktrees, locks on a scarce application, the
-machine's load, the project's memory) is agent-works' job (`agent-works:orchestrate` / `agent-works:coordinate`).
-Without it: one agent at a time on the application that renders, by hand.
+Two optional extras measure what pixels cannot. Each hands over to a Python script and needs Python with its packages; `--help` on either says what it needs and what it found on this machine, and every other command works without them:
 
-The words (shot, source, pass, region, gate, verdict, group, probe, sheet) and every file's shape are defined once in
-`${CLAUDE_PLUGIN_ROOT}/core/references/contract.md`. Use those words in plans, briefs and reports.
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs" semantic`: how alike two pictures are, or a picture and a description (CLIP cosine, LPIPS), to gate and rank with. Needs torch.
+- `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs" keypoints`: a character's joints, and whether two pictures or clips agree about them. Needs mediapipe.
+
+Both are models with blind spots (counting, text, occlusion, left and right): signals to gate a candidate against its own earlier run, never verdicts. Where neither is installed, say so in the report rather than claim the check.
+
+## Working beside other sessions
+
+- **A session handing look work to other agents** appends `${CLAUDE_PLUGIN_ROOT}/references/agent-brief.md` to every child's brief: how to judge, how much to render, and what a report about pictures holds.
+- **Renders only one session may run at a time** (an editor, a GPU timing, a simulator): say in every brief that the renderer is one session at a time. If agent-works is installed, run them under its resource lock; the render guard judges a wrapped command as the command inside it.
+- **An owed full run or a stale baseline** goes where the next session finds it: a line at the top of the report, or the task board if agent-works is installed.
+- **A ruling with reach** (the owner decides how every sky should look) becomes a line in the root `AGENTS.md`, or a decision record in the plan if but-first-planning is installed.
+- **What must be probed before a rule is implemented** goes in the success file's "Unknowns", where the next session finds it.
+- **The machine's load**: before a timing or a calibration, look at the processor and GPU load yourself (the process list, `nvidia-smi`), wait if another job is running, and write what you saw beside the numbers.
 
 ## The loop
 
-Define, render the proving shots, look, classify, widen once, accept, queue: the steps and their commands are the
-`iterate` skill's, and only there.
+Define, render the proving shots, look, classify, widen once, accept, queue. The steps and their commands are `iterate-shots`'s, and only there.
 
-*Done when: the right skill for the situation is loaded and the doctrine has been read this session.*
+*Done when: the skill for the situation is loaded and the doctrine has been read this session.*

@@ -1,0 +1,10 @@
+{
+  "script": "edit-check.mjs",
+  "event": "PostToolUse",
+  "fixture": "standard",
+  "stdin": "{\"tool_input\": {\"file_path\":",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

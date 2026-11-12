@@ -1,170 +1,130 @@
 ---
 name: build-tdd
-description: Test-driven development with a red-green-refactor loop, driven by a plan issue's acceptance criteria when one is in play. Use for test-first features and fixes, "red-green-refactor", or "implement this issue".
+description: >
+  Builds one plan issue test-first: acceptance criteria become failing tests
+  one at a time, the checkpoint is the gate, the status funnel records the
+  result. Use when implementing a plan issue.
 ---
 
-# build-tdd — red-green-refactor
+# build-tdd
 
-## Implementing a plan issue
+One plan issue, built test-first. This skill owns the half that is specific to
+a plan issue: where the tests come from, what counts as the gate, and how the
+funnel records the result.
 
-When the work is a plan issue (from `.agents/plan/plan/`, typically the one
-`build-next-issue` named as next), the issue gives you the test plan for
-free:
+## The loop
 
-- Its **acceptance criteria** are your behaviour list — one tracer bullet per criterion.
-- Its **testing checkpoint** command is the gate the slice must pass to count as done.
-- Its **spec anchors** (links into `.agents/plan/spec/`) are the behavioural contract — read them so your tests assert what was *specified*, in the spec's vocabulary, not a guess.
+**If agentic-teamwork is installed, the loop is its `tdd` skill**
+(`/agentic-teamwork:tdd`): red, green, refactor, the repo's test lanes and
+their commands, what to mock and what to run for real, and the refactor
+candidates. Read that skill and run its loop; come back here for the
+plan-issue contract around it.
 
-Work the red-green loop below until every acceptance criterion is satisfied and
-the testing checkpoint passes. Then run the status funnel — `python
-.agents/plan/plan/plan-status.py set EE-SS-II done` (e.g. `01-03-07`) — which flips the
-issue's `Status:`, ticks its acceptance boxes, rolls the change up through the
-sprint/epic tables and fields and the plan index, and syncs the tracker, all in
-one step. Don't hand-edit any `Status` field. Then hand back to
-`build-next-issue` to verify completion and name what's next. If, mid-implementation, the spec turns out to be wrong or
-ambiguous, stop and route the change through `spec-4-edit` rather than quietly
-diverging from it — the spec stays the source of truth.
+**If it is not, this is the loop:**
 
-When there's no `.agents/plan/` workspace, ignore this section and use the plain
-red-green-refactor loop below.
+1. **Red.** Write the one smallest test for the next criterion. Run it and
+   read the failure: a test that fails on a typo or a missing import has
+   proved nothing.
+2. **Green.** The least code that passes it. Nothing for a criterion the
+   issue does not carry.
+3. **Refactor.** Only while green, and the tests do not change in this step:
+   extract duplication, move complexity behind a smaller interface, run the
+   tests after each step.
 
-## Philosophy
-
-**Core principle**: Tests should verify behavior through public interfaces, not implementation details. Code can change entirely; tests shouldn't.
-
-**Good tests** are integration-style: they exercise real code paths through public APIs. They describe _what_ the system does, not _how_ it does it. A good test reads like a specification - "user can checkout with valid cart" tells you exactly what capability exists. These tests survive refactors because they don't care about internal structure.
-
-**Bad tests** are coupled to implementation. They mock internal collaborators, test private methods, or verify through external means (like querying a database directly instead of using the interface). The warning sign: your test breaks when you refactor, but behavior hasn't changed. If you rename an internal function and tests fail, those tests were testing implementation, not behavior.
-
-See [TESTS.md](TESTS.md) for examples and [MOCKING.md](MOCKING.md) for mocking guidelines.
-
-## Anti-pattern: horizontal slices
-
-**Never write all tests first, then all implementation.** That is horizontal slicing — treating RED as "write all tests" and GREEN as "write all code."
-
-It produces brittle tests:
-
-- Tests written in bulk test _imagined_ behavior, not _actual_ behavior
-- You end up testing the _shape_ of things (data structures, function signatures) rather than user-facing behavior
-- Tests become insensitive to real changes - they pass when behavior breaks, fail when behavior is fine
-- You outrun your headlights, committing to test structure before understanding the implementation
-
-**Correct approach**: Vertical slices via tracer bullets. One test → one implementation → repeat. Each test responds to what you learned from the previous cycle. Because you just wrote the code, you know exactly what behavior matters and how to verify it.
+Repeat per criterion, never all the tests first and all the code after:
 
 ```
-WRONG (horizontal):
-  RED:   test1, test2, test3, test4, test5
-  GREEN: impl1, impl2, impl3, impl4, impl5
-
-RIGHT (vertical):
-  RED→GREEN: test1→impl1
-  RED→GREEN: test2→impl2
-  RED→GREEN: test3→impl3
-  ...
+WRONG:  RED test1 test2 test3   then  GREEN impl1 impl2 impl3
+RIGHT:  test1 -> impl1,  test2 -> impl2,  test3 -> impl3
 ```
 
-## Workflow
+Tests written in bulk test the shape you imagined, not the behaviour you
+found, and they pass when the behaviour breaks.
 
-### 1. Planning
+- Test behaviour through the public interface. A test that breaks when you
+  rename an internal function was testing the implementation.
+- Mock at system boundaries only (an external API, time, randomness,
+  sometimes the filesystem). Never mock a module you own.
+- Design for it: accept dependencies instead of constructing them, return
+  results instead of mutating arguments, keep the surface small.
+- Run the project's own test command and say which one ran. If the project
+  has none, say so instead of implying a run.
 
-When exploring the codebase, use the project's domain glossary so that test names and interface vocabulary match the project's language, and respect ADRs in the area you're touching. If a `.agents/plan/` workspace exists, that glossary is `.agents/plan/spec/reference/glossary.md`; the ADRs are in `.agents/plan/spec/reference/adr/`.
+## What the issue gives you
 
-Before writing any code:
+The issue file under `.agents/plan/plan/` (usually the one `build-next-issue`
+named as next) is the test plan:
 
-- [ ] Confirm with user what interface changes are needed
-- [ ] Confirm with user which behaviors to test (prioritize)
-- [ ] Identify opportunities for **deep modules** — small interface, deep implementation; the suite's canonical architecture vocabulary lives in [spec-3-architect's LANGUAGE.md](../spec-3-architect/LANGUAGE.md), shared rather than duplicated here
-- [ ] Design interfaces for testability: **accept dependencies** (don't construct them inside), **return results** (don't mutate arguments as side effects), **small surface** (fewer methods and params = simpler tests)
-- [ ] List the behaviors to test (not implementation steps)
-- [ ] Get user approval on the plan
+- Its **acceptance criteria** are the behaviour list. One tracer bullet per
+  criterion, in order.
+- Its **testing checkpoint** command is the gate the slice must pass to count
+  as done. Run the literal command from the issue; do not substitute a
+  broader or narrower one.
+- Its **spec anchors** (links into `.agents/plan/spec/`) are the behavioural
+  contract. Read them before writing the first test, so the assertions say
+  what was specified, in the spec's vocabulary, rather than a guess at it.
+- The project's **glossary** (`.agents/plan/spec/reference/glossary.md`) and
+  **ADRs** (`.agents/plan/spec/reference/adr/`) set the names. A test whose
+  vocabulary disagrees with the glossary is a rename waiting to happen.
+- A criterion about how something **looks or sounds** is not a unit assertion
+  on bytes or a threshold picked by hand. If perceptual-loop is installed, use
+  it to prove the criterion on the few shots that show it; otherwise capture
+  the surface, look at the capture, and say that a person still has to judge
+  it.
 
-Ask: "What should the public interface look like? Which behaviors are most important to test?"
+Build the first thing that satisfies the criterion and nothing speculative
+beside it (if code-diet is installed, `/code-diet:ladder` is that
+discipline). The architecture vocabulary for a deep module is in
+[spec-architect's LANGUAGE.md](../spec-architect/LANGUAGE.md).
 
-**You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
+If the spec turns out to be wrong or ambiguous mid-implementation, stop and
+route the change through `spec-edit` rather than quietly diverging from it.
+The spec stays the source of truth.
 
-### 2. Tracer Bullet
+## Hubs, in the same change
 
-Write ONE test that confirms ONE thing about the system:
+A directory you create gets placed per the spec's `repository-layout.md`, and
+if it makes its parent non-leaf that parent gets an `AGENTS.md` hub, one line
+per direct child. A directory whose contents you changed gets its governing
+hub updated in the same change, not as follow-up. No source file lands beside
+an `AGENTS.md`. Where the root has a `CLAUDE.md` that imports `AGENTS.md`, a
+new hub gets the same sibling (a `CLAUDE.md` whose whole content is
+`@AGENTS.md`). The rules are in
+[spec-write's CODEBASE-LAYOUT.md](../spec-write/CODEBASE-LAYOUT.md); if
+agent-works is installed, its hub check verifies them.
 
+## Recording the result
+
+When every acceptance criterion is satisfied and the checkpoint exits 0, run
+the funnel:
+
+```bash
+node .agents/plan/plan/plan-status.mjs set EE-SS-II done
 ```
-RED:   Write test for first behavior → test fails
-GREEN: Write minimal code to pass → test passes
-```
 
-This is your tracer bullet - proves the path works end-to-end.
+It flips the issue's `**Status**`, ticks its acceptance boxes, rolls the
+change up through the sprint and epic tables and fields and the plan index,
+and moves the issue's ticket on the tracker, in one step. Never hand-edit a
+`Status` field or a table cell.
 
-### 3. Incremental Loop
+Note the deliberate omission: a builder flips status **without**
+`--evidence`. The evidence argument writes the verified-complete ledger, and
+only `build-next-issue`'s independent verification is allowed to do that. A
+builder that writes its own ledger row has verified nothing.
 
-For each remaining behavior:
-
-```
-RED:   Write next test → fails
-GREEN: Minimal code to pass → passes
-```
-
-Rules:
-
-- One test at a time
-- Only enough code to pass current test
-- Don't anticipate future tests
-- Keep tests focused on observable behavior
-
-### 4. Refactor
-
-After all tests pass, look for [refactor candidates](REFACTORING.md):
-
-- [ ] Extract duplication
-- [ ] Deepen modules (move complexity behind simple interfaces)
-- [ ] Apply SOLID principles where natural
-- [ ] Consider what new code reveals about existing code
-- [ ] Run tests after each refactor step
-
-**Never refactor while RED.** Get to GREEN first.
-
-## Codebase organization
-
-When a `.agents/plan/` workspace (or a root `AGENTS.md`) exists, the source tree
-carries AGENTS.md orientation hubs. The rules are in the root `AGENTS.md`; the
-contract and its checker are `agent-works:hubs` (five-line summary in
-[spec-1-specify's CODEBASE-LAYOUT.md](../spec-1-specify/CODEBASE-LAYOUT.md)).
-Your two duties while building:
-
-- **New directory** → place it per the spec's `repository-layout.md`, and if
-  it makes a parent non-leaf (subdirectories now contain code), give that
-  parent an `AGENTS.md` hub — one line per direct child. When the repo has a
-  root `CLAUDE.md` containing `@AGENTS.md`, create the sibling `CLAUDE.md`
-  (content exactly `@AGENTS.md`) with every hub you create.
-- **Changed a directory's content** — files added, moved, renamed, a child's
-  purpose shifted — update its governing `AGENTS.md` **in the same change**,
-  not as follow-up.
-
-Never put source files in a directory that carries an `AGENTS.md` — code
-lives in subdirectories (hub isolation). Check with `aw hubs` when agent-works
-is installed (`python .agents/plan/plan/verify-agents-tree.py` is the same
-check, wired for checkpoint rows); without it nothing verifies the hubs.
-
-## Checklist per cycle
-
-```
-[ ] Test describes behavior, not implementation
-[ ] Test uses public interface only
-[ ] Test would survive internal refactor
-[ ] Code is minimal for this test
-[ ] No speculative features added
-```
+Then hand back to `build-next-issue`, which verifies the completion claim and
+names what is next. When the issue is built on its own branch and lands as
+its own change request, make the flip the last commit before it ships, so
+the issue reads done on the base branch when the change merges and not
+before.
 
 ## Done when
 
-For a plan issue: every acceptance criterion maps to a named passing test; the
-issue's testing-checkpoint command exits 0; if
-`.agents/plan/plan/verify-agents-tree.py` exists it reports no violations your change
-introduced (hubs created/updated per the codebase-organization duties above);
-an issue whose `**User-facing**` line says `yes` changed its end-user pages
-and retook its screenshots in this same change (through
-`docs-parity:docs-sync` when that plugin is installed; by hand per
-`user-docs-plan.md` otherwise), or says in the commit why none moved;
-status was flipped through `plan-status.py set EE-SS-II done` (never
-hand-edited); and control is handed back to `build-next-issue` to verify
-completion and name what's next. Without a `.agents/plan/` workspace: every behaviour
-agreed in Planning has a passing test and the refactor pass left the suite
-green.
+Every acceptance criterion maps to a named passing test; the issue's
+testing-checkpoint command exits 0; the tests that cover the change were run
+and named; the hubs your change touched are current; an issue whose
+`**User-facing**` line says `yes` changed its end-user pages and retook its
+screenshots in this same change (`/docs-parity:docs-sync` if docs-parity is
+installed, by hand per the spec's `user-docs-plan.md` otherwise), or the
+commit says `Docs: none, <why>`; status was flipped through the funnel
+without `--evidence`; and control is back with `build-next-issue`.

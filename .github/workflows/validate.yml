@@ -36,25 +36,6 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: node --test "scripts/test-hooks/**/*.test.mjs"
 
-  # The suites of the plugins that still run on Python. Each leaves this job
-  # when its plugin moves to Node, and the job goes with the last one.
-  python-suites:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: agent-works
-        working-directory: plugins/agent-works
-        run: python -B -m unittest discover -s tests -t .
-      - name: docs-parity
-        working-directory: plugins/docs-parity
-        run: python -B -m unittest discover -s tests
-      - name: perceptual-loop
-        working-directory: plugins/perceptual-loop
-        run: python -B -m unittest discover -s tests
-
   # A tag releases one plugin: it has to name the version plugin.json carries.
   release-check:
     if: startsWith(github.ref, 'refs/tags/')

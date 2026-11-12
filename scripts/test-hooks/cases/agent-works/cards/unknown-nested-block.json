@@ -1,0 +1,28 @@
+{
+  "file": "0036-carry-a-block-nobody-reads.md",
+  "slug": "carry-a-block-nobody-reads",
+  "card": {
+    "id": "0036",
+    "file": "0036-carry-a-block-nobody-reads.md",
+    "title": "Carry a block nobody reads",
+    "status": "review",
+    "order": 1,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "created": "2026-10-05T08:00:00.000Z",
+    "updated": "2026-10-05T08:00:00.000Z",
+    "mr": 14,
+    "unknown": [
+      {
+        "key": "meta",
+        "text": "meta:\n  team: core\n  links:\n    - one\n    - two"
+      }
+    ],
+    "body": ""
+  }
+}

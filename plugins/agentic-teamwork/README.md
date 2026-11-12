@@ -1,172 +1,132 @@
 # agentic-teamwork
 
-Deterministic version-control guardrails for mixed-skill teams: the rules
-that keep a repo healthy when experienced engineers, vibe-coders, and Claude
-itself all commit to it.
+Team git conventions that hold whoever is typing: an experienced engineer, a
+prototyper at full speed, or the agent itself.
 
 ## The problem
 
-On a team where some contributors are prototyping at full speed, "please
-don't push to main" is a wish, not a control. The failure modes are always
-the same: a commit lands directly on main, a force-push rewrites shared
-history, an API key ends up in a diff, a branch cut from a stale base merges
-with vacuously green tests. Prompting an agent to behave helps until it
-doesn't; humans forget faster than that.
+"Please don't push to main" is a wish, not a control. The failures are always
+the same: a commit lands on the default branch, a force push rewrites shared
+history, an API key ends up in a diff, a change merges on checks nobody ran.
+Asking an agent to behave works until its context is compacted; people forget
+faster than that.
 
-This plugin makes the rules deterministic: hooks decide, not vibes.
+## How it works
 
-## The four enforcement layers
+A repo opts in with one committed file, `.agents/manifest.json`. From then on
+four layers apply the same rules:
 
-| Layer | Where it runs | What it covers |
+| Layer | Where it runs | What it does |
 |---|---|---|
-| Claude Code hooks | Every Claude session with the plugin enabled | Denies bad `git commit`/`git push` before execution; briefs each session; lint + coupled-file feedback on edits; blocks ending a turn with a broken tree |
-| `.githooks/pre-commit` | Any terminal, any teammate (once `core.hooksPath` is set) | Same protected-branch / junk / secret / test checks for humans committing outside Claude |
-| `permissions.deny` | Claude Code, before the hook even fires | Belt-and-suspenders denial of `--force` and `--no-verify` variants |
-| CI (GitHub Actions / GitLab CI) | Server-side, every PR/MR | The one gate nobody can configure away locally |
+| Session hooks | Every Claude Code session with the plugin enabled | Judges each `git commit` and `git push` before it runs, briefs the session, and reports what a turn leaves behind |
+| `.githooks/pre-commit` | Any terminal, once `core.hooksPath` points at it | The commit-time rules for people committing outside Claude Code |
+| `permissions.deny` | Claude Code, before a hook fires | Refuses the force and `--no-verify` spellings outright |
+| CI gate | The forge, on every pull or merge request | The one check nobody can configure away locally |
 
-One config file drives all four: `.claude/teamwork.json`, committed in the
-repo. Its presence turns the guards on; repos without it are untouched (the
-hooks exit instantly, so the plugin is safe to leave enabled globally).
+**The guard** reads a Bash or PowerShell call the way a shell does: each
+command in a chain is judged in the repo it will run in (`cd`, `git -C`,
+`bash -c`, `sudo`), and the strictest verdict wins.
 
-## Blocked vs warned
-
-| Action | Result |
+| Action | Verdict |
 |---|---|
-| `git commit` on a protected branch | **Blocked** |
-| `git push` to a protected branch (incl. refspecs, `HEAD`, bare push) | **Blocked** |
-| Force-push (`--force`, `-f`, `--force-with-lease[=…]`, `--force-if-includes`) | **Blocked** |
-| `--no-verify` / `-n` on commit or push | **Blocked** |
-| Committing likely secrets (Anthropic/AWS/GitHub/GitLab/Slack tokens, private keys, your own patterns) | **Blocked** (reported as file:line, never the token) |
-| Committing junk (`.DS_Store`, `node_modules/`, `.env`, …) | **Blocked** |
-| Committing while the test command fails | **Blocked** |
-| Ending a Claude turn with dirty source files and failing tests | **Blocked** (Stop hook) |
-| Lint issues in an edited file | Warned (feedback to Claude) |
-| Touching one file of a coupled group | Warned (reminder of the others) |
-| Branch behind the remote base at session start | Warned |
-| Source changes without test changes | Warned |
-| Docs (README/CLAUDE.md) not touched despite architecture changes | Warned |
-| Untracked files loitering at the repo root | Warned |
+| Commit or push on a protected branch | refused |
+| Force push, in any spelling including `+branch` | refused |
+| `--no-verify` | refused |
+| A credential in what is staged or about to be staged | refused, reported as file and line, never the value |
+| Adding junk (`.DS_Store`, `node_modules/`, `.env`) | refused; deleting tracked junk is fine, and so is `.env.example` |
+| Any other push | asks you first, unless you granted that branch |
+| The first commit of a new repo | allowed, wherever it lands |
+
+**The briefing** costs about a hundred tokens at session start: the branch,
+whether it is protected or behind its base, the repo's lane commands, and
+whatever needs a hand (an upgrade to run, a hook git would skip, a forge CLI
+that is not installed). Six critical lines stay in context after it, come back
+after a compaction or `/clear`, and reach subagents that write code.
+
+**The stop gate** tells the agent, once, what the turn is leaving behind:
+uncommitted work, a stray file at the root, source changed with no test run.
+
+**Where there is no manifest**, the plugin asks once per clone whether to use
+it. Answer `on` and the portable rules apply (force push, `--no-verify`,
+credentials, junk, the push question) without the branch conventions. Answer
+`off` and it is silent.
 
 ## Install
 
-From a marketplace that carries it:
-
-```
-/plugin install agentic-teamwork
-```
-
-Or as a skills-directory plugin: clone this repo and copy (or symlink)
-`plugins/agentic-teamwork/` into `~/.claude/skills/`.
-
-Requirements: bash, git, and **jq** on every machine that should enforce
-(hooks fail open without jq, and tell you so at session start; the terminal
-pre-commit fails closed). `gh` or `glab` are used by the skills, not the guards.
-
-## Initialize a repo
-
-```
-/teamwork-init
+```text
+/plugin marketplace add NCMcClure/agentic-engineering
+/plugin install agentic-teamwork@agentic-engineering
 ```
 
-The skill detects your provider (GitHub or GitLab) from the remote URL, the
-default branch, and your test/lint/build commands from the project manifests;
-confirms everything in a short interview; then writes:
+Then, in the repo:
 
-- `.claude/teamwork.json`: the committed config (see reference below)
-- `.githooks/pre-commit` + `.githooks/lib-guard.sh`: the terminal mirror
-- `.claude/settings.json`: merged `permissions.deny` entries
-- `.claude/rules/team-workflow.md` + a short CLAUDE.md section
-- `.github/workflows/ci.yml` or `.gitlab-ci.yml` (diffed, never clobbered)
-
-Commit the result **on a branch**; the guards are live immediately, and yes,
-they will block you from committing them to main. That's the product working.
-
-Each teammate activates the terminal mirror once per clone:
-
-```
-git config core.hooksPath .githooks
+```text
+/agentic-teamwork:bootstrap
 ```
 
-`/teamwork-audit` checks all four layers any time enforcement seems off.
+Node 22 and git are the only requirements. Opening and landing change requests
+needs the forge's own CLI, `gh` or `glab`, signed in.
 
-## Config reference
+## Skills
 
-Full schema with types and defaults: `skills/teamwork-init/reference.md`.
-The short version, every key of `.claude/teamwork.json`:
-
-| Key | Default | Purpose |
+| Skill | Invocation | Does |
 |---|---|---|
-| `provider` | `"auto"` | `github` / `gitlab`; drives PR-vs-MR wording, CLI commands, CI file |
-| `remote` / `baseBranch` | `origin` / `main` | Stale-base check, changed-set diffs, CI triggers |
-| `protectedBranches` | `["main","master"]` | Where commits/pushes are denied |
-| `branchPrefixes` | `["feature/","fix/","chore/"]` | Suggested in messages |
-| `escapeHatch` | `"TEAMWORK_ALLOW"` | Name of the bypass env var |
-| `test.command` / `test.dir` / `test.timeoutSeconds` | `null` / `"."` / `240` | The test gate (`bash -lc`) |
-| `test.sourcePatterns` / `test.testPatterns` | `[]` | What counts as logic / as tests (ERE) |
-| `build.command` / `build.dir` | `null` / `"."` | Fallback gate for repos with no tests yet |
-| `lint.command` / `lint.filePatterns` | `null` / `[]` | Post-edit lint; `{file}` placeholder |
-| `junkPatterns` | OS/build cruft | Files that must never be committed |
-| `secretPatternsExtra` | `[]` | Extra secret EREs (e.g. `sk_live_…`) |
-| `coupledFiles` | `[]` | Groups of files that change together + why |
-| `docs.files` / `docs.watchPatterns` | `[README.md, CLAUDE.md]` / `[]` | Docs-drift warning |
-| `scan.maxFileBytes` | `524288` | Secret-scan cap per file |
-| `rules.*` | all `true` | Per-rule kill switches |
+| `bootstrap` | `/agentic-teamwork:bootstrap` | Puts a repo, or an empty folder, on the conventions. Local only: nothing is pushed or created on a forge. |
+| `init-project` | `/agentic-teamwork:init-project [--upgrade] [--strict]` | The scaffold itself: the manifest, the `AGENTS.md` hub and its `CLAUDE.md` link, the ignore block, the pre-commit hook, the CI gate. `--upgrade` brings an existing repo forward and never overwrites a file it did not write. |
+| `audit-project` | model-invoked, or `/agentic-teamwork:audit-project [--fix]` | Checks every layer and names the broken one. |
+| `ship` | model-invoked on "ship it" or "open a PR" | Commits, pushes, and opens the pull or merge request. |
+| `land` | model-invoked when a reviewed change should merge | Waits for checks, merges the reviewed commit, cleans up the branch. |
+| `tdd` | model-invoked when writing or changing tests | Red, green, refactor per behavior, which lane a check belongs in, and what to mock. |
 
-## Escape hatches
+`ship` and `land` work the same on GitHub and GitLab.
 
-- **`TEAMWORK_ALLOW=1`** (or your configured `escapeHatch` name) in the
-  command bypasses everything for that command. Deliberately loud: it sits in
-  the transcript or shell history, so it's auditable. Maintainers only.
-- **`TEAMWORK_SKIP_TESTS=1`** skips only the test run in the terminal
-  pre-commit, for the "fixing the tests is the commit" case.
-- CI has no escape hatch. That's the point of the fourth layer.
+## Stricter rules
 
-## GitHub vs GitLab
+The defaults protect the default branch and gate nothing on tests. A team that
+wants more adds a `teamwork` block to the manifest; every key is optional.
 
-Detection is automatic from the remote URL; the config pins it explicitly.
-Everything user-facing follows: PR/`gh pr create`/GitHub Actions/
-`.github/workflows/ci.yml` vs MR/`glab mr create`/GitLab CI/`.gitlab-ci.yml`.
-The GitLab CI template runs on merge-request events and pushes to the base
-branch, with `interruptible: true` standing in for Actions' concurrency
-cancellation. Self-hosted instances whose hostname contains neither "github"
-nor "gitlab": set `provider` explicitly (init asks).
+```json
+{
+  "teamwork": {
+    "requireTestsPass": true,
+    "test": { "command": "npm test", "sourcePatterns": ["^src/"], "timeoutSeconds": 240 },
+    "protectedBranches": ["main", "release"],
+    "branchPrefixes": ["feature/", "fix/", "chore/"],
+    "lint": { "command": "eslint {file}", "filePatterns": ["\\.ts$"] },
+    "coupledFiles": [{ "files": ["schema.sql", "src/models/*"], "message": "Schema and models change together." }],
+    "secretPatternsExtra": ["ACME_[A-Z0-9]{32}"],
+    "rules": { "askBeforePush": false }
+  }
+}
+```
 
-## FAQ
+- `requireTestsPass` makes passing tests a hard gate: the test command runs
+  before a commit and when a turn ends with source changed, and a failure
+  refuses the commit or holds the turn.
+- `lint` runs on each edited file that matches and feeds a failure back to the
+  agent; `coupledFiles` reminds it of the other half of a pair.
+- `rules` turns a single rule off: `blockCommitOnProtected`,
+  `blockPushToProtected`, `blockForcePush`, `blockNoVerify`, `blockSecrets`,
+  `blockJunk`, `askBeforePush`, `stopGate`.
+- `escapeHatch` names the environment variable (default `TEAMWORK_ALLOW`) that
+  lets one command through when set on that command: `TEAMWORK_ALLOW=1 git push`.
+  A mention in a comment or a commit message does not count.
 
-**Why was my push blocked?** You targeted a protected branch, used a force
-flag, or used `--no-verify`. The deny message says which and what to do
-instead, usually `git push -u origin <branch>` and open a PR/MR.
+`/agentic-teamwork:init-project --strict` writes the test gate for you.
 
-**The hooks aren't firing.** In order: (1) the plugin must be enabled and
-trusted (check `/plugin`); (2) the repo must contain `.claude/teamwork.json`
-(no config, no guards); (3) `jq` must be installed (the session briefing
-warns when it's missing); (4) for terminal commits,
-`git config core.hooksPath` must be `.githooks` in *your* clone. Run
-`/teamwork-audit` and it will point at the broken layer.
+## Coming from 0.x
 
-**I genuinely need to force-push.** Get a maintainer to run the command with
-`TEAMWORK_ALLOW=1` (auditable), or flip `rules.blockForcePush` to `false` in
-a reviewed config change. Note the Claude-side `permissions.deny` entries
-also match force-push, so remove those from `.claude/settings.json` too if the
-push should come from a session.
+A repo set up by an earlier version keeps its rules in `.claude/teamwork.json`.
+The first session after the update moves it: the settings become the `teamwork`
+block with everything the old file enforced spelled out, so nothing loosens;
+the old files are parked under `.agents/retired/agentic-teamwork/`, never
+deleted; the bash pre-commit hook is replaced by the Node one. The agent is
+told what moved and what is left to edit by hand. `/teamwork-init` and
+`/teamwork-audit` are now `bootstrap`, `init-project` and `audit-project`.
 
-**Does this replace server-side branch protection?** No; enable that too.
-This plugin covers the gap where server rules can't reach: local commits,
-agent sessions, and the feedback loop *before* the push fails.
+## Boundaries
 
-**A rule is wrong for this repo.** Every hard block has a toggle under
-`rules.*`; every pattern is config. Change the config in a PR like any other
-code.
-
-## Boundary with agent-works
-
-This plugin owns **team version-control guardrails**: protected branches, force pushes, secrets, junk files and
-failing tests, in Claude Code, the terminal and CI. **Agent-specific guards** (files that are the owner's alone,
-blanket staging, generated files, scarce-resource locks, expensive-run budgets) and everything about how agents
-share a codebase are agent-works' job (`agent-works:guard` / `aw doctor`). The two are meant to run together.
-
-## Requirements
-
-- bash ≥ 4, git, jq (guards)
-- `gh` (GitHub) or `glab` (GitLab): used by the skills for PR/MR flows
-- GNU or BSD userland; macOS Homebrew paths handled automatically
+This plugin owns a team's version-control conventions. How agents share a
+codebase (locks, owner files, the board) is agent-works; the build ladder is
+code-diet; documentation checks are docs-parity. They are meant to run
+together, and each works alone.

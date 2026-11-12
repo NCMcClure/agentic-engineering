@@ -1,0 +1,23 @@
+{
+  "file": "0037-written-on-another-machine.md",
+  "slug": "written-on-another-machine",
+  "card": {
+    "id": "0037",
+    "file": "0037-written-on-another-machine.md",
+    "title": "Written on another machine",
+    "status": "backlog",
+    "order": 0,
+    "priority": "normal",
+    "labels": [
+      "a",
+      "b"
+    ],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "unknown": [],
+    "body": "First line.\n\nLast line."
+  }
+}

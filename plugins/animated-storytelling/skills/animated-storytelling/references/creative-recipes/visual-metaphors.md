@@ -233,7 +233,7 @@ Apply the same color to a concept everywhere it appears (border, text, badge, in
 
 ## Production Example: Ingest Animation
 
-Documents flow into a processing pipeline, get transformed, and emerge as structured knowledge. From the loom-agent-website:
+Documents flow into a processing pipeline, get transformed, and emerge as structured knowledge:
 
 ```tsx
 import { motion } from "motion/react"

@@ -30,7 +30,7 @@ the facts and the open question.>
 
 - **While iterating:** <the one test file, the one command, the few cases that show the change>
 - **Once, at the end:** <what this change can break, and so what must run>
-- **Owed if you cannot run it:** <the checks that need what you do not have; record each with `aw kanban owe`>
+- **Owed if you cannot run it:** <the checks that need what you do not have; record each with `aw board owe`>
 
 ## Done
 

@@ -37,6 +37,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { parseHookCommand } from "../lib.mjs";
 import { REPO, makeFixture } from "./fixtures.mjs";
 
 const CASES = path.join(import.meta.dirname, "cases");
@@ -71,13 +72,19 @@ function registered(plugin, event, script) {
   return null;
 }
 
-/** Run one hook as the host would: exec form when the entry carries args, a shell otherwise. */
-function runHook(hook, { cwd, env, input }) {
+/**
+ * Run one hook as the host would: exec form when the entry carries args, a
+ * shell otherwise. Windows may have no sh, so a Node hook is run there as the
+ * command its guard leads to.
+ */
+function runHook(plugin, hook, { cwd, env, input }) {
   const options = { cwd, env, input, encoding: "utf8", timeout: 60_000 };
   if (Array.isArray(hook.args)) {
     const expand = (s) => String(s).split("${CLAUDE_PLUGIN_ROOT}").join(env.CLAUDE_PLUGIN_ROOT);
     return spawnSync(expand(hook.command), hook.args.map(expand), options);
   }
+  const node = process.platform === "win32" ? parseHookCommand(hook.command, plugin) : null;
+  if (node) return spawnSync(process.execPath, [path.join(env.CLAUDE_PLUGIN_ROOT, node.script), ...node.args], options);
   return spawnSync("sh", ["-c", hook.command], options);
 }
 
@@ -106,7 +113,10 @@ function runCase(plugin, c) {
   const cwd = fixture(c.fixture ?? "adopted");
   const project = c.project ? fixture(c.project) : cwd;
   const fill = (s) => s.split("{{REPO}}").join(cwd).split("{{PROJECT}}").join(project);
-  const input = fill(typeof c.stdin === "string" ? c.stdin : JSON.stringify(c.stdin ?? {}));
+  // An object is filled value by value before it is serialized, so a Windows
+  // path's backslashes are escaped like any other string.
+  const fillAll = (v) => (typeof v === "string" ? fill(v) : Array.isArray(v) ? v.map(fillAll) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fillAll(x)])) : v);
+  const input = typeof c.stdin === "string" ? fill(c.stdin) : JSON.stringify(fillAll(c.stdin ?? {}));
   const env = {
     ...process.env,
     HOME: home,
@@ -115,7 +125,7 @@ function runCase(plugin, c) {
     CLAUDE_PLUGIN_ROOT: path.join(REPO, "plugins", plugin),
     ...Object.fromEntries(Object.entries(c.env ?? {}).map(([k, v]) => [k, fill(String(v))])),
   };
-  const { status, stdout, stderr } = runHook(hook, { cwd, env, input });
+  const { status, stdout, stderr } = runHook(plugin, hook, { cwd, env, input });
   assert.equal(status, c.expect.exit, `exit ${status}, stderr: ${stderr}`);
   if (c.expect.stderrIncludes) assert.ok(stderr.includes(c.expect.stderrIncludes), `stderr was: ${stderr}`);
   if (c.expect.stdoutEmpty) {
@@ -131,7 +141,7 @@ function runCase(plugin, c) {
 for (const { plugin, file, path: casePath } of files) {
   const c = JSON.parse(fs.readFileSync(casePath, "utf8"));
   // A stock Windows has no sh and no python3, so only Node hooks are held to it.
-  const skip = process.platform === "win32" && !/^\s*node\b/.test(String(registered(plugin, c.event, c.script)?.command ?? "")) ? "not a Node hook, not run on Windows" : false;
+  const skip = process.platform === "win32" && !parseHookCommand(registered(plugin, c.event, c.script)?.command, plugin) ? "not a Node hook, not run on Windows" : false;
   test(`${plugin}/${file}${c.gap ? ` (known gap: ${c.gap})` : ""}`, { skip }, () => {
     if (!c.gap) return runCase(plugin, c);
     let failed = false;
@@ -144,7 +154,7 @@ for (const { plugin, file, path: casePath } of files) {
 // SessionStart hook gives is standing context, so it has to come back when a
 // compaction or a /clear throws the conversation away.
 const NEEDED = ["startup", "resume", "clear", "compact"];
-const KNOWN_GAPS = new Map([["agentic-teamwork", "its briefing is lost at a compaction or a /clear"]]);
+const KNOWN_GAPS = new Map();
 for (const plugin of fs.readdirSync(path.join(REPO, "plugins"))) {
   let hooks;
   try { hooks = hooksJson(plugin); } catch { continue; }

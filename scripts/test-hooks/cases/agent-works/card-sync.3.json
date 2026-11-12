@@ -1,0 +1,10 @@
+{
+  "script": "card-sync.mjs",
+  "event": "Stop",
+  "fixture": "standard",
+  "stdin": "{\"hook_event_name\": \"Stop\",",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

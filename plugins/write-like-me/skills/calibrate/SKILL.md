@@ -2,7 +2,8 @@
 name: calibrate
 description: >
   Build or rebuild the user's writing voice profile through sample analysis
-  and a short interview — the plugin's one-time (re)setup step.
+  and a short interview. Use when the user runs /write-like-me:calibrate: the
+  plugin's one-time setup, and the full rebuild when the profile has drifted.
 disable-model-invocation: true
 ---
 
@@ -10,10 +11,10 @@ disable-model-invocation: true
 
 Produce a **concise** profile of how the user writes, saved to the profile
 path (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE` if set —
-`scripts/wlm/paths.py` is the resolver). That file is auto-loaded into every
+`scripts/wlm/paths.mjs` is the resolver). That file is auto-loaded into every
 one of the user's future sessions, so every line is paid for in permanent
 context: the line budget is **hard**, and
-`scripts/wlm/profile_budget.py` owns the number and the count. A profile that
+`scripts/wlm/profile-budget.mjs` owns the number and the count. A profile that
 captures five true things beats one that catalogs twenty.
 
 ## Steps
@@ -55,7 +56,7 @@ captures five true things beats one that catalogs twenty.
    be an instruction Claude can act on while writing ("Short declarative
    openers; no throat-clearing greeting line") — a line that merely describes
    ("has a distinctive style") is dead weight; cut it. Verify the budget with
-   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile_budget.py" <draft>` —
+   `node "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile-budget.mjs" <draft>` —
    it must exit 0 before you show the draft.
 
 6. **Show the user the full draft and iterate** until they approve it. Then

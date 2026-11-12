@@ -11,7 +11,7 @@ already verified in `.agents/plan/progress/completed/`):
 
 1. **Run the testing checkpoint.** The issue's `## Testing checkpoint` table names
    a command (or a manual step). Run it. An issue whose checkpoint command exits
-   non-zero — or whose manual step you can't confirm — is **not** done, regardless
+   non-zero, or whose manual step you can't confirm, is **not** done, regardless
    of its flag or ticket state.
 2. **Walk the acceptance criteria.** Each `- [ ]` in `## Acceptance criteria`
    should be genuinely satisfiable against the current code/artifacts. The first
@@ -20,7 +20,7 @@ already verified in `.agents/plan/progress/completed/`):
    some code was written.
 3. **Confirm the spec anchors still resolve.** If the anchor points at a spec file
    that has since moved or been deleted, the issue may have been built against a
-   design that's since changed — flag it for `spec-4-edit` rather than passing it.
+   design that's since changed, flag it for `spec-edit` rather than passing it.
 4. **Cross-check git.** Look for a merged branch or commits referencing the issue
    (its file, slug, or tracker number). Merged work with no status change is a
    bookkeeping miss to fix; a `done` flag with no corresponding change anywhere is
@@ -34,15 +34,15 @@ acceptance criteria hold. Record that verdict; don't re-verify it on the next ru
 A checkpoint can fail to pass for reasons that aren't the issue's fault.
 Distinguish three cases, because they route differently:
 
-- **Failed** — the command ran and the behaviour is genuinely absent. The issue is not done; send it back (see below).
-- **Not-yet-runnable** — the command names tooling a *later* issue builds (a script, binary, or fixture that doesn't exist yet). The `Blocked by` field probably lied; this is an implicit-dependency signal (see [DISPATCH-PLAN.md](DISPATCH-PLAN.md)). Verify against the acceptance criteria directly in the meantime and record the gap, rather than calling a genuinely-built slice "failed."
-- **Broken by construction** — the command can *never* pass even when the work is done (the classic, now fixed: a sprint-exit `grep -L "Status: done"` run against `**Status**: done` frontmatter — the pattern never matches the bold form, so the gate is a permanent false negative). The current templates use `plan-status.py check EE-SS` instead, which has no such blind spot; if you still meet a broken-by-construction checkpoint, flag it for `spec-4-edit` and don't let it block a genuinely-complete sprint.
+- **Failed**: the command ran and the behaviour is genuinely absent. The issue is not done; send it back (see below).
+- **Not-yet-runnable**: the command names tooling a *later* issue builds (a script, binary, or fixture that doesn't exist yet). The `Blocked by` field probably lied; this is an implicit-dependency signal (see [DISPATCH-PLAN.md](DISPATCH-PLAN.md)). Verify against the acceptance criteria directly in the meantime and record the gap, rather than calling a genuinely-built slice "failed."
+- **Broken by construction**: the command can *never* pass even when the work is done (the classic, now fixed: a sprint-exit `grep -L "Status: done"` run against `**Status**: done` frontmatter, the pattern never matches the bold form, so the gate is a permanent false negative). The current templates use `plan-status.mjs check EE-SS` instead, which has no such blind spot; if you still meet a broken-by-construction checkpoint, flag it for `spec-edit` and don't let it block a genuinely-complete sprint.
 
 ## Verify against the right ref, and only the delta
 
 In a multi-builder sprint build, work is `done` on an unmerged sprint branch long before it
-reaches `main`. Record *where* you verified it — `verified on sprint/NN` vs
-`merged to main` — so a checkpoint that needs an artifact still living on a branch
+reaches `main`. Record *where* you verified it, `verified on sprint/NN` vs
+`merged to main`, so a checkpoint that needs an artifact still living on a branch
 isn't mistaken for a regression on `main`. And keep repeated runs cheap:
 `.agents/plan/progress/completed/` is the ledger of what's already verified, so on each run
 re-verify only the **delta** since the last verified ref (newly-merged or
@@ -52,9 +52,9 @@ newly-`done` issues), not the whole tree. Continuous use of this skill depends o
 
 Match the issue's `Type`:
 
-- **AFK** issues were specified to be autonomously verifiable — hold them to their checkpoint command exactly. If it can't be run mechanically, that itself is a defect in the issue (note it).
+- **AFK** issues were specified to be autonomously verifiable, hold them to their checkpoint command exactly. If it can't be run mechanically, that itself is a defect in the issue (note it).
 - **HITL** issues often end in a human judgement (a design accepted, a review passed). You can't re-run a judgement; instead confirm the artifact of the decision exists (the ADR was written, the spec section updated) and take the human's sign-off as the evidence.
-- **REVIEW** issues end in a human observation, which you can't re-run either. Verify the *record* of it: the sign-off evidence exists (a ledger `--evidence` line or a progress note naming who verified and on what ref) and the walkthrough's surface still exists. A REVIEW issue claimed done with no recorded human sign-off is **not** done — flip it back; an agent can never self-verify one.
+- **REVIEW** issues end in a human observation, which you can't re-run either. Verify the *record* of it: the sign-off evidence exists (a ledger `--evidence` line or a progress note naming who verified and on what ref) and the walkthrough's surface still exists. A REVIEW issue claimed done with no recorded human sign-off is **not** done, flip it back; an agent can never self-verify one.
 
 Don't gold-plate: you're confirming the slice does what it claimed, not re-
 reviewing its quality. Quality review is `code-review`'s job, not this skill's.
@@ -63,15 +63,15 @@ reviewing its quality. Quality review is `code-review`'s job, not this skill's.
 
 If an issue claimed done doesn't pass:
 
-- Flip it back with `python .agents/plan/plan/plan-status.py set EE-SS-II in-progress` (or `blocked` if it's waiting on something) — the funnel reopens the tracker and rolls the sprint/epic down with it.
+- Flip it back with `node .agents/plan/plan/plan-status.mjs set EE-SS-II in-progress` (or `blocked` if it's waiting on something), the funnel reopens the tracker and rolls the sprint/epic down with it.
 - Record it in a `.agents/plan/progress/notes/` run file with the specific failure (which criterion, what the checkpoint did); if it's a recurring or cross-cutting defect, give it its own file under `.agents/plan/progress/drift/` (`drift-<slug>.md`; format in the SKILL).
-- Do **not** count it toward completion, and do **not** let anything that depends on it be selected as "next" — a falsely-done blocker is exactly how broken foundations propagate.
+- Do **not** count it toward completion, and do **not** let anything that depends on it be selected as "next", a falsely-done blocker is exactly how broken foundations propagate.
 
 ## Recording evidence
 
-Record a verified-complete entry with `plan-status.py set EE-SS-II done --evidence
-"<what convinced you>"` — e.g. `--evidence "checkpoint run_tests.py exits 0; PR #42
+Record a verified-complete entry with `plan-status.mjs set EE-SS-II done --evidence
+"<what convinced you>"`, e.g. `--evidence "checkpoint run_tests.py exits 0; PR #42
 merged"`. The funnel writes the row into `.agents/plan/progress/completed/<epic>.md`.
-Evidence beats a checkmark — the next run (and the next person) can trust a logged
+Evidence beats a checkmark, the next run (and the next person) can trust a logged
 reason without re-deriving it. Pass `--evidence` only for work you've actually
 verified; a status-only `set … done` (no evidence) writes no ledger row.

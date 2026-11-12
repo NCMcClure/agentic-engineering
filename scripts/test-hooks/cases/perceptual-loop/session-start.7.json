@@ -1,0 +1,15 @@
+{
+  "script": "session-start.mjs",
+  "event": "SubagentStart",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "SubagentStart",
+    "agent_type": "perceptual-loop:vision-critic",
+    "session_id": "pl-s7",
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

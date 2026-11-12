@@ -11,67 +11,73 @@
     {
       "name": "agent-works",
       "source": "./plugins/agent-works",
-      "description": "Agent workflows rot the same way everywhere (a bloated AGENTS.md, one rule stated four times, task status in six places, sessions on one machine blind to each other), so give every kind of fact one home under .agents/ with a size budget, check them all with aw doctor, keep tasks and owed gates on a shared kanban board, guard the files and runs that need it, and coordinate locks, leases and learnings across projects through one CLI.",
+      "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.",
       "category": "orchestration"
     },
     {
       "name": "but-first-planning",
       "source": "./plugins/but-first-planning",
-      "description": "A file-based planning + build workflow: author a language-agnostic spec, plan it, and build it with coordinated builder agents — the spec-* authoring skills, the plan-* backlog skills, the build loop, and an autopilot that chains it all, landing in a single .agents/plan/ workspace.",
+      "description": "Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.",
       "category": "planning"
     },
     {
       "name": "codebase-optimizer",
       "source": "./plugins/codebase-optimizer",
-      "description": "Staged autonomous codebase optimizer: organize the file tree into AGENTS.md-hubbed progressive disclosure, decompose god-files and deepen shallow architecture, each behind CI-faithful validation with revert-on-red; hub verification, decision records and the glossary defer to agent-works.",
+      "description": "Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.",
       "category": "refactoring"
     },
     {
       "name": "agentic-teamwork",
       "source": "./plugins/agentic-teamwork",
-      "description": "Deterministic version-control guardrails for mixed-skill teams — hooks that block commits to protected branches, force-pushes, secrets, and failing tests, in Claude Code, the terminal, and CI. GitHub and GitLab first-class.",
+      "description": "Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.",
       "category": "collaboration"
     },
     {
       "name": "workflow-studio",
       "source": "./plugins/workflow-studio",
-      "description": "Blueprint-style visual studio for Claude Code dynamic workflows — node canvas, typed pins, lossless graph↔.js round-trip — plus a hand-authoring skill.",
+      "description": "Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.",
       "category": "workflow"
     },
     {
       "name": "animated-storytelling",
       "source": "./plugins/animated-storytelling",
-      "description": "Narrative arc + visual design + motion craft for making ideas land: NCP storyform, hierarchy/type/color, and Motion v12 recipes.",
+      "description": "Make ideas land at the intersection of narrative arc, visual design, and motion: NCP story structure, hierarchy/typography/color craft, and tasteful Motion (Framer Motion v12) animation — with a catalog of showcase recipes.",
       "category": "creative"
     },
     {
       "name": "write-like-me",
       "source": "./plugins/write-like-me",
-      "description": "Make Claude's human-facing prose sound like you — a calibrated always-on voice profile, AI-tell auditing, and hooks that learn from your style feedback.",
+      "description": "Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
       "category": "writing"
     },
     {
       "name": "code-diet",
       "source": "./plugins/code-diet",
-      "description": "Your agent's code is tomorrow's context: code-diet makes the agent write only what the task needs, deletes what it didn't behind revert-on-red, and prices its own instructions like it prices your code.",
+      "description": "Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.",
       "category": "code-quality"
     },
     {
       "name": "plugin-workbench",
       "source": "./plugins/plugin-workbench",
-      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta, then read a session's transcript to see what each plugin really put in the agent's context.",
+      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.",
       "category": "authoring"
     },
     {
       "name": "perceptual-loop",
       "source": "./plugins/perceptual-loop",
-      "description": "An agent can't iterate on what it can't measure: reproducible shots, metrics that gate regressions, sheets the agent and you can look at, motion and audio checks, and a batched queue for the judgements only a human should make.",
+      "description": "An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.",
       "category": "evaluation"
     },
     {
       "name": "docs-parity",
       "source": "./plugins/docs-parity",
-      "description": "User docs drift because they ship after the code, so make them move in the same change: a writer contract, screenshots only from a deterministic capture harness, and one checker that finds missing, stale and broken docs in session and in CI.",
+      "description": "User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.",
+      "category": "documentation"
+    },
+    {
+      "name": "marvelous-miro",
+      "source": "./plugins/marvelous-miro",
+      "description": "Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
       "category": "documentation"
     }
   ]

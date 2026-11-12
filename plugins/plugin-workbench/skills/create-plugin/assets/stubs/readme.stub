@@ -1,6 +1,6 @@
 # {{NAME}}
 
-TODO(author): the problem this plugin solves, then the mechanism — two to
+TODO(author): the problem this plugin solves, then the mechanism. Two to
 four sentences, no hype words.
 
 ## How it works
@@ -18,7 +18,3 @@ TODO(author): the flow, component by component.
 | Skill | Invocation | Does |
 |---|---|---|
 {{SKILL_ROWS}}
-
-## Changelog
-
-- **{{VERSION}}**: initial release.

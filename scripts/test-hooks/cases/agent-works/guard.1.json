@@ -1,0 +1,15 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "tool_name": "Bash",
+    "cwd": "{{REPO}}",
+    "tool_input": { "command": "git add -A && git commit -m wip" }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": { "keysPresent": ["hookSpecificOutput"] }
+  }
+}

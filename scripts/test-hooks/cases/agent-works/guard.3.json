@@ -1,0 +1,7 @@
+{
+  "script": "guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": "{\"tool_name\": \"Bash\", \"tool_input\": {\"command\": \"git add -A\"",
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

@@ -41,8 +41,36 @@ export function tree(t, { json = {}, text = {}, write = {}, remove = [] } = {}) 
   return dir;
 }
 
-/** Run one of this checkout's scripts; returns { status, stdout, stderr }. */
+/** Run a script, by absolute path or relative to this checkout; returns { status, stdout, stderr }. */
 export function runNode(script, args = [], options = {}) {
-  const { status, stdout, stderr } = spawnSync(process.execPath, [path.join(REPO, script), ...args], { encoding: "utf8", ...options });
+  const { status, stdout, stderr } = spawnSync(process.execPath, [path.resolve(REPO, script), ...args], { encoding: "utf8", ...options });
   return { status, stdout, stderr };
+}
+
+/** A temp directory, removed when the test (or, given a suite's `before` context, the suite) ends. */
+export function tempDir(t, prefix = "unit-") {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  return dir;
+}
+
+/** A temp git repo on `main` with an identity, so a commit works anywhere. Returns { dir, git }. */
+export function tempRepo(t, prefix = "repo-") {
+  const dir = tempDir(t, prefix);
+  const git = (...args) => execFileSync("git", ["-C", dir, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+  git("init", "-q", "-b", "main");
+  git("config", "user.email", "test@example.invalid");
+  git("config", "user.name", "Test");
+  git("config", "commit.gpgsign", "false");
+  // A checkout writes the bytes that were committed, whatever the machine's own setting.
+  git("config", "core.autocrlf", "false");
+  return { dir, git };
+}
+
+/** Write one file under a directory, creating its folders; returns the full path. */
+export function write(dir, rel, content) {
+  const full = path.join(dir, rel);
+  fs.mkdirSync(path.dirname(full), { recursive: true });
+  fs.writeFileSync(full, content);
+  return full;
 }

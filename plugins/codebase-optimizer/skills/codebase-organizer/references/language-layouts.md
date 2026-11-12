@@ -1,12 +1,12 @@
 # Idiomatic target layouts by ecosystem
 
 Choose the target tree from what the repo's manifests reveal, not from personal
-preference (philosophy principle 7). `repo_scan.py` reports `ecosystems` from the
+preference (philosophy principle 7). `repo-scan.mjs` reports `ecosystems` from the
 manifest files it finds; use that, and when a repo is genuinely multi-language,
 keep each language in its own idiomatic subtree rather than blending them.
 
 For each ecosystem below: how to recognize it, the layout its community expects,
-and the moves that usually get a messy repo there. These are defaults — a repo
+and the moves that usually get a messy repo there. These are defaults, a repo
 with a deliberate, working layout that differs is not "wrong"; don't churn it
 just to match a template.
 
@@ -42,7 +42,7 @@ repo/
 - `tests/` should mirror the package tree so a test's location is predictable.
 
 If the project already uses a flat top-level-package layout (`<package>/` at the
-root instead of under `src/`) and it works, keeping that is fine — don't force a
+root instead of under `src/`) and it works, keeping that is fine, don't force a
 `src/` migration purely for fashion; the win is internal grouping, not the prefix.
 
 ## Node / TypeScript
@@ -63,10 +63,10 @@ repo/
 │   └── <feature>/
 ├── test/ or __tests__/     # follow whatever the project already uses
 ├── scripts/
-└── dist/                   # build output — .gitignore, never organize
+└── dist/                   # build output, .gitignore, never organize
 ```
 
-**Target (workspace monorepo — `package.json` has `workspaces`):**
+**Target (workspace monorepo, `package.json` has `workspaces`):**
 
 ```
 repo/
@@ -79,7 +79,7 @@ repo/
 ```
 
 **Common moves:** loose root source → `src/`; respect the existing
-`workspaces` globs — never move a file out of the path a workspace glob expects.
+`workspaces` globs, never move a file out of the path a workspace glob expects.
 
 ## Go
 
@@ -106,20 +106,18 @@ invent `pkg/` unless the code is genuinely meant for external import.
 
 **Target:** `src/main.rs` or `src/lib.rs`, additional binaries under `src/bin/`,
 integration tests under `tests/`, a workspace `Cargo.toml` with `members` for
-multi-crate repos. Cargo's conventions are strict — follow them exactly.
+multi-crate repos. Cargo's conventions are strict, follow them exactly.
 
 ## Ruby / PHP / Java / JVM / Elixir (brief)
 
 - **Ruby:** `lib/`, `bin/`, `spec/` or `test/`; `Gemfile` at root.
 - **PHP:** `src/` with PSR-4 autoload from `composer.json`; `tests/`.
-- **Java/Kotlin (Gradle/Maven):** `src/main/<lang>/...`, `src/test/<lang>/...`
-  — the build tool *requires* this; never deviate.
+- **Java/Kotlin (Gradle/Maven):** `src/main/<lang>/...`, `src/test/<lang>/...`, the build tool *requires* this; never deviate.
 - **Elixir:** `lib/`, `test/`, `config/`; `mix.exs` at root.
 
 ## Mixed / polyglot repos
 
-Many real repos are a primary language plus a UI plus infra. Don't blend them —
-give each its own idiomatic subtree and keep the boundary obvious:
+Many real repos are a primary language plus a UI plus infra. Don't blend them, give each its own idiomatic subtree and keep the boundary obvious:
 
 ```
 repo/
@@ -131,7 +129,7 @@ repo/
 ```
 
 The signal to keep things separate is a nested manifest: a directory with its
-own `package.json` / `go.mod` / `Cargo.toml` is a self-contained unit — organize
+own `package.json` / `go.mod` / `Cargo.toml` is a self-contained unit, organize
 *within* it by that language's idiom, but don't hoist its files into the parent.
 
 ## When the ecosystem is unclear

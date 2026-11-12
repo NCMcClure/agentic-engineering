@@ -1,0 +1,19 @@
+{
+  "script": "prompt-submit.mjs",
+  "event": "UserPromptSubmit",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "ps-4",
+    "cwd": "{{REPO}}",
+    "prompt": "This function is too slow, make it faster."
+  },
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-prompt-4",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

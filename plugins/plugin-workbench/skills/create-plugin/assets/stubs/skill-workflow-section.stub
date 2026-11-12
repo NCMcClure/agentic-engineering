@@ -1,0 +1,14 @@
+
+## Autonomous mode
+
+TODO(author): when to run the workflow instead of working inline.
+
+```
+Workflow({
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/{{SKILL_NAME}}/workflows/{{SKILL_NAME}}.js",
+  args: { /* TODO(author): the args contract */ }
+})
+```
+
+Where the host has no Workflow tool, run the same phases with subagents.
+TODO(author): which phases fan out, and which files only the parent writes.

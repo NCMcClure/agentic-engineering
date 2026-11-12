@@ -1,6 +1,6 @@
 ---
 name: doctor
-description: Use when AGENTS.md, memory or status bloats, rules repeat, or ./docs holds agent files.
+description: Use when AGENTS.md, memory or status bloats, rules repeat, ./docs holds agent files, or a command fails because the machine lacks Node, git or the forge's command line.
 ---
 
 # doctor
@@ -8,11 +8,17 @@ description: Use when AGENTS.md, memory or status bloats, rules repeat, or ./doc
 `aw doctor` finds what has grown, repeated, gone stale or landed in the wrong place. Repairs come in two kinds:
 those a command does, and those that need a reader. Do the first kind first; it clears noise from the second.
 
-## Step 1 — Audit
+## Step 1: Audit
 
 ```
-aw doctor
+node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs" doctor
 ```
+
+`aw` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs"`: call it that way. `aw doctor --machine` is a different check, of the
+machine instead of the repository: Node 22 or newer, git, and the command line of the remote's forge (`gh` or
+`glab`), each with the fix for the person. Run it when a command fails for want of one of them; it installs
+nothing and signs nobody in.
+
 
 `--all` lists every finding (the default shows eight per code), `--accepted` lists the findings the project
 accepted with the why of each (they are not counted: Step 3), `--json` is for scripts, `--html <file>` writes a
@@ -21,7 +27,7 @@ baseline", record one first with `aw doctor --baseline`.
 
 *Done when: you have the finding counts by code, and a baseline exists from before your first repair.*
 
-## Step 2 — Mechanical repairs
+## Step 2: Mechanical repairs
 
 | Finding | Command |
 |---|---|
@@ -35,7 +41,7 @@ baseline", record one first with `aw doctor --baseline`.
 
 *Done when: `aw doctor` no longer prints any of these codes as a warning.*
 
-## Step 3 — Repairs that need a reader
+## Step 3: Repairs that need a reader
 
 Work by code, largest files first, critical findings before all (`HUB_ISOLATION`, `CONFIG_INVALID`, a status
 memory over three times its budget). **Never delete the owner's prose without showing it:** move text with its
@@ -45,18 +51,18 @@ wording intact, and quote in your report every passage you removed rather than m
 |---|---|
 | `ROOT_SIZE`, `ROOT_STATUS_PROSE` | Slim the root `AGENTS.md`: keep what the project is, the repo map, the commands, and each rule in five lines. Move a rule's why to a decision or a memory and link it; status to the status memory and cards; a folder's detail to that folder's hub; generic contract text out (it is in `.agents/README.md`). |
 | `HUB_*` | The `hubs` skill. |
-| `STATUS_*`, `MEM_FILE_SIZE`, `MEM_FOLDER_OVER`, `MEM_HOOK_LONG` | Consolidation, in `${CLAUDE_PLUGIN_ROOT}/core/references/memory.md`: split by topic, split the folder, rewrite the description, compact status to Goal, Current focus and Known issues. |
+| `STATUS_*`, `MEM_FILE_SIZE`, `MEM_FOLDER_OVER`, `MEM_HOOK_LONG` | Consolidation, in `${CLAUDE_PLUGIN_ROOT}/references/memory.md`: split by topic, split the folder, rewrite the description, compact status to Goal, Current focus and Known issues. |
 | `MEM_SLUG_DUP`, `MEM_NAME_MISMATCH`, `MEM_ROOT_LOOSE`, `MEM_LINK_DANGLING` | Rename to `<date>-<slug>.md` with `git mv`, move into a category folder, fix or drop the link. |
 | `MEM_INDEX_HANDWRITTEN` (info) | Nothing is wrong: the index was written by hand, and `aw memory new` and `touch` change one line of it at a time. Converting is the owner's decision. To adopt: move what each list line says beyond its memory's `description` into that description (160 characters, `MEM_HOOK_LONG`) or the memory, then `aw memory index --adopt`, and read the diff. |
 | `DEC_INDEX_HANDWRITTEN` (info) | Nothing is wrong: `.agents/decisions/README.md` was written by hand, and `aw decisions new` adds one line to it. Converting is the owner's decision: move what its lines say beyond number, title and status into the records, then `aw decisions index --adopt`, and read the diff. |
 | `MEM_SHARED_CANDIDATE` | If it holds on any project: `aw learn add`, then delete the memory or leave one line pointing at the learning. |
-| `DUP_RULE` | Choose the single home with `${CLAUDE_PLUGIN_ROOT}/core/references/homes.md` (a rule: the root `AGENTS.md`). Keep that copy; replace the other with a link. If the copies disagree, ask the owner which is right. |
+| `DUP_RULE` | Choose the single home with `${CLAUDE_PLUGIN_ROOT}/references/homes.md` (a rule: the root `AGENTS.md`). Keep that copy; replace the other with a link. If the copies disagree, ask the owner which is right. |
 | `DOCS_AGENT_FILE` | `git mv` the file or folder to the home the finding names, then `aw decisions index` and `aw links`, and fix every link and path the move broke (code comments too: search for the old path). |
 | `GLOSSARY_*`, `DEC_*` | The `decisions` skill. |
 | `LINK_BROKEN`, `PATH_MISSING` | Fix the link or the path. A path named before it exists goes into `links.planned` of the config; build output into `links.notChecked`. |
-| `KANBAN_OLD_FOLDER` | `git mv .agents/board .agents/kanban` (untracked: `aw setup --apply --move-board`). |
-| `KANBAN_UNTRACKED` | Ask the owner: commit the folder (a shared board) or git-ignore it (a local or synced one). |
-| `TASKS_TWO_HOMES`, other `KANBAN_*`, `GATE_OWED_OLD` | The `kanban-cards` skill. |
+| `KANBAN_OLD_FOLDER` | The session hook moves an old `.agents/board` by itself; where both folders exist, merge the old one's cards into `.agents/kanban` by hand and delete it. |
+| `KANBAN_UNTRACKED` | The config says the board is shared (`kanban.tracked`) and nothing of it is committed. Ask the owner: commit the folder, or take the key out for a local board. |
+| `TASKS_TWO_HOMES`, other `KANBAN_*`, `GATE_OWED_OLD` | The `board` skill. |
 | `BRIEF_UNTRACKED`, `BRIEF_SIZE` | Track the brief; move rules that bind beyond a round into the root `AGENTS.md` and link them. |
 | `BRIEF_STRAY` (a file named like a brief or a hand-over outside `.agents/briefs/`, often in a git-ignored scratch folder) | Read it. Move what holds for every round into `.agents/briefs/common.md`, and each lasting fact to its home: a rule to the root `AGENTS.md`, a lesson to memory, a task to a card, a ruling to a decision. Then delete the file, and quote in your report what you dropped. A file that is no brief: rename it, or narrow `briefs.stray` in the config. |
 | `CONFIG_INVALID` | The `guard` skill. |
@@ -74,19 +80,19 @@ written. Then the repair would cost more than the finding, and the entry goes in
 
 - **Only with the owner's say.** Accepting is the owner's decision, never an agent's way to a clean run: ask, with
   the finding and what repairing it would take, and wait for the answer. A finding you merely have no time for is
-  a card (`aw kanban add`), not an entry.
+  a card (`aw board add`), not an entry.
 - **The why is written down**, in the entry, as the owner gave it: a reader a year on must see why it stays.
 - One entry per place: the exact path, or a glob where the name carries a date. Never a glob wide enough to take
   findings nobody has looked at.
 - Critical findings and `CONFIG_INVALID` cannot be accepted. `ACCEPT_UNUSED` (info) names an entry that no longer
   matches anything: remove it.
 - `aw doctor --accepted` lists what is accepted, each with its why. The syntax:
-  `${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md`, § Accepted findings.
+  `${CLAUDE_PLUGIN_ROOT}/references/guard-config.md`, § Accepted findings.
 
 *Done when: each remaining finding is either repaired, accepted by the owner with its why in the config, or
 listed in your report with the reason it stays.*
 
-## Step 4 — Compare with the baseline
+## Step 4: Compare with the baseline
 
 ```
 aw doctor

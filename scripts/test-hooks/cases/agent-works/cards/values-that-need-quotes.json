@@ -1,0 +1,22 @@
+{
+  "file": "0044-quoted.md",
+  "slug": "draft-quoted-at-both-ends",
+  "card": {
+    "id": "0044",
+    "file": "0044-quoted.md",
+    "title": "[draft] \"quoted\" at both ends ",
+    "status": "backlog",
+    "order": 0,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "owner": "'pat'",
+    "ref": "#7",
+    "unknown": [],
+    "body": ""
+  }
+}

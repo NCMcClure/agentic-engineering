@@ -1,0 +1,8 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "stdin": "{\"hook_event_name\": \"SessionStart\",",
+  "expect": {
+    "exit": 0
+  }
+}

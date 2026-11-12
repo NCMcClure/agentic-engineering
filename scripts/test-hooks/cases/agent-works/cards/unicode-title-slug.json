@@ -1,0 +1,20 @@
+{
+  "file": "0038-cafe-menu-deja-vu-naive-resume.md",
+  "slug": "cafe-menu-deja-vu-naive-resume",
+  "card": {
+    "id": "0038",
+    "file": "0038-cafe-menu-deja-vu-naive-resume.md",
+    "title": "Café menu: déjà vu, naïve résumé",
+    "status": "backlog",
+    "order": 3,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "unknown": [],
+    "body": ""
+  }
+}

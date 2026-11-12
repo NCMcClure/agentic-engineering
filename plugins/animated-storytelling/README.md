@@ -4,16 +4,9 @@ Most ideas don't fail because they're wrong; they fail because they're presented
 
 This plugin works the overlooked intersection of three crafts: **narrative** (what order things land in), **visual design** (what the eye believes), and **motion** (what change feels like). Any one of them is nice. The intersection is what hooks people: a real arc rendered with credible hierarchy, animated only where the story earns it.
 
-## Install
+## How it works
 
-```
-/plugin marketplace add NCMcClure/agentic-engineering
-/plugin install animated-storytelling@agentic-engineering
-```
-
-## What's inside
-
-One skill, five reference sections, 29 files of distilled craft:
+One skill routes each request to the lever it needs (narrative, visual, motion) and to the reference that covers it. Five reference sections, 29 files of distilled craft:
 
 | Section | One-liner |
 |---------|-----------|
@@ -23,7 +16,16 @@ One skill, five reference sections, 29 files of distilled craft:
 | `motion-api/` | The how, in code: Motion (Framer Motion; version pinned in its overview), covering variants, layout animation, scroll-driven work, and performance |
 | `creative-recipes/` | Bespoke showcase patterns: state machines, SVG choreography, streaming feeds, interactive mocks, visual metaphors |
 
-## How to use
+The one thing the skill never does by eye is contrast: `scripts/contrast-check.mjs` computes each WCAG ratio and exits non-zero on a hard failure. Node 22, no dependencies.
+
+## Install
+
+```
+/plugin marketplace add NCMcClure/agentic-engineering
+/plugin install animated-storytelling@agentic-engineering
+```
+
+## The skill
 
 Invoke `/animated-storytelling`, or just ask for the outcome:
 

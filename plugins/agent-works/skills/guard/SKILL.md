@@ -1,47 +1,50 @@
 ---
 name: guard
-description: Use when the agent guard refuses a command, or a mistake must not happen again.
+description: Use when the agent guard refuses, questions or warns about a command or an edit, or a mistake must not happen again.
 ---
 
 # guard
 
 The guard is a hook that reads each command and edit before it runs and refuses the mistakes this project has
 already paid for: staging the whole tree, touching the owner's own files, hand-editing generated files, starting
-a scarce application without its lock, an expensive run without its reason. It is on when
-`.agents/agent-works.json` exists, and does nothing without it. Every key of that file is documented in
-`${CLAUDE_PLUGIN_ROOT}/core/references/guard-config.md`.
+a scarce application another agent holds, an expensive run without its reason. It is on when
+`.agents/agent-works.json` exists (a linked worktree without its own copy is judged by the main checkout's), and
+does nothing without it. Every key of that file is documented in
+`${CLAUDE_PLUGIN_ROOT}/references/guard-config.md`.
 
 **Boundary.** Protected branches, force pushes, secrets, junk files and failing tests as a *team* policy, in the
 terminal and in CI, belong to the agentic-teamwork plugin. This guard's own `default-branch-commit` (a
 warning) and `force-push` (a question to the owner) are an aid for one agent; the ordinary cadence of branch,
 commit, pull request and merge is never held for approval. The two plugins are meant to run together.
 
-## Step 1 — Ask the guard
+## Step 1: Ask the guard
 
 ```
-python -B "${CLAUDE_PLUGIN_ROOT}/hooks/guard.py" --explain '<the command>'
-python -B "${CLAUDE_PLUGIN_ROOT}/hooks/guard.py" --explain --file <path>
+node "${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs" --explain '<the command>'
+node "${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs" --explain --file <path>
+node "${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs" --explain <Tool> '<the command, or the tool input as JSON>'
 ```
 
-It prints what would be decided (deny, ask, warn, allow), by which rule and with which message, and runs and logs
-nothing. `--cwd <dir>` and `--json` are there too.
+It prints what would be decided (deny, ask, warn, allow), by which rule and with which message, and how the
+command was read; it runs and logs nothing. `--cwd <dir>`, `--tool <T>` and `--json` are there too. The guard
+also judges the command inside `aw lock run ... --` and `aw lease ... --`.
 
 When the guard refused **you**: do what the message says. Do not rephrase the command to get past it, and do not
 change the config to let your own command through. A rule that is wrong is the owner's to change.
 
 *Done when: you know which rule answered and why.*
 
-## Step 2 — Change the config
+## Step 2: Change the config
 
 Edit `.agents/agent-works.json`. Each need has one key:
 
 | The need | Key | Note |
 |---|---|---|
 | Files local to the owner's machine: never staged, edits asked | `guard.ownerFiles`, `guard.ownerFilesEdit` | literal paths; a trailing slash is a folder |
-| Files a tool writes: never edited by hand | `guard.generated` | a regex on the path, and `how`: the command to run instead |
+| Files a tool writes: never edited by hand | `guard.generated` | a regular expression on the path, and `how`: the command to run instead |
 | Staging the whole tree; unreadable pathspecs | `guard.staging` | `deny` by default |
 | Commits on the default branch, forced pushes | `guard.defaultBranch` | `warn` and `ask` by default; `commit: "ask"` only when the owner wants to approve |
-| One instance at a time of an application or device | `resources.<name>`, `lockOrder` | `match`: the commands that start it; `scope`: `project` or `machine`. An excuse for one pattern only: `{ "pattern": …, "unless": […] }` in `match`. Commands that only name a file (`git add`, `cp`, `rm`) are not tested unless `matchFileCommands` |
+| One instance at a time of an application or device | `resources.<name>`, `lockOrder`, `guard.locks` | `match`: the commands that start it; `scope`: `project` or `machine`. `guard.locks` says what a command outside its lock gets: `warn` (the default), `deny`, `ask` or `off`. An excuse for one pattern only: `{ "pattern": …, "unless": […] }` in `match`. Commands that only name a file (`git add`, `cp`, `rm`) are not tested unless `matchFileCommands` |
 | A run whose cost grows with a count | `runs` | how many items are free, and the variable that carries the reason; `match` as for a resource |
 | A number several branches bump | `counters.<name>` | claimed with `aw claim` |
 | The variable that carries an agent's name | `guard.agentVar` | default `AW_AGENT` |
@@ -50,12 +53,14 @@ Edit `.agents/agent-works.json`. Each need has one key:
 A rule's `message` is what the agent reads at the moment of the mistake: say the rule, why, and what to do
 instead. Start a new rule at `warn` or `ask`; make it `deny` once it has refused nothing it should not have.
 
-Rules are patterns and a message. The plugin never runs code from a repository: a rule that needs code is a hook
+Every pattern in the config is a JavaScript regular expression. Rules are patterns and a message. The plugin never runs code from a repository: a rule that needs code is a hook
 in the project's own `.claude/settings.json`, and stays there.
 
 *Done when: the config holds the change, and nothing in it restates a rule another key already covers.*
 
-## Step 3 — Prove the rule both ways
+## Step 3: Prove the rule both ways
+
+`aw` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/aw.mjs"`: call it that way.
 
 Run `--explain` (Step 1) on one command the rule must stop and on two it must let through: a near miss, and a
 command that only mentions the words (a commit message, an `echo`, a search). For a resource or a run, also a
@@ -70,7 +75,7 @@ regex nor a `{ "pattern", "unless" }` object, or a pattern is not a regular expr
 
 *Done when: the three explanations are as intended, and `aw doctor` prints no `CONFIG_INVALID`.*
 
-## Step 4 — Write the rule down once
+## Step 4: Write the rule down once
 
 A guard rule is the enforcement of a project rule. The rule itself lives in the root `AGENTS.md` (five lines, with
 a link to the memory or decision that holds the incident), marked as enforced by the guard. The guard's message

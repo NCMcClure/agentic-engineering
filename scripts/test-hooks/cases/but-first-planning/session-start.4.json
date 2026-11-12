@@ -1,0 +1,15 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "session_id": "bfp-4",
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

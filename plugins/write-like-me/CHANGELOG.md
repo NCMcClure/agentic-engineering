@@ -1,5 +1,6 @@
 # Changelog
 
+- **1.0.0**: Node 22 throughout, no Python. The three hooks and the budget script are `.mjs`, and a machine without Node gets one line at session start instead of an error on every event. `scripts/wlm/profile_budget.py` is now `scripts/wlm/profile-budget.mjs`, run with `node`: same output, same exit codes. The profile, the feedback ledger and the state files stay where they are and keep their formats. SessionStart is registered for startup, resume, clear and compact. Every hook is silent on empty or malformed stdin (the calibrate nudge used to fire on it).
 - **0.3.2**: feedback detection strips harness-injected content (`<task-notification>`/`<system-reminder>` blocks, `[SYSTEM NOTIFICATION - NOT USER INPUT]` lines) before matching, so trigger words quoted in background-task reports no longer log false observations.
 - **0.3.1**: the SessionStart / UserPromptSubmit / Stop hooks resolve `python3` or `python` at runtime instead of hardcoding `python3`, so they work on machines (e.g. Windows/Git-Bash) that ship only `python`.
 - **0.3.0**: feedback now folds into the profile as in-place revisions to the
