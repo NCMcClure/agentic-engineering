@@ -59,7 +59,7 @@
     {
       "name": "plugin-workbench",
       "source": "./plugins/plugin-workbench",
-      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta.",
+      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards — so make, measure, and fix plugins around one six-dimension rubric: author against it, score any plugin into an HTML scorecard with an adopt/rework verdict, and apply the fixes ranked by script-computed point delta, then read a session's transcript to see what each plugin really put in the agent's context.",
       "category": "authoring"
     },
     {

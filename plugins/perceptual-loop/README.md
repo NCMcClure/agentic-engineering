@@ -102,8 +102,3 @@ measuring scripts carry their own `--self-test` on synthetic data.
 - The hook matches command **text**. It skips heredoc bodies and the arguments of commit messages and `echo`, but
   a guarded command quoted as an argument of another program still matches, a render started from inside a script
   file is not seen: a coordination aid, not a security boundary.
-
-## Changelog
-
-- 0.2.0 — Locks and orchestration defer to the agent-works plugin. **Breaking:** `scripts/lock.py` (locks, the queue, the notes board) and the hook's `locks` rule are gone, so without agent-works nothing enforces one agent at a time on a scarce application; `locks` in `.perceptual-loop/config.json` is ignored (declare the application as a resource in agent-works instead; `PL_AGENT` is still honoured there as an alias). The budget rule now reads through `aw lock run … --` and `aw lease … --`. `orchestrate-agents` keeps the perceptual half (success files, proving shots, proportionate verification, opening the pictures, the owner's queue) and its brief template becomes an addendum to agent-works' common brief; load checks before a timing use `aw sys --quiet-for timing`; `probe-the-source` and `judge-and-queue` point at agent-works for the project's memory and for rulings that bind beyond a look.
-- 0.1.0 — First release: ten skills, the vision-critic agent, the critique workflow, the script set, the guard hook.

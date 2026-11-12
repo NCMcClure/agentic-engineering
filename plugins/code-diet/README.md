@@ -60,7 +60,3 @@ The discipline content is evolved from the MIT-licensed
 and what changed is recorded in
 `${CLAUDE_PLUGIN_ROOT}/skills/ladder/references/provenance.md`. Borrowed stays
 labeled as borrowed.
-
-## Changelog
-
-- **0.1.0**: initial release.

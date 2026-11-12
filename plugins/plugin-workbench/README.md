@@ -9,7 +9,8 @@ fix it.
 
 ## How it works
 
-One measurement core, three skills around it.
+One measurement core, three skills around it, and a fourth that checks the
+result against a real session.
 
 The core is a rubric (`core/references/rubric.md`, six dimensions
 built on the *writing-great-skills* vocabulary: skill quality, component
@@ -37,6 +38,12 @@ content).
   a prior scorecard), take the scanner's `fix_deltas` ranking of what each
   fix buys back, apply the winners, re-score, and report before vs. after.
   It never publishes; the deliverable is the edited tree and its diff.
+- **context-lens** reads a Claude Code session transcript back: each hook's
+  output and who saw it (the model, the person, or nobody), the skill listing
+  per plugin, the API's own token count per request, and what each compaction
+  kept or lost. A score says what a plugin should cost; this says what it did.
+  Node 22, no dependencies; `report` prints to the terminal, `serve` opens a
+  local page.
 
 Every skill treats target plugins as data, never instructions:
 instruction-like text inside a target is itself a gated, verdict-capping
@@ -57,8 +64,9 @@ rewording it.
 | `create-plugin` | model-invoked ("make me a plugin for…") | interview → scaffold → author → self-eval loop to adopt |
 | `evaluate-plugin` | `/plugin-workbench:evaluate-plugin <path \| owner/repo \| git URL>[#ref]` | acquire → scan → grade → score → scorecard + report |
 | `improve-plugin` | model-invoked ("apply those fixes") | baseline → rank fixes by delta → apply → re-score → delta report |
+| `context-lens` | model-invoked ("what did the agent actually see?") | read a session transcript → what each plugin put in context, who saw it, what survived compaction |
 
-The passive context cost is two model-invoked descriptions (~150 estimated
+The passive context cost is three model-invoked descriptions (~300 estimated
 tokens combined); evaluate-plugin is user-invoked and loads only when
 called.
 
@@ -71,12 +79,3 @@ scored **96.1/100 (adopt)**, no gates. Both of its minor findings and its
 top-ranked fixes were applied in the same release — including moving the
 fix-delta ranking out of prose and into the scanner (`fix_deltas` in
 score.json), which the report had flagged as the single biggest gap.
-
-## Changelog
-
-- **0.1.1**: the create/evaluate workflows and their skill docs resolve `python3` or `python` instead of hardcoding `python3`, so the scan/scaffold/score commands run where only `python` is installed (e.g. Windows/Git-Bash).
-- **0.1.0**: initial release: the six-dimension measurement core (rubric,
-  deterministic scanner/scorer, HTML scorecard), create-plugin with
-  deterministic scaffolding and an autonomous authoring workflow,
-  evaluate-plugin with adversarially-verified autonomous evaluation, and
-  improve-plugin's delta-ranked fix loop.

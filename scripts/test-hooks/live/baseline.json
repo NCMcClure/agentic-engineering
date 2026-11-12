@@ -3,7 +3,7 @@
   "date": "2026-11-12",
   "model": "haiku",
   "pluginsTree": "5c4c85731c4a9d8300a4753de248519b61174f90",
-  "costUsd": 0.0901,
+  "costUsd": 0.1041,
   "expectedFailures": {
     "compaction.mjs": [
       "adopted: SessionStart · agent-works was lost at compaction"
@@ -35,7 +35,7 @@
   },
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 30257,
+      "firstRequestTokens": 30434,
       "start": {
         "agent-works": 768,
         "agentic-teamwork": 101,
@@ -45,7 +45,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -58,7 +58,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -108,8 +108,8 @@
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 171,
-          "skills": 2,
+          "tokens": 309,
+          "skills": 3,
           "bare": 0
         },
         "workflow-studio": {
@@ -163,7 +163,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17679,
+          "firstRequestTokens": 17854,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -174,7 +174,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -184,7 +184,7 @@
           }
         },
         "general-purpose": {
-          "firstRequestTokens": 19854,
+          "firstRequestTokens": 20029,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -195,7 +195,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -205,7 +205,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4813,
+          "firstRequestTokens": 4814,
           "focus": {
             "code-diet or docs-parity": 165
           },
@@ -217,7 +217,7 @@
       }
     },
     "outside": {
-      "firstRequestTokens": 30257,
+      "firstRequestTokens": 30432,
       "start": {
         "agent-works": 768,
         "agentic-teamwork": 101,
@@ -227,7 +227,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -240,7 +240,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -290,8 +290,8 @@
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 171,
-          "skills": 2,
+          "tokens": 309,
+          "skills": 3,
           "bare": 0
         },
         "workflow-studio": {
@@ -345,7 +345,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17679,
+          "firstRequestTokens": 17855,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -356,7 +356,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -366,7 +366,7 @@
           }
         },
         "general-purpose": {
-          "firstRequestTokens": 19854,
+          "firstRequestTokens": 20029,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -377,7 +377,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -387,7 +387,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4813,
+          "firstRequestTokens": 4814,
           "focus": {
             "code-diet or docs-parity": 165
           },
@@ -399,7 +399,7 @@
       }
     },
     "adopted": {
-      "firstRequestTokens": 30707,
+      "firstRequestTokens": 30882,
       "start": {
         "agent-works": 832,
         "agentic-teamwork": 212,
@@ -409,7 +409,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 523,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -422,7 +422,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 635,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -475,8 +475,8 @@
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 171,
-          "skills": 2,
+          "tokens": 309,
+          "skills": 3,
           "bare": 0
         },
         "workflow-studio": {
@@ -533,7 +533,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 17839,
+          "firstRequestTokens": 18012,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -544,7 +544,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -554,7 +554,7 @@
           }
         },
         "general-purpose": {
-          "firstRequestTokens": 20310,
+          "firstRequestTokens": 20484,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -565,7 +565,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -587,7 +587,7 @@
       }
     },
     "teamwork-only": {
-      "firstRequestTokens": 30458,
+      "firstRequestTokens": 30632,
       "start": {
         "agent-works": 768,
         "agentic-teamwork": 212,
@@ -597,7 +597,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -610,7 +610,7 @@
         "codebase-optimizer": 227,
         "docs-parity": 411,
         "perceptual-loop": 432,
-        "plugin-workbench": 171,
+        "plugin-workbench": 309,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -661,8 +661,8 @@
           "bare": 0
         },
         "plugin-workbench": {
-          "tokens": 171,
-          "skills": 2,
+          "tokens": 309,
+          "skills": 3,
           "bare": 0
         },
         "workflow-studio": {
@@ -717,7 +717,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 14170,
+          "firstRequestTokens": 17860,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -728,7 +728,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -738,7 +738,7 @@
           }
         },
         "general-purpose": {
-          "firstRequestTokens": 16356,
+          "firstRequestTokens": 20044,
           "focus": {
             "agent-works": 747,
             "agentic-teamwork": 101,
@@ -749,7 +749,7 @@
             "codebase-optimizer": 227,
             "docs-parity": 411,
             "perceptual-loop": 386,
-            "plugin-workbench": 171,
+            "plugin-workbench": 309,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -759,7 +759,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 4830,
+          "firstRequestTokens": 4829,
           "focus": {
             "code-diet or docs-parity": 165
           },
