@@ -80,4 +80,4 @@ and every finding it prints is either fixed, accepted in `accept` with a why, or
 
 If the product has anything to photograph and no capture harness exists, say so and open `docs-shots`, or,
 if the user wants it later, add it as a task in the project's tracker (with agent-works, a card:
-`aw kanban add`). Adoption does not wait for the harness; the checker and the rule work without one.
+`aw board add`). Adoption does not wait for the harness; the checker and the rule work without one.

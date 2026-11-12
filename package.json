@@ -11,6 +11,7 @@
   "scripts": {
     "validate": "node scripts/validate.mjs",
     "sync-shared": "node scripts/sync-shared.mjs --write",
+    "guide": "node scripts/gen-guide.mjs --write",
     "test": "node --test \"scripts/test-hooks/**/*.test.mjs\"",
     "test:live": "node scripts/test-hooks/live/live.mjs"
   }

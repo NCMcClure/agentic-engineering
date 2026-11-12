@@ -63,10 +63,10 @@ test("hooks.json registers the session hook for every session start and every su
   assert.equal(HOOKS.TaskCompleted[0].matcher, undefined, "TaskCompleted takes no matcher");
 });
 
-test("critical.json: two lines under the cap, no chain lines yet, and every skill a line names exists", () => {
+test("critical.json: two lines under the cap, a chain to agent-works, and every skill a line names exists", () => {
   assert.equal(CRITICAL.plugin, "but-first-planning");
   assert.equal(CRITICAL.lines.length, 2);
-  assert.deepEqual(CRITICAL.chains, []);
+  assert.deepEqual(CRITICAL.chains.map((c) => c.partner), ["agent-works"]);
   const size = CRITICAL.lines.reduce((n, l) => n + l.text.length, 0);
   assert.ok(size <= META.critical.cap, `${size} characters, cap ${META.critical.cap}`);
   for (const skill of CRITICAL.lines.flatMap((l) => [...l.text.matchAll(/\/but-first-planning:([a-z-]+)/g)].map((m) => m[1]))) {

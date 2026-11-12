@@ -160,6 +160,8 @@ actually drew, and a pull that keeps layout changes made on the board. It
 holds no credentials: publishing goes through the Miro MCP you connect.
 [Read more →](plugins/marvelous-miro/README.md)
 
+Every plugin, version and skill on one page: [docs/plugins.md](docs/plugins.md).
+
 ## Working in this repo
 
 The contribution contract (layout invariants, the versioning rule, how to

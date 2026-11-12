@@ -1,42 +1,17 @@
 {
   "plugin": "agent-works",
   "lines": [
-    {
-      "for": "main",
-      "mode": "any",
-      "text": "A goal bigger than one pull or merge request goes to /agent-works:orchestrate: each piece runs as its own child session in its own worktree, which the person can open, steer, and review, never as one long session or as subagents nobody can open."
-    },
-    {
-      "for": "main",
-      "mode": "any",
-      "text": "The board is the record, memory loses to it: after a restart or a compaction, resume a round from `aw board status` with /agent-works:orchestrate."
-    },
-    {
-      "for": "main",
-      "mode": "any",
-      "text": "Nothing starts without the person's yes, recorded with `aw board grant`, and nothing merges without a review; a child's \"passed\" is a claim until you read the diff and re-run what the risk calls for."
-    },
-    {
-      "for": "main",
-      "mode": "any",
-      "text": "Never poll by hand or schedule wake-ups: a child wakes you when it ends a turn."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "Work noticed outside the task goes on the board (`aw board add --suggest`), and a check you cannot run is owed (`aw board owe`), never claimed: /agent-works:board."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "text": "Anything only one session can use at a time (a dev-server port, a simulator, a GPU, a shared database) runs under /agent-works:resource-locks."
-    },
-    {
-      "for": "all",
-      "mode": "any",
-      "when": ".agents/agent-works.json",
-      "text": "Hubs: a directory with an AGENTS.md holds no source files, every non-leaf code directory has one naming each child in a line, and it is updated in the same change. Run `aw hubs` (/agent-works:hubs) before committing."
-    }
+    {"for": "main", "mode": "any", "text": "A goal bigger than one pull or merge request goes to /agent-works:orchestrate: each piece runs as its own child session in its own worktree, which the person can open, steer, and review, never as one long session or as subagents nobody can open."},
+    {"for": "main", "mode": "any", "text": "The board is the record, memory loses to it: after a restart or a compaction, resume a round from `aw board status` with /agent-works:orchestrate."},
+    {"for": "main", "mode": "any", "text": "Nothing starts without the person's yes, recorded with `aw board grant`, and nothing merges without a review; a child's \"passed\" is a claim until you read the diff and re-run what the risk calls for."},
+    {"for": "main", "mode": "any", "text": "Never poll by hand or schedule wake-ups: a child wakes you when it ends a turn."},
+    {"for": "all", "mode": "any", "text": "Work noticed outside the task goes on the board (`aw board add --suggest`), and a check you cannot run is owed (`aw board owe`), never claimed: /agent-works:board."},
+    {"for": "all", "mode": "any", "text": "Anything only one session can use at a time (a dev-server port, a simulator, a GPU, a shared database) runs under /agent-works:resource-locks."},
+    {"for": "all", "mode": "any", "when": ".agents/agent-works.json", "text": "Hubs: a directory with an AGENTS.md holds no source files, every non-leaf code directory has one naming each child in a line, and it is updated in the same change. Run `aw hubs` (/agent-works:hubs) before committing."}
   ],
-  "chains": []
+  "chains": [
+    {"partner": "perceptual-loop", "for": "main", "mode": "any", "text": "A card judged by eye or ear gets `--labels look` (or motion, sound), so its child loads /perceptual-loop:perceptual-loop and that plugin's agent brief."},
+    {"partner": "but-first-planning", "for": "main", "mode": "any", "text": "A goal that is not fully specified is grilled with /but-first-planning:grill before it goes on the board."},
+    {"partner": "agentic-teamwork", "for": "main", "mode": "full", "text": "A child ships with /agentic-teamwork:ship; you land each pull or merge request on green with /agentic-teamwork:land."}
+  ]
 }
