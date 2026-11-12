@@ -1,17 +1,17 @@
 export const meta = {
   name: '{{WORKFLOW_NAME}}',
-  description: 'TODO(author): one line — what this workflow orchestrates and what it returns',
+  description: 'TODO(author): in one line, what this workflow orchestrates and what it returns',
   whenToUse: "TODO(author): when to run this instead of working inline, and the args contract: {…}",
   phases: [
     { title: 'TODO', detail: 'TODO(author): one entry per phase() call, titles matched exactly' },
   ],
 }
 
-// TODO(author): model tiers — cheap tiers for script driving and mechanical
+// TODO(author): model tiers. Cheap tiers for script driving and mechanical
 // work, strong tiers for parallel judgment fan-outs, omit model for singleton
-// synthesis. No Date.now / Math.random / new Date — pass timestamps via args.
+// synthesis. No Date.now / Math.random / new Date: pass timestamps via args.
 
-// ---------- args (may arrive as a JSON string — coerce defensively) ----------
+// ---------- args (may arrive as a JSON string: coerce defensively) ----------
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A) {
