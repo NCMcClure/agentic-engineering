@@ -1,0 +1,6 @@
+{
+  "script": "git-guard.sh",
+  "event": "PreToolUse",
+  "stdin": "{ not json",
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

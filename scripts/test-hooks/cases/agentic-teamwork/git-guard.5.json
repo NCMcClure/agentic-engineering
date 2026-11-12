@@ -1,0 +1,8 @@
+{
+  "script": "git-guard.sh",
+  "event": "PreToolUse",
+  "fixture": "unborn",
+  "gap": "the first commit of a new repository is refused on its unborn main",
+  "stdin": { "hook_event_name": "PreToolUse", "session_id": "gg-5", "cwd": "{{REPO}}", "tool_name": "Bash", "tool_input": { "command": "git commit -m \"first commit\"" } },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

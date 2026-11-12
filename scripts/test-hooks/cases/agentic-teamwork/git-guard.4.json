@@ -1,0 +1,6 @@
+{
+  "script": "git-guard.sh",
+  "event": "PreToolUse",
+  "stdin": { "hook_event_name": "PreToolUse", "session_id": "gg-4", "cwd": "{{REPO}}", "tool_name": "Bash", "tool_input": { "command": "ls -la && git log --oneline -3" } },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

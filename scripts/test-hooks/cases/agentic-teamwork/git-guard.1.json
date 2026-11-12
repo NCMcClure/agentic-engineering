@@ -1,0 +1,6 @@
+{
+  "script": "git-guard.sh",
+  "event": "PreToolUse",
+  "stdin": { "hook_event_name": "PreToolUse", "session_id": "gg-1", "cwd": "{{REPO}}", "tool_name": "Bash", "tool_input": { "command": "git push --force origin main" } },
+  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+}
