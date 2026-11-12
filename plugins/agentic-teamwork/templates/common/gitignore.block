@@ -1,0 +1,17 @@
+# >>> agentic-teamwork
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+__pycache__/
+
+# Secrets. Only an example file that holds no values is tracked.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+
+# Each person's own agent settings. .claude/settings.json is the shared one.
+.claude/settings.local.json
+# <<< agentic-teamwork

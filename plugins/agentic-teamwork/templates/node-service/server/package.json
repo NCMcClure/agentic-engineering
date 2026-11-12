@@ -1,0 +1,14 @@
+{
+  "name": "{{PROJECT}}-server",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "{{DESCRIPTION}}",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "node --watch src/app/main.mjs",
+    "start": "node src/app/main.mjs",
+    "test": "node --test \"test/unit/**/*.test.mjs\"",
+    "test:integration": "node --test \"test/integration/**/*.test.mjs\""
+  }
+}

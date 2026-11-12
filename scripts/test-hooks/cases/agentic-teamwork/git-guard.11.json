@@ -1,0 +1,21 @@
+{
+  "script": "git-guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "gg-11",
+    "tool_name": "PowerShell",
+    "tool_input": {
+      "command": "git status; git push --force-with-lease origin feat/live"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

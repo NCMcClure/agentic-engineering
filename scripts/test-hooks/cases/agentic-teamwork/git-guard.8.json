@@ -1,0 +1,17 @@
+{
+  "script": "git-guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "gg-8",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "TEAMWORK_ALLOW=1 git push --force origin main"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

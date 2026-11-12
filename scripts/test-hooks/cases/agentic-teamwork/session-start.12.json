@@ -1,0 +1,14 @@
+{
+  "script": "session-start.mjs",
+  "event": "SubagentStart",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "SubagentStart",
+    "session_id": "ss-12",
+    "agent_type": "general-purpose"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

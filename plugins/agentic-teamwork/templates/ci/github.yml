@@ -1,0 +1,41 @@
+# The team-conventions gate. It runs this repo's own check and its unit lane on
+# every pull request and on {{DEFAULT_BRANCH}} after a merge, in a clean
+# checkout, whatever a contributor has or has not set up locally.
+#
+# The file is yours to edit: add what the unit lane needs before it runs (an
+# install step, a service), or delete the unit job if another workflow runs
+# the same tests. The conventions job is the part the check itself looks for.
+name: team-conventions
+
+on:
+  pull_request:
+  push:
+    branches: ["{{DEFAULT_BRANCH}}"]
+
+# A newer push to the same branch supersedes a run in flight.
+concurrency:
+  group: team-conventions-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  conventions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node .agents/scripts/verify-standard.mjs
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # Runs the `unit` command from .agents/manifest.json.
+      - run: node .agents/scripts/lane.mjs unit

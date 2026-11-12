@@ -1,0 +1,17 @@
+{
+  "script": "git-guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "unborn-standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "gg-7",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git commit -m \"first commit\""
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

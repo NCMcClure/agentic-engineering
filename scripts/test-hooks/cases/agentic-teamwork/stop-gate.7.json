@@ -1,0 +1,17 @@
+{
+  "script": "stop-gate.mjs",
+  "event": "Stop",
+  "fixture": "bare",
+  "env": {
+    "TMPDIR": "{{REPO}}/.git"
+  },
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "sg-7",
+    "stop_hook_active": false
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

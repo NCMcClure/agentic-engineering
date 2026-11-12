@@ -1,6 +1,10 @@
 {
-  "script": "git-guard.sh",
+  "script": "git-guard.mjs",
   "event": "PreToolUse",
+  "fixture": "standard",
   "stdin": "",
-  "expect": { "exit": 0, "stdoutEmpty": true }
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
 }

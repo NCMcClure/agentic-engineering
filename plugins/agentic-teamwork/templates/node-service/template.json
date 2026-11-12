@@ -1,0 +1,17 @@
+{
+  "name": "node-service",
+  "description": "A Node 22 service with no dependencies: one runtime, a unit and an integration lane, an optional browser lane, a Dockerfile, and a local database in compose.",
+  "layout": [
+    "- `server/` - the runtime: `src/` (config, HTTP surface, composition root) and `test/` (the unit and integration lanes). Open it for anything that runs in production.",
+    "- `e2e/` - the browser lane: Playwright specs against a server the runner starts itself on :8090. Open it to add a check on what a person sees.",
+    "- `db/` - `migrations/`, applied by the `migrate` service in compose. Open it for a schema change.",
+    "- `Dockerfile` / `docker-compose.yml` - the production image, and the local database an agent may start (`docker compose up -d postgres`).",
+    "- `.env.example` - every environment variable with its default. Copy to `.env`, which is never committed."
+  ],
+  "lanes": {
+    "UNIT_CMD": "npm --prefix server test",
+    "INTEGRATION_CMD": "RUN_DB_TESTS=1 npm --prefix server run test:integration",
+    "E2E_CMD": "npm --prefix e2e test",
+    "LIVE_CMD": "not wired: add one the day this service calls a model"
+  }
+}

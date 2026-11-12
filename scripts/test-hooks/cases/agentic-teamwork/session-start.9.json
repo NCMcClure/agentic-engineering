@@ -1,0 +1,19 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "standard",
+  "project": "bare",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "clear",
+    "session_id": "ss-9"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}
