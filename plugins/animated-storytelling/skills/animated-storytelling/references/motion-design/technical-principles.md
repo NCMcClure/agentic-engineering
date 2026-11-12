@@ -14,7 +14,7 @@ Implementation details for motion in presentations.
 ### Common Easing Curves
 
 ```tsx
-// Professional, smooth (used in loom presentation chrome)
+// Professional, smooth (suits presentation chrome)
 ease: [0.25, 0.1, 0.25, 1]
 
 // Snappy entrance

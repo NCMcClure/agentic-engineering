@@ -1,3 +1,5 @@
 {
-  "legacy": true
+  "shared": [
+    "skills/codebase-organizer/scripts/verify-hubs.mjs"
+  ]
 }

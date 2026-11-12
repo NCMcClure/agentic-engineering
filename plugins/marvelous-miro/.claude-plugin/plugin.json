@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "marvelous-miro",
+  "displayName": "Marvelous Miro",
+  "version": "0.1.0",
+  "description": "Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": ["miro", "diagrams", "system-map", "architecture-diagrams", "legibility", "chrome-devtools"]
+}

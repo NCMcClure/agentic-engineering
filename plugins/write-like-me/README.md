@@ -5,29 +5,28 @@ A Claude Code plugin that reshapes how Claude writes **human-facing prose**
 instead of like a language model. Code, commit messages, and PR descriptions
 are deliberately out of scope.
 
-## How it works: three layers
+## How it works
 
-1. **Always-on profile**: `~/.claude/rules/write-like-me.md` (overridable
-   via `WLM_PROFILE`), a tightly line-budgeted voice profile Claude Code
-   auto-loads into every session (`scripts/wlm/profile_budget.py` owns and
-   enforces the budget). Your tone, rhythm, vocabulary, and formatting habits,
-   written as actionable instructions.
-2. **Skills**: deep guidance loaded on demand:
-   | Skill | Invocation | Does |
-   |---|---|---|
-   | `write-like-me` | automatic on prose tasks | drafts in your voice; self-checks against the AI-tells catalog |
-   | `calibrate` | `/write-like-me:calibrate` | builds the profile from writing samples + a short interview |
-   | `audit` | `/write-like-me:audit` or "does this sound AI?" | scans existing text for tell clusters, offers a rewrite |
-   | `review` | `/write-like-me:review` | shows/prunes/reverts the profile, pauses learning |
-3. **Reflective hooks**: lightweight Python hooks that learn from you:
+1. **An always-on profile.** `~/.claude/rules/write-like-me.md` (overridable
+   via `WLM_PROFILE`) is a tightly line-budgeted voice profile that Claude Code
+   loads into every session as one of your own rules, and reloads after a
+   compaction. Your tone, rhythm, vocabulary, and formatting habits, written
+   as actionable instructions. `scripts/wlm/profile-budget.mjs` owns and
+   enforces the budget.
+2. **Skills** for the deep guidance, loaded on demand (the table below).
+3. **Reflective hooks** that learn from you:
    - `UserPromptSubmit` spots style feedback ("too formal", "not my voice",
      "stop using em-dashes"), records it, and reminds Claude to honor it now.
-   - `Stop`: when feedback is pending (max once per session, ≥1 h cooldown),
-     forks a subagent that folds it into the profile as an in-place revision
-     to the relevant section, logging old → new to a changelog so any
-     revision can be reversed. Auto-applied, always reviewable.
-   - `SessionStart`: one-line nudge to calibrate if no profile exists
-     (at most once a day).
+   - `Stop`: when feedback is pending (max once per session, at least an hour
+     apart), has Claude fork a subagent that folds it into the profile as an
+     in-place revision to the relevant section, logging old → new to a
+     changelog so any revision can be reversed. Auto-applied, always
+     reviewable.
+   - `SessionStart`: a one-line nudge to calibrate if no profile exists (at
+     most once a day).
+
+The hooks and the budget script run on Node 22, no dependencies. On a machine
+without Node the hooks switch themselves off and say so once per session.
 
 ## Install
 
@@ -38,6 +37,15 @@ are deliberately out of scope.
 ```
 
 Then run `/write-like-me:calibrate` once.
+
+## Skills
+
+| Skill | Invocation | Does |
+|---|---|---|
+| `write-like-me` | automatic on prose tasks | drafts in your voice; self-checks against the AI-tells catalog |
+| `calibrate` | `/write-like-me:calibrate` | builds the profile from writing samples + a short interview |
+| `audit` | `/write-like-me:audit` or "does this sound AI?" | scans existing text for tell clusters, offers a rewrite |
+| `review` | `/write-like-me:review` | shows/prunes/reverts the profile, pauses learning |
 
 ## State on disk
 

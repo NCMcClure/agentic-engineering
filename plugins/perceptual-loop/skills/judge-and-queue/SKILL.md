@@ -1,121 +1,96 @@
 ---
 name: judge-and-queue
-description: "Verdicts and the owner's queue. Use when a difference needs a verdict, a finished look change needs an independent look, or taste questions are waiting for the owner."
+description: "Use when a difference in a picture needs a verdict, a finished look change needs a blind second look, or taste questions wait for the owner: one review page."
 ---
 
 # judge-and-queue
 
-The agent decides defects; the owner decides taste; nobody decides either with a bare metric. This skill produces
-verdicts with evidence, an independent look, and a **batched** queue so the owner rules on ten questions in one
-sitting instead of being interrupted ten times.
+The agent decides defects, the owner decides taste, and nobody decides either with a bare metric. This skill gives each difference a verdict with its evidence, gets a second look from a critic who does not know what you meant, and batches the owner's questions into one page, so the owner rules on ten questions in one sitting instead of being interrupted ten times.
 
-## Step 1 — Make the comparison
+`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`. The verdicts are the table in `${CLAUDE_PLUGIN_ROOT}/references/doctrine.md` rule 2, and only there.
 
-Before / after only means something next to the reference:
+## Step 1: Make the comparison
+
+Before and after only mean something next to the reference. `iterate` already drew one per shot (`runs/<run>/<shot>/sheet.<source>.png`: reference, before, after, then what the run changed, the edges, and the colour difference on a fixed scale). For anything else:
 
 ```
-uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/sheet.py" triptych \
-  --images <reference.png> <before.png> <after.png> --labels reference before after --out <file>
+P sheet triptych <reference.png> <before.png> <after.png> --label reference --label before --label after
+P sheet crop <shot> --box x0,y0,x1,y1 --zoom 3
 ```
 
-`iterate.py` keeps the candidate's picture from before each render as `<run>/<shot>/before.<source>.png`, so the
-"before" is there. Crop to the thing in question when it is small. Open the result yourself.
+`iterate` keeps the candidate's picture from before each render as `runs/<run>/<shot>/before.<source>.png`. Crop to the thing in question when it is small. Open the sheet yourself with the Read tool.
 
 *Done when: one picture shows the three states of the thing, and you have looked at it.*
 
-## Step 2 — Give each difference a verdict
+## Step 2: Give each difference a verdict
 
-Use the verdict table in `${CLAUDE_PLUGIN_ROOT}/core/references/doctrine.md` rule 2. For each: one sentence on what the picture shows, the evidence
-(a pass, a source value, a probe: `probe-the-source` when you cannot tell by looking), the verdict. A verdict of
-`wrong` names what is misrepresented. Sort what is left into **mine to fix** and **the owner's to judge** (how
-much, how bright, which of two plausible looks, anything the success file listed under "Left to the owner").
+For each visible difference: one sentence on what the picture shows, the evidence (a pass, a value from the source, a probe; `probe-the-source` when looking cannot tell you), and the verdict. A `wrong` names what is misrepresented. Then sort what is left into **mine to fix** and **the owner's to judge**: how much, how bright, which of two plausible looks, and anything the success file lists under "Left to the owner".
 
-*Done when: every visible difference in the comparison has a row: what, evidence, verdict, whose.*
+*Done when: every visible difference has a row: what, evidence, verdict, whose.*
 
-## Step 3 — An unanchored second look (finished changes)
+## Step 3: A blind second look, for a finished change
 
-You know what you intended, so you will see it. Before reporting a change as done, hand the comparison to the
-**vision-critic** agent (`${CLAUDE_PLUGIN_ROOT}/agents/vision-critic.md`), which sees only pictures and a neutral
-question, never your reasoning:
+You know what you meant, so you will see it. Before you report a look change as done, a critic who sees only pictures and neutral questions looks at it.
 
-- Make neutral copies first, so no file name gives the answer away. `blind.py` copies the pair to `A.png` and
-  `B.png`, decides from the id which letter is the earlier state, and prints the key for **you** only:
+1. Copy the pair to neutral names. `blind` puts `A` and `B` (and `R`) in a new folder under the OS temp directory, decides from the id which letter is the earlier state, and keeps that key in `.agents/perceptual/runs/blind/<id>.json`, apart from the pictures:
 
-  ```
-  uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/blind.py" --id <shot> --before <path> --after <path> [--reference <path>] --json
-  ```
+   ```
+   P blind --id <shot> --before <file> --after <file> [--reference <file>] --json
+   ```
 
-- Give the critic only the `images` paths it printed, the observables from the success file (as questions: "is
-  the lamp lit?"), and nothing about what you changed or expect, nor the key. It reports per observable what it
-  sees, defects it notices, and which side it finds more plausible and why. Translate A and B back with the key
-  (`aIs`) after it has answered.
-- Where it disagrees with your verdicts, look again; where it finds a defect you missed, that is the value.
-- For a whole batch of finished shots, and only when the user has asked for multi-agent work, run the workflow
-  (a blind critic per comparison, then a refuter per finding). Each item is what `blind.py --json` printed for
-  that comparison, plus its observables; the workflow refuses pictures whose names tell which state they are:
+2. Dispatch the `perceptual-loop:vision-critic` agent with only the picture paths it printed, the success file's observables phrased as questions ("is the lamp lit?"), the box to attend to, and the plugin root. Nothing about what you changed or expect, and never the key.
+3. Translate A and B back once it has answered (`aIs` in what blind printed, or `P blind reveal <id>`). Where it disagrees with you, look again; where it finds a defect you missed, that is the point of the step.
 
-  ```
-  Workflow({
-    scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/judge-and-queue/workflows/critique.js",
-    args: { pluginRoot: "<absolute path of ${CLAUDE_PLUGIN_ROOT}>",
-            items: [{ id: "<shot>", images: { A: "<path>", B: "<path>", R: "<path>" }, aIs: "before",
-                      observables: ["<question>"], box: "x0,y0,x1,y1" }] }
-  })
-  ```
-
-  It returns per item the observables for before and after, the findings that were not refuted (each marked
-  `verified` true or false), the differences nobody could rank, and the counts of refuted and unverified ones.
-
-*Done when: the critic's findings are listed beside your verdicts and each disagreement is resolved or queued.*
-
-## Step 4 — Queue what is the owner's, with a recommendation
+For a batch of finished shots, and only when the person asked for multi-agent work, run the workflow: a critic per comparison, then a skeptic per finding. It refuses pictures whose names say which state they are, and it keeps the key in the script:
 
 ```
-uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/review_page.py" add --id <slug> --title "<thing>" \
-  --question "<one question the owner can answer by looking>" --context "<what differs and why, two sentences>" \
-  --image "reference=<path>" --image "before=<path>" --image "after=<path>" \
-  --option "keep=Keep as it is" --option "change=<the alternative>" --recommend keep
+Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/judge-and-queue/workflows/critique.js",
+  args: { pluginRoot: "<absolute path of the plugin>",
+          items: [{ id: "<shot>", images: { A: "<path>", B: "<path>", R: "<path>" }, aIs: "<from blind>",
+                    observables: ["<question>"], box: "x0,y0,x1,y1" }] } })
 ```
 
-A good item: one question, the pictures, what differs **and why** (the mechanism, from step 2), the options as
-actions, your recommendation. Never ask "is this ok?" without saying what you would do. Then **carry on** with work
-that does not depend on the answer; do not stop for it.
+It returns, per comparison, the observables for before and after, the findings that were not refuted (each `verified` or not), the differences nobody could rank, and the counts. A host without the Workflow tool follows `${CLAUDE_PLUGIN_ROOT}/references/subagent-fallback.md`.
 
-*Done when: every "owner's" row of step 2 is an item in the queue, and you have continued with independent work.*
+*Done when: the critic's findings sit beside your verdicts, and each disagreement is resolved or queued.*
 
-## Step 5 — One page, one sitting
-
-When the work pauses naturally (a task finished, several items waiting):
+## Step 4: Queue what is the owner's, with a recommendation
 
 ```
-uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/review_page.py" build
+P review add --id <slug> --title "<the thing>" --question "<one question the owner answers by looking>" \
+  --context "<what differs and why, in two sentences>" \
+  --image "before=<path>" --image "after=<path>" --image "reference=<path>" --compare \
+  --option "keep=Keep it as it is" --option "change=<the alternative>" --recommend keep
 ```
 
-Give the owner the path of `.perceptual-loop/decisions/review.html`. It is one self-contained file: cards with the
-pictures, a blink toggle between two states, the options, a note field, and an export of `decisions.json`.
+A good question has one question, the pictures, what differs **and why** (the mechanism from step 2), the options written as actions, and your recommendation. `--compare` marks the first two pictures as one view, so the page offers a slider and blink. `--evidence` and `--verdict` add the measured facts and the verdicts given so far. Never ask "is this ok?" without saying what you would do. Then carry on with work that does not depend on the answer.
 
-*Done when: the page is built and the owner has its path with a one-line count of the questions in it.*
+*Done when: every row of step 2 that is the owner's is a question in the queue, and you have gone on with other work.*
 
-## Step 6 — Apply the rulings
+## Step 5: One page, one sitting
+
+When the work pauses (a task finished, several questions waiting):
 
 ```
-uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/review_page.py" apply <decisions.json>
+P review build
 ```
 
-Each ruling becomes a dated file in `.perceptual-loop/decisions/` (the question, the choice, the owner's words
-verbatim) and leaves the queue. Read them: a ruling is binding for later work and for other agents, and the owner's
-note often says more than the option. A ruling of "approve as it is" also closes the item's metric discussion: do
-not reopen it because a number is far from the reference.
+It writes `.agents/perceptual/decisions/review.html`: one file that needs no network, every picture laid on grey 128, scaled down and embedded as a JPEG (`--link-images` references the files instead). The owner gets cards with the pictures, a slider and blink for each pair, the options (keys 1 to 9, j and k between questions), a note field, and an export of `decisions.json`. The answers stay in the owner's browser until exported.
 
-`.perceptual-loop/decisions/` holds rulings on looks. A ruling that binds work beyond this look (a rule for every
-engine, a format, a policy) also gets a decision record: that is agent-works' job (`agent-works:decisions` /
-`aw decisions new`). Without it: write it where every agent of the project reads its rules, and link the ruling.
+*Done when: the page is built and the owner has its path and a one-line count of the questions in it.*
 
-*Done when: the queue no longer holds decided items, each ruling's follow-up work is started or listed, and any
-doctrine-level ruling (a rule that changed) is written where every agent reads it.*
+## Step 6: Apply the rulings
+
+```
+P review apply <decisions.json>
+```
+
+Each answer becomes `.agents/perceptual/decisions/<date>-<id>.md` (the question, the choice, the owner's note word for word) and leaves the queue; the command says what to do next for each. A ruling binds later work and other agents, and the note often says more than the option. A ruling of "keep it as it is" also ends the metric argument about that look: a number far from the reference does not reopen it.
+
+A ruling that reaches past this look (a rule for every sky, a format, a policy) is also written where every agent of the project reads its rules: a line in the root `AGENTS.md` that links the ruling file, or a decision record in the plan if but-first-planning is installed and the repo has `.agents/plan/`.
+
+*Done when: the queue holds no decided question, each ruling's follow-up is started or listed, and any ruling with reach is written where every agent reads it.*
 
 ## Reports
 
-Before sending a report or a PR body, lint it:
-`uv run --no-project "${CLAUDE_PLUGIN_ROOT}/scripts/evidence_lint.py" <report.md>`. It flags verdict words beside a
-bare metric, "verified" without an artefact, and targets set against the reference.
+Lint a report or the body of a pull or merge request before sending it: `P lint <report.md>`. It flags a verdict word beside a bare metric, "verified" with no artefact, and a target set against the reference. A check you could not run is owed, not dropped: a line at the top of the report, or the task board if agent-works is installed.

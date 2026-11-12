@@ -1,0 +1,14 @@
+{
+  "script": "prompt-submit.mjs",
+  "event": "UserPromptSubmit",
+  "fixture": "bare",
+  "stdin": "",
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-prompt-2",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

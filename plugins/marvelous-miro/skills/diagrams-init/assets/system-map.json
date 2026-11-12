@@ -1,0 +1,18 @@
+{
+  "title": "{{REPO}} system map",
+  "map": "diagrams/system-map.json",
+  "include": [
+    "**"
+  ],
+  "exclude": [
+    ".agents/**"
+  ],
+  "externals": {},
+  "nodes": {},
+  "egress": [],
+  "board": null,
+  "requireClassification": null,
+  "classification": null,
+  "publishedHash": null,
+  "accept": []
+}

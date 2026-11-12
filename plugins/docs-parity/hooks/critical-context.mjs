@@ -63,11 +63,13 @@ export const CONFIG_KEY = `${MARKETPLACE}.plugins`;
 export const MANIFEST = ".agents/manifest.json";
 // One plugin's own marker: a repo that committed any of these chose the
 // plugins, so their portable lines apply without asking.
-export const MARKERS = [".agents/agent-works.json", ".agents/docs-parity.json", ".agents/perceptual", ".agents/plan", ".agents/system-map.json", "miro.config.mjs"];
+export const MARKERS = [".agents/agent-works.json", ".agents/docs-parity.json", ".agents/perceptual", ".agents/plan", ".agents/system-map.json", "miro.config.mjs", "diagrams/miro.config.mjs"];
 // The repo-wide marker of an older layout. A repo that still carries one is on
 // the conventions already: every plugin treats it so while the owning plugin's
 // migration, which may run after theirs in the same session, moves it.
 export const OLD_MANIFESTS = [".claude/teamwork.json"];
+// One plugin's own marker in an older layout, counted the same way until it is moved.
+export const OLD_MARKERS = [".perceptual-loop"];
 // How long a migration may take before the hook stops waiting on it.
 export const MIGRATE_MS = 3000;
 
@@ -97,7 +99,7 @@ export function choiceOf(root) {
 export function modeOf(root, choice = choiceOf(root)) {
   if (!root) return "none";
   if (present(root, MANIFEST) || choice === "team" || OLD_MANIFESTS.some((m) => present(root, m))) return "full";
-  if (choice === "on" || MARKERS.some((m) => present(root, m))) return "portable";
+  if (choice === "on" || [...MARKERS, ...OLD_MARKERS].some((m) => present(root, m))) return "portable";
   return "none";
 }
 

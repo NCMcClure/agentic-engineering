@@ -1,0 +1,8 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "stdin": "{not json",
+  "expect": {
+    "exit": 0
+  }
+}

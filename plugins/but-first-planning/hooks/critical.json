@@ -1,0 +1,17 @@
+{
+  "plugin": "but-first-planning",
+  "lines": [
+    {
+      "for": "main",
+      "mode": "any",
+      "text": "Anything not fully specified gets /but-first-planning:grill (one question at a time, each with a recommended answer) before it is planned or handed to a session you will not watch."
+    },
+    {
+      "for": "all",
+      "mode": "any",
+      "when": ".agents/plan",
+      "text": "The plan lives in .agents/plan/: a spec decision changes through /but-first-planning:spec-edit, and an issue is built from its acceptance criteria as failing tests first (/but-first-planning:build-tdd)."
+    }
+  ],
+  "chains": []
+}

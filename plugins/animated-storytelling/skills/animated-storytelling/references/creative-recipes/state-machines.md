@@ -131,9 +131,9 @@ function TickerColumn({ items, intervalMs = 1100 }) {
 
 ---
 
-## Production Example: WhatLoomIsSlide Pipeline
+## Production Example: Five-Column Pipeline
 
-A 5-column pipeline where each column has completely independent animation logic. From the loom-agent-website presentation:
+A 5-column pipeline where each column has completely independent animation logic:
 
 ### Architecture
 

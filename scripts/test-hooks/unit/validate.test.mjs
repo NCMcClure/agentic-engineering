@@ -75,9 +75,9 @@ test("a README that still carries a ## Changelog section fails", (t) => {
 // The ratchet: a legacy flag waives the Node-only rules, and only for as long
 // as the plugin breaks one of them.
 test("a plugin with no legacy flag is held to the Node-only rules", (t) => {
-  const result = validate(tree(t, { ...withTidy({ "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n" }), remove: ["scripts/plugins/write-like-me.json"] }));
+  const result = validate(tree(t, { ...withTidy({ "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n" }), remove: ["scripts/plugins/agent-works.json"] }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/write-like-me\/hooks\/session_start\.py is not Node/m);
+  assert.match(result.stdout, /^FAIL: plugins\/agent-works\/hooks\/guard\.py is not Node/m);
   assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the four allowed/m);
 });
 
@@ -167,7 +167,7 @@ const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: (m) => ({ ..
 
 test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
   const dir = tree(t, { json: shares("write-like-me", ["hooks/critical-context.mjs"]), write: { "plugins/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
-  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/workflow-studio.json"), `${JSON.stringify({ legacy: true, shared })}\n`);
+  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/workflow-studio.json"), `${JSON.stringify({ shared })}\n`);
   data(["hooks/critical-context.mjs", "lib/no-such-file.mjs"]);
   const result = validate(dir);
   assert.equal(result.status, 1);

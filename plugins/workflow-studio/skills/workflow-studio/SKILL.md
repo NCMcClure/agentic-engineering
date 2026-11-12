@@ -27,13 +27,13 @@ restarts and plugin updates.
    ```bash
    STUDIO_ROOT="${CLAUDE_PROJECT_DIR:-$HOME}/.claude/workflow-studio"
    WORKFLOW_EXPORT_ROOT="${CLAUDE_PROJECT_DIR:-$HOME}" \
-     bash "${CLAUDE_PLUGIN_ROOT}/scripts/launch-studio.sh" "${CLAUDE_PLUGIN_ROOT}" "$STUDIO_ROOT" "${CLAUDE_PLUGIN_DATA}"
+     node "${CLAUDE_PLUGIN_ROOT}/scripts/launch-studio.mjs" "${CLAUDE_PLUGIN_ROOT}" "$STUDIO_ROOT" "${CLAUDE_PLUGIN_DATA}"
    ```
 
-   If a studio is already running for this studio root, the script prints its
-   `Local:` URL and exits 0 — treat that exactly like a fresh launch.
+   If a studio is already running for this studio root, the launcher prints
+   its `Local:` URL and exits 0 — treat that exactly like a fresh launch.
 
-2. First run: the script copies the app into `${CLAUDE_PLUGIN_DATA}/app` and
+2. First run: the launcher copies the app into `${CLAUDE_PLUGIN_DATA}/app` and
    runs `npm ci` — expect ~30–60 seconds and note that it needs network access
    once. Subsequent launches skip the install and start in a few seconds.
 3. Poll the background task output and wait for Vite's `Local:` line. Give the
@@ -55,8 +55,10 @@ until the user hits Publish — Compile only writes the studio-internal copy.
 - To stop the studio, kill the background task running the dev server.
 - If the install is corrupted or behaving strangely, delete
   `${CLAUDE_PLUGIN_DATA}/app` and relaunch for a clean reinstall.
-- The script fails fast with a friendly message if `node`/`npm` are missing or
-  Node is older than 20 (Vite 6 requires Node 20+).
+- The launcher stops with a plain message if `npm` is missing or Node is older
+  than 20 (Vite 6 requires Node 20+). If the shell itself says `node` was not
+  found, the fix is the same: install Node.js 20 or newer from
+  https://nodejs.org/ or a package manager, then relaunch.
 
 ## Related
 

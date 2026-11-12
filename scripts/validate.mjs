@@ -33,9 +33,11 @@ const HOOK_EVENTS = new Set(["PreToolUse", "PostToolUse", "PostToolUseFailure", 
   "Notification", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd", "PreCompact", "PostCompact",
   "TaskCompleted"]);
 const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "argument-hint"]);
-// Non-Node files a plugin ships on purpose, by exact path. Both need numpy and
-// a model download, which no stdlib rewrite replaces.
+// Non-Node files a plugin ships on purpose, by exact path. Two need numpy and
+// a model download, which no stdlib rewrite replaces; the third fronts a
+// MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
+  "plugins/but-first-planning/skills/spec-init/assets/comments-server.py",
   "plugins/perceptual-loop/scripts/keypoints.py",
   "plugins/perceptual-loop/scripts/semantic.py",
 ]);

@@ -1,0 +1,14 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "bare",
+  "stdin": "",
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-session-2",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

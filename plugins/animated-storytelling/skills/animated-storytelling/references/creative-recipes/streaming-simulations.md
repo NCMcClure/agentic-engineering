@@ -119,7 +119,7 @@ This makes items appear to "sink" out of view rather than simply disappearing.
 
 ## Production Example: GitHistorySlide
 
-A streaming git log that spawns new commits every 1.1 seconds, complete with rich metadata display, mask gradient, and paired digest panel. From the loom-agent-website:
+A streaming git log that spawns new commits every 1.1 seconds, complete with rich metadata display, mask gradient, and paired digest panel:
 
 ```tsx
 import { useEffect, useState } from "react"

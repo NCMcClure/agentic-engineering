@@ -165,7 +165,7 @@ function InteractiveMock() {
 
 ## Production Example: TimmyTeamsThreads
 
-A fully interactive Teams chat mock with scrollable feed, clickable reply affordances, and a sliding thread panel that shows bot responses. From the loom-agent-website:
+A fully interactive Teams chat mock with scrollable feed, clickable reply affordances, and a sliding thread panel that shows bot responses:
 
 ### Data Model
 

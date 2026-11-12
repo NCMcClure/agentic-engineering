@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
-import { CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, OLD_MANIFESTS, ORDER, SHARED_LINE, enabledPlugins, isAsker, modeOf, moveOnce } from "../../shared/critical-context.mjs";
+import { CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, OLD_MANIFESTS, OLD_MARKERS, ORDER, SHARED_LINE, enabledPlugins, isAsker, modeOf, moveOnce } from "../../shared/critical-context.mjs";
 
 const KERNEL = path.join(REPO, "scripts", "shared", "critical-context.mjs");
 const suite = { after };
@@ -114,6 +114,11 @@ test("mode: a repo still on an older layout's marker is full before its plugin h
     const dir = repo(t, "off");
     write(dir, marker, "{}\n");
     assert.equal(modeOf(dir), "full", marker);
+  }
+  for (const marker of OLD_MARKERS) {
+    const dir = repo(t, "off");
+    write(dir, `${marker}/config.json`, "{}\n");
+    assert.equal(modeOf(dir), "portable", marker);
   }
 });
 

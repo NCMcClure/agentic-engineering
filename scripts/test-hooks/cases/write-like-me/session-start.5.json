@@ -1,0 +1,20 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "session_id": "ss-5",
+    "cwd": "{{REPO}}"
+  },
+  "env": {
+    "WLM_HOME": "",
+    "CLAUDE_PLUGIN_DATA": "",
+    "WLM_PROFILE": ""
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

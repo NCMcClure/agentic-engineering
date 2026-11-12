@@ -34,6 +34,6 @@ wants, rewrite it in their **voice**.
 
 4. **Offer the rewrite.** If the user wants it, rewrite the flagged passages
    in their voice — their profile (normally `~/.claude/rules/write-like-me.md`,
-   or `$WLM_PROFILE` if set; `scripts/wlm/paths.py` is the resolver) governs
+   or `$WLM_PROFILE` if set; `scripts/wlm/paths.mjs` is the resolver) governs
    tone and vocabulary; rewrite the sentence rather than swapping the flagged
    word. Show before/after for each changed passage.

@@ -143,6 +143,8 @@ function currentMarkers(dir, teamwork) {
   everyMarker(dir);
   fs.rmSync(path.join(dir, ".claude"), { recursive: true, force: true });
   fs.renameSync(path.join(dir, ".perceptual-loop"), path.join(dir, ".agents", "perceptual"));
+  const config = path.join(dir, ".agents", "perceptual", "config.json");
+  fs.writeFileSync(config, fs.readFileSync(config, "utf8").replaceAll(".perceptual-loop/", ".agents/perceptual/"));
   manifest(dir, teamwork);
 }
 
@@ -193,7 +195,7 @@ export function makeFixture(root, kind) {
 /** The plugins that owe a fixture of this kind their context: those whose marker it carries, and those that speak wherever a repo has opted in. */
 export function adopted(kind) {
   if (["adopted", "standard", "strict"].includes(kind)) return ["agent-works", "agentic-teamwork", "but-first-planning", "code-diet", "docs-parity", "perceptual-loop"];
-  if (kind === "teamwork-only" || kind === "portable") return ["agentic-teamwork", "code-diet"];
+  if (kind === "teamwork-only" || kind === "portable") return ["agentic-teamwork", "but-first-planning", "code-diet", "perceptual-loop"];
   return [];
 }
 

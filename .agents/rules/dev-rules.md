@@ -51,8 +51,9 @@ When a rule changes, change the check in the same commit.
 
 - `scripts/shared/` holds the files several plugins ship unchanged, since a plugin
   cannot import from outside itself: `critical-context.mjs` (the session-start
-  kernel), `provider.mjs` (GitHub and GitLab through `gh` and `glab`), and
-  `shell-words.mjs` (the command lexer the guards read a Bash call with).
+  kernel), `provider.mjs` (GitHub and GitLab through `gh` and `glab`),
+  `shell-words.mjs` (the command lexer the guards read a Bash call with), and
+  `verify-hubs.mjs` (the check that every `AGENTS.md` hub names its children).
 - A plugin lists its copies, plugin-relative, under `shared` in
   `scripts/plugins/<name>.json`. The file of the same name in `scripts/shared/`
   is the one to edit; `node scripts/sync-shared.mjs --write` rewrites the copies,

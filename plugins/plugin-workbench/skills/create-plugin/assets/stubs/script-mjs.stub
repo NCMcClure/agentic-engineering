@@ -1,0 +1,19 @@
+#!/usr/bin/env node
+// TODO(author): what this script computes deterministically for the
+// {{SKILL_NAME}} skill, and its exact argv/stdin -> stdout contract.
+//
+// Node 22 stdlib only, no dependencies.
+
+function main() {
+  // TODO(author): read argv, do the deterministic work, and emit
+  // machine-readable output. The model reads this; it never re-derives it.
+  console.log(JSON.stringify({ ok: true }));
+}
+
+// Set the exit code and let Node unwind: an early exit can cut stdout short,
+// and stdout is the whole contract.
+try { main(); }
+catch (e) {
+  console.error(e.message);
+  process.exitCode = 1;
+}

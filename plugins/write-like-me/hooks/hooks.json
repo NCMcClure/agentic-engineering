@@ -2,22 +2,36 @@
   "hooks": {
     "SessionStart": [
       {
+        "matcher": "startup|resume|clear|compact",
         "hooks": [
-          { "type": "command", "command": "sh -c 'PY=$(command -v python3 || command -v python); exec \"$PY\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/session_start.py\"'" }
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so write-like-me hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking for a writing profile"
+          }
         ]
       }
     ],
     "UserPromptSubmit": [
       {
         "hooks": [
-          { "type": "command", "command": "sh -c 'PY=$(command -v python3 || command -v python); exec \"$PY\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt_submit.py\"'" }
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/prompt-submit.mjs\"",
+            "timeout": 5
+          }
         ]
       }
     ],
     "Stop": [
       {
         "hooks": [
-          { "type": "command", "command": "sh -c 'PY=$(command -v python3 || command -v python); exec \"$PY\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.py\"'", "timeout": 30 }
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/stop.mjs\"",
+            "timeout": 30
+          }
         ]
       }
     ]

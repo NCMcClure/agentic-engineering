@@ -1,6 +1,6 @@
 # agentic-engineering: a Claude Code plugin marketplace
 
-Eleven plugins, each a fix for a problem that keeps turning up when engineering
+Twelve plugins, each a fix for a problem that keeps turning up when engineering
 with agents. Nothing here runs in production; it runs in the agents, so a
 mistake ships to every session that has the plugin installed.
 

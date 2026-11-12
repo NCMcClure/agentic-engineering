@@ -2,6 +2,7 @@
 # requires-python = ">=3.10"
 # dependencies = ["mediapipe>=0.10.14", "numpy>=1.24", "Pillow>=10.1"]
 # ///
+# debt: stays Python while the pose model it wraps ships for Python only, move to Node when that changes
 """keypoints.py: where are a character's joints, and do two pictures agree about them?
 
   detect   pose keypoints (33 per person; optionally hands and faces) of an image or of frames, as JSON
@@ -18,6 +19,10 @@ it has wheels for CPython 3.10 and later on Windows x64, macOS and Linux (x64, a
 
 An input is an image, a folder of frames, a video file, or a shot (`--shot NAME --source S`: its beauty picture,
 or with --clip its clip).
+
+An optional extra of the perceptual-loop plugin, and its only Python beside semantic.py: the rest of the plugin is Node and
+runs without this file. Start it through the CLI (`node pl.mjs keypoints ...`, which finds uv or a Python) or directly
+(`uv run --no-project keypoints.py ...`). It stands alone: nothing is imported from the plugin.
 """
 from __future__ import annotations
 
@@ -26,17 +31,318 @@ import sys
 sys.dont_write_bytecode = True
 
 import argparse
+import atexit
+import json
 import math
 import os
+import re
+import shutil
+import subprocess
 import tempfile
 import time
 import urllib.request
 from pathlib import Path
 from typing import Any
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-import pl_common as pl  # noqa: E402
-import video as V  # noqa: E402
+# ------------------------------------------------------------------------------------------------------- the project
+# What this script shares with the Node CLI (scripts/lib/project.mjs), restated here so the file runs on its own:
+# where a project keeps its perceptual state, its config, its shots.
+
+DIR_NAME = ".agents/perceptual"
+OLD_DIR_NAME = ".perceptual-loop"  # the first layout's folder: read in place while a repo has not been moved
+DEFAULT_CONFIG: dict[str, Any] = {"version": 1, "reference": "reference", "candidates": ["candidate"], "shotsDir": f"{DIR_NAME}/shots"}
+PASS_SUFFIX = {"beauty": "", "mask": ".mask", "id": ".id", "depth": ".depth", "albedo": ".albedo"}
+IMG_EXT = (".png", ".jpg", ".jpeg", ".bmp", ".webp", ".tif", ".tiff")
+
+
+class PlError(Exception):
+    """A usage or environment error: the caller prints it and exits 2."""
+
+
+def fail(message: str, code: int = 2):
+    print(message, file=sys.stderr)
+    raise SystemExit(code)
+
+
+def emit(doc: Any, as_json: bool, text: str | None = None) -> None:
+    """Print one JSON document (--json) or the human text."""
+    if as_json:
+        json.dump(doc, sys.stdout, indent=2, sort_keys=False)
+        sys.stdout.write("\n")
+    elif text is not None:
+        print(text)
+
+
+def utf8_stdio() -> None:
+    """Windows pipes default to a legacy code page: a degree sign or a non-ASCII path would be garbled or raise."""
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, ValueError):
+            pass
+
+
+def _on_old_layout(root: Path) -> bool:
+    return not (root / DIR_NAME / "config.json").is_file() and (root / OLD_DIR_NAME / "config.json").is_file()
+
+
+def find_root(start: str | os.PathLike[str] | None = None) -> Path:
+    """The project root: the first ancestor holding the state folder's config.json, else the first with .git, else cwd."""
+    here = Path(start or os.getcwd()).resolve()
+    git_root: Path | None = None
+    for p in [here, *here.parents]:
+        if (p / DIR_NAME / "config.json").is_file() or (p / OLD_DIR_NAME / "config.json").is_file():
+            return p
+        if git_root is None and (p / ".git").exists():
+            git_root = p
+    return git_root or here
+
+
+def pl_dir(root: Path | None = None) -> Path:
+    env = os.environ.get("PL_DIR") or os.environ.get("PERCEPTUAL_LOOP_DIR")
+    if env:
+        return Path(env).resolve()
+    root = root or find_root()
+    return root / (OLD_DIR_NAME if _on_old_layout(root) else DIR_NAME)
+
+
+def load_config(root: Path | None = None) -> dict[str, Any]:
+    root = root or find_root()
+    path = pl_dir(root) / "config.json"
+    if not path.is_file():
+        return dict(DEFAULT_CONFIG)
+    try:
+        doc = json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as e:
+        raise PlError(f"{path} is not valid JSON: {e}") from e
+    config = {**DEFAULT_CONFIG, **doc}
+    if "shotsDir" not in doc and _on_old_layout(root):
+        config["shotsDir"] = f"{OLD_DIR_NAME}/shots"
+    return config
+
+
+def shots_dir(root: Path | None = None, config: dict[str, Any] | None = None) -> Path:
+    root = root or find_root()
+    env = os.environ.get("PL_SHOTS_DIR")
+    if env:
+        return Path(env).resolve()
+    rel = str((config or load_config(root))["shotsDir"]).replace("\\", "/")
+    # a config that still spells the first layout's folder is read from the state folder once that folder has moved
+    if (rel == OLD_DIR_NAME or rel.startswith(OLD_DIR_NAME + "/")) and not (root / OLD_DIR_NAME).exists():
+        return pl_dir(root) / rel[len(OLD_DIR_NAME):].lstrip("/")
+    p = Path(rel)
+    return p if p.is_absolute() else root / p
+
+
+def runs_dir(root: Path | None = None) -> Path:
+    return pl_dir(root) / "runs"
+
+
+def shot_path(shot: str, root: Path | None = None, config: dict[str, Any] | None = None) -> Path:
+    return shots_dir(root, config) / shot
+
+
+def pass_file(shot_dir: Path, source: str, pass_: str = "beauty") -> Path:
+    return shot_dir / f"{source}{PASS_SUFFIX[pass_]}.png"
+
+
+def read_json(path: Path, default: Any = None) -> Any:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return default
+
+
+def write_json(path: Path, doc: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+    tmp.replace(path)
+
+
+def list_frames(d: Path) -> list[Path]:
+    return sorted(p for p in Path(d).iterdir() if p.suffix.lower() in IMG_EXT and p.is_file())
+
+
+# ------------------------------------------------------------------------------------------- clips, frames and sheets
+# A clip is a folder of frames, a video file (through the ffmpeg executable), or a shot's clip.
+
+VID_EXT = (".mp4", ".webm", ".mov", ".mkv", ".avi")
+BG, FG, DIM = (22, 22, 24), (235, 235, 235), (150, 150, 155)
+
+
+def common_parent(every_help: str | None = None) -> argparse.ArgumentParser:
+    """The output and input flags, as an argparse parent."""
+    p = argparse.ArgumentParser(add_help=False)
+    g = p.add_argument_group("output")
+    g.add_argument("--json", action="store_true", help="print one JSON document on stdout and nothing else")
+    g.add_argument("--out", metavar="DIR", help=f"folder for pictures and reports (default: {DIR_NAME}/runs/<run>/<shot>/ when the project has one)")
+    g.add_argument("--run", default="adhoc", help=f"run name under {DIR_NAME}/runs/ when --out is not given (default: adhoc)")
+    g.add_argument("--max-width", type=int, default=2000, help="no picture is written wider than this many pixels (default 2000)")
+    g = p.add_argument_group("input (one of)")
+    g.add_argument("--shot", help="a shot of the store; with --source, its clip (frames/<source>/ or <source>.mp4|.webm)")
+    g.add_argument("--source", help="the source whose output is measured (default: the first candidate of config.json)")
+    g.add_argument("--frames", metavar="DIR", help="a folder of frames, read in name order")
+    g.add_argument("--video", metavar="FILE", help="a video file (needs ffmpeg)")
+    g.add_argument("--rate", type=float, help="frames per second of a frames folder, for timestamps (a video's own rate is read from it)")
+    g.add_argument("--every", type=int, default=None, help=every_help or "use every Nth frame (default 1)")
+    return p
+
+
+def default_source(args: argparse.Namespace) -> str:
+    return args.source or load_config()["candidates"][0]
+
+
+def out_dir(args: argparse.Namespace, shot: str | None = None, need: bool = True) -> Path | None:
+    """Where this command may write: --out, else the run folder of a project, else nowhere."""
+    if getattr(args, "out", None):
+        d = Path(args.out)
+    elif pl_dir().is_dir():
+        d = runs_dir() / args.run / (shot or "_files")
+    elif need:
+        fail(f"give --out DIR: there is no {DIR_NAME}/ here to write into")
+    else:
+        return None
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
+def _run(cmd: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace")
+
+
+def ffmpeg_exe(needed_for: str = "reading a video file") -> str:
+    exe = os.environ.get("PL_FFMPEG") or shutil.which("ffmpeg")
+    if not exe:
+        fail(f"{needed_for} needs the ffmpeg executable, which is not on PATH.\n"
+             "Install it (winget install ffmpeg / brew install ffmpeg / apt install ffmpeg) or set PL_FFMPEG to its path.\n"
+             "Folders of frames (--frames DIR) need no ffmpeg.")
+    return exe
+
+
+def _frac(s: str | None) -> float:
+    try:
+        a, _, b = (s or "0").partition("/")
+        return float(a) / float(b or 1)
+    except (ValueError, ZeroDivisionError):
+        return 0.0
+
+
+def probe(path: Path) -> dict[str, Any]:
+    """The rate and frame count of a video file: from ffprobe when it is there, else from what ffmpeg prints."""
+    fp = os.environ.get("PL_FFPROBE") or shutil.which("ffprobe")
+    if fp:
+        r = _run([fp, "-v", "error", "-count_packets", "-show_entries", "stream=codec_type,avg_frame_rate,r_frame_rate,nb_read_packets", "-of", "json", str(path)])
+        if r.returncode != 0:
+            fail(f"ffprobe could not read {path}: {r.stderr.strip()}")
+        vs = [s for s in json.loads(r.stdout).get("streams", []) if s.get("codec_type") == "video"]
+        if not vs:
+            fail(f"{path} has no video stream")
+        return {"fps": round(_frac(vs[0].get("avg_frame_rate")) or _frac(vs[0].get("r_frame_rate")), 4), "frames": int(vs[0].get("nb_read_packets") or 0)}
+    r = _run([ffmpeg_exe("probing a video file"), "-hide_banner", "-i", str(path)])  # exits 1 (no output file); the facts are on stderr
+    dur = re.search(r"Duration:\s*(\d+):(\d+):([\d.]+)", r.stderr)
+    vid = re.search(r"Video:.*?([\d.]+)\s*fps", r.stderr)
+    if not vid:
+        fail(f"ffmpeg found no video stream in {path}")
+    duration = (int(dur[1]) * 3600 + int(dur[2]) * 60 + float(dur[3])) if dur else 0.0
+    return {"fps": float(vid[1]), "frames": int(round(duration * float(vid[1])))}
+
+
+def extract(video: Path, out: Path, every: int, info: dict[str, Any]) -> list[dict[str, Any]]:
+    """Every Nth frame of a video as out/000001.png ...; returns [{path, index (frame number in the clip, from 0), t (seconds)}]."""
+    ff = ffmpeg_exe("extracting frames")
+    rate = info["fps"] or 0.0
+    out.mkdir(parents=True, exist_ok=True)
+    vf = f"select=not(mod(n\\,{every}))"
+    # the frames kept must not be re-timed into a constant rate (ffmpeg would duplicate to fill the gaps);
+    # the flag for that was renamed in ffmpeg 5.1, so try the new spelling, then the old
+    for sync in (["-fps_mode", "vfr"], ["-vsync", "vfr"]):
+        r = _run([ff, "-v", "error", "-y", "-i", str(video), "-vf", vf, *sync, str(out / "%06d.png")])
+        if r.returncode == 0:
+            break
+    else:
+        fail(f"ffmpeg could not extract frames of {video}: {r.stderr.strip()}")
+    return [{"path": p, "index": k * every, "t": (k * every / rate if rate else None)} for k, p in enumerate(list_frames(out))]
+
+
+def temp_dir() -> Path:
+    d = Path(tempfile.mkdtemp(prefix="pl-"))
+    atexit.register(shutil.rmtree, d, True)
+    return d
+
+
+def open_sequence(path: str | Path | None = None, *, shot: str | None = None, source: str | None = None, rate: float | None = None,
+                  every: int | None = 1, what: str = "input") -> dict[str, Any]:
+    """A clip as frames on disk: {frames: [{path, index, t}], fps}. `path` is a folder of frames, a video file or
+    one image; without it, the clip of a shot's source."""
+    every = max(1, every or 1)
+    if path is None:
+        if not shot:
+            fail(f"{what}: give --frames DIR, --video FILE, or --shot NAME --source S")
+        d = shot_path(shot)
+        if not d.is_dir():
+            fail(f"no such shot: {shot} (looked in {d.parent})")
+        clips = [d / "frames" / source] if (d / "frames" / source).is_dir() else [d / f"{source}{e}" for e in VID_EXT if (d / f"{source}{e}").is_file()]
+        if not clips:
+            fail(f"shot '{shot}' has no clip of source '{source}' (looked for frames/{source}/ and {source}.mp4|.webm in {d})")
+        path = clips[0]
+    path = Path(path)
+    if path.is_dir():
+        files = list_frames(path)
+        if not files:
+            fail(f"{what}: no frames (png/jpg...) in {path}")
+        return {"frames": [{"path": p, "index": i, "t": (i / rate if rate else None)} for i, p in list(enumerate(files))[::every]], "fps": rate}
+    if not path.is_file():
+        fail(f"{what}: no such file or folder: {path}")
+    if path.suffix.lower() in IMG_EXT:
+        return {"frames": [{"path": path, "index": 0, "t": None}], "fps": rate}
+    info = probe(path)
+    frames = extract(path, temp_dir(), every, info)
+    if not frames:
+        fail(f"{what}: ffmpeg gave no frames for {path}")
+    return {"frames": frames, "fps": info["fps"]}
+
+
+def font(size: int = 13):
+    from PIL import ImageFont
+
+    return ImageFont.load_default(size)
+
+
+def save_sheet(img, path: Path, max_width: int = 2000) -> Path:
+    from PIL import Image
+
+    if img.width > max_width:
+        img = img.resize((max_width, max(1, round(img.height * max_width / img.width))), Image.LANCZOS)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    img.convert("RGB").save(path)
+    return path
+
+
+def tile(img, caption: str, width: int, colour=FG):
+    """An image at `width` with one caption line under it."""
+    from PIL import Image, ImageDraw
+
+    im = img.convert("RGB").resize((width, max(1, round(img.height * width / img.width))), Image.LANCZOS if img.width > width else Image.NEAREST)
+    out = Image.new("RGB", (width, im.height + 20), BG)
+    out.paste(im, (0, 0))
+    ImageDraw.Draw(out).text((3, im.height + 2), caption, fill=colour, font=font(13))
+    return out
+
+
+def grid(tiles: list, cols: int, gap: int = 4, title: str | None = None):
+    from PIL import Image, ImageDraw
+
+    cols = max(1, min(cols, len(tiles)))
+    rows = math.ceil(len(tiles) / cols)
+    tw, th = max(t.width for t in tiles), max(t.height for t in tiles)
+    top = 24 if title else 0
+    sheet = Image.new("RGB", (cols * tw + (cols + 1) * gap, top + rows * th + (rows + 1) * gap), BG)
+    if title:
+        ImageDraw.Draw(sheet).text((gap + 2, 4), title, fill=DIM, font=font(14))
+    for i, t in enumerate(tiles):
+        sheet.paste(t, (gap + (i % cols) * (tw + gap), top + gap + (i // cols) * (th + gap)))
+    return sheet
 
 POSE = ["nose", "left_eye_inner", "left_eye", "left_eye_outer", "right_eye_inner", "right_eye", "right_eye_outer", "left_ear", "right_ear", "mouth_left",
         "mouth_right", "left_shoulder", "right_shoulder", "left_elbow", "right_elbow", "left_wrist", "right_wrist", "left_pinky", "right_pinky", "left_index",
@@ -80,7 +386,7 @@ def model_bytes(name: str, args) -> bytes:
             with urllib.request.urlopen(url, timeout=60) as resp:
                 data = resp.read()
         except Exception as e:  # noqa: BLE001
-            raise pl.PlError(f"could not download {url}: {e}\nFetch it by hand and put it at {dest} (or point --cache-dir at a folder that has it).") from e
+            raise PlError(f"could not download {url}: {e}\nFetch it by hand and put it at {dest} (or point --cache-dir at a folder that has it).") from e
         tmp = dest.with_suffix(".part")
         tmp.write_bytes(data)
         tmp.replace(dest)
@@ -97,7 +403,7 @@ class Detector:
             import mediapipe as mp
             from mediapipe.tasks.python import BaseOptions, vision
         except ImportError as e:
-            pl.fail(f"keypoints.py needs the mediapipe package, which could not be imported on Python {sys.version.split()[0]} ({e}).\n"
+            fail(f"keypoints.py needs the mediapipe package, which could not be imported on Python {sys.version.split()[0]} ({e}).\n"
                     "mediapipe publishes wheels for CPython 3.10 and later on Windows x64, macOS and Linux x64/arm64.\n"
                     "Run it as `uv run --no-project keypoints.py …` (uv installs it), or pick an interpreter: `uv run --python 3.12 --no-project keypoints.py …`.")
         self.mp = mp
@@ -256,7 +562,7 @@ def pair_tiles(cand_doc, ref_doc, caption: str, tw: int, min_vis: float) -> list
             draw_skeleton(dr, p["pose"], im.size, REF_COL, min_vis)
         for p in cand_doc["people"]:
             draw_skeleton(dr, p["pose"], im.size, CAND_COL, min_vis, 2)
-        tiles.append(V.tile(im, f"{label} picture   {caption}", tw))
+        tiles.append(tile(im, f"{label} picture   {caption}", tw))
     return tiles
 
 
@@ -264,14 +570,14 @@ def pair_tiles(cand_doc, ref_doc, caption: str, tw: int, min_vis: float) -> list
 
 def frames_of(path: str | None, args, source: str | None, what: str) -> list[dict[str, Any]]:
     if path:
-        return V.open_sequence(path, rate=args.rate, every=args.every, what=what)["frames"]
+        return open_sequence(path, rate=args.rate, every=args.every, what=what)["frames"]
     if not args.shot:
-        pl.fail(f"{what}: give an image, a folder of frames, a video, or --shot NAME --source S")
+        fail(f"{what}: give an image, a folder of frames, a video, or --shot NAME --source S")
     if args.clip:
-        return V.open_sequence(shot=args.shot, source=source, rate=args.rate, every=args.every, what=what)["frames"]
-    p = pl.pass_file(pl.shot_path(args.shot), source)
+        return open_sequence(shot=args.shot, source=source, rate=args.rate, every=args.every, what=what)["frames"]
+    p = pass_file(shot_path(args.shot), source)
     if not p.is_file():
-        pl.fail(f"shot '{args.shot}' has no picture of source '{source}' ({p})")
+        fail(f"shot '{args.shot}' has no picture of source '{source}' ({p})")
     return [{"path": p, "index": 0, "t": None}]
 
 
@@ -284,7 +590,7 @@ def rounded(o: Any) -> Any:
 
 
 def cmd_detect(args):
-    frames = frames_of(args.input or args.frames or args.video, args, V.default_source(args) if args.shot else None, "detect")
+    frames = frames_of(args.input or args.frames or args.video, args, default_source(args) if args.shot else None, "detect")
     det = Detector(args)
     docs = [{"index": f["index"], **det(f["path"])} for f in frames]
     counts = [len(d["people"]) for d in docs]
@@ -294,9 +600,9 @@ def cmd_detect(args):
     if not any(counts):
         notes.append("no person was found: the model answers for photographic or rendered human figures seen mostly whole; stick figures, tiny or heavily stylised characters are missed")
     doc["notes"] = notes
-    d = V.out_dir(args, args.shot if not (args.input or args.frames or args.video) else None, need=False)
+    d = out_dir(args, args.shot if not (args.input or args.frames or args.video) else None, need=False)
     if d:
-        pl.write_json(d / args.name, doc)
+        write_json(d / args.name, doc)
         doc["report"] = str(d / args.name)
     text = f"{len(docs)} picture(s): people found per picture {counts}" + (f"\n  keypoints: {doc['report']}" if d else "") + "".join(f"\n  note: {n}" for n in notes)
     return doc, text, 0
@@ -305,8 +611,8 @@ def cmd_detect(args):
 def cmd_compare(args):
     import numpy as np
 
-    cfg_ref = None if (args.candidate and args.reference) else (args.against or pl.load_config()["reference"])
-    cf = frames_of(args.candidate, args, None if args.candidate else V.default_source(args), "candidate")
+    cfg_ref = None if (args.candidate and args.reference) else (args.against or load_config()["reference"])
+    cf = frames_of(args.candidate, args, None if args.candidate else default_source(args), "candidate")
     rf = frames_of(args.reference, args, cfg_ref, "reference")
     det = Detector(args)
     joints = BODY if args.joints == "body" else POSE
@@ -359,8 +665,8 @@ def cmd_compare(args):
                                "meanError": float(np.nanmean(terr)), "jitter": float(np.nanmean(jc)), "jitterReference": float(np.nanmean(jr))}
     doc["gate"] = {"passed": not failed, "failed": failed}
     shot = None if args.candidate else args.shot
-    d = V.out_dir(args, shot, need=False)
-    stem = f"keypoints.{V.default_source(args)}" if shot else "keypoints"
+    d = out_dir(args, shot, need=False)
+    stem = f"keypoints.{default_source(args)}" if shot else "keypoints"
     if d:
         show = sorted({0, n - 1, *([[r["index"] for r in rows].index(summary["worstFrame"])] if summary else [])})[:3]
         tw = (min(args.max_width, 1800) - 12) // 2
@@ -370,11 +676,11 @@ def cmd_compare(args):
             cap = f"#{rows[k]['index']}  " + (f"PCK@0.2 {p['pck02']:.2f}  mean {p['meanError']:.2f} torso" if p else "no person in both")
             tiles += pair_tiles(docs[k][0], docs[k][1], cap, tw, args.min_visibility)
         title = "pose   blue = reference skeleton, orange = candidate skeleton, both drawn on both pictures; left-side joints are the larger dots"
-        doc["sheet"] = str(V.save_sheet(V.grid(tiles, 2, title=title), d / f"{stem}.png", args.max_width))
+        doc["sheet"] = str(save_sheet(grid(tiles, 2, title=title), d / f"{stem}.png", args.max_width))
         doc["report"] = str(d / f"{stem}.json")
-        pl.write_json(d / f"{stem}.json", rounded(doc))
+        write_json(d / f"{stem}.json", rounded(doc))
     else:
-        notes.append("no --out and no .perceptual-loop/ here: no sheet or report written")
+        notes.append("no --out and no .agents/perceptual/ here: no sheet or report written")
     lines = [f"pose of {n} picture(s), candidate against reference; distances in reference torso lengths, align = {args.align}"]
     if summary:
         lines.append(f"  PCK@0.1 {summary['pck01']:.3f}   PCK@0.2 {summary['pck02']:.3f}   mean joint error {summary['meanError']:.3f}   "
@@ -494,7 +800,7 @@ def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser(prog="keypoints.py", description=__doc__, epilog=EPILOG, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--self-test", action="store_true", help="check the arithmetic on synthetic keypoints, then the model on a synthetic picture (and on $PL_TEST_PHOTO if set)")
     sub = ap.add_subparsers(dest="cmd", metavar="{detect,compare}")
-    common = V.common_parent(every_help="use every Nth frame of a clip (default 1)")
+    common = common_parent(every_help="use every Nth frame of a clip (default 1)")
     g = common.add_argument_group("detection")
     g.add_argument("--model", choices=["lite", "full", "heavy"], default="full", help="pose model: lite 6 MB, full 9 MB (default), heavy 29 MB and the most accurate")
     g.add_argument("--max-people", type=int, default=4, help="most people looked for per picture (default 4)")
@@ -524,7 +830,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def run(argv: list[str] | None = None):
-    V.utf8_stdio()
+    utf8_stdio()
     ap = build_parser()
     args = ap.parse_args(argv)
     if args.self_test:
@@ -534,14 +840,14 @@ def run(argv: list[str] | None = None):
         raise SystemExit(2)
     try:
         doc, text, code = args.fn(args)
-    except pl.PlError as e:
-        pl.fail(str(e))
+    except PlError as e:
+        fail(str(e))
     return args, doc, text, code
 
 
 def main() -> None:
     args, doc, text, code = run()
-    pl.emit(doc, args.json, text)
+    emit(doc, args.json, text)
     raise SystemExit(code)
 
 

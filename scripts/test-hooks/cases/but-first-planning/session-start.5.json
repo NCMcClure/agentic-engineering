@@ -1,0 +1,19 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "adopted",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "session_id": "bfp-5",
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}
