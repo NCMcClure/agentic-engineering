@@ -31,11 +31,13 @@ Skills arrive namespaced: `/but-first-planning:spec-init`,
 Agent workflows rot the same way in every repo: `AGENTS.md` bloats, one rule
 gets stated four times, task status lives in six places, and two sessions on
 one machine never learn the other exists. agent-works gives every kind of fact
-one home under `.agents/` with a size budget, checks them all with
-`aw doctor`, keeps tasks and owed gates on a kanban board you share with the
-agents, and coordinates locks, leases and learnings across projects through
-one CLI. It is the foundation the plugins below lean on for hubs, memory,
-decisions and orchestration; each still runs without it.
+one home under `.agents/` with a size budget and checks them all with
+`aw doctor`. Tasks and owed gates live on a kanban board every worktree
+shares; `/agent-works:orchestrate` runs a large goal from it as child sessions
+in their own worktrees, each approved by you, reviewed, and landed on green. A
+guard stops the mistakes agents repeat, and locks, leases, notes and learnings
+let sessions across projects share one machine. Node 22, nothing else. It is
+the foundation the plugins below lean on; each still runs without it.
 [Read more →](plugins/agent-works/README.md)
 
 ### but-first-planning

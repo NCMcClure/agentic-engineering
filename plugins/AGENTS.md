@@ -10,8 +10,8 @@ A plugin installs as `<name>@agentic-engineering`.
 ## Layout
 
 - `agent-works/` - one home per kind of agent-facing fact under `.agents/`, a
-  kanban board shared with the agents, guards, and machine-wide locks and
-  leases through the `aw` CLI. Descend to change a check, the card format, the
+  kanban board that runs a goal as child sessions, a guard, and machine-wide
+  locks and leases through the `aw` CLI. Descend to change a check, the card format, the
   board pane, or what a session is told.
 - `agentic-teamwork/` - team git conventions: hooks that judge a commit, a
   push and a stop, a scaffold, and skills to ship, land and test. Descend to

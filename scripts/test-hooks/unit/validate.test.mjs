@@ -75,10 +75,22 @@ test("a README that still carries a ## Changelog section fails", (t) => {
 // The ratchet: a legacy flag waives the Node-only rules, and only for as long
 // as the plugin breaks one of them.
 test("a plugin with no legacy flag is held to the Node-only rules", (t) => {
-  const result = validate(tree(t, { ...withTidy({ "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n" }), remove: ["scripts/plugins/agent-works.json"] }));
+  const result = validate(tree(t, withTidy({
+    "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n",
+    "plugins/tidy/hooks/guard.py": "print('swept')\n",
+  })));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/agent-works\/hooks\/guard\.py is not Node/m);
+  assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/guard\.py is not Node/m);
   assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the four allowed/m);
+});
+
+test("a legacy flag waives the Node-only rules for a plugin that still breaks one", (t) => {
+  const result = validate(tree(t, withTidy({
+    "plugins/tidy/hooks/guard.py": "print('swept')\n",
+    "scripts/plugins/tidy.json": '{\n  "legacy": true\n}\n',
+  })));
+  assert.equal(result.status, 0, result.stdout);
+  assert.match(result.stdout, /^note: tidy is legacy: 1 finding\(s\) waived/m);
 });
 
 test("a new plugin that meets every rule passes without a flag", (t) => {
