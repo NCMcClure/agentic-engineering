@@ -8,7 +8,8 @@
 // Given the hook payload and the environment, it answers:
 //   root       the work tree the session is in: the payload's cwd first,
 //              since a worktree session's project dir is the main checkout
-//   mode       full (.agents/manifest.json, or the person answered `team`),
+//   mode       full (.agents/manifest.json or an older layout's marker, or
+//              the person answered `team`),
 //              portable (a plugin's own marker is committed, or the person
 //              answered `on`), none (`off`, or nothing answered yet). A
 //              committed marker outranks a personal `off`.
@@ -35,9 +36,9 @@
 //
 // A plugin whose layout in a repo has changed passes run() a migrate
 // function. It runs first, in the main session only, and may only use the
-// move and write it is handed: both refuse to touch a path that exists, so a
-// migration cannot overwrite and running it twice changes nothing. What moved
-// is reported to the model and to the person.
+// move(from, to) and write(rel, content, { mode }) it is handed: both refuse
+// to touch a path that exists, so a migration cannot overwrite and running it
+// twice changes nothing. What moved is reported to the model and to the person.
 //
 // Reads files and git config only: no network. Fail open: a question that
 // cannot be answered answers in the quiet direction, nothing throws, and the
@@ -63,6 +64,10 @@ export const MANIFEST = ".agents/manifest.json";
 // One plugin's own marker: a repo that committed any of these chose the
 // plugins, so their portable lines apply without asking.
 export const MARKERS = [".agents/agent-works.json", ".agents/docs-parity.json", ".agents/perceptual", ".agents/plan", ".agents/system-map.json", "miro.config.mjs"];
+// The repo-wide marker of an older layout. A repo that still carries one is on
+// the conventions already: every plugin treats it so while the owning plugin's
+// migration, which may run after theirs in the same session, moves it.
+export const OLD_MANIFESTS = [".claude/teamwork.json"];
 // How long a migration may take before the hook stops waiting on it.
 export const MIGRATE_MS = 3000;
 
@@ -91,7 +96,7 @@ export function choiceOf(root) {
 
 export function modeOf(root, choice = choiceOf(root)) {
   if (!root) return "none";
-  if (present(root, MANIFEST) || choice === "team") return "full";
+  if (present(root, MANIFEST) || choice === "team" || OLD_MANIFESTS.some((m) => present(root, m))) return "full";
   if (choice === "on" || MARKERS.some((m) => present(root, m))) return "portable";
   return "none";
 }
@@ -271,12 +276,12 @@ export async function migrated(migrate, payload, env = process.env) {
         return outcome;
       } catch (e) { result.failed.push(`${from}: ${e.code ?? e.message}`); return "failed"; }
     },
-    write(rel, content) {
+    write(rel, content, { mode } = {}) {
       try {
         const target = path.join(root, rel);
         if (fs.existsSync(target)) return false;
         fs.mkdirSync(path.dirname(target), { recursive: true });
-        fs.writeFileSync(target, content);
+        fs.writeFileSync(target, content, mode ? { mode } : undefined);
         result.wrote.push(rel);
         return true;
       } catch (e) { result.failed.push(`${rel}: ${e.code ?? e.message}`); return false; }

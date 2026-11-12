@@ -1,7 +1,0 @@
-{
-  "script": "kernel_inject.py",
-  "event": "SubagentStart",
-  "gap": "a search agent is given the build rules it has no use for",
-  "stdin": { "hook_event_name": "SubagentStart", "agent_type": "Explore", "session_id": "ki-2", "cwd": "{{REPO}}" },
-  "expect": { "exit": 0, "stdoutEmpty": true }
-}

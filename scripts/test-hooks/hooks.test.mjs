@@ -113,7 +113,10 @@ function runCase(plugin, c) {
   const cwd = fixture(c.fixture ?? "adopted");
   const project = c.project ? fixture(c.project) : cwd;
   const fill = (s) => s.split("{{REPO}}").join(cwd).split("{{PROJECT}}").join(project);
-  const input = fill(typeof c.stdin === "string" ? c.stdin : JSON.stringify(c.stdin ?? {}));
+  // An object is filled value by value before it is serialized, so a Windows
+  // path's backslashes are escaped like any other string.
+  const fillAll = (v) => (typeof v === "string" ? fill(v) : Array.isArray(v) ? v.map(fillAll) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fillAll(x)])) : v);
+  const input = typeof c.stdin === "string" ? fill(c.stdin) : JSON.stringify(fillAll(c.stdin ?? {}));
   const env = {
     ...process.env,
     HOME: home,
@@ -151,7 +154,7 @@ for (const { plugin, file, path: casePath } of files) {
 // SessionStart hook gives is standing context, so it has to come back when a
 // compaction or a /clear throws the conversation away.
 const NEEDED = ["startup", "resume", "clear", "compact"];
-const KNOWN_GAPS = new Map([["agentic-teamwork", "its briefing is lost at a compaction or a /clear"]]);
+const KNOWN_GAPS = new Map();
 for (const plugin of fs.readdirSync(path.join(REPO, "plugins"))) {
   let hooks;
   try { hooks = hooksJson(plugin); } catch { continue; }

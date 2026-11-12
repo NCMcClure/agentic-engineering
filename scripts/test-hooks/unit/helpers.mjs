@@ -62,6 +62,8 @@ export function tempRepo(t, prefix = "repo-") {
   git("config", "user.email", "test@example.invalid");
   git("config", "user.name", "Test");
   git("config", "commit.gpgsign", "false");
+  // A checkout writes the bytes that were committed, whatever the machine's own setting.
+  git("config", "core.autocrlf", "false");
   return { dir, git };
 }
 

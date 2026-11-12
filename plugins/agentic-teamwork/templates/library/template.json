@@ -1,0 +1,15 @@
+{
+  "name": "library",
+  "description": "A zero-dependency Node package: one public surface, one unit lane on node:test.",
+  "layout": [
+    "- `src/` - the library. `index.mjs` is the only public surface; everything else is reachable through it. Open it to change behavior.",
+    "- `test/` - the unit lane, `node --test` over `*.test.mjs`. No framework, no fixtures. Open it to add a test.",
+    "- `package.json` - the package manifest and the `test` script the unit lane runs."
+  ],
+  "lanes": {
+    "UNIT_CMD": "npm test",
+    "INTEGRATION_CMD": "not wired: this template has no integration lane yet",
+    "E2E_CMD": "not wired: a library has no e2e lane",
+    "LIVE_CMD": "not wired: add one the day this library calls a model"
+  }
+}

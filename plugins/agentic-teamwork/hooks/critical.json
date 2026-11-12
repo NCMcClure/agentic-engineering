@@ -1,0 +1,12 @@
+{
+  "plugin": "agentic-teamwork",
+  "lines": [
+    { "for": "all", "mode": "any", "text": "Red, green, refactor per behavior: the smallest failing test first, read why it fails, the least code that passes. Name the lane you ran and its exact command; a lane that could not run is reported as not run, never as passed." },
+    { "for": "all", "mode": "full", "text": "The lane commands are `lanes` in .agents/manifest.json, named in the session briefing; push each check to the cheapest lane that can fail for the right reason, and mock only at system boundaries." },
+    { "for": "all", "mode": "portable", "text": "Test with the project's own test command; if it has none, say so rather than inventing one." },
+    { "for": "all", "mode": "any", "text": "Never stage a credential: .env files stay ignored, and a secret that reached git is rotated, not rewritten. Never write a credential's value, or the path to the file holding it, into docs or chat." },
+    { "for": "all", "mode": "any", "text": "Never force push, never --no-verify, never push unless the person asked: they decide when work leaves the machine." },
+    { "for": "all", "mode": "full", "text": "Branch as <type>/<topic>, never commit on the default branch; every change lands through a pull or merge request on green checks. Commit with a quoted heredoc: backticks in -m \"...\" run as commands." }
+  ],
+  "chains": []
+}

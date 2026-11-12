@@ -1,0 +1,8 @@
+{
+  "script": "stop-check.mjs",
+  "event": "Stop",
+  "fixture": "standard",
+  "project": "bare",
+  "stdin": { "hook_event_name": "Stop", "session_id": "sc-9", "cwd": "{{REPO}}", "stop_hook_active": false },
+  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+}

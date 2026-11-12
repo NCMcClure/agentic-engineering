@@ -1,0 +1,7 @@
+{
+  "script": "stop-check.mjs",
+  "event": "Stop",
+  "fixture": "unplugged",
+  "stdin": { "hook_event_name": "Stop", "session_id": "sc-7", "cwd": "{{REPO}}", "stop_hook_active": false },
+  "expect": { "exit": 0, "stdoutEmpty": true }
+}

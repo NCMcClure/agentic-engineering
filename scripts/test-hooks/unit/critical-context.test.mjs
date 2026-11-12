@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
-import { CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, ORDER, SHARED_LINE, enabledPlugins, isAsker, modeOf, moveOnce } from "../../shared/critical-context.mjs";
+import { CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, OLD_MANIFESTS, ORDER, SHARED_LINE, enabledPlugins, isAsker, modeOf, moveOnce } from "../../shared/critical-context.mjs";
 
 const KERNEL = path.join(REPO, "scripts", "shared", "critical-context.mjs");
 const suite = { after };
@@ -28,7 +28,7 @@ const LINE = {
 };
 const HOOK = `import { run } from "./critical-context.mjs";
 const migrations = {
-  move: ({ move, write }) => { move(".old/config.json", ".agents/perceptual/config.json"); write(".agents/perceptual/opt-in.json", "{}\\n"); return "Strict mode stays on."; },
+  move: ({ move, write }) => { move(".old/config.json", ".agents/perceptual/config.json"); write(".agents/perceptual/opt-in.json", "{}\\n", { mode: 0o755 }); return "Strict mode stays on."; },
   throw: () => { throw new Error("disk says no"); },
 };
 await run(
@@ -106,6 +106,14 @@ test("mode: a committed marker outranks a personal off, and every marker counts"
     const dir = repo(t, "plain");
     write(dir, path.extname(marker) ? marker : `${marker}/keep`, "{}\n");
     assert.equal(modeOf(dir), "portable", marker);
+  }
+});
+
+test("mode: a repo still on an older layout's marker is full before its plugin has moved it", (t) => {
+  for (const marker of OLD_MANIFESTS) {
+    const dir = repo(t, "off");
+    write(dir, marker, "{}\n");
+    assert.equal(modeOf(dir), "full", marker);
   }
 });
 
@@ -319,6 +327,7 @@ test("a migration runs first, tells the model and the person, turns the mode on,
   assert.ok(first.lines.includes(LINE.portable("perceptual-loop")), "the marker it created counts in the same session");
   assert.ok(!QUESTION.test(first.context));
   assert.equal(fs.readFileSync(path.join(dir, ".agents/perceptual/config.json"), "utf8"), '{"strict":true}\n');
+  if (process.platform !== "win32") assert.equal(fs.statSync(path.join(dir, ".agents/perceptual/opt-in.json")).mode & 0o111, 0o111, "a write can make a file executable");
 
   const second = hook(t, "perceptual-loop", dir, { env });
   assert.ok(second.context.startsWith("Critical, from perceptual-loop:"), second.context);

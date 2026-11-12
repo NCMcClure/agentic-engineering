@@ -1,0 +1,11 @@
+{
+  "plugin": "code-diet",
+  "lines": [
+    {
+      "for": "all",
+      "mode": "any",
+      "text": "Ladder: climb and stop at the first rung that holds: YAGNI (skip speculative need, say so), reuse what the repo already has (/code-diet:reuse-first), stdlib, the platform, an installed dependency, one line, then the minimum that works. A bug fix is root cause: one guard where every caller routes. Never cut trust-boundary validation, data-loss handling, security, or accessibility. Mark a shortcut `debt: <ceiling>, <upgrade trigger>`."
+    }
+  ],
+  "chains": []
+}

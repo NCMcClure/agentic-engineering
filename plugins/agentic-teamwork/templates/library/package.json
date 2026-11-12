@@ -1,0 +1,13 @@
+{
+  "name": "{{PROJECT}}",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "{{DESCRIPTION}}",
+  "engines": { "node": ">=22" },
+  "exports": { ".": "./src/index.mjs" },
+  "scripts": {
+    "test": "node --test \"test/**/*.test.mjs\"",
+    "test:watch": "node --test --watch \"test/**/*.test.mjs\""
+  }
+}

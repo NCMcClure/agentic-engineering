@@ -1,7 +1,22 @@
 {
-  "script": "stop-gate.sh",
+  "script": "stop-gate.mjs",
   "event": "Stop",
-  "gap": "what the stop gate finds reaches the person only, never the model",
-  "stdin": { "hook_event_name": "Stop", "session_id": "sg-1", "cwd": "{{REPO}}", "stop_hook_active": false },
-  "expect": { "exit": 0, "stdoutJson": { "keysPresent": ["hookSpecificOutput"] } }
+  "fixture": "standard",
+  "env": {
+    "TMPDIR": "{{REPO}}/.git"
+  },
+  "stdin": {
+    "hook_event_name": "Stop",
+    "session_id": "sg-1",
+    "stop_hook_active": false
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "systemMessage",
+        "hookSpecificOutput"
+      ]
+    }
+  }
 }

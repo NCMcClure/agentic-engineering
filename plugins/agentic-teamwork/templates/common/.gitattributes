@@ -1,0 +1,3 @@
+# Check out LF everywhere. CRLF breaks a shebang and reads as a control
+# character to some tools.
+* text=auto eol=lf

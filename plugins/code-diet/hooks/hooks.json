@@ -6,9 +6,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so code-diet hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
             "timeout": 5,
-            "statusMessage": "Loading the code-diet kernel"
+            "statusMessage": "Loading the code-diet ladder"
           }
         ]
       }
@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/kernel_inject.py\"",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.mjs\"",
             "timeout": 5
           }
         ]
@@ -30,7 +30,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$(command -v python3 || command -v python)\" -B \"${CLAUDE_PLUGIN_ROOT}/hooks/debt_nudge.py\"",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/hooks/debt-nudge.mjs\"",
             "timeout": 5
           }
         ]

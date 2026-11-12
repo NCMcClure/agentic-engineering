@@ -1,0 +1,23 @@
+# The team-conventions gate, included from .gitlab-ci.yml. It runs this repo's
+# own check and its unit lane in a clean checkout, whatever a contributor has
+# or has not set up locally.
+#
+# The file is yours to edit: add what the unit lane needs before it runs (an
+# install step, a service, another image), or delete the unit job if another
+# job runs the same tests. A pipeline that names its own stages needs `test`
+# among them, or a different stage here. The team-conventions job is the part
+# the check itself looks for.
+team-conventions:
+  stage: .pre
+  image: node:22
+  interruptible: true
+  script:
+    - node .agents/scripts/verify-standard.mjs
+
+lane:unit:
+  stage: test
+  image: node:22
+  interruptible: true
+  script:
+    # Runs the `unit` command from .agents/manifest.json.
+    - node .agents/scripts/lane.mjs unit

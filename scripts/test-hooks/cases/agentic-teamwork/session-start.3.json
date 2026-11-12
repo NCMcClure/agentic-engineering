@@ -1,0 +1,14 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "standard",
+  "stdin": "{\"hook_event_name\": \"SessionStart\",",
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

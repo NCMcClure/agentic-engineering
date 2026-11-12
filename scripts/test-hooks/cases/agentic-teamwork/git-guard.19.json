@@ -1,0 +1,17 @@
+{
+  "script": "git-guard.mjs",
+  "event": "PreToolUse",
+  "fixture": "strict",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "gg-19",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "git add src/app.py && git commit -m \"a change the tests pass on\""
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

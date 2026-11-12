@@ -1,0 +1,19 @@
+{
+  "script": "edit-check.mjs",
+  "event": "PostToolUse",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "PostToolUse",
+    "session_id": "ec-5",
+    "tool_name": "Edit",
+    "tool_input": {
+      "file_path": "src/app.py",
+      "old_string": "return 1",
+      "new_string": "return 3"
+    }
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

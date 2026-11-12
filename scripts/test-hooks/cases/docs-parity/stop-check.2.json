@@ -1,5 +1,5 @@
 {
-  "script": "stop_check.py",
+  "script": "stop-check.mjs",
   "event": "Stop",
   "fixture": "bare",
   "stdin": { "hook_event_name": "Stop", "session_id": "sc-2", "cwd": "{{REPO}}", "stop_hook_active": false },

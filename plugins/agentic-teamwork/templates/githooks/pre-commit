@@ -1,66 +1,146 @@
-#!/bin/bash
-# Team pre-commit hook (agentic-teamwork) — mirrors the Claude Code git-guard
-# for commits made outside Claude Code. One-time activation per clone:
-#     git config core.hooksPath .githooks
-# Escape hatches: TEAMWORK_SKIP_TESTS=1 skips the test run;
-#                 <escapeHatch var>=1 (default TEAMWORK_ALLOW=1) skips
-#                 everything (maintainer use — CI still runs server-side).
-set -uo pipefail
+#!/usr/bin/env node
+// Team pre-commit hook, installed by agentic-teamwork: the repo's commit rules
+// for commits made outside Claude Code, where the plugin's own guard is not
+// watching. Self-contained on purpose: Node 22 stdlib only, so it runs in any
+// clone and in CI without the plugin.
+//
+// Turn it on once per clone:
+//     git config core.hooksPath .githooks
+//
+// The rules are the optional `teamwork` block of .agents/manifest.json, laid
+// over the same defaults the plugin uses. A commit is refused when:
+//   - it is on a protected branch (the manifest's default branch unless
+//     `protectedBranches` names others); a repo's first commit is let through,
+//   - a staged file matches `junkPatterns` (deleting one is fine, and
+//     .env.example, .env.sample and .env.template are not junk),
+//   - staged content matches a credential pattern (reported as file:line,
+//     never the value),
+//   - `requireTestsPass` is on and `test.command` fails.
+// Each has its switch under `rules`.
+//
+// Escape hatches, for a maintainer who knows why:
+//   TEAMWORK_SKIP_TESTS=1     skips the test run
+//   <escapeHatch>=1           skips everything (TEAMWORK_ALLOW unless renamed)
+// A repo with no manifest is not checked at all.
+//
+// The file has no extension, so whether Node reads it as a module depends on
+// the repo's package.json. It therefore loads what it needs with import(),
+// which is the one form valid either way.
 
-ROOT="$(git rev-parse --show-toplevel)"
-[ -f "$ROOT/.claude/teamwork.json" ] || exit 0
+const MANIFEST = ".agents/manifest.json";
+const JUNK = ["(^|/)\\.DS_Store$", "(^|/)Thumbs\\.db$", "(^|/)node_modules/", "(^|/)__pycache__/", "(^|/)\\.env(\\..*)?$"];
+const ENV_EXAMPLE = /(^|\/)\.env\.(example|sample|template)$/;
+const SECRETS = [
+  "sk-ant-[A-Za-z0-9_-]{10,}", "AKIA[0-9A-Z]{16}", "ghp_[A-Za-z0-9]{36}", "github_pat_[A-Za-z0-9_]{22,}",
+  "glpat-[A-Za-z0-9_-]{20,}", "xox[baprs]-[A-Za-z0-9-]{10,}", "-----BEGIN [A-Z ]*PRIVATE KEY-----",
+];
+const POSIX_CLASS = { alnum: "A-Za-z0-9", alpha: "A-Za-z", digit: "0-9", lower: "a-z", upper: "A-Z", space: "\\s", xdigit: "0-9A-Fa-f", word: "\\w", punct: "!-\\/:-@\\[-`{-~" };
+const MAX_BUFFER = 64 * 1024 * 1024;
 
-# The guards are configured via JSON; without jq we cannot know what to
-# enforce, so fail CLOSED here (CI is the backstop, but a silent local skip
-# would defeat the point of a deterministic gate).
-if ! command -v jq >/dev/null 2>&1; then
-    echo "pre-commit: jq is required by the teamwork guards and is not installed." >&2
-    echo "pre-commit: install it (apt install jq / brew install jq), or bypass once with the configured escape hatch var (default TEAMWORK_ALLOW=1)." >&2
-    exit 1
-fi
+const isObject = (v) => Boolean(v) && typeof v === "object" && !Array.isArray(v);
+const strings = (v) => (Array.isArray(v) ? v.filter((s) => typeof s === "string" && s) : []);
+const say = (text) => process.stderr.write(`pre-commit: ${text}\n`);
 
-. "$ROOT/.githooks/lib-guard.sh"
-
-ESCAPE_VAR=$(tw_escape_var)
-[ "${!ESCAPE_VAR:-0}" = "1" ] && exit 0
-
-fail() {
-    echo "pre-commit: $1" >&2
-    exit 1
+function anyOf(patterns) {
+  const compiled = patterns.flatMap((p) => {
+    try { return [new RegExp(p.replace(/\[:([a-z]+):\]/g, (whole, name) => POSIX_CLASS[name] ?? whole))]; } catch { return []; }
+  });
+  return (text) => compiled.some((re) => re.test(text));
 }
 
-PR_NOUN=$(tw_pr_noun)
-PR_CREATE=$(tw_pr_create_cmd)
-PREFIX=$(tw_cfg_list '.branchPrefixes' | head -n1)
-[ -n "$PREFIX" ] || PREFIX="feature/"
+/** Runs one of the repo's own command lines; returns whether it passed and its last lines. */
+function runLine(spawnSync, command, cwd, seconds) {
+  const options = { cwd, encoding: "utf8", timeout: seconds * 1000, maxBuffer: MAX_BUFFER, stdio: ["ignore", "pipe", "pipe"] };
+  let r = spawnSync("bash", ["-c", command], options);
+  if (r.error?.code === "ENOENT") r = spawnSync("sh", ["-c", command], options);
+  if (r.error?.code === "ENOENT") r = spawnSync(command, { ...options, shell: true });
+  const tail = `${r.stdout ?? ""}${r.stderr ?? ""}`.trim().split(/\r?\n/).slice(-40).join("\n");
+  return { ok: r.status === 0, tail: r.error?.code === "ETIMEDOUT" ? `${tail}\n(stopped after ${seconds}s)`.trim() : tail };
+}
 
-branch=$(git symbolic-ref --short -q HEAD || echo "")
-if tw_is_protected "$branch" && tw_rule blockCommitOnProtected; then
-    fail "commits on $branch are not allowed. Create a branch (git switch -c ${PREFIX}<topic>) and open a $PR_NOUN with '$PR_CREATE'."
-fi
+async function main() {
+  const { execFileSync, spawnSync } = await import("node:child_process");
+  const fs = await import("node:fs");
+  const path = await import("node:path");
+  const git = (...args) => execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], maxBuffer: MAX_BUFFER });
+  let root;
+  try { root = git("rev-parse", "--show-toplevel").trim(); } catch { return 0; }
+  const file = path.join(root, MANIFEST);
+  if (!fs.existsSync(file)) return 0;
+  let manifest;
+  try { manifest = JSON.parse(fs.readFileSync(file, "utf8").replace(/^﻿/, "")); } catch (e) {
+    // The rules cannot be read, and a silent pass would defeat the point of a gate.
+    if (process.env.TEAMWORK_ALLOW === "1") return 0;
+    say(`${MANIFEST} does not parse (${e.message}), so the commit rules cannot be read. Fix it, or commit once with TEAMWORK_ALLOW=1.`);
+    return 1;
+  }
+  const block = isObject(manifest?.teamwork) ? manifest.teamwork : {};
+  const part = (key) => (isObject(block[key]) ? block[key] : {});
+  const rules = part("rules");
+  const on = (rule) => rules[rule] !== false;
 
-if tw_rule blockJunk; then
-    junk=$(tw_staged_junk "$ROOT")
-    if [ -n "$junk" ]; then
-        fail "these staged files must never be committed:
-$junk"
-    fi
-fi
+  const escape = /^[A-Za-z_][A-Za-z0-9_]*$/.test(block.escapeHatch ?? "") ? block.escapeHatch : "TEAMWORK_ALLOW";
+  if (process.env[escape] === "1") return 0;
 
-if tw_rule blockSecrets; then
-    hits=$(tw_secret_hits_staged "$ROOT")
-    if [ -n "$hits" ]; then
-        fail "possible secrets detected (file:line) — remove them before committing:
-$hits
-Secrets belong in a secret manager or an untracked env file, never in the repo."
-    fi
-fi
+  let branch = "";
+  try { branch = git("symbolic-ref", "--short", "-q", "HEAD").trim(); } catch { /* detached */ }
+  let unborn = false;
+  try { git("rev-parse", "--verify", "-q", "HEAD"); } catch { unborn = true; }
+  const base = typeof manifest?.default_branch === "string" && manifest.default_branch ? manifest.default_branch : null;
+  const named = strings(block.protectedBranches);
+  const protectedBranches = named.length ? named : base ? [base] : ["main", "master"];
+  if (on("blockCommitOnProtected") && !unborn && protectedBranches.includes(branch)) {
+    const example = strings(block.branchPrefixes)[0] ? `${strings(block.branchPrefixes)[0]}<topic>` : "<type>/<topic>";
+    say(`commits on ${branch} are not allowed: it moves only through a pull or merge request. Branch first: git switch -c ${example}`);
+    return 1;
+  }
 
-if [ "${TEAMWORK_SKIP_TESTS:-0}" != "1" ] && tw_rule requireTestsPass; then
-    if ! out=$(tw_run_tests "$ROOT"); then
-        fail "the test gate failed — fix the build/tests before committing (or TEAMWORK_SKIP_TESTS=1 if you know what you're doing):
-$out"
-    fi
-fi
+  // Deletions are left out: removing a file from the repo is never the problem.
+  const staged = git("diff", "--cached", "--name-only", "--diff-filter=d", "-z").split("\0").filter(Boolean);
 
-exit 0
+  if (on("blockJunk")) {
+    const custom = strings(block.junkPatterns);
+    const isJunk = anyOf(custom.length ? custom : JUNK);
+    const junk = staged.filter((f) => isJunk(f) && !ENV_EXAMPLE.test(f));
+    if (junk.length) {
+      say(`these staged files must never be committed:\n${junk.join("\n")}\nUnstage them: git restore --staged <file>`);
+      return 1;
+    }
+  }
+
+  if (on("blockSecrets")) {
+    const found = anyOf([...SECRETS, ...strings(block.secretPatternsExtra)]);
+    const max = Number(part("scan").maxFileBytes) > 0 ? Number(part("scan").maxFileBytes) : 524288;
+    const hits = [];
+    for (const f of staged) {
+      let text = "";
+      try { text = git("show", `:${f}`).slice(0, max); } catch { /* too large to read, or gone */ }
+      text.split("\n").forEach((line, i) => { if (found(line)) hits.push(`${f}:${i + 1}`); });
+    }
+    if (hits.length) {
+      say(`possible credentials in the staged change (file:line):\n${hits.slice(0, 20).join("\n")}\nRemove them before committing. A credential that reaches git is one you rotate.`);
+      return 1;
+    }
+  }
+
+  const required = (typeof block.requireTestsPass === "boolean" ? block.requireTestsPass : rules.requireTestsPass) === true;
+  if (required && process.env.TEAMWORK_SKIP_TESTS !== "1") {
+    const test = part("test"), build = part("build");
+    const [command, dir] = typeof test.command === "string" && test.command ? [test.command, test.dir] : [build.command, build.dir];
+    if (typeof command === "string" && command) {
+      const seconds = Number(test.timeoutSeconds) > 0 ? Number(test.timeoutSeconds) : 240;
+      const result = runLine(spawnSync, command, path.resolve(root, typeof dir === "string" && dir ? dir : "."), seconds);
+      if (!result.ok) {
+        say(`\`${command}\` must pass before every commit, and it fails now (TEAMWORK_SKIP_TESTS=1 skips it, if you know why):\n${result.tail || `could not run: ${command}`}`);
+        return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+// process.exitCode, not process.exit: let Node unwind so the message is written in full.
+main().then((code) => { process.exitCode = code; }, (e) => {
+  say(`could not check the commit (${e.message}). Fix the hook, or commit once with TEAMWORK_ALLOW=1.`);
+  process.exitCode = process.env.TEAMWORK_ALLOW === "1" ? 0 : 1;
+});

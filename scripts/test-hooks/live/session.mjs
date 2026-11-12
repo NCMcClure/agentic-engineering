@@ -62,7 +62,7 @@ function claude(cwd, prompt, args = []) {
   let out = null;
   try { out = JSON.parse(r.stdout); } catch { /* fall through */ }
   if (!out) throw new Error(`claude -p failed in ${cwd}: ${r.stderr || r.stdout || r.error}`);
-  if (out.is_error) throw new Error(`claude -p returned an error in ${cwd}: ${out.result}`);
+  if (out.is_error) throw new Error(`claude -p returned an error in ${cwd}: ${out.result ?? out.subtype ?? JSON.stringify(out).slice(0, 400)}`);
   return out;
 }
 
