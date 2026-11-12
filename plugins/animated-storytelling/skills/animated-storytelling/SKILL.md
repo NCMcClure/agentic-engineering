@@ -84,7 +84,7 @@ Each step ends on a checkable state — don't move on while one is unmet:
    reduced-motion fallback exists for every animation.
 7. **Review before shipping.** *Done when* the five-point audit in
    `visual-design/overview.md` passes (contrast pairs verified by
-   `scripts/contrast_check.py`, exit 0) and every animation passes the golden
+   `scripts/contrast-check.mjs`, exit 0) and every animation passes the golden
    rules (`motion-design/golden-rules.md`): names its job
    (orientation/feedback/continuity), survives the 10th viewing, exits
    subtler than entrances.
