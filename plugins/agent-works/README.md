@@ -180,6 +180,7 @@ the machine's store is a temporary folder (`AGENT_WORKS_HOME`).
 
 ## Changelog
 
+- **0.3.1**: `aw status` runs on Python older than 3.12 again; a backslash inside an f-string expression made it a syntax error there.
 - **0.3.0**: **Remote sync carries epics and sprints.** A card's sprint sets its issue's milestone (made when
   missing, due on the sprint's end); a card's epic hangs its issue from the epic's (GitHub sub-issues, GitLab
   group epics), with an `epic:<id>` label where the tracker has neither. Pulls read both back without inventing
