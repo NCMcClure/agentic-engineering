@@ -1,0 +1,15 @@
+{
+  "script": "session-start.mjs",
+  "event": "SubagentStart",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "SubagentStart",
+    "agent_type": "general-purpose",
+    "session_id": "mm-6",
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

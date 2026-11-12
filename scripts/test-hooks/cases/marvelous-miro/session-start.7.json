@@ -1,0 +1,19 @@
+{
+  "script": "session-start.mjs",
+  "event": "SessionStart",
+  "fixture": "portable",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "session_id": "mm-7",
+    "cwd": "{{REPO}}"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

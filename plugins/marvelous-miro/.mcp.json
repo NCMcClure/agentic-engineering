@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "miro-browser": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/skills/browser-setup/scripts/miro-browser.mjs"]
+    }
+  }
+}

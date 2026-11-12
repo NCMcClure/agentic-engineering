@@ -1,0 +1,9 @@
+{
+  "shared": [
+    "hooks/critical-context.mjs"
+  ],
+  "critical": {
+    "cap": 800,
+    "briefing": 400
+  }
+}

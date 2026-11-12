@@ -1,0 +1,22 @@
+{
+  "plugin": "marvelous-miro",
+  "lines": [
+    {
+      "for": "all",
+      "mode": "any",
+      "when": [
+        "miro.config.mjs",
+        "diagrams/miro.config.mjs",
+        ".agents/system-map.json"
+      ],
+      "text": "A Miro board drawn from code is linted before it is published and checked live after (/marvelous-miro:miro-board); layout moved on the board is pulled back, content changes in code."
+    },
+    {
+      "for": "all",
+      "mode": "any",
+      "when": ".agents/system-map.json",
+      "text": "A new module gets its `@system node` line and a new call between modules its `@system calls` line in the same commit, then /marvelous-miro:diagrams-sync regenerates the map (the plugin's system-map.mjs with --write); an import that needs no edge takes a `Diagram: none, <why>` line."
+    }
+  ],
+  "chains": []
+}
