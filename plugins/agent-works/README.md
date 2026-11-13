@@ -89,6 +89,17 @@ card names, which card this session is working and what done means. After a tool
 card-sync hook tells the model when a card is behind the work (a request opened owes review, a merge owes done)
 and asks about cards the session worked on; `sync-cards` sweeps what no hook could see.
 
+This is also why one orchestrator's context window carries a whole round. Each task's work fills its child's
+window, not the orchestrator's, and what comes back is the one `CARD` line, so the orchestrator spends a few turns
+per task. When its window does fill and is compacted, the session hook puts the critical lines and the board back
+and the round carries on, and a child that fills gets its card and cadence back the same way. So a smaller
+auto-compaction threshold (500K tokens or less) works here in place of a model's default 1M.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/one-window.dark.gif">
+  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="assets/figures/one-window.gif" width="720">
+</picture>
+
 ### Coordination across projects
 
 One store per machine, `~/.agent-works/` (override with `AW_HOME`), written only by `aw`:
