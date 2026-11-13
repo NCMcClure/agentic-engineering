@@ -6,7 +6,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agent-works](#agent-works) | 1.0.0 | 15 | orchestration |
+| [agent-works](#agent-works) | 1.0.1 | 15 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.0 | 18 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.0 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.0 | 6 | collaboration |
@@ -23,7 +23,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.
 
-Version 1.0.0. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
