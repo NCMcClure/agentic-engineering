@@ -14,7 +14,8 @@ const r3 = (v: number) => Math.round(v * 1000) / 1000;
 /** How heavy a shape reads against the page: strong for what leads, mid for the usual, quiet for what is in the background. The same in light and dark. */
 export type Tone = "strong" | "mid" | "quiet";
 
-const INK = { strong: 0.66, mid: 0.33, quiet: 0.13 } as const;
+// Each step is at least 1.8:1 against the next and against the panel's face, in light and in dark.
+const INK = { strong: 0.72, mid: 0.44, quiet: 0.24 } as const;
 /** A tone's fill: ink thinned into the panel's face, so the three weights hold in light and dark. */
 export const toneFill = (tone: Tone = "mid") => mix("var(--pt-ink)", "var(--pt-top)", INK[tone]);
 

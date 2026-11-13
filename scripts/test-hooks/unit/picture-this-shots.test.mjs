@@ -462,3 +462,8 @@ test("the camera script waits for every figure to say it is painted, and photogr
   assert.match(stage, /setAttribute\("data-pt-ready", key\)/, "the stage is what says so");
   assert.match(stage, /document\.fonts/, "and only once its fonts are in");
 });
+
+test("the film gives every frame its own palette, so a white panel stays white on the clay page", () => {
+  const source = fs.readFileSync(path.join(PLUGIN, "app", "film.mjs"), "utf8");
+  assert.match(source, /\.gif\(\{[^}]*dither: 0[^}]*interPaletteMaxError: 0[^}]*\}\)/);
+});
