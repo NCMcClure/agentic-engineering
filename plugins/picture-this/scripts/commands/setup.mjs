@@ -45,7 +45,7 @@ export async function run(argv, deps = {}) {
       `picture-this renders figures in a studio it installs once, into its own data folder:`,
       `  ${at.app}`,
       ...(state.app === "ready" ? [] : ["  - npm packages: Vite, React, Playwright, two fonts (about 120 packages, from the npm registry)"]),
-      ...(wantBrowser && state.browser !== "ready" ? ["  - a headless Chromium, for stills (roughly 150 MB)"] : []),
+      ...(wantBrowser && state.browser !== "ready" ? ["  - a headless Chromium, for stills (about 100 MB to download, 200 MB on disk)"] : []),
       "Nothing is added to your project. It needs network access this once.",
       "To install: run this command again with --yes.",
     ].join("\n"));

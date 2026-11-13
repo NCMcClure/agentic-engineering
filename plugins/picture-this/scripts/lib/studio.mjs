@@ -145,7 +145,8 @@ export async function install({ home, pluginRoot, env = process.env, browser = t
     log(`picture-this: downloading the browser stills are taken with into ${at.browsers} ...`);
     fs.mkdirSync(at.browsers, { recursive: true });
     fs.rmSync(path.join(at.browsers, STAMP), { force: true });
-    const status = await node([at.playwright, "install", "chromium"], { cwd: at.app, env: childEnv(env, { PLAYWRIGHT_BROWSERS_PATH: at.browsers }) });
+    // Stills are taken headless, so the headless shell is the only browser fetched: a third of the full download.
+    const status = await node([at.playwright, "install", "chromium", "--only-shell"], { cwd: at.app, env: childEnv(env, { PLAYWRIGHT_BROWSERS_PATH: at.browsers }) });
     if (status !== 0) {
       warn("picture-this: the browser download failed. The studio still previews figures; stills need the browser, and running setup again retries it.");
       return status;
@@ -174,4 +175,50 @@ export async function runningPort(lockFile, repo, fetchImpl = globalThis.fetch) 
 /** What the dev server is told about the repo it serves. */
 export function studioEnv(at) {
   return { PT_REPO: at.repo, PT_FIGURES: at.figures, PT_DRAFTS: at.drafts };
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * A studio to take pictures from: the one already serving this repo, or one
+ * started for the job and stopped after it. Resolves to { port, stop }.
+ */
+export async function ensureServer({ at, studio, env = process.env, fetch: fetchImpl = globalThis.fetch, timeoutMs = 30000 }) {
+  const running = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
+  if (running !== null) return { port: running, stop: async () => {} };
+  fs.rmSync(at.lock, { force: true });
+  const child = spawn(process.execPath, [studio.vite], { cwd: studio.app, env: childEnv(env, studioEnv(at)), stdio: "ignore" });
+  let exited = null;
+  child.on("exit", (code) => { exited = code ?? 1; });
+  child.on("error", () => { exited = 127; });
+  const stop = async () => {
+    if (exited === null) { child.kill("SIGTERM"); for (let i = 0; i < 40 && exited === null; i++) await sleep(50); }
+    fs.rmSync(at.lock, { force: true });
+  };
+  for (let waited = 0; waited < timeoutMs; waited += 150) {
+    if (exited !== null) break;
+    const port = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
+    if (port !== null) return { port, stop };
+    await sleep(150);
+  }
+  await stop();
+  throw new Error(exited !== null ? `the studio stopped as it started (exit ${exited})` : "the studio did not come up in time");
+}
+
+/**
+ * Take pictures: write the job, run the camera from the data folder, read
+ * what it wrote. Returns { status, shots }.
+ */
+export async function capture({ studio, port, shots, scale = 2, env = process.env, node = runNode }) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "pt-capture-"));
+  const job = path.join(dir, "job.json"), result = path.join(dir, "result.json");
+  try {
+    fs.writeFileSync(job, JSON.stringify({ base: `http://127.0.0.1:${port}`, scale, result, shots }));
+    const status = await node([path.join(studio.app, "capture.mjs"), job], { cwd: studio.app, env: childEnv(env, { PLAYWRIGHT_BROWSERS_PATH: studio.browsers }) });
+    let taken = [];
+    try { taken = JSON.parse(fs.readFileSync(result, "utf8")).shots; } catch { /* the camera never got that far */ }
+    return { status, shots: taken };
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
 }

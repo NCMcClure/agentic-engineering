@@ -90,7 +90,7 @@ test("setup --yes copies the app, installs its packages, downloads the browser, 
   assert.equal(w.calls.length, 2);
   const [npm, browser] = w.calls;
   assert.deepEqual([npm.tool, npm.args, npm.cwd], ["npm", ["ci", "--no-audit", "--no-fund"], w.at.app]);
-  assert.deepEqual([browser.tool, browser.args, browser.cwd], ["node", [w.at.playwright, "install", "chromium"], w.at.app]);
+  assert.deepEqual([browser.tool, browser.args, browser.cwd], ["node", [w.at.playwright, "install", "chromium", "--only-shell"], w.at.app]);
   assert.equal(browser.env.PLAYWRIGHT_BROWSERS_PATH, w.at.browsers, "the browser goes into the data folder, not the user's cache");
   assert.ok(npm.env.PATH.split(path.delimiter).includes(path.dirname(process.execPath)), "the child can find this Node");
 

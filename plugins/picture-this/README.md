@@ -44,8 +44,8 @@ plugin itself is plain Node with no dependencies.
 /plugin install picture-this@agentic-engineering
 ```
 
-The first figure installs the studio: Node 20+, network access, and a browser
-download, once. It asks before it downloads anything.
+The first figure installs the studio: Node 20+, network access, and a headless
+browser (about 100 MB to download), once. It asks before it downloads anything.
 
 This plugin replaces `animated-storytelling`. If you had that one installed,
 uninstall it and install this one; it will not update in place.
