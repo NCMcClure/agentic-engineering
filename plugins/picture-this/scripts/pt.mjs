@@ -12,6 +12,9 @@ export const COMMANDS = {
   studio: ["studio", "run", "serve a repo's figures and drafts, live; prints the URL to open"],
   sheet: ["shots", "sheet", "lay a figure's beats side by side, with and without captions, to look it over"],
   still: ["shots", "still", "take a figure's still in light and dark, and print the Markdown that shows it"],
+  init: ["kit", "init", "record where this repo keeps its figures and stills"],
+  kit: ["kit", "kit", "is the kit in this repo and current (status); put it there or bring it up to date (install)"],
+  land: ["land", "run", "make a chosen draft one of the repo's figures"],
   model: ["model", "run", "check a figure's model.json: ids, flows, beats, captions, sources"],
 };
 
