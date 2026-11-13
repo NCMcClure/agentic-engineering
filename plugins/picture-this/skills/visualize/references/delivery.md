@@ -62,6 +62,32 @@ Things to know:
 - **Width**: a figure fills its column, up to its drawn size. Below about
   520 px it scrolls sideways and does not shrink its words.
 
+## A figure drawn in 3D
+
+`land` on a 3D draft copies the kit's 3D tier (`<figures>/kit/three/`) along
+with the figure, and says what the figure needs where it is shown: `three`,
+`@react-three/fiber` and `@react-three/drei`. With what they depend on, that
+is about 165 MB in `node_modules` (measured beside React 19); far less of it
+reaches a reader's browser, and how much has not been measured.
+Copying the files adds no package. **Adding them is the person's call**: say
+which three, that they are for this figure, and wait for a yes.
+
+- **Stills need nothing.** The studio has the packages, so `still` and
+  `sheet` work in a repo that has none of them. A README-only repo never
+  needs to add anything.
+- **On a no**, the figure can still land for its stills, or the round's 2D
+  twin can land in its place: the model and the layout are the same.
+- **Server rendering**: the canvas is loaded in the browser, never on a
+  server. Until its first frame, and in a browser without WebGL, the figure
+  shows the same scene in 2D hairlines at the hero frame.
+- **Weight**: the kit loads three.js when the figure mounts. To keep it out
+  of a page's first load altogether, import the figure itself lazily
+  (`next/dynamic`, `React.lazy`).
+- **Versions**: built and checked with React 19, `@react-three/fiber` 9,
+  `@react-three/drei` 10 and `three` 0.187. A React 18 site would need
+  fiber 8 and drei 9, which this kit has not been run against.
+- `kit install --three` puts the 3D tier in a repo without landing anything.
+
 ## In a README
 
 ```
@@ -85,6 +111,9 @@ not honour `<picture>` shows the light one, which is why the light one is the
 `--from <dir>` makes the paths right for a Markdown file that is not at the
 repo's root. `--technical` takes the technical captions. `--beat` and `--at`
 take a frame other than the hero.
+
+A 3D figure's still takes a few seconds, because the camera draws it in
+software: that is what makes it the same picture on every machine.
 
 Commit the stills with the figure. Retake them whenever the figure or its
 model changes: `export-stills` is the skill for that.

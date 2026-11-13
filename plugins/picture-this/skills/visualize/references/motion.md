@@ -24,6 +24,28 @@ A pulse makes a whole number of laps per beat. Then the beat and the progress
 through it fix the picture, and a pulse is mid-wire at mid-beat, which is
 where the hero frame is taken.
 
+## In 3D
+
+A 3D scene reads the same clock through the same helpers, and they mean the
+same. It has no clock of its own: the canvas draws a frame when the figure
+changes and at no other time, so a held frame is still, and a still is exact.
+Never animate from the renderer's time (`useFrame`, a delta, an elapsed
+time); the kit's tests fail a 3D file that does.
+
+What each helper looks like there:
+
+- `here`: a shape grows from the middle of its base, and its shadow grows
+  with it. Nothing fades in, because a half-seen solid still casts a whole
+  shadow.
+- `lit`: a shape the story has left steps toward the page colour; glass
+  thins.
+- `arriving`: the shape turns the accent. In a layer stack it also lifts.
+- `laid`, `moving`, `phase`: a wire is laid along its length, and a pulse
+  travels it, as in 2D.
+
+Camera moves, orbiting, and a shape that turns to show itself off are not in
+the kit. The framing is fixed so that labels stay where they point.
+
 ## Every motion has a job
 
 Before adding one, say what it tells the reader about the system:

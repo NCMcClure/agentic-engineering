@@ -14,6 +14,8 @@ not between shades of one.
 | `card-flow` | labels are long, notes matter, or the figure sits in running prose | flat cards joined by soft threads | a pulse on the thread being told |
 | `case-loop` | the system is a handful of separate cases: hit and miss, success and failure | one small tile per beat | only the tile being told |
 | `series` | it must work as a still: a README, a slide, a printed page | one small panel per beat, each a held frame | nothing but the mark under the panel being told |
+| `iso-flow-3d` | the story is a path, and the figure is a page's centrepiece | the isometric flow in clay, glass and soft shadow | pulses along the wire being told; the thing it reaches turns the accent |
+| `layer-stack-3d` | the system is layers, and the figure is a page's centrepiece | cards of frosted glass stacked, the first on top | the card a flow reaches lifts and fills with the accent |
 
 ## Choosing three
 
@@ -32,6 +34,22 @@ Start from the claim, not from the system.
 Make the three as unlike each other as the claim allows: one isometric, one
 flat, one that holds still, for instance. If two of the three would look alike,
 swap one.
+
+## When to draw in 3D
+
+The two 3D archetypes are their 2D twins, lit: the same layout, the same
+model, the same motion. They say nothing a 2D figure cannot. What they buy is
+presence, so they are for the one figure a page is built around, not for the
+fourth diagram in a reference page.
+
+- **At most one 3D draft in a round**, and never beside its own twin: a round
+  of `iso-flow` and `iso-flow-3d` compares finishes, not forms.
+- **Drafting one costs the repo nothing.** The studio draws it, and its stills
+  are plain PNGs. A README-only repo can use 3D freely.
+- **Showing one live costs the site three packages**: `three`,
+  `@react-three/fiber` and `@react-three/drei`. Ask before adding them; the
+  skill's deliver step says when.
+- A 3D still takes a few seconds, where a 2D one takes a fraction of one.
 
 ## What a starter is
 
@@ -61,3 +79,8 @@ the front on a lane of its own.
 
 Labels are flat, upright, and drawn last. They never lie on the isometric
 plane.
+
+All of this holds in 3D, where it matters more: a 3D shape really is in front
+of the wire behind it, and a label is still flat SVG laid over the canvas. A
+3D figure uses the same boxes, so a layout worked out in 2D carries over as
+it is.

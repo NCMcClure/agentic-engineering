@@ -95,6 +95,82 @@ left, z up. `unit` is px per ground unit.
 A tall shape hides the ground behind it, which is where a wire to it arrives.
 Keep shapes low (under one unit) and well apart (two units or more).
 
+## 3D
+
+`three/` is the same isometric figure, lit: clay, glass, soft shadows. It is
+copied into a repo only when asked for (`kit install --three`, or by landing
+a 3D draft), because its files import `three`, `@react-three/fiber` and
+`@react-three/drei`, and a site that shows a 3D figure needs those three.
+Everything outside `three/` still depends on React alone.
+
+```tsx
+"use client";
+import type { Model } from "../kit/model";
+import { Stage } from "../kit/stage";
+import type { StageProps } from "../kit/stage";
+import { extent, row } from "../kit/iso/place";
+import { fitBox } from "../kit/iso/project";
+import { standing } from "../kit/iso/scene";
+import { IsoScene3D } from "../kit/three/iso";
+import data from "./model.json";
+
+const model = data as Model;
+const BOX = standing(model.entities, row(model.entities.map((e) => e.id)));
+const VIEW = fitBox(extent(Object.values(BOX)).points, 42, [96, 64, 36, 44]);
+
+export default function Figure(props: StageProps) {
+  return (
+    <Stage model={model} unit={42} viewBox={VIEW} {...props}>
+      <IsoScene3D boxes={BOX} />
+    </Stage>
+  );
+}
+```
+
+The boxes, the ground coordinates and the view box are the 2D ones. The
+camera is orthographic at the kit's own angle, so a ground point lands on the
+pixel `project` gives it, and that is what lets the words stay flat.
+
+- `three/iso`: `<IsoScene3D boxes={...} />` draws the whole model: 3D shapes
+  and wires in a canvas, the wire words and labels as SVG over it. `only`,
+  `labels`, `tags`, `notes` and `rise` trim it, `materials={{ id: "glass" }}`
+  overrides what an entity is made of, and children are more 3D shapes.
+  `apex(box)` is where a label over a 3D shape points.
+- `three/scene`: `<Scene3D fallback={...}>` is the canvas, for a figure that
+  draws its own shapes. It goes where the 2D art goes, inside the `<Stage>`;
+  its children are 3D, and anything beside it is SVG over the canvas.
+  `fallback` is the same scene in 2D shapes: a server renders it, a browser
+  shows it until the first frame is drawn, and one without WebGL keeps it.
+- `three/shapes`: `Slab`, `Block`, `Layers`, `Cylinder`, `Icon`, and `Thing`,
+  which picks one from an entity's `kind`. They take the 2D shapes' `at`,
+  `size`, `entity`, `here`, `lit` and `accent`, plus `material`: `"clay"`
+  (the default), `"matte"`, `"glass"` or `"accent"`. `<Icon d="..." />`
+  raises a filled SVG path off the ground.
+- `three/wire`: `<Wire flow="id" via={[[x,y,z], ...]} />`, the 2D wire's
+  line, mark and pulses as tubes. Its word is the 2D wire's `part="tag"`.
+- `three/rig`: `IsoCamera`, `Lights`, `Room`, `Ground`, and the `Rig` that
+  puts them round a scene. `Scene3D` already does; they are there to change.
+- `three/materials`: `Surface`, the material inside a shape, and `useLook()`,
+  the tokens as the scene reads them.
+
+Inside a `Scene3D`, `useFigure()` answers as it does in 2D, and the one rule
+holds: the canvas draws a frame when the figure changes and at no other
+time. Do not animate from the renderer's own time (`useFrame`, a delta):
+a still would stop being a frame of the live figure.
+
+Labels are never 3D text. A wire running away from the eye arrives behind
+its target, as in 2D, so its mark sits part-way along.
+
+The materials and the lights are tokens in `kit.css`: `--pt-clay`,
+`--pt-matte`, `--pt-glass` (and `--pt-glass-alpha`), `--pt-wire`, `--pt-floor`,
+then `--pt-light-key`, `-rim`, `-fill`, `-env`, `-room`, `-side`, `-back`,
+`--pt-shadow` and `--pt-contact`. Colours there are hex or `rgb()`. The lights
+are set so a top face shows its colour exactly; change one and the faces
+move with it.
+
+Built and checked with React 19, `@react-three/fiber` 9, `@react-three/drei`
+10 and `three` 0.187.
+
 ## Flat
 
 `flow/flow`: `<Flow rows={[["a","b"],[null,"c"]]} />` lays real cards on a

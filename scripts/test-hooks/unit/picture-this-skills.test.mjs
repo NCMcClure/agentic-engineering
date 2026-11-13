@@ -9,6 +9,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
 import { archetypes } from "../../../plugins/picture-this/scripts/commands/draft.mjs";
+import { THREE_PACKAGES } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
 import { REPO } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
@@ -84,7 +85,7 @@ test("the documents name the commands, archetypes, agent and limits that the cod
   for (const m of all.matchAll(/node "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/pt\.mjs" ([a-z]+)/g)) assert.ok(COMMANDS[m[1]], `pt.mjs ${m[1]}`);
   const table = read("skills/visualize/references/archetypes.md");
   for (const a of archetypes()) assert.match(table, new RegExp(`\\| \`${a.name}\` \\|`), `${a.name} is in the archetype table`);
-  assert.equal([...table.matchAll(/^\| `[a-z-]+` \|/gm)].length, archetypes().length, "and the table names no archetype the plugin does not ship");
+  assert.equal([...table.matchAll(/^\| `[a-z0-9-]+` \|/gm)].length, archetypes().length, "and the table names no archetype the plugin does not ship");
 
   assert.ok(fs.existsSync(path.join(PLUGIN, "agents", "cold-reader.md")));
   const agent = parseFrontmatter(read("agents/cold-reader.md"));
@@ -107,6 +108,18 @@ test("the skill asks before it downloads, and waits for a yes on a model read fr
   assert.match(visualize.text, /--require-source/);
   const stills = skills.find((s) => s.name === "export-stills");
   assert.match(stills.text, /only\s+on their yes/);
+});
+
+test("the skill asks before a 3D figure adds packages to a repo, and names the three the kit imports", () => {
+  for (const name of THREE_PACKAGES) assert.match(visualize.text, new RegExp(`\`${name.replace("/", "\\/")}\``), name);
+  assert.match(visualize.text, /Do not\s+add them without that yes/);
+  assert.match(visualize.text, /stills only, which\s+need nothing/, "a no still leaves a way to finish");
+  assert.match(visualize.text, /Use at most one in a round/);
+  const delivery = read("skills/visualize/references/delivery.md");
+  for (const name of THREE_PACKAGES) assert.match(delivery, new RegExp(`\`${name.replace("/", "\\/")}\``), name);
+  assert.match(delivery, /kit install --three/);
+  for (const file of ["archetypes.md", "house-style.md", "motion.md"]) assert.match(read(`skills/visualize/references/${file}`), /^## .*3D/m, `${file} has its section on 3D`);
+  assert.match(read("kit/README.md"), /^## 3D$/m);
 });
 
 test("the plugin ships no Python or shell outside the studio app, and no document names one", () => {
