@@ -15,7 +15,7 @@ const KIT = path.join(REPO, "plugins", "picture-this", "kit");
 /** The files that own the frame loop: the only place a frame is asked for. */
 const FRAME_LOOP = ["stage.tsx"];
 /** React-free and import-free, so Node can import them as they are and a 3D scene can share them. */
-const PURE = ["timeline.ts", "model.ts", "iso/project.ts"];
+const PURE = ["timeline.ts", "model.ts", "iso/project.ts", "flat/geometry.ts"];
 /** The 3D tier: the only folder that may import these packages. A portal needs react-dom, which every page that draws to a canvas has. */
 const THREE_DIR = "three/";
 const THREE_PACKAGES = ["three", "@react-three/fiber", "@react-three/drei"];
@@ -153,6 +153,16 @@ test("class names and custom properties carry the pt- prefix, so a host page can
       assert.ok(m[1].startsWith("pt-") || m[1] === "dark", `${rel}: class .${m[1]}`);
     }
     for (const m of css.matchAll(/(^|[\s;{(,])(--[\w-]+)\s*:/gm)) assert.ok(m[2].startsWith("--pt-"), `${rel}: custom property ${m[2]}`);
+  }
+});
+
+test("the flat shapes are there, know nothing of the model, and take their state as props", () => {
+  for (const rel of ["flat/geometry.ts", "flat/panel.tsx", "flat/connect.tsx", "flat/chart.tsx"]) assert.ok(files.includes(rel), rel);
+  for (const rel of code.filter((f) => f.startsWith("flat/"))) {
+    const source = bare(read(rel));
+    // A primitive that asked the figure what to draw would only fit figures shaped like the ones it was written for.
+    assert.doesNotMatch(source, /\buseFigure\b|from\s+["']\.\.\/(stage|model)["']/, `${rel}: a flat shape is drawn from its props, so it works in any figure`);
+    assert.doesNotMatch(source, /#[0-9a-fA-F]{3,8}\b|\brgba?\(/, `${rel}: every colour is a token`);
   }
 });
 

@@ -30,7 +30,10 @@ function figure(dir, id, kind) {
   if (!exists(file)) return null;
   let model = null, problem = null;
   try { model = JSON.parse(fs.readFileSync(modelFile, "utf8")); } catch (e) { problem = exists(modelFile) ? `model.json is not JSON: ${e.message}` : "no model.json"; }
-  return { id, kind, dir, url: fsUrl(file), model, problem };
+  // A draft says what its view is before it is drawn: the sheet shows that beside the picture.
+  let view = null;
+  try { view = JSON.parse(fs.readFileSync(path.join(dir, "view.json"), "utf8")); } catch { /* a figure that is not a draft has none */ }
+  return { id, kind, dir, url: fsUrl(file), model, problem, view };
 }
 
 /** Every figure the studio can show: the repo's, its drafts (round/draft), and the shipped fixtures. */
@@ -62,9 +65,9 @@ function api() {
 
       for (const dir of [figuresDir, draftsDir]) if (dir && exists(dir)) server.watcher.add(dir);
       const changed = (file) => {
-        if (/(^|[\\/])(figure\.tsx|model\.json)$/.test(file)) server.ws.send({ type: "custom", event: "pt:changed" });
+        if (/(^|[\\/])(figure\.tsx|model\.json|view\.json)$/.test(file)) server.ws.send({ type: "custom", event: "pt:changed" });
       };
-      server.watcher.on("add", changed).on("unlink", changed).on("change", (file) => { if (file.endsWith("model.json")) changed(file); });
+      server.watcher.on("add", changed).on("unlink", changed).on("change", (file) => { if (file.endsWith("model.json") || file.endsWith("view.json")) changed(file); });
 
       // The lock names the port actually bound, so a second `pt studio` hands
       // back this server's URL instead of starting another.

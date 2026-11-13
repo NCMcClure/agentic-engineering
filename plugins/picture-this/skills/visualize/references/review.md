@@ -10,35 +10,75 @@ Look at `sheet.png` for the draft, every panel. Each item passes or fails.
 **It draws**
 
 1. `sheet` exited 0: `checks.json` lists no errors and nothing on the console.
-2. `draft check` passes: the model is the round's, the kit is untouched.
+2. `draft check` passes: the model is the round's, the kit is untouched, and
+   the view is stated.
 
 **It reads**
 
 3. Squint: one thing stands out in each panel, and it is what the beat is
    about.
 4. Nothing overlaps: no word over a word, a label over a shape's edge, or a
-   wire's word over a label.
+   line's word over a label.
 5. Every label is readable at the sheet's size without zooming.
-6. No wire passes behind a shape, and no pulse spends most of its trip hidden.
+6. No line passes behind a shape, and nothing that travels spends most of its
+   trip hidden.
 7. The reading order is the order the story travels.
 
 **It is in style**
 
-8. The accent is on one thing per panel: the pulse being told and what it
-   reaches.
+8. The accent is on the one part each panel is about, and on what is moving.
+   A tint of it may stay on parts the story marked earlier.
 9. No colour of the draft's own: every colour is a token.
 10. Labels are flat and upright. Content is real, not placeholder.
 
+**It is this subject's picture**
+
+11. The picture is what its view statement says: each thing it names is
+    drawn, what it says moves does, and each visual property means the one
+    thing stated.
+12. It fails the swap test (below): with another system's labels on it, the
+    picture would be wrong.
+13. The mechanism's verb can be seen without reading a word: as motion, or
+    as arrangement.
+
 **It tells the story**
 
-11. Each panel shows a visible change from the one before, and the change is
+14. Each panel shows a visible change from the one before, and the change is
     what its caption says.
-12. The hero frame is a complete picture on its own.
-13. The captions read as sentences, and the claim is why it matters, not a
+15. The hero frame is a complete picture on its own.
+16. The captions read as sentences, and the claim is why it matters, not a
     description of the figure.
 
 Fix what fails, take the sheet again, and check again. Do not present a draft
 with a failing item; say so plainly if one cannot be fixed.
+
+## Its own picture, or a template with new labels?
+
+A draft can pass every other item and still be a stock diagram with this
+subject's names on it: boxes in a row, an arrow between each pair. That
+picture explains nothing the sentence "A sends to B" did not. Four ways to
+tell, and a draft should pass all of them:
+
+- **Swap the labels.** Put another system's names on the same shapes. If the
+  picture would still be right, nothing in it is about this subject. A
+  picture of its own breaks under the swap: this queue has seven jobs in it,
+  this window is three quarters full, this part is the shape it really is.
+- **Cover the labels.** Look at `sheet.nocap.png` with the words blurred. A
+  reader should still be able to say what kind of thing happens (something
+  fills, something is handed on, something is cut open), because the shapes
+  and the motion carry it.
+- **Find the subject's own fact.** Point at one thing drawn to the subject's
+  numbers, proportions, order or shape. A study drawn straight from its
+  default layout has none.
+- **Read the cold reader's sentence.** "Things send messages to other
+  things" is what a template reads as. A reader of the subject's own picture
+  says something only true of this subject.
+
+A draft that began from a study is held to the same four. If it differs from
+the study only in labels and positions, either the study's view is exactly
+this subject's view (say so in the view statement, and say why), or the
+draft should have begun on the blank stage. A round where all three began
+from studies is the usual sign that it was the second.
 
 ## The cold read
 
@@ -57,13 +97,14 @@ folder:
 | Check | Pass when |
 |---|---|
 | Things | it named every entity in the hero beat's focus |
+| Its own | its `does` sentence could only be about this subject, not any system |
 | Order | its sequence matches the beats' order and each flow's direction |
 | Meaning | its `does` sentence agrees with the claim: yes, partly, or no |
 | Focus | its `focal` thing is in the hero beat's focus |
 | Unclear | each item it lists is a defect to fix, or a reason it is not one |
 
 ```json
-{ "things": "4 of 4", "order": "matches", "meaning": "partly", "focal": "Jobs",
+{ "things": "4 of 4", "order": "matches", "meaning": "partly", "own": "yes", "focal": "Jobs",
   "does": "<its sentence, quoted>", "unclear": ["could not tell which way 'accepted' goes"] }
 ```
 

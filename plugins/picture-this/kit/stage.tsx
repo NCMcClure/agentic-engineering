@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useId, useMemo, useRef, useState,
 import type { ReactNode } from "react";
 import "./kit.css";
 import type { Audience, Model } from "./model";
-import { caption, firstBeatOf, firstBeatWith, flowing, hasTechnical, inFocus, leads, told } from "./model";
+import { caption, firstBeatOf, firstBeatWith, flowing, hasTechnical, inFocus, leads, levelAt, quantity, told } from "./model";
 import type { Clock, Frame, Timeline } from "./timeline";
 import { clamp, createClock, createTimeline, ease, frameAt, lap, lerp, outro, since, timeOf } from "./timeline";
 
@@ -57,6 +57,12 @@ export type Figure = {
   phase(laps?: number, offset?: number): number;
   /** Is this the one thing the beat is about? 0 to 1: it is what the beat's leading flow arrives at. */
   arriving(entityId: string): number;
+  /** Where a quantity stands now, in its own unit. */
+  level(quantityId: string): number;
+  /** The same as a share of its max: 0 to 1. */
+  share(quantityId: string): number;
+  /** Is the figure on the page? 1, but for the loop's first and last moments: what a drawing with no entity of its own fades with. */
+  present: number;
 };
 
 const FigureContext = createContext<Figure | null>(null);
@@ -103,12 +109,14 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
   };
   const leaving = outro(tl, frame);
   const opening = model.beats[0].id;
+  // A thing that comes into being during the story arrives with its beat, whether or not the figure builds up.
+  const born = new Map(model.entities.filter((e) => e.born).map((e) => [e.id, e.born as string]));
   const leading = leads(model);
   const moving = (id: string) => blend((b) => (!b.rest && flowing(model, b.id, id) ? 1 : 0));
   return {
     model, tl, frame, audience, unit,
     here(id) {
-      const first = build ? firstBeatWith(model, id) : opening;
+      const first = born.get(id) ?? (build ? firstBeatWith(model, id) : opening);
       return (first ? since(tl, frame, first) : 1) * leaving;
     },
     lit(id) { return blend((b) => (b.rest || inFocus(model, b.id, id) ? 1 : 0)); },
@@ -119,6 +127,9 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
     moving,
     arriving(id) { return Math.max(0, ...model.flows.filter((fl) => fl.to === id && leading.has(fl.id)).map((fl) => moving(fl.id))); },
     phase(laps = 1, offset = 0) { return lap(frame, laps, offset); },
+    level(id) { return levelAt(model, id, frame.index, frame.p); },
+    share(id) { const max = quantity(model, id).max; return max ? clamp(levelAt(model, id, frame.index, frame.p) / max) : 0; },
+    present: since(tl, frame, opening) * leaving,
   };
 }
 

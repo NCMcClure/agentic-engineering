@@ -1,7 +1,7 @@
 "use client";
-// Archetype: isolated-case loop. One small tile per beat, each showing only
+// Study: isolated-case loop. One small tile per beat, each showing only
 // the things and flows of its own case, and only the tile being told moves.
-// Reach for it when the system is a handful of separate cases: what happens
+// Reach for it only when the system is a handful of separate cases: what happens
 // on a hit and on a miss, on success and on failure, for each kind of request.
 import type { Model } from "../kit/model";
 import { told } from "../kit/model";

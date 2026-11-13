@@ -1,6 +1,6 @@
 "use client";
-// Archetype: A/B split. Two arrangements of the same job, one behind the
-// other, each named. Reach for it when the point is a difference: before and
+// Study: A/B split. Two arrangements of the same job, one behind the
+// other, each named. Reach for it only when the point is a difference: before and
 // after, without and with, their way and ours.
 import type { Model } from "../kit/model";
 import { groups } from "../kit/model";

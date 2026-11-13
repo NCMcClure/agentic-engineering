@@ -1,6 +1,6 @@
 "use client";
-// Archetype: card-and-thread flow. Flat cards the page lays out, joined by
-// soft threads, with a pulse on the thread being told. Reach for it when the
+// Study: card-and-thread flow. Flat cards the page lays out, joined by
+// soft threads, with a pulse on the thread being told. Reach for it only when the
 // labels are long, the notes matter, or the figure sits in running prose.
 import { Flow } from "../kit/flow/flow";
 import type { Model } from "../kit/model";

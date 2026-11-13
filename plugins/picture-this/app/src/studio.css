@@ -51,3 +51,13 @@ a { color: inherit; }
 .studio-strip-frame .studio-strip-words .pt-caption-mark { font-size: 0.75em; }
 .studio-strip-frame .studio-strip-words .pt-caption-text { font-size: 1em; }
 .studio-strip-frame .studio-strip-claim { margin: 0; padding: 0.9em 1.4em 1em; border-top: 1px solid var(--pt-rule); font-size: 0.93em; line-height: 1.45; color: var(--pt-ink-2); text-wrap: pretty; }
+
+/* A draft's view, in its own words, over its sheet. */
+.studio-view { margin: 0 0 20px; padding: 0 0 16px; border-bottom: 1px solid var(--studio-line); }
+.studio-view h1 { margin: 0 0 10px; font: 500 12px/1.4 var(--pt-font-mono); letter-spacing: 0.09em; text-transform: uppercase; }
+.studio-view h1 span { margin-left: 12px; font-weight: 400; opacity: 0.6; }
+.studio-view dl { margin: 0; display: grid; gap: 6px; }
+.studio-view dl div { display: grid; grid-template-columns: 5.5em 1fr; gap: 12px; align-items: baseline; }
+.studio-view dt { font: 500 10.5px/1.4 var(--pt-font-mono); letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.6; }
+.studio-view dd { margin: 0; font-size: 13px; line-height: 1.45; max-width: 86ch; }
+.studio-view p { margin: 0; font-size: 13px; opacity: 0.6; }

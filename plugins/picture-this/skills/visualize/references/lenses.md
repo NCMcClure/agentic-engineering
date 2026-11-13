@@ -29,29 +29,63 @@ alternatives. Name which.
 
 ## 2. The lens
 
-What hides the mechanism picks the picture. One lens leads; a second may sit
-beside it as an inset.
+What hides the mechanism picks the picture. One lens leads. Many subjects
+need a second, and section 3 says where it goes.
 
-| Lens | The question | Hidden because | The view | What moves | Starter |
+| Lens | The question | Hidden because | The view | What moves | A study of it |
 |---|---|---|---|---|---|
-| **structure** | What is it made of? | it is assembled, or inside a case | the parts pulled apart along one axis with guides back to where they sit; or a cut through it; or a stack of layers | the parts separate, one is named, they return | `layer-stack`, `blank` |
-| **path** | Where does it go? | it passes through places you cannot follow | the places on a ground, a wire for each hop | a pulse along the hop being told | `iso-flow`, `card-flow`, `staged-build` |
-| **time** | What happens when? | it is too fast, or several things overlap | stages down one side, ticks along the other, a token per unit of work | every token steps one cell per tick | `series`, `blank` |
-| **field** | How much, and where? | it is a quantity spread over a space | a grid of cells tinted by value, or a surface standing over a plane | the value changes, or a marker travels over it | `blank` |
-| **transformation** | What does it turn into? | the before and the after are never seen together | both in one frame, with the rule drawn between them | the rule applied to one element, then the next | `blank` |
+| **structure** | What is it made of? | it is assembled, or inside a case | the parts pulled apart along one axis with guides back to where they sit; or a cut through it; or a stack of layers; or boxes inside boxes | the parts separate, one is named, they return | `layer-stack` |
+| **path** | Where does it go? | it passes through places you cannot follow | the places, in the arrangement they really have, and a line for each hop | something travels the hop being told | `iso-flow`, `card-flow`, `staged-build` |
+| **time** | What happens when? | it is too fast, too slow, or several things overlap | time drawn as an axis: stages by ticks with a token per unit of work; or a record that scrolls; or a level that rises against its limit and is reset | everything steps with the clock, together | `time-grid` |
+| **field** | How much, and where? | it is a quantity spread over a space | a grid of cells tinted by value, or a surface standing over a plane | the value changes, or a marker travels over it | `cell-field` |
+| **transformation** | What does it turn into? | the before and the after are never seen together | both in one frame, with the rule drawn between them | the rule applied to one element, then the next | none yet |
 | **difference** | How do these two differ? | you only ever see one of them | the same parts drawn twice, side by side, in the same vocabulary | the story tells one, then the other | `split` |
 | **cases** | What happens if? | it branches | one small tile per case | only the tile being told | `case-loop` |
-| **scale** | What is inside this? | it is too small, or there are too many | the whole, a ring around one region, and that region enlarged beside it | the ring travels, or the enlargement opens | `blank` |
+| **scale** | What is inside this? | it is too small, or there are too many | the whole, a ring around one region, and that region enlarged beside it | the ring travels, or the enlargement opens | none yet |
 
-A starter is a working figure for a view. `blank` is the starter for a view
-that has none yet: it sets up the stage and the clock and leaves the drawing
-to you, with the kit's helpers.
+The view column is a place to start thinking, not a menu. The subject decides
+the picture: its own shape, its own numbers, its own order. A study is one
+worked figure of one view, there to learn technique from. Start a draft from
+one only when its view is exactly the view this subject wants, which is less
+often than it is tempting to think: `archetypes.md` has the rule.
 
 Choosing between lenses that both fit: take the one whose view shows the
 **mechanism's verb** most directly. "Takes the next instruction" is time, not
 path. "Is sampled onto a grid" is transformation, not field.
 
-## 3. Draw the thing itself
+## 3. Two lenses in one picture
+
+A beam through a cutaway is structure and path. Two processors as queues of
+work are difference and time. A surface with one slice drawn as a curve is
+field and structure. Say the mechanism sentence again: the **verb** belongs to
+the lead lens, and what is left (who, where, how much, inside what) is the
+second.
+
+The lead takes the page. Its axis is the picture's long axis and its motion
+is the figure's motion. The second takes a place the lead leaves free, and
+there are four:
+
+| The second sits | When | For example |
+|---|---|---|
+| **on the other axis** | both run through the whole subject | time down each column, structure across: what started what |
+| **inside each unit** | the lead repeats a unit | cases, with a path inside each tile |
+| **over it**, as one mark | the second is a single thing: a route, a cut, a level | a field with a marker's path on it; a cutaway with a beam through it |
+| **beside it**, as an inset | the second is another size | a structure with a zoom on one part |
+
+Never three. A third question is a second figure.
+
+Two subjects look as if they need a lens of their own, and do not:
+
+- **Something that fills and is emptied**: a buffer, a tank, a context
+  window. It is a quantity, but one that changes over time and not over
+  space, so **time** leads: the level against its limit, and the moment it is
+  reset. The model carries it as a `quantity`.
+- **Something that starts other things**: a process that forks, a session
+  that spawns a session. When each one starts is **time**; what belongs to
+  what is **structure**, on the other axis. The model carries it as a
+  `parent`, and a `born` beat for a thing that is not there at the start.
+
+## 4. Draw the thing itself
 
 When the subject has a shape people know, draw that shape. A disk is a disk, a
 cable is a cable, a screen is a screen. The picture then does half the
@@ -65,7 +99,7 @@ Proportions may be bent to make the mechanism visible: a gap widened, a layer
 thickened, a million pixels drawn as sixty. What may not be bent is the
 arrangement: what touches what, what is inside what, what comes before what.
 
-## 4. Take things away
+## 5. Take things away
 
 For each part, each line and each word, ask whether the claim survives
 without it. If it does, remove it.
@@ -76,7 +110,7 @@ without it. If it does, remove it.
 - Detail that proves the thing is real (a notch, a real file name) stays;
   detail that merely decorates goes.
 
-## 5. Encode, once
+## 6. Encode, once
 
 Each visual property means one thing, the same in every figure.
 
@@ -85,11 +119,13 @@ Each visual property means one thing, the same in every figure.
 | Position and order | the real arrangement: what is above, inside, before |
 | A solid hairline | a thing, or a connection that exists |
 | A dashed line | not a thing: where a part goes back to, a path through empty space, something hidden behind |
-| The accent, as line and as tint | the part the beat is about, and what is moving |
+| The accent, as line and as fill | the part the beat is about, and what is moving |
+| A tint of the accent | a part the story marked earlier and will come back to |
+| Size, where it varies | how much: taller, longer or fuller is more, to one scale across the figure |
 | A hue | this kind of thing as against that kind, on two to four kinds |
 | A label with a leader | a name. Small mono capitals, flat and upright |
 
-## 6. Step through it
+## 7. Step through it
 
 Beats are the mechanism in the order it happens. The reader should be able to
 stop on any one and say what just changed.
@@ -107,7 +143,7 @@ named in turn, then together again.
 Two to seven beats. If the mechanism needs more, it is two figures, or the
 size chosen in question one is too small.
 
-## 7. Two worked passes
+## 8. Three worked passes
 
 **A processor's pipeline.** *Parts:* the four stages, a queue of instructions
 waiting, a pile of them finished. *Happens:* "each instruction moves one stage
@@ -125,6 +161,19 @@ cases, with path inside each tile. *View:* two tiles, hit and miss, the same
 three things in each. *Beats:* the hit; the miss; the miss filling the cache.
 *Claim:* a miss costs one extra trip, once.
 
+**An agent that hands its work to other agents.** *Parts:* the first agent's
+context window, the windows of the sessions it starts, and the hook that
+runs when a window is compacted. *Happens:* "each task fills a window of its
+own, and only a line comes back." *Hidden because:* it is a quantity nobody
+watches, in several places at once, over hours. *Lens:* time, with structure
+on the other axis. *View:* each window a column that its turns scroll
+through, a new column sliding out to the right of the turn that started it,
+and a level beside the first one that barely climbs. *Beats:* one window
+working; a turn hands a task off; the new window fills while the first does
+not; the first reaches its limit, is emptied, and its instructions come back.
+*Claim:* one window carries a whole round. None of the plugin's studies draws
+this, and none should be bent to: it starts on the blank stage.
+
 ## What goes in the model
 
 ```json
@@ -135,3 +184,9 @@ three things in each. *Beats:* the hit; the miss; the miss filling the cache.
 `mechanism` is the sentence from question two. `lens` is the one that leads.
 `draft new` will not start a round without both: three drafts of a subject
 nobody has put into one sentence are three guesses.
+
+What the second lens needs goes in the model too, so every draft draws the
+same facts: a `parent` on a thing that is inside another or was started by
+it, a `born` beat on a thing that comes into being, a `quantity` for a
+number that changes, and `data` for what a view lays out many of (cell
+values, units of work). `model.md` has each.

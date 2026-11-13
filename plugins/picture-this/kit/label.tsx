@@ -4,7 +4,7 @@
 // readable long before the geometry stops being pretty.
 import { useFigure } from "./stage";
 import { project } from "./iso/project";
-import type { P3 } from "./iso/project";
+import type { P2, P3 } from "./iso/project";
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
@@ -13,8 +13,8 @@ export function Label({
 }: {
   /** The entity it names: the title, the hue of its dot, its arrival and focus come from the model. */
   entity?: string;
-  /** The ground point the leader starts from. */
-  at: P3;
+  /** Where the leader starts: a ground point [x, y, z], or, in a flat figure, a point on the page [x, y]. */
+  at: P3 | P2;
   title?: string;
   /** A second, quieter line: a role, a file, a number. */
   sub?: string;
@@ -30,7 +30,7 @@ export function Label({
   const h = here ?? (entity ? f.here(entity) : 1);
   const l = lit ?? (entity ? f.lit(entity) : 1);
   if (h <= 0) return null;
-  const [x, y] = project(at, f.unit);
+  const [x, y] = at.length === 2 ? at : project(at, f.unit);
   const tx = x + dx, ty = y + dy;
   const above = dy < 0;
   // The leader stops short of the text: under its last line when the text is

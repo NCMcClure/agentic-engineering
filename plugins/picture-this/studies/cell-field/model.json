@@ -1,0 +1,39 @@
+{
+  "schema": 1,
+  "title": "How a spell-checker counts the edits between two words",
+  "mechanism": "Each cell takes the smallest of the three cells before it, and adds one when its two letters differ.",
+  "lens": "field",
+  "claim": "The last cell holds the fewest edits that turn one word into the other, and no cell is worked out twice.",
+  "implication": "Two words of ten letters cost a hundred cells, not the millions of ways to edit one into the other.",
+  "entities": [
+    { "id": "from", "label": "flaw", "kind": "word", "note": "the word typed" },
+    { "id": "to", "label": "lawn", "kind": "word", "note": "a word it might be" },
+    { "id": "before", "label": "Three before", "kind": "cells", "note": "left, above, and between" },
+    { "id": "cell", "label": "One cell", "kind": "cell", "note": "edits so far" },
+    { "id": "answer", "label": "The answer", "kind": "cell", "note": "edits in all" }
+  ],
+  "flows": [
+    { "id": "take", "from": "before", "to": "cell", "kind": "read", "label": "smallest" }
+  ],
+  "data": {
+    "edits": [
+      [0, 1, 2, 3, 4],
+      [1, 1, 2, 3, 4],
+      [2, 1, 2, 3, 4],
+      [3, 2, 1, 2, 3],
+      [4, 3, 2, 1, 2]
+    ]
+  },
+  "beats": [
+    { "id": "edges", "title": "The edges", "plain": "The top row and the first column are plain counting: that many letters added, or taken away.",
+      "focus": ["from", "to"], "flows": [], "ms": 3000 },
+    { "id": "one", "title": "One cell", "plain": "A cell looks at the three before it, takes the smallest, and adds one because F is not L.",
+      "focus": ["before", "cell"], "flows": ["take"], "ms": 3600 },
+    { "id": "fill", "title": "Row by row", "plain": "Every other cell is filled the same way, each from cells that are already there.",
+      "focus": ["cell"], "flows": ["take"], "ms": 4200 },
+    { "id": "corner", "title": "The corner", "plain": "The last cell is the answer: two edits turn flaw into lawn.",
+      "focus": ["answer"], "flows": [], "ms": 3000 },
+    { "id": "rest", "rest": true, "focus": [], "flows": [], "ms": 1500 }
+  ],
+  "hero": { "beat": "fill", "at": 0.5 }
+}

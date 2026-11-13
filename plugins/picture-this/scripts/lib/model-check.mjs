@@ -13,6 +13,7 @@ export const LIMITS = {
   entities: [2, 9], beats: [2, 7], hues: 4,
   claim: 140, mechanism: 160, plain: 140, technical: 200, label: 28, note: 36, groups: 3,
   beatMs: [1200, 8000], restMs: [400, 4000], loopMs: 30000,
+  repeat: [2, 24], quantities: 4, course: 8, tables: 8, cells: 600,
 };
 
 const ID = /^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$/;
@@ -99,7 +100,22 @@ export function checkModel(model, { repo = null, requireSource = false, requireM
       hued += 1;
       if (!HUES.includes(e.hue)) bad(`entity '${e.id}': hue '${e.hue}' is not one of ${HUES.join(", ")}`);
     }
+    if (e?.repeat !== undefined && !(Number.isInteger(e.repeat) && e.repeat >= LIMITS.repeat[0] && e.repeat <= LIMITS.repeat[1])) {
+      bad(`entity '${e.id}': repeat ${JSON.stringify(e.repeat)} is not a whole number from ${LIMITS.repeat[0]} to ${LIMITS.repeat[1]}: draw a few, standing for the many`);
+    }
+    if (e?.parent !== undefined) {
+      if (!entityIds.has(e.parent)) bad(`entity '${e.id}': parent '${e.parent}' is not an entity`);
+      else if (e.parent === e.id) bad(`entity '${e.id}' is its own parent`);
+    }
     if (e) sourced(e, "entity");
+  }
+  // Nothing is inside itself, however long the way round.
+  const parentOf = new Map(entities.filter((e) => entityIds.has(e?.parent) && e.parent !== e.id).map((e) => [e.id, e.parent]));
+  for (const id of parentOf.keys()) {
+    const seen = new Set([id]);
+    let at = parentOf.get(id);
+    while (at && !seen.has(at)) { seen.add(at); at = parentOf.get(at); }
+    if (at === id) bad(`entity '${id}' is inside itself: its parents come back round to it`);
   }
   const grouped = new Set(entities.map((e) => e?.group).filter(Boolean));
   if (grouped.size > LIMITS.groups) bad(`${grouped.size} groups: a figure sets at most ${LIMITS.groups} arrangements side by side`);
@@ -149,6 +165,78 @@ export function checkModel(model, { repo = null, requireSource = false, requireM
     if (usedFlows.has(f?.id)) { usedEntities.add(f.from); usedEntities.add(f.to); }
   }
   for (const id of entityIds) if (!usedEntities.has(id)) bad(`entity '${id}' is in no beat: nothing focuses on it and no told flow touches it`);
+
+  // A thing that comes into being during the story is not told before it does.
+  const order = new Map(beats.map((b, i) => [b?.id, i]));
+  for (const e of entities) {
+    if (e?.born === undefined) continue;
+    const birth = beats.find((b) => b?.id === e.born);
+    if (!birth || birth.rest) { bad(`entity '${e.id}': born '${e.born}' is not a beat that is told`); continue; }
+    for (const b of beats.slice(0, order.get(e.born))) {
+      const touches = list(b?.focus).includes(e.id) || list(b?.flows).some((id) => flows.some((f) => f?.id === id && (f.from === e.id || f.to === e.id)));
+      if (touches) bad(`beat '${b.id}' tells '${e.id}' before it is born in '${e.born}'`);
+    }
+  }
+
+  // Numbers that change as the story is told.
+  const number = (v) => typeof v === "number" && Number.isFinite(v);
+  if (model.quantities !== undefined) {
+    const quantities = list(model.quantities);
+    if (!Array.isArray(model.quantities)) bad("quantities is not a list");
+    if (quantities.length > LIMITS.quantities) bad(`${quantities.length} quantities: a figure follows at most ${LIMITS.quantities}`);
+    ids(quantities, "quantity");
+    for (const q of quantities) {
+      const name = `quantity '${q?.id}'`;
+      if (!text(q?.label)) bad(`${name} has no label`);
+      if (q?.of !== undefined && !entityIds.has(q.of)) bad(`${name}: of '${q.of}' is not an entity`);
+      if (q?.unit !== undefined && !text(q.unit)) bad(`${name}: unit is empty`);
+      if (q?.max !== undefined && !(number(q.max) && q.max > 0)) bad(`${name}: max ${JSON.stringify(q.max)} is not a number above 0`);
+      if (q?.start !== undefined && !(number(q.start) && q.start >= 0)) bad(`${name}: start ${JSON.stringify(q.start)} is not a number from 0 up`);
+      const values = q?.values && typeof q.values === "object" && !Array.isArray(q.values) ? Object.entries(q.values) : null;
+      if (!values || !values.length) { bad(`${name} has no values: say where it stands at the end of a beat, { "<beat>": <number> }`); continue; }
+      for (const [beatId, value] of values) {
+        if (!beatIds.has(beatId)) { bad(`${name}: '${beatId}' is not a beat`); continue; }
+        const course = Array.isArray(value) ? value : [value];
+        if (!course.length || course.length > LIMITS.course) bad(`${name}: beat '${beatId}' has ${course.length} values: one, or a course of 2 to ${LIMITS.course}`);
+        for (const v of [...course, ...(q.start !== undefined ? [q.start] : [])]) {
+          if (!number(v) || v < 0) bad(`${name}: ${JSON.stringify(v)} in beat '${beatId}' is not a number from 0 up`);
+          else if (number(q.max) && v > q.max) bad(`${name}: ${v} in beat '${beatId}' is over its max, ${q.max}`);
+        }
+      }
+    }
+  }
+
+  // What a view reads beyond things and flows: series, grids of cell values, rows.
+  if (model.data !== undefined) {
+    const tables = model.data && typeof model.data === "object" && !Array.isArray(model.data) ? Object.entries(model.data) : null;
+    if (!tables) bad("data is not an object of named tables");
+    else {
+      if (tables.length > LIMITS.tables) bad(`${tables.length} tables of data: a figure reads at most ${LIMITS.tables}`);
+      let total = 0;
+      for (const [name, value] of tables) {
+        const where = `data '${name}'`;
+        if (!ID.test(name)) bad(`${where}: the name is not kebab-case`);
+        if (!Array.isArray(value) || !value.length) { bad(`${where} is not a list with something in it: numbers, rows of numbers, or rows of named values`); continue; }
+        if (value.every(number)) total += value.length;
+        else if (value.every((row) => Array.isArray(row) && row.length && row.every(number))) {
+          if (value.some((row) => row.length !== value[0].length)) bad(`${where}: its rows are not all ${value[0].length} cells wide`);
+          total += value.length * value[0].length;
+        } else if (value.every((row) => row && typeof row === "object" && !Array.isArray(row))) {
+          total += value.length;
+          const seen = new Set();
+          value.forEach((row, i) => {
+            for (const [key, v] of Object.entries(row)) {
+              if (!["string", "number", "boolean"].includes(typeof v)) bad(`${where}: row ${i + 1}, '${key}' is not a word, a number, or true or false`);
+            }
+            if (row.id !== undefined) { if (seen.has(row.id)) bad(`${where}: row id '${row.id}' is used twice`); seen.add(row.id); }
+            if (row.of !== undefined && !entityIds.has(row.of)) bad(`${where}: row ${i + 1}, of '${row.of}' is not an entity`);
+            if (row.at !== undefined && !beatIds.has(row.at)) bad(`${where}: row ${i + 1}, at '${row.at}' is not a beat`);
+          });
+        } else bad(`${where} mixes kinds: all numbers, all rows of numbers, or all rows of named values`);
+      }
+      if (total > LIMITS.cells) bad(`${total} values of data: a figure draws a few standing for the many, at most ${LIMITS.cells}`);
+    }
+  }
 
   const hero = model.hero;
   if (!hero || typeof hero !== "object") bad("hero is missing: { \"beat\": <id>, \"at\": 0.5 }");

@@ -17,7 +17,7 @@ import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const LOCKFILE = path.join(PLUGIN, "app", "package-lock.json");
-const MODEL = fs.readFileSync(path.join(PLUGIN, "starters", "iso-flow", "model.json"), "utf8");
+const MODEL = fs.readFileSync(path.join(PLUGIN, "studies", "iso-flow", "model.json"), "utf8");
 
 /** A repo with one figure and one draft round, and a data folder that looks installed. */
 function world(t, { installed = true } = {}) {
@@ -72,7 +72,7 @@ test("a name means a figure, round/draft a draft, fixture/name a fixture, and a 
   assert.equal(findFigure(at, path.join(at.drafts, "round-1", "a")).id, "round-1/a");
   assert.equal(findFigure(at, path.join(at.figures, "job-queue")).id, "job-queue");
   assert.equal(findFigure(at, "job-queue").model.title, "How an upload becomes a thumbnail");
-  const fixtures = path.join(PLUGIN, "starters");
+  const fixtures = path.join(PLUGIN, "studies");
   assert.deepEqual([findFigure(at, "fixture/iso-flow", { fixtures }).kind, findFigure(at, "fixture/iso-flow", { fixtures }).dir], ["fixture", path.join(fixtures, "iso-flow")]);
   assert.throws(() => findFigure(at, "nope"), (e) => e instanceof PtError && /no figure 'nope': this repo has job-queue, round-1\/a/.test(e.message));
   assert.throws(() => findFigure(at, "kit"), /no figure 'kit'/);

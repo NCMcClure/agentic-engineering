@@ -18,6 +18,8 @@ draw from the frame, with the helpers on `useFigure()` and in `timeline.ts`:
 | `f.lit(entity)`, `f.moving(flow)` | something that is on only while it is told |
 | `f.arriving(entity)` | the one thing the beat is about |
 | `f.phase(laps, offset)` | something circulating during a beat: a pulse, a tick |
+| `f.level(quantity)`, `f.share(quantity)` | a number that changes: a level, a count, a fill against its limit |
+| `f.present` | the whole figure fading in as the loop starts and out as it ends, for a drawing with no entity of its own |
 | `since`, `during`, `outro`, `ease`, `lerp`, `span` | anything of your own, from `f.tl` and `f.frame` |
 
 A pulse makes a whole number of laps per beat. Then the beat and the progress
@@ -55,6 +57,9 @@ Before adding one, say what it tells the reader about the system:
 - **Lift or accent**: this is what is happening now.
 - **Dimming**: this is not what we are talking about.
 - **Filling, counting, stacking**: this much has built up.
+- **Emptying at once**: it was reset, and what it held is gone.
+- **Scrolling**: time is passing in a record, at the rate things are added.
+- **Sliding out of something**: that thing started this one.
 
 If a motion says nothing about the system, remove it. The test: would a
 reader be confused if it were gone? If not, it was decoration.
@@ -89,5 +94,11 @@ to step through the beats. That same frame is what a server renders and what
 the camera photographs. So the hero frame must be a complete picture on its
 own: check it as a still before anything else.
 
-With `build` on, a part is absent until its beat. Pick a late hero beat for a
+A loop that scrolls or fills must start where it ends, or the seam shows.
+The figure fades out over the loop's last half second and in over its first
+(`f.present`); what is under the fade should be the same state at both ends:
+a level back at its start, a column back at its first row.
+
+With `build` on, a part is absent until its beat. A thing with a `born` beat
+is absent until then whether or not the figure builds up. Pick a late hero beat for a
 build-up, or the still shows half a system.

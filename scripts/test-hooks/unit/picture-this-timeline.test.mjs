@@ -15,7 +15,7 @@ const T = skip ? null : await load("timeline.ts");
 const I = skip ? null : await load("iso/project.ts");
 const M = skip ? null : await load("model.ts");
 const P = skip ? null : await load("iso/place.ts");
-const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "starters", "iso-flow", "model.json"), "utf8"));
+const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "studies", "iso-flow", "model.json"), "utf8"));
 const beats = [{ id: "a", ms: 3000 }, { id: "b", ms: 2000 }, { id: "rest", ms: 1000, rest: true }];
 const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 1e-9, `${message ?? ""} ${actual} is not ${expected}`);
 
@@ -279,7 +279,7 @@ test("a wire crosses the gap from the face it leaves, turns once when it must, a
 test("each beat has one leading flow: the one that arrives furthest along", { skip }, () => {
   assert.deepEqual([...M.leads(model)].sort(), ["enqueue", "save", "take"], "of upload, enqueue and reply, the queue is furthest along");
   assert.deepEqual(M.groups(model), []);
-  const split = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "starters", "split", "model.json"), "utf8"));
+  const split = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "studies", "split", "model.json"), "utf8"));
   assert.deepEqual(M.groups(split), ["Without a queue", "With a queue"]);
 });
 
@@ -291,4 +291,37 @@ test("the kit's model type and the checker agree on kinds and hues", { skip }, a
   assert.deepEqual(union("Lens"), LENSES);
   assert.deepEqual(union("FlowKind"), FLOW_KINDS);
   assert.deepEqual(union("Hue"), HUES);
+});
+
+test("a quantity is read off the clock: one value is reached evenly, a course is followed, a beat left out holds", { skip }, () => {
+  const m = { ...model, quantities: [{ id: "waiting", label: "Jobs waiting", max: 10, start: 2, values: { answer: 6, save: [8, 0, 4] } }] };
+  const at = (beat, p) => M.levelAt(m, "waiting", m.beats.findIndex((b) => b.id === beat), p);
+  assert.deepEqual([at("answer", 0), at("answer", 0.5), at("answer", 1)], [2, 4, 6], "from where it started to the beat's one value");
+  assert.deepEqual([at("work", 0), at("work", 0.7)], [6, 6], "a beat with no value holds the level");
+  assert.deepEqual([at("save", 0), at("save", 0.25), at("save", 0.5), at("save", 0.75), at("save", 1)], [8, 4, 0, 2, 4], "a course opens with a jump and is followed evenly");
+  assert.equal(at("rest", 0.5), 4, "and the rest holds where the story left it");
+  assert.equal(M.levelAt(m, "waiting", 0, 7), 6, "progress past the end is the end");
+  assert.throws(() => M.levelAt(m, "missing", 0, 0), /no quantity 'missing'/);
+});
+
+test("the model answers what is inside what, how many of a thing there are, and what its tables hold", { skip }, () => {
+  const m = structuredClone(model);
+  m.entities[2].parent = "api";
+  m.entities[3].parent = "queue";
+  m.entities[3].repeat = 3;
+  m.data = { sizes: [1, 2, 3], heat: [[0, 1], [2, 3]], jobs: [{ id: "j1", label: "resize" }] };
+  assert.deepEqual(M.children(m, "api").map((e) => e.id), ["queue"]);
+  assert.deepEqual(["api", "queue", "worker"].map((id) => M.depth(m, id)), [0, 1, 2]);
+  assert.deepEqual([M.unitsOf(m, "worker"), M.unitsOf(m, "api")], [3, 1]);
+  assert.deepEqual(M.series(m, "sizes"), [1, 2, 3]);
+  assert.deepEqual(M.cells(m, "heat"), [[0, 1], [2, 3]]);
+  assert.deepEqual(M.rows(m, "jobs"), [{ id: "j1", label: "resize" }]);
+  assert.throws(() => M.cells(m, "sizes"), /data 'sizes' is not a grid of cells/);
+  assert.throws(() => M.rows(m, "heat"), /data 'heat' is not a list of rows/);
+  assert.throws(() => M.series(m, "absent"), /no data 'absent'/);
+});
+
+test("the kit's model type carries every field the checker reads", { skip }, () => {
+  const source = fs.readFileSync(path.join(KIT, "model.ts"), "utf8");
+  for (const field of ["parent?: string", "born?: string", "repeat?: number", "quantities?: Quantity[]", "data?: Record<string, Table>"]) assert.ok(source.includes(field), field);
 });

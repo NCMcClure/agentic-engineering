@@ -1,7 +1,7 @@
 "use client";
-// Archetype: staged build-up. The system assembles itself: each part arrives
+// Study: staged build-up. The system assembles itself: each part arrives
 // with the beat that first tells it, and its wire is laid as it does. Reach
-// for it when the point is why each part is there, one addition at a time.
+// for it only when the point is why each part is there, one addition at a time.
 import type { Model } from "../kit/model";
 import { Stage } from "../kit/stage";
 import type { StageProps } from "../kit/stage";

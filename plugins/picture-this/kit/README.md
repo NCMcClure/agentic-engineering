@@ -1,6 +1,9 @@
 # The picture-this kit
 
-What a figure draws with. This folder was copied into your repo and is yours:
+What a figure draws with: a vocabulary of shapes, not a set of layouts. Each
+one draws what it is told, where it is told, at the frame it is given, so
+they compose into pictures nobody planned for. This folder was copied into
+your repo and is yours:
 restyle `kit.css`, change a shape. `kit.json` records each file as it was
 written, so a later `kit install` updates only what you have not touched.
 
@@ -65,10 +68,62 @@ Inside a stage, `useFigure()` answers the questions a drawing asks:
 | `f.laid(flow)` | has its wire been laid |
 | `f.moving(flow)` | is it moving now |
 | `f.phase(laps, offset)` | where a pulse is along its wire |
+| `f.level(quantity)` | where a quantity stands now, in its own unit (not 0 to 1) |
+| `f.share(quantity)` | the same as a share of its `max` |
+| `f.present` | is the figure on the page: 1, but for the loop's first and last moments. A value, not a call |
 
 `f.frame` is the beat and the progress through it; `f.model`, `f.tl`,
-`f.audience` and `f.unit` are there too. `<Hold beat="..." build>` draws its
+`f.audience` and `f.unit` are there too. An entity with a `born` beat is not
+`here` until that beat, whether or not the figure builds up. `<Hold beat="..." build>` draws its
 children at one held frame whatever the clock says: a panel of a series.
+
+## Flat space
+
+`flat/` draws in the page's own coordinates: x right, y down, in the
+`viewBox`'s px. Its shapes know nothing of the model. A figure reads the
+frame, works out what to show, and passes it in, so the same shape serves a
+context window, a log, a buffer or a page.
+
+| Shape | What it is for |
+|---|---|
+| `Panel` (`flat/panel`) | a framed box that clips what it holds: a window, a screen, a buffer. `open="top bottom"` draws it running on past the picture |
+| `Rows` | a column of bars inside a box, scrolled by `offset` px: the turns in a window, the lines of a log. Each row has a `tone` (`dark`, `mid`, `light`), and may take the `accent`, a `marked` tint, an `indent`, a `span` |
+| `Bar` | one row, for a column laid out by hand |
+| `Spawn` | one thing starting another: a connector from a point, and a panel sliding out of its end, on one `progress` |
+| `Elbow` (`flat/connect`) | a right-angled connector with rounded corners and an arrowhead between any two points; `progress` draws part of it, `pulse` puts the accent on a stretch of it, `quiet` is for what is said as against what is started |
+| `Token` | one unit of work: a dot, with a hue or the accent, and a word |
+| `Queue` | tokens waiting in a line, some places still empty |
+| `Meter` (`flat/chart`) | one number against its limit, filling and emptying with the frame, with a `threshold` line |
+| `Cells` | a grid of square cells, each tinted by its value in a few even steps; `shown` reveals them, `mark` puts the accent on one, `numbers` writes the values |
+| `Lanes` | the ruled ground of a time grid: a named row per stage, a tick per column, a line at `now` |
+
+`flat/geometry` is where things are before they are drawn, as plain
+functions: `anchor(box, side, at)` is a point on a box's side; `elbow(from,
+to)` the corners of a right-angled route; `column(heights, gap)` rows
+stacked; `windowed(slots, offset, height)` the rows a scrolled window shows;
+`scrollTo(slots, index, height)` the offset that brings a row to the bottom;
+`bar(box, slot, offset, row)` a row's box on the page, for a connector to
+leave from; `slotIn(box, columns, rows, c, r)` and `cell(c, r, size, gap,
+origin)` one cell of a grid; `tint(value, lo, hi, steps)` a value as one of a
+few tints; `mix(a, b, p)` one token part of the way to another. `onElbow`
+(in `flat/connect`) is a point along a connector, for something riding it.
+
+```tsx
+const inner = inset(WINDOW, 12);
+const slots = column(turns.map(() => 12), 6);
+const offset = scrollTo(slots, shown, inner.height);
+<Panel box={WINDOW} open="top bottom">
+  <Rows box={inner} rows={turns.slice(0, shown + 1)} offset={offset} />
+</Panel>
+<Spawn from={anchor(bar(inner, slots[7], offset), "right")} box={CHILD} progress={p}>
+  <Rows box={inset(CHILD, 10)} rows={childTurns} rowHeight={8} gap={5} />
+</Spawn>
+```
+
+`Label` takes a page point as well as a ground point: `<Label at={[x, y]}
+title="..." />`. Plain `<text className="pt-label">` and `"pt-tag"` set words
+in the house faces, `pt-edge` is a thing's line, `pt-guide` a dashed one, and
+`pt-rule` a quiet rule.
 
 ## Isometric
 
@@ -174,10 +229,11 @@ move with it.
 Built and checked with React 19, `@react-three/fiber` 9, `@react-three/drei`
 10 and `three` 0.187.
 
-## Flat
+## Cards
 
 `flow/flow`: `<Flow rows={[["a","b"],[null,"c"]]} />` lays real cards on a
-grid and draws threads between them once they have been measured. Use it when
+grid and draws threads between them once they have been measured. It is
+HTML, laid out by the page, where `flat/` is SVG placed by hand. Use it when
 the words matter more than the shape.
 
 ## In prose

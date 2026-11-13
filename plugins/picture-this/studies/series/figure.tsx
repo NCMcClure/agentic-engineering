@@ -1,7 +1,7 @@
 "use client";
-// Archetype: static series. One small panel per beat, each a held frame of
+// Study: static series. One small panel per beat, each a held frame of
 // the same scene with one more idea in it than the last. Nothing moves but
-// the mark under the panel being told. Reach for it when the figure must work
+// the mark under the panel being told. Reach for it only when the figure must work
 // as a still: a README, a printed page, a slide.
 import type { Model } from "../kit/model";
 import { told } from "../kit/model";

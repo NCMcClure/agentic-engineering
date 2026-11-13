@@ -11,7 +11,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [codebase-optimizer](#codebase-optimizer) | 1.0.0 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.0 | 6 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.0 | 2 | workflow |
-| [picture-this](#picture-this) | 0.2.0 | 2 | creative |
+| [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.0 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.0 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 1.0.0 | 5 | authoring |
@@ -110,14 +110,14 @@ Version 1.0.0. [README](../plugins/workflow-studio/README.md), [changelog](../pl
 
 ## picture-this
 
-Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.
+Turns a description or a feature in your codebase into a minimalist animated figure of how something works, designed from the subject and not from a template: three drafts to choose from, a React component that embeds in MDX, and stills, strips and GIFs for a README.
 
-Version 0.2.0. [README](../plugins/picture-this/README.md), [changelog](../plugins/picture-this/CHANGELOG.md).
+Version 0.3.0. [README](../plugins/picture-this/README.md), [changelog](../plugins/picture-this/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
 | `/picture-this:export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent, or by hand | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
-| `/picture-this:visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent, or by hand | Turn a description, or a feature in a codebase, into a minimalist animated visualization of how a system works: model it, draft three variations, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture or idea works, or to explain one to a non-technical audience. |
+| `/picture-this:visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent, or by hand | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
 
 ## write-like-me
 

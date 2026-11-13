@@ -33,9 +33,10 @@ A plugin installs as `<name>@agentic-engineering`.
   shots, metrics, sheets, a blind critic, and a review queue for the person.
   Descend to change what a number means or how the gate decides.
 - `picture-this/` - a description or a codebase feature drawn as an animated
-  visualization: a kit copied into the repo, a studio that renders drafts and
-  stills, and the `pt` CLI. Descend to change the kit, the studio, an
-  archetype, or the house style.
+  figure designed from the subject: a kit of shapes copied into the repo,
+  studies to learn from, a studio that renders drafts and stills, and the
+  `pt` CLI. Descend to change the kit, the studio, a study, the lens method,
+  or the house style.
 - `plugin-workbench/` - make, score and fix plugins against one rubric, and
   read what a session's context was made of. Descend to change what a grade
   means or what the lens reports.

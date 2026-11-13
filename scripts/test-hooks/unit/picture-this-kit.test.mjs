@@ -13,7 +13,7 @@ import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const KIT = path.join(PLUGIN, "kit");
-const MODEL = fs.readFileSync(path.join(PLUGIN, "starters", "iso-flow", "model.json"), "utf8");
+const MODEL = fs.readFileSync(path.join(PLUGIN, "studies", "iso-flow", "model.json"), "utf8");
 /** The kit as a repo gets it unless it asks for more: everything but the 3D tier. */
 const BASE = kitFiles(KIT, { three: false });
 const THREE = kitFiles(KIT).filter((rel) => rel.startsWith("three/"));
