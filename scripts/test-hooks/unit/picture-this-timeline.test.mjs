@@ -329,9 +329,13 @@ test("the kit's model type carries every field the checker reads", { skip }, () 
 test("a quantity's course can be drawn whole, and says where it falls", { skip }, () => {
   const m = { ...model, quantities: [{ id: "waiting", label: "Jobs waiting", max: 10, start: 2, values: { answer: 6, save: [8, 0, 4] } }] };
   assert.deepEqual(M.knots(m, "waiting"), [
-    { at: 0, value: 2 }, { at: 1, value: 6 }, { at: 2, value: 8 }, { at: 2.5, value: 0 }, { at: 3, value: 4 }, { at: 4, value: 4 },
-  ], "beat-time: the third beat's course runs from 2 to 3, and the last level is held to the loop's end");
+    { at: 0, value: 2 }, { at: 1, value: 6 }, { at: 2, value: 6 }, { at: 2, value: 8 }, { at: 2.5, value: 0 }, { at: 3, value: 4 }, { at: 4, value: 4 },
+  ], "beat-time: a beat with no value holds, a course may open with a jump, and the last level is held to the loop's end");
   assert.deepEqual(M.falls(m, "waiting"), [{ from: 2, to: 2.5, high: 8, low: 0 }]);
+  // A level that holds and then climbs is flat until the beat that moves it, not a slope from the start.
+  const late = { ...model, quantities: [{ id: "late", label: "Late", values: { save: 9 } }] };
+  assert.deepEqual(M.knots(late, "late"), [{ at: 0, value: 0 }, { at: 2, value: 0 }, { at: 3, value: 9 }, { at: 4, value: 9 }]);
+  near(M.levelAt(late, "late", 1, 0.5), 0, "which is what levelAt says of the beat before");
   for (const k of M.knots(m, "waiting")) {
     const index = Math.min(m.beats.length - 1, Math.floor(k.at)), p = k.at - index;
     if (k.at !== 2) near(M.levelAt(m, "waiting", index, p), k.value, `the course agrees with levelAt at ${k.at}`);

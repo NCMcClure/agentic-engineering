@@ -215,6 +215,9 @@ export function knots(model: Model, id: string): { at: number; value: number }[]
     const v = q.values[b.id];
     if (v === undefined) return;
     const points = course(v);
+    // A level that held through the beats before this one holds up to this beat's start.
+    const held = out[out.length - 1];
+    if (held.at < index) out.push({ at: index, value: held.value });
     if (points.length === 1) out.push({ at: index + 1, value: points[0] });
     else points.forEach((value, i) => out.push({ at: index + i / (points.length - 1), value }));
   });
