@@ -6,6 +6,9 @@
 // is painted, and photographs one element. What was written, and anything a
 // page complained about, goes to the job's `result` file as JSON.
 //
+// A shot may carry its own `scale`, and a `film`: then the page's figure is
+// stepped through one loop of its clock and written as a GIF (see film.mjs).
+//
 // Exit 0 when every shot was taken and no figure failed to draw, 1 when one
 // did, 2 when the job or the browser could not be used at all.
 import fs from "node:fs";
@@ -23,7 +26,7 @@ const settled = () => {
 
 async function shoot(browser, base, scale, shot) {
   const context = await browser.newContext({
-    deviceScaleFactor: scale,
+    deviceScaleFactor: shot.scale ?? scale,
     colorScheme: shot.colorScheme ?? "light",
     reducedMotion: "reduce",
     viewport: shot.viewport ?? { width: 1280, height: 900 },
@@ -39,12 +42,15 @@ async function shoot(browser, base, scale, shot) {
     done.errors = await page.$$eval("[data-pt-error], .studio-error", (found) => found.map((el) => el.textContent.trim()));
     if (!done.errors.length) {
       const target = page.locator(shot.selector).first();
-      fs.mkdirSync(path.dirname(shot.out), { recursive: true });
-      await target.screenshot({ path: shot.out, animations: "disabled" });
+      if (shot.film) Object.assign(done, await (await import("./film.mjs")).film(page, target, shot));
+      else {
+        fs.mkdirSync(path.dirname(shot.out), { recursive: true });
+        await target.screenshot({ path: shot.out, animations: "disabled" });
+      }
       const box = await target.boundingBox();
       done.width = Math.round(box.width);
       done.height = Math.round(box.height);
-      done.ok = true;
+      done.ok = !done.over;
     }
   } catch (error) {
     done.errors.push(String(error.message ?? error).split("\n")[0]);

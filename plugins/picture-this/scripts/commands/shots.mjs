@@ -1,35 +1,45 @@
 // pt still and pt sheet: pictures of a figure, taken in the studio.
 //   still   the hero frame (or any held frame), light and dark, for a README;
-//           with --strip, the beats in one row instead
+//           with --strip the beats in one row, with --gif one loop, moving
 //   sheet   every beat side by side, to look a draft over and to show a cold reader
 import fs from "node:fs";
 import path from "node:path";
 import { PtError, emit, parseArgs } from "../lib/args.mjs";
 import { ensureDrafts, layout } from "../lib/config.mjs";
 import { findFigure } from "../lib/figures.mjs";
+import { GIF_MAX_BYTES, GIF_WARN_BYTES, loopFrames, sizeOf } from "../lib/gif.mjs";
 import { PLUGIN_ROOT, dataHome, repoRoot } from "../lib/home.mjs";
-import { altText, pictureSnippet, stripAlt } from "../lib/snippet.mjs";
+import { altText, imageSnippet, pictureSnippet, stripAlt } from "../lib/snippet.mjs";
 import { capture, ensureServer } from "../lib/studio.mjs";
 import { requireStudio } from "./studio.mjs";
 
-const STILL_HELP = `usage: node pt.mjs still <figure> [--strip] [--beat <id>] [--at <0-100>] [--technical] [--width <px>] [--out <dir>] [--from <dir>] [--repo <dir>] [--json]
+const STILL_HELP = `usage: node pt.mjs still <figure> [--strip] [--gif [--dark] [--fps <n>]] [--beat <id>] [--at <0-100>] [--technical] [--width <px>] [--out <dir>] [--from <dir>] [--repo <dir>] [--json]
 
 Takes a figure's still in light and dark, at twice its size, and prints the
 Markdown that shows the right one. The frame is the model's hero frame unless
 --beat (and --at, a percentage through the beat) says otherwise.
 
-  <figure>      a figure's name, round/draft for a draft, or fixture/<name>
-  --strip       instead of the still, the beat strip: the told beats in one row,
-                numbered, each held at its middle with its caption under it
+With --strip or --gif it writes those instead of the still (give both for both):
+
+  --strip       the beat strip: the told beats in one row, numbered, each held
+                at its middle with its caption under it
                 (<name>.strip.light.png and <name>.strip.dark.png)
+  --gif         one loop of the figure, moving (<name>.gif). Every frame is the
+                figure's clock held at that instant, so nothing is recorded.
+                Its size is printed; past 5 MB it comes with a warning, and
+                past 10 MB, the most GitHub shows, it is not written.
+  --dark        with --gif: a dark one too (<name>.dark.gif)
+  --fps         with --gif: frames a second, 5 to 30 (15 unless given)
+
+  <figure>      a figure's name, round/draft for a draft, or fixture/<name>
   --technical   the technical captions instead of the plain ones
-  --width       the figure's width in CSS px (880 unless given; in a strip, each
-                beat's width, 640 unless given)
+  --width       the figure's width in CSS px, 520 to 1600: 880 for the still,
+                640 for each beat of a strip, 720 for a GIF, unless given
   --out         where to write; a figure's stills go to the repo's stills folder,
                 a draft's beside the draft
   --from        the folder of the Markdown file the snippet is for (the repo's root unless given)
 
-Exit codes: 0 every picture written, 1 the figure failed to draw, 2 usage or environment.`;
+Exit codes: 0 every picture written, 1 the figure failed to draw or a GIF was too large to write, 2 usage or environment.`;
 
 const SHEET_HELP = `usage: node pt.mjs sheet <figure> [--dark] [--technical] [--out <dir>] [--repo <dir>] [--json]
 
@@ -64,7 +74,7 @@ const failures = (taken) => taken.flatMap((s) => s.errors.map((e) => `${path.bas
 
 /** `deps` stands in for the outside world in tests: env, cwd, pluginRoot, server, capture. */
 export async function still(argv, deps = {}) {
-  const opts = parseArgs(argv, { strip: "bool", beat: "string", at: "int", technical: "bool", width: "int", out: "string", from: "string", repo: "string" });
+  const opts = parseArgs(argv, { strip: "bool", gif: "bool", dark: "bool", fps: "int", beat: "string", at: "int", technical: "bool", width: "int", out: "string", from: "string", repo: "string" });
   if (opts.help) { process.stdout.write(STILL_HELP + "\n"); return 0; }
   if (opts._.length !== 1) throw new PtError(STILL_HELP);
   const ctx = prepare(opts, deps, opts._[0]);
@@ -79,8 +89,9 @@ export async function still(argv, deps = {}) {
   const outDir = opts.out ? path.resolve(opts.out) : figure.kind === "figure" ? at.stills : figure.kind === "draft" ? figure.dir : null;
   if (!outDir) throw new PtError(`${figure.id} is a fixture: say where its stills go with --out`);
   const base = figure.kind === "draft" && !opts.out ? "still" : name;
-  if (opts.strip) {
-    if (opts.beat || opts.at !== undefined) throw new PtError("--beat and --at choose the still's frame: a strip shows every beat at its middle");
+  if ((opts.dark || opts.fps !== undefined) && !opts.gif) throw new PtError("--dark and --fps go with --gif");
+  if (opts.strip || opts.gif) {
+    if (opts.beat || opts.at !== undefined) throw new PtError("--beat and --at choose the still's frame: a strip shows every beat at its middle, and a GIF the whole loop");
     return exported(opts, ctx, deps, { outDir, base });
   }
   const query = [`figure=${encodeURIComponent(figure.id)}`, "still=1", "controls=0", `width=${width}`,
@@ -110,34 +121,93 @@ export async function still(argv, deps = {}) {
 }
 
 /**
- * The README exports that show more than one frame. The strip is a studio
- * page, photographed like any other: the page lays the beats out, so nothing
- * here composes an image.
+ * The README exports that show more than one frame, both made by holding the
+ * figure's clock. The strip is a studio page, photographed like any other:
+ * the page lays the beats out, so nothing here composes an image. The GIF is
+ * the bare frame, photographed once for each instant of one loop.
  */
 async function exported(opts, ctx, deps, { outDir, base }) {
   const { at, figure } = ctx;
-  const told = figure.model.beats.filter((b) => !b.rest);
+  const beats = figure.model.beats;
+  const told = beats.filter((b) => !b.rest);
   const from = path.resolve(opts.from ?? at.repo);
   const rel = (file) => posix(path.relative(from, file));
+  const id = encodeURIComponent(figure.id), audience = opts.technical ? "&audience=technical" : "";
+  const shots = [];
+
   const cell = opts.width ?? 640;
-  const query = `figure=${encodeURIComponent(figure.id)}&width=${cell}${opts.technical ? "&audience=technical" : ""}`;
-  const shots = ["light", "dark"].map((theme) => ({
-    url: `/strip?${query}&theme=${theme}`,
-    selector: "[data-pt-strip]",
-    out: path.join(outDir, `${base}.strip.${theme}.png`),
-    colorScheme: theme,
-    viewport: { width: told.length * (cell + 1) + 49, height: 900 },
-  }));
+  if (opts.strip) {
+    for (const theme of ["light", "dark"]) {
+      shots.push({
+        url: `/strip?figure=${id}&width=${cell}${audience}&theme=${theme}`,
+        selector: "[data-pt-strip]",
+        out: path.join(outDir, `${base}.strip.${theme}.png`),
+        colorScheme: theme,
+        viewport: { width: told.length * (cell + 1) + 49, height: 900 },
+      });
+    }
+  }
+
+  const width = opts.width ?? 720, fps = opts.fps ?? 15;
+  let loop = null;
+  if (opts.gif) {
+    if (fps < 5 || fps > 30) throw new PtError("--fps is frames a second, 5 to 30");
+    if (beats.some((b) => !Number.isInteger(b.ms) || b.ms <= 0)) throw new PtError(`${figure.id} has a beat with no length (ms): run \`model check\` on it`);
+    loop = loopFrames(beats, fps);
+    for (const theme of opts.dark ? ["light", "dark"] : ["light"]) {
+      shots.push({
+        url: `/frame?figure=${id}&still=1&controls=0&width=${width}${audience}&theme=${theme}`,
+        selector: "[data-pt-stage]",
+        out: path.join(outDir, theme === "dark" ? `${base}.dark.gif` : `${base}.gif`),
+        colorScheme: theme,
+        viewport: { width: width + 48, height: 900 },
+        // One GIF pixel per CSS pixel: at twice the size a loop weighs about four times as much.
+        scale: 1,
+        film: { frames: loop.frames, maxBytes: GIF_MAX_BYTES },
+      });
+    }
+  }
 
   const { status, shots: taken } = await shoot(ctx, shots, deps);
-  const problems = failures(taken);
   if (status === 2 || (status !== 0 && !taken.length)) throw new PtError("the camera could not run: is the browser installed? `setup --check` says");
-  const ok = status === 0 && !problems.length;
-  const [light, dark] = shots.map((s) => s.out);
-  const strip = { light, dark, beats: told.length, width: cell, snippet: pictureSnippet({ light: rel(light), dark: rel(dark), alt: stripAlt(figure.model) }) };
-  emit({ ok, figure: figure.id, strip, errors: problems }, opts.json, ok
-    ? [`wrote ${rel(light)}`, `wrote ${rel(dark)}`, "", strip.snippet].join("\n")
-    : problems.map((p) => `error: ${p}`).join("\n"));
+  const result = (shot) => taken.find((t) => t.out === shot.out) ?? { ok: false, errors: ["the camera never got to it"] };
+  const errors = failures(taken), warnings = [], lines = [];
+  const section = (...text) => { if (lines.length) lines.push(""); lines.push(...text); };
+
+  let strip = null;
+  if (opts.strip) {
+    const [light, dark] = shots.filter((s) => !s.film);
+    if (result(light).ok && result(dark).ok) {
+      strip = { light: light.out, dark: dark.out, beats: told.length, width: cell, snippet: pictureSnippet({ light: rel(light.out), dark: rel(dark.out), alt: stripAlt(figure.model) }) };
+      section(`wrote ${rel(light.out)}`, `wrote ${rel(dark.out)}`, "", strip.snippet);
+    }
+  }
+
+  let gif = null;
+  if (opts.gif) {
+    const seconds = `${(loop.total / 1000).toFixed(1)} s`;
+    const lower = `lower --width (now ${width}) or --fps (now ${fps}), or shorten the figure's loop (now ${seconds})`;
+    const written = {}, bytes = {}, wrote = [];
+    for (const shot of shots.filter((s) => s.film)) {
+      const done = result(shot), theme = shot.colorScheme, file = path.basename(shot.out);
+      if (done.over) { errors.push(`${file} would be ${sizeOf(done.bytes)}, over GitHub's 10 MB limit for an image, so it was not written: ${lower}`); continue; }
+      if (!done.ok) continue;
+      written[theme] = shot.out;
+      bytes[theme] = done.bytes;
+      wrote.push(`wrote ${rel(shot.out)}  (${sizeOf(done.bytes)}: ${loop.frames.length} frames, ${width} px wide, ${fps} a second, one loop of ${seconds})`);
+      if (done.bytes > GIF_WARN_BYTES) warnings.push(`${file} is ${sizeOf(done.bytes)}. GitHub shows an image up to 10 MB, but a page loads all of it before it moves: ${lower}`);
+    }
+    if (written.light) {
+      const alt = altText(figure.model);
+      const snippet = written.dark ? pictureSnippet({ light: rel(written.light), dark: rel(written.dark), alt, width }) : imageSnippet({ src: rel(written.light), alt, width });
+      gif = { ...written, width, fps, frames: loop.frames.length, ms: loop.total, bytes, snippet };
+      section(...wrote, ...warnings.map((w) => `warning: ${w}`), "", snippet);
+    } else if (wrote.length) section(...wrote);
+  }
+
+  const ok = status === 0 && !errors.length;
+  if (errors.length) section(...errors.map((e) => `error: ${e}`));
+  emit({ ok, figure: figure.id, ...(strip ? { strip } : {}), ...(gif ? { gif } : {}), warnings, errors }, opts.json, lines.join("\n"));
   return ok ? 0 : 1;
 }
 

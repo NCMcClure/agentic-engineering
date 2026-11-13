@@ -1,4 +1,4 @@
-// The Markdown that shows a figure's still: the light image, and the dark one
+// The Markdown that shows a figure's picture: the light image, and the dark one
 // where the reader's theme is dark. GitHub honours <picture>; a renderer that
 // does not (GitLab, most others) shows the <img>, which is the light still.
 
@@ -16,6 +16,11 @@ export function stripAlt(model) {
   const title = (model?.title ?? "").trim().replace(/\.$/, "");
   if (!title || !steps.length || steps.some((s) => !s)) return altText(model);
   return `${title}, in ${steps.length} ${steps.length === 1 ? "step" : "steps"}: ${steps.join(", ")}.`;
+}
+
+/** One image, the same in every theme: a GIF taken in light only. */
+export function imageSnippet({ src, alt, width }) {
+  return `<img alt="${escape(alt)}" src="${escape(src)}"${width ? ` width="${width}"` : ""}>`;
 }
 
 /** `light` and `dark` are paths as the Markdown file will reach them, with forward slashes. */
