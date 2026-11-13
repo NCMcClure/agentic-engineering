@@ -171,13 +171,37 @@ test("a plate is four corners and a block is the three faces that show", { skip 
   assert.equal(I.points(b.top), "0,-100 86.6,-50 0,0 -86.6,-50");
 });
 
-test("a route rounds its corners and never overshoots a short segment", { skip }, () => {
+test("smooth rounds a corner into a short arc that starts and ends on the original lines", { skip }, () => {
   const corner = [[0, 0], [100, 0], [100, 100]];
-  assert.equal(I.route(corner), "M 0 0 L 100 0 L 100 100");
-  assert.equal(I.route(corner, 10), "M 0 0 L 90 0 Q 100 0 100 10 L 100 100");
-  assert.equal(I.route([[0, 0], [10, 0], [10, 100]], 40), "M 0 0 L 5 0 Q 10 0 10 5 L 10 100", "the radius is at most half the shorter side");
-  assert.equal(I.route([[0, 0]]), "");
-  assert.equal(I.route([[0, 0], [5, 5]], 10), "M 0 0 L 5 5");
+  assert.deepEqual(I.smooth(corner), corner, "no radius, no change");
+  const round = I.smooth(corner, 10, 2);
+  assert.deepEqual(round, [[0, 0], [90, 0], [97.5, 2.5], [100, 10], [100, 100]]);
+  assert.equal(I.smooth(corner, 10).length, 9, "six segments a corner by default");
+  const tight = I.smooth([[0, 0], [10, 0], [10, 100]], 40, 2);
+  assert.deepEqual([tight[1], tight[3]], [[5, 0], [10, 5]], "the radius is at most half the shorter side");
+  assert.deepEqual(I.smooth([[0, 0], [5, 5]], 10), [[0, 0], [5, 5]]);
+  assert.equal(I.line(corner), "M 0 0 L 100 0 L 100 100");
+  assert.equal(I.line([]), "");
+});
+
+test("slice is the stretch of a polyline between two fractions of its length", { skip }, () => {
+  const corner = [[0, 0], [100, 0], [100, 100]];
+  assert.deepEqual(I.slice(corner, 0.25, 0.75), [[50, 0], [100, 0], [100, 50]]);
+  assert.deepEqual(I.slice(corner, 0, 0.25), [[0, 0], [50, 0]]);
+  assert.deepEqual(I.slice(corner, 0.6, 2), [[100, 20], [100, 100]], "past the end is the end");
+  assert.deepEqual(I.slice(corner, 0.5, 0.5), []);
+  assert.deepEqual(I.slice(corner, 0.8, 0.2), []);
+  assert.deepEqual(I.slice([[1, 1]], 0, 1), []);
+});
+
+test("heading is the way a line ends, and a disc is the ellipse a ground circle shows as", { skip }, () => {
+  assert.equal(I.heading([[0, 0], [100, 0]]), 0);
+  assert.equal(I.heading([[0, 0], [100, 0], [100, 100]]), 90);
+  assert.equal(I.heading([[0, 0], [-10, 0]]), 180);
+  assert.equal(I.heading([[0, 0], [10, 10], [10, 10]]), 45, "a repeated last point does not lose the direction");
+  assert.equal(I.heading([[3, 3]]), 0);
+  assert.deepEqual(I.disc(0, 0, 0, 1, 100), { cx: 0, cy: 0, rx: 122.47, ry: 70.71 });
+  assert.deepEqual(I.disc(1, 1, 1, 0.5, 100), { cx: 0, cy: 0, rx: 61.24, ry: 35.36 });
 });
 
 test("along, centre and bounds measure a set of points", { skip }, () => {

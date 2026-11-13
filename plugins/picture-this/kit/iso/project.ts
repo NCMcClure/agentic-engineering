@@ -35,25 +35,64 @@ export function points(ps: readonly P2[]): string {
 }
 
 /**
- * A path through screen points with each corner rounded by `radius`. The wire
- * a pulse travels: give it `pathLength={1}` and the pulse is a dash offset.
+ * The same polyline with each corner rounded by `radius`, as points: every
+ * corner becomes a short arc of `steps` segments. A wire is drawn through
+ * these, and a pulse is a slice of them, so the pulse stays on the wire.
  */
-export function route(ps: readonly P2[], radius = 0): string {
-  if (ps.length < 2) return "";
-  let d = `M ${ps[0][0]} ${ps[0][1]}`;
-  for (let i = 1; i < ps.length; i++) {
-    const [x, y] = ps[i];
-    const next = ps[i + 1];
-    if (!next || radius <= 0) { d += ` L ${x} ${y}`; continue; }
-    const [px, py] = ps[i - 1];
-    const before = Math.hypot(x - px, y - py), after = Math.hypot(next[0] - x, next[1] - y);
+export function smooth(ps: readonly P2[], radius = 0, steps = 6): P2[] {
+  if (ps.length < 3 || radius <= 0) return ps.map(([x, y]) => [x, y] as P2);
+  const out: P2[] = [ps[0]];
+  for (let i = 1; i < ps.length - 1; i++) {
+    const [px, py] = ps[i - 1], [x, y] = ps[i], [nx, ny] = ps[i + 1];
+    const before = Math.hypot(x - px, y - py), after = Math.hypot(nx - x, ny - y);
     const r = Math.min(radius, before / 2, after / 2);
-    if (r <= 0) { d += ` L ${x} ${y}`; continue; }
-    const ax = round(x - ((x - px) / before) * r), ay = round(y - ((y - py) / before) * r);
-    const bx = round(x + ((next[0] - x) / after) * r), by = round(y + ((next[1] - y) / after) * r);
-    d += ` L ${ax} ${ay} Q ${x} ${y} ${bx} ${by}`;
+    if (r <= 0) { out.push([x, y]); continue; }
+    const ax = x - ((x - px) / before) * r, ay = y - ((y - py) / before) * r;
+    const bx = x + ((nx - x) / after) * r, by = y + ((ny - y) / after) * r;
+    for (let k = 0; k <= steps; k++) {
+      const t = k / steps, u = 1 - t;
+      out.push([round(u * u * ax + 2 * u * t * x + t * t * bx), round(u * u * ay + 2 * u * t * y + t * t * by)]);
+    }
   }
-  return d;
+  out.push(ps[ps.length - 1]);
+  return out;
+}
+
+/** Points as an SVG path: a move, then lines. */
+export function line(ps: readonly P2[]): string {
+  return ps.map(([x, y], i) => `${i ? "L" : "M"} ${x} ${y}`).join(" ");
+}
+
+/** The part of a polyline between two fractions of its length (0 to 1), as points. */
+export function slice(ps: readonly P2[], from: number, to: number): P2[] {
+  const a = Math.min(1, Math.max(0, from)), b = Math.min(1, Math.max(0, to));
+  if (ps.length < 2 || b <= a) return [];
+  const lengths = ps.slice(1).map(([x, y], i) => Math.hypot(x - ps[i][0], y - ps[i][1]));
+  const total = lengths.reduce((sum, l) => sum + l, 0);
+  const out: P2[] = [along(ps, a)];
+  let walked = 0;
+  for (let i = 0; i < lengths.length; i++) {
+    walked += lengths[i];
+    const at = total === 0 ? 0 : walked / total;
+    if (at > a && at < b) out.push(ps[i + 1]);
+  }
+  out.push(along(ps, b));
+  return out;
+}
+
+/** The direction a polyline is heading as it ends, in degrees: 0 is right, 90 is down. */
+export function heading(ps: readonly P2[]): number {
+  for (let i = ps.length - 1; i > 0; i--) {
+    const dx = ps[i][0] - ps[i - 1][0], dy = ps[i][1] - ps[i - 1][1];
+    if (dx || dy) return round((Math.atan2(dy, dx) * 180) / Math.PI);
+  }
+  return 0;
+}
+
+/** A circle lying on the ground, as the ellipse an isometric view shows. */
+export function disc(x: number, y: number, z: number, r: number, unit = 1): { cx: number; cy: number; rx: number; ry: number } {
+  const [cx, cy] = project([x, y, z], unit);
+  return { cx, cy, rx: round(Math.SQRT2 * COS * r * unit), ry: round(Math.SQRT2 * SIN * r * unit) };
 }
 
 /** The point a fraction p (0 to 1) of the way along a polyline, by length. */
@@ -83,6 +122,15 @@ export function bounds(ps: readonly P2[]): { x: number; y: number; width: number
   const xs = ps.map(([x]) => x), ys = ps.map(([, y]) => y);
   const x = Math.min(...xs), y = Math.min(...ys);
   return { x, y, width: round(Math.max(...xs) - x), height: round(Math.max(...ys) - y) };
+}
+
+/**
+ * A viewBox that holds these ground points with room around them, in px:
+ * [top, right, bottom, left]. Leave room for labels, which sit outside the shapes.
+ */
+export function fitBox(ps: readonly P3[], unit = 1, pad: readonly [number, number, number, number] = [0, 0, 0, 0]): { x: number; y: number; width: number; height: number } {
+  const b = bounds(ps.map((p) => project(p, unit)));
+  return { x: Math.floor(b.x - pad[3]), y: Math.floor(b.y - pad[0]), width: Math.ceil(b.width + pad[1] + pad[3]), height: Math.ceil(b.height + pad[0] + pad[2]) };
 }
 
 /** Two decimals: enough for a hairline, and the same string on every machine. */
