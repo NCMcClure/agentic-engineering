@@ -9,10 +9,10 @@
 // WebGL) the `fallback` is shown in its place, drawn in 2D at the same frame.
 import { Component, Suspense, lazy, useCallback, useEffect, useState } from "react";
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { useBackdrop, useFigure } from "../stage";
 import { readLook, sameLook } from "./look";
 import type { Look } from "./look";
-import { createPortal } from "react-dom";
 
 const Canvas3D = lazy(() => import("./canvas"));
 
