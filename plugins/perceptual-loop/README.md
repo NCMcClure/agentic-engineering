@@ -22,6 +22,11 @@ plugin's, through one CLI, `node scripts/pl.mjs <command>`.
 | **Measure the reference, don't fit pictures** | Probes read the rule out of the source system. |
 | **The owner's eye, in batches** | Taste questions become cards on one review page, each with reference, before, after and a recommendation. |
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/score-beside-its-band.dark.gif">
+  <img alt="A gate that compares a picture with itself. The gate asks whether anything moved that you did not mean to move, not how close you are to the reference." src="assets/figures/score-beside-its-band.gif" width="720">
+</picture>
+
 **Measure.** `compare` writes, per shot, SSIM and CIEDE2000 on the candidate as rendered; the exposure,
 white-balance and contrast fit that brings it to the reference; and colour difference, edge F1 and detail
 after that fit, so a brighter picture is reported once as brighter and not four times. Regions from an id

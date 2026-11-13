@@ -25,6 +25,11 @@ are deliberately out of scope.
    - `SessionStart`: a one-line nudge to calibrate if no profile exists (at
      most once a day).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/profile-page-revised.dark.gif">
+  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="assets/figures/profile-page-revised.gif" width="720">
+</picture>
+
 The hooks and the budget script run on Node 22, no dependencies. On a machine
 without Node the hooks switch themselves off and say so once per session.
 

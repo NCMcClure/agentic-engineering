@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "plugin-workbench",
   "displayName": "Plugin Workbench",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.",
   "author": {
     "name": "Nicholas McClure",

@@ -35,6 +35,15 @@ Four things hold for all of them:
    at `.agents/CONTEXT.md` and the decision records under `.agents/decisions/`,
    and offers a new record when a choice would otherwise be re-argued.
 
+The second of those at work: a round writes down which tests were already
+failing before it touches the code, so only the failures a change introduces
+count against it.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/red-list-subtraction.dark.gif">
+  <img alt="How a round keeps only changes that broke nothing new. A test the repo already failed never blocks a change, and a change that breaks a new one never lands." src="assets/figures/red-list-subtraction.gif" width="720">
+</picture>
+
 It detects Python, JS/TS, Go, and Rust from the manifests and runs a generic
 mode on anything else. The detail (ecosystem profiles, the hubs, the severity
 ladder, the safety model, reviewing results, limitations) is in

@@ -47,6 +47,11 @@ the system map's generator is one line.
    a card someone dragged in Miro survives the next build. Content changes in
    code; layout may change on the board.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/repo-and-board.dark.gif">
+  <img alt="How a Miro frame goes round from code to board and back. Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew." src="assets/figures/repo-and-board.gif" width="720">
+</picture>
+
 **Two lines stay in the agent's context**, in a repo that has opted in to the
 agentic-engineering plugins and carries a `miro.config.mjs` or a system map:
 lint before publishing and check live after, and annotate a new module or call
