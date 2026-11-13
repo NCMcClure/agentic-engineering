@@ -29,6 +29,25 @@
   /* Hairlines */
   --pt-hair: 1px;
   --pt-hair-bold: 1.5px;
+  /* 3D: what the shapes are made of. Hex or rgb(), read once per theme. */
+  --pt-clay: #f3f2ee;
+  --pt-matte: #1f1f20;
+  --pt-glass: #cfd0d3;
+  --pt-glass-alpha: 0.45;
+  --pt-wire: #9c9c96;
+  --pt-floor: #ffffff;
+  --pt-floor-alpha: 0.7;
+  /* 3D: the lights. Set so a top face shows its colour as written, its left
+     face about 0.78 of it and its right face about 0.62. */
+  --pt-light-key: 2.08;
+  --pt-light-rim: 1.45;
+  --pt-light-fill: 0.23;
+  --pt-light-env: 0.3;
+  --pt-light-room: #bdbdbb;
+  --pt-light-side: 1.2;
+  --pt-light-back: 1;
+  --pt-shadow: 0.2;
+  --pt-contact: 0.42;
 }
 
 .pt-stage {
@@ -73,6 +92,22 @@
   --pt-hue-violet: #a78bfa;
   --pt-hue-yellow: #facc15;
   --pt-hue-pink: #f472b6;
+  --pt-clay: #38383d;
+  --pt-matte: #e2e1dc;
+  --pt-glass: #b9bac6;
+  --pt-glass-alpha: 0.34;
+  --pt-wire: #5f5f64;
+  --pt-floor: #1f1f22;
+  --pt-floor-alpha: 0.95;
+  --pt-light-key: 1.95;
+  --pt-light-rim: 1.3;
+  --pt-light-fill: 0.35;
+  --pt-light-env: 0.35;
+  --pt-light-room: #3a3a3d;
+  --pt-light-side: 1.6;
+  --pt-light-back: 3.2;
+  --pt-shadow: 0.55;
+  --pt-contact: 0.75;
 }
 
 /* A host's prose styles reach into a figure; these put it back. */
@@ -85,6 +120,10 @@
 .pt-stage .pt-scroll { overflow-x: auto; }
 .pt-stage .pt-canvas { position: relative; width: 100%; min-width: 520px; }
 .pt-art { width: 100%; height: 100%; overflow: visible; }
+/* Under the art, the same size: where a 3D scene puts its canvas. The art is
+   positioned too, so it is painted after the layer and stays on top of it. */
+.pt-stage .pt-under { position: absolute; inset: 0; pointer-events: none; }
+.pt-stage .pt-under ~ .pt-art { position: relative; }
 .pt-art * { vector-effect: non-scaling-stroke; }
 
 .pt-edge { fill: none; stroke: var(--pt-line); stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }

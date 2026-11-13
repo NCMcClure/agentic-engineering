@@ -68,6 +68,27 @@ export function useFigure(): Figure {
   return figure;
 }
 
+/**
+ * Hand a figure on to something React does not carry it into by itself: a 3D
+ * scene is drawn by a renderer of its own, and asks the same questions there.
+ */
+export function FigureProvider({ value, children }: { value: Figure; children: ReactNode }) {
+  return <FigureContext.Provider value={value}>{children}</FigureContext.Provider>;
+}
+
+/**
+ * What a layer drawn under the art needs: the element to put itself in, the
+ * art's box, and the name of the frame the stage is holding. A layer that
+ * paints later than the page does (a canvas) carries data-pt-paints with the
+ * name of the last frame it drew; the stage does not say a frame is ready
+ * until every such layer has drawn it.
+ */
+export type Backdrop = { slot: HTMLElement | null; viewBox: ViewBox | null; frameKey: string };
+const BackdropContext = createContext<Backdrop>({ slot: null, viewBox: null, frameKey: "" });
+export function useBackdrop(): Backdrop {
+  return useContext(BackdropContext);
+}
+
 const EDGE_MS = 420;
 
 function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, unit: number, build: boolean): Figure {
@@ -138,6 +159,7 @@ export function Stage({
   const [audience, setAudience] = useState<Audience>(audienceProp);
   useEffect(() => { setAudience(audienceProp); }, [audienceProp]);
   const root = useRef<HTMLElement>(null);
+  const [slot, setSlot] = useState<HTMLElement | null>(null);
   const label = useId();
 
   // The one frame loop. It runs only while the clock plays.
@@ -181,7 +203,13 @@ export function Stage({
     if (playing) return;
     let live = true;
     const fonts = typeof document !== "undefined" && document.fonts ? document.fonts.ready : Promise.resolve();
-    fonts.then(() => requestAnimationFrame(() => requestAnimationFrame(() => { if (live) el.setAttribute("data-pt-ready", key); })));
+    fonts.then(() => requestAnimationFrame(() => requestAnimationFrame(function settle() {
+      if (!live) return;
+      // A layer under the art that paints on its own (a 3D scene's canvas) names the last frame it drew: wait for this one.
+      const behind = [...el.querySelectorAll("[data-pt-paints]")].some((layer) => layer.getAttribute("data-pt-paints") !== key);
+      if (behind) requestAnimationFrame(settle);
+      else el.setAttribute("data-pt-ready", key);
+    })));
     return () => { live = false; };
   }, [key, playing]);
 
@@ -208,6 +236,7 @@ export function Stage({
   }, [clock, tl, model]);
 
   const figure = useMemo(() => describe(model, tl, frame, audience, unit, build), [model, tl, frame.t, audience, unit, build]);
+  const backdrop = useMemo<Backdrop>(() => ({ slot, viewBox: viewBox ?? null, frameKey: key }), [slot, viewBox, key]);
   const beats = told(model);
   const shown = frame.beat.rest ? null : model.beats[frame.index];
   const number = shown ? String(beats.indexOf(shown) + 1).padStart(2, "0") : "";
@@ -229,8 +258,11 @@ export function Stage({
       <div className="pt-scroll">
         {viewBox ? (
           <div className="pt-canvas" style={{ aspectRatio: `${viewBox.width} / ${viewBox.height}` }}>
+            <div className="pt-under" ref={setSlot} aria-hidden="true" />
             <svg className="pt-art" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`} role="img" aria-label={model.title}>
-              <FigureContext.Provider value={figure}>{children}</FigureContext.Provider>
+              <BackdropContext.Provider value={backdrop}>
+                <FigureContext.Provider value={figure}>{children}</FigureContext.Provider>
+              </BackdropContext.Provider>
             </svg>
           </div>
         ) : (
