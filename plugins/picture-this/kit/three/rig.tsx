@@ -104,13 +104,18 @@ void main() {
 }`;
 // A round pool of the floor colour, fading out. The fade is over so few
 // levels of grey that it would show as rings, so each pixel's level is nudged
-// by a fixed amount that depends only on where the pixel is.
+// by a fixed amount that depends only on where the pixel is: an ordered
+// pattern four pixels square, which also keeps a still's file small.
 const POOL_FRAGMENT = `
 uniform vec3 uColor;
 uniform float uOpacity;
 uniform float uGrain;
 varying vec2 vUv;
-float grain(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+float grain(vec2 p) {
+  int order[16] = int[16](0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5);
+  ivec2 cell = ivec2(mod(floor(p), 4.0));
+  return (float(order[cell.y * 4 + cell.x]) + 0.5) / 16.0;
+}
 void main() {
   float d = clamp(1.0 - length(vUv - 0.5) * 2.0, 0.0, 1.0);
   float a = d * d * (3.0 - 2.0 * d) * uOpacity;

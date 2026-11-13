@@ -1,7 +1,7 @@
 {
   "name": "picture-this",
   "displayName": "Picture This",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.",
   "author": {
     "name": "Nicholas McClure",

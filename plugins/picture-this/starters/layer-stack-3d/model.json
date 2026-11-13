@@ -1,0 +1,133 @@
+{
+  "schema": 1,
+  "title": "How an upload becomes a thumbnail",
+  "claim": "The API answers before the slow work starts, so an upload never waits on it.",
+  "implication": "When thumbnails fall behind, add workers, not API servers.",
+  "entities": [
+    {
+      "id": "app",
+      "label": "Your app",
+      "kind": "client",
+      "note": "uploads a photo"
+    },
+    {
+      "id": "api",
+      "label": "API",
+      "kind": "service",
+      "note": "answers at once"
+    },
+    {
+      "id": "queue",
+      "label": "Jobs",
+      "kind": "queue",
+      "note": "holds the work"
+    },
+    {
+      "id": "worker",
+      "label": "Resizer",
+      "kind": "worker",
+      "note": "makes the thumbnail"
+    },
+    {
+      "id": "store",
+      "label": "Object store",
+      "kind": "store",
+      "note": "keeps the result"
+    }
+  ],
+  "flows": [
+    {
+      "id": "upload",
+      "from": "app",
+      "to": "api",
+      "kind": "write",
+      "label": "photo"
+    },
+    {
+      "id": "enqueue",
+      "from": "api",
+      "to": "queue",
+      "kind": "event",
+      "label": "job"
+    },
+    {
+      "id": "reply",
+      "from": "api",
+      "to": "app",
+      "kind": "event",
+      "label": "accepted"
+    },
+    {
+      "id": "take",
+      "from": "queue",
+      "to": "worker",
+      "kind": "event",
+      "label": "next job"
+    },
+    {
+      "id": "save",
+      "from": "worker",
+      "to": "store",
+      "kind": "write",
+      "label": "thumbnail"
+    }
+  ],
+  "beats": [
+    {
+      "id": "answer",
+      "title": "Answer first",
+      "plain": "The API hands the job to a queue and replies right away.",
+      "technical": "POST /upload enqueues a resize job and returns 202 before any image work runs.",
+      "focus": [
+        "app",
+        "api",
+        "queue"
+      ],
+      "flows": [
+        "upload",
+        "enqueue",
+        "reply"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "work",
+      "title": "Work later",
+      "plain": "A worker picks the job up when it is free and makes the thumbnail.",
+      "technical": "The resizer takes one job from the queue and resizes the image off the request path.",
+      "focus": [
+        "queue",
+        "worker"
+      ],
+      "flows": [
+        "take"
+      ],
+      "ms": 3000
+    },
+    {
+      "id": "save",
+      "title": "Keep the result",
+      "plain": "The finished thumbnail is saved where the app can find it.",
+      "technical": "The worker writes the thumbnail to the object store under the upload's key.",
+      "focus": [
+        "worker",
+        "store"
+      ],
+      "flows": [
+        "save"
+      ],
+      "ms": 2800
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1400
+    }
+  ],
+  "hero": {
+    "beat": "work",
+    "at": 0.5
+  }
+}

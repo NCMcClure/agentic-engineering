@@ -8,7 +8,7 @@ import { PtError, emit, parseArgs } from "../lib/args.mjs";
 import { ensureDrafts, layout } from "../lib/config.mjs";
 import { PLUGIN_ROOT, repoRoot } from "../lib/home.mjs";
 import { checkModel } from "../lib/model-check.mjs";
-import { apply, plan } from "../lib/owned.mjs";
+import { THREE_DIR, apply, drawsIn3d, hasThree, kitFiles, plan } from "../lib/owned.mjs";
 import { readModel } from "./model.mjs";
 
 const HELP = `usage: node pt.mjs draft new --model <model.json> --archetypes <a,b,c> [--round <name>] [--require-source] [--repo <dir>] [--json]
@@ -71,7 +71,12 @@ async function create(opts, { cwd, pluginRoot }) {
   // The round draws with the repo's own kit when it has one, edits and all; otherwise with the plugin's.
   const own = fs.existsSync(path.join(at.kit, "kit.json"));
   const kitFrom = own ? at.kit : path.join(pluginRoot, "kit");
-  apply(kitFrom, path.join(dir, "kit"));
+  // A round with a 3D draft in it needs the kit's 3D tier; a round without one is not given it. A repo
+  // whose own kit has no 3D tier yet borrows the plugin's for the round: drafting adds nothing to the repo.
+  const in3d = chosen.some((archetype) => drawsIn3d(path.join(pluginRoot, "starters", archetype, "figure.tsx")));
+  const threeFrom = !in3d ? null : hasThree(kitFrom) ? kitFrom : path.join(pluginRoot, "kit");
+  apply(kitFrom, path.join(dir, "kit"), plan(kitFrom, path.join(dir, "kit"), { three: threeFrom === kitFrom }));
+  if (threeFrom && threeFrom !== kitFrom) fs.cpSync(path.join(threeFrom, THREE_DIR), path.join(dir, "kit", THREE_DIR), { recursive: true });
   const text = JSON.stringify(model, null, 2) + "\n";
   const drafts = chosen.map((archetype, i) => {
     const id = String.fromCharCode(97 + i);
@@ -80,13 +85,19 @@ async function create(opts, { cwd, pluginRoot }) {
     fs.writeFileSync(path.join(dir, id, "model.json"), text);
     return { id, archetype, dir: path.join(dir, id) };
   });
-  fs.writeFileSync(path.join(dir, "round.json"), JSON.stringify({ model: hashOf(text), kit: own ? posix(path.relative(at.repo, kitFrom)) : "the plugin's", drafts: drafts.map(({ id, archetype }) => ({ id, archetype })) }, null, 2) + "\n");
+  fs.writeFileSync(path.join(dir, "round.json"), JSON.stringify({
+    model: hashOf(text),
+    kit: own ? posix(path.relative(at.repo, kitFrom)) : "the plugin's",
+    ...(threeFrom && threeFrom !== kitFrom ? { three: "the plugin's" } : {}),
+    drafts: drafts.map(({ id, archetype }) => ({ id, archetype })),
+  }, null, 2) + "\n");
 
   const rel = (p) => posix(path.relative(at.repo, p));
   emit({ ok: true, round, dir, drafts }, opts.json, [
     `${round}: ${drafts.length} drafts of "${model.title}" in ${rel(dir)}/`,
     ...drafts.map((d) => `  ${round}/${d.id}  ${d.archetype.padEnd(13)} ${rel(d.dir)}/figure.tsx`),
     `each starts as its archetype's starter, drawing this model: make it this model's picture, then \`sheet ${round}/<id>\``,
+    ...(in3d ? ["a 3D draft is in the round: the studio draws it, and nothing is added to the repo unless it is the one landed"] : []),
   ].join("\n"));
   return 0;
 }
@@ -111,10 +122,20 @@ function check(opts, { cwd, pluginRoot }) {
   }
   // The kit the round was given, against what is there now: a draft may not restyle it.
   const kitFrom = round.kit === "the plugin's" ? path.join(pluginRoot, "kit") : path.join(at.repo, round.kit);
+  const edited = (rel) => `${path.basename(dir)}/kit/${rel} was edited: drafts draw with the kit as it is, and a change to the house style is a change for every figure`;
   if (fs.existsSync(kitFrom)) {
     for (const f of plan(kitFrom, path.join(dir, "kit")).files) {
-      if (f.action === "kept") problems.push(`${path.basename(dir)}/kit/${f.rel} was edited: drafts draw with the kit as it is, and a change to the house style is a change for every figure`);
+      if (f.action === "kept") problems.push(edited(f.rel));
       if (f.action === "add") problems.push(`${path.basename(dir)}/kit/${f.rel} is missing`);
+    }
+  }
+  // A 3D tier borrowed from the plugin for the round is held to the plugin's copy.
+  if (round.three === "the plugin's") {
+    const from = path.join(pluginRoot, "kit");
+    for (const rel of kitFiles(from).filter((r) => r.startsWith(THREE_DIR))) {
+      const at3 = path.join(dir, "kit", rel);
+      if (!fs.existsSync(at3)) problems.push(`${path.basename(dir)}/kit/${rel} is missing`);
+      else if (!fs.readFileSync(at3).equals(fs.readFileSync(path.join(from, rel)))) problems.push(edited(rel));
     }
   }
   const ok = problems.length === 0;
