@@ -69,7 +69,7 @@ test("setup without --yes says what it would download, and downloads nothing", a
   const { status, out } = await quiet(() => setup([], w.deps));
   assert.equal(status, 1);
   assert.match(out, /installs once, into its own data folder/);
-  assert.match(out, /npm packages: Vite, React, Playwright/);
+  assert.match(out, /npm packages: Vite, React, Playwright, three\.js for 3D figures/);
   assert.match(out, /headless Chromium, for stills/);
   assert.match(out, /Nothing is added to your project/);
   assert.match(out, /run this command again with --yes/);
@@ -267,7 +267,13 @@ test("the studio's own files: every source it copies exists, and its lockfile pi
   assert.match(ignore, /^node_modules$/m);
   const config = fs.readFileSync(path.join(PLUGIN, "app", "vite.config.mjs"), "utf8");
   assert.match(config, /tsconfigRaw/, "the user's tsconfig is never read");
-  assert.match(config, /dedupe: \["react", "react-dom"\]/);
+  assert.match(config, /dedupe: \["react", "react-dom", "three", "@react-three\/fiber", "@react-three\/drei"\]/, "a figure outside the app draws with the app's one copy of each");
+  const pkg = JSON.parse(fs.readFileSync(path.join(PLUGIN, "app", "package.json"), "utf8"));
+  for (const name of ["three", "@react-three/fiber", "@react-three/drei"]) {
+    assert.ok(pkg.dependencies[name], `the studio carries ${name}, so a 3D draft adds nothing to a repo`);
+    assert.ok(lock.packages[`node_modules/${name}`], `${name} is locked`);
+    assert.match(config, new RegExp(`optimizeDeps: \\{ include: \\[[^\\]]*"${name}"`), `${name} is bundled before a figure asks for it`);
+  }
   assert.match(config, /strict: true/);
   assert.match(config, /app: "picture-this"/, "health names the app the launcher looks for");
 });

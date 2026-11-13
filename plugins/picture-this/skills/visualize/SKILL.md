@@ -65,6 +65,10 @@ the claim allows: `references/archetypes.md` has the table by lens. `P draft
 archetypes` lists the starters. A view with no starter is drawn on the blank
 one, named for what it will be: `blank:exploded`, `blank:time-grid`.
 
+Two of them draw in 3D. Use at most one in a round, and only when the figure
+is a page's centrepiece: "When to draw in 3D" in `references/archetypes.md`.
+Drafting in 3D adds nothing to the repo.
+
 ```
 P draft new --model <file> --archetypes <a>,<b>,<c>
 ```
@@ -162,6 +166,13 @@ the steps or the motion as well, `still --strip` writes a beat strip and
 `still --gif` a looping GIF; `references/delivery.md` says which to reach
 for and what a GIF costs.
 
+**A 3D figure, shown live, needs three packages** in the site that shows it:
+`three`, `@react-three/fiber` and `@react-three/drei`. Before the site's
+`package.json` is touched, tell the person which three, that they are for
+this figure, and about how big they are (165 MB installed, with what they
+depend on), and ask. Do not add them without that yes. On a no, offer the figure as stills only, which
+need nothing, or the round's 2D twin. `references/delivery.md` has the rest.
+
 Tell the person where the figure is, how to embed it in a page, and give them
 the README snippet. Add it to a README or a page yourself only if they asked.
 
@@ -189,8 +200,8 @@ is a new round from its model: `P draft new --model <figures>/<name>/model.json 
 - A figure is a function of its clock. No `@keyframes`, no `transition`, no
   timers: `references/motion.md`.
 - Nothing is shown to the person that has not passed the checklist.
-- Nothing is downloaded, and nothing is written outside the scratch folder,
-  without the person having asked for it.
+- Nothing is downloaded, no package is added to the repo, and nothing is
+  written outside the scratch folder, without the person having asked for it.
 
 ## References
 
@@ -199,11 +210,11 @@ references/
 ├── framework.md      the six steps, and why the model comes first
 ├── lenses.md         finding the picture: four questions, eight lenses, how to step through a mechanism
 ├── model.md          model.json: the fields, the limits, from a description, from code
-├── archetypes.md     the kinds of picture, which lens calls for which, and drawing your own
-├── house-style.md    colour, line, shape, words, density
-├── motion.md         one clock, what each motion means, pacing, stills
+├── archetypes.md     the kinds of picture, which lens calls for which, drawing your own, when to draw in 3D
+├── house-style.md    colour, line, shape, 3D, words, density
+├── motion.md         one clock, in 3D, what each motion means, pacing, stills
 ├── legibility.md     the squint test, overlap, contrast, reading order
 ├── accessibility.md  reduced motion, text alternatives, the strip
-├── delivery.md       where figures live, MDX, README stills, strip and GIF
+├── delivery.md       where figures live, MDX, a figure drawn in 3D, README stills, strip and GIF
 └── review.md         the checklist, and the cold read
 ```

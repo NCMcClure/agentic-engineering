@@ -11,14 +11,15 @@ import { kit } from "../../../plugins/picture-this/scripts/commands/kit.mjs";
 import { run as land } from "../../../plugins/picture-this/scripts/commands/land.mjs";
 import { PtError } from "../../../plugins/picture-this/scripts/lib/args.mjs";
 import { checkModel } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
-import { kitFiles } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
+import { drawsIn3d, hasThree, kitFiles } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
 import { REPO, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const STARTERS = path.join(PLUGIN, "starters");
 const MODEL = fs.readFileSync(path.join(STARTERS, "iso-flow", "model.json"), "utf8");
 const read = (...parts) => fs.readFileSync(path.join(...parts), "utf8");
-const NAMES = ["blank", "card-flow", "case-loop", "iso-flow", "layer-stack", "series", "split", "staged-build"];
+const NAMES = ["blank", "card-flow", "case-loop", "iso-flow", "iso-flow-3d", "layer-stack", "layer-stack-3d", "series", "split", "staged-build"];
+const IN_3D = ["iso-flow-3d", "layer-stack-3d"];
 
 function world(t) {
   const { dir, git } = tempRepo(t, "pt-drafts-");
@@ -33,9 +34,17 @@ async function quiet(fn) {
   try { return { status: await fn(), out }; } finally { process.stdout.write = real; }
 }
 
-test("there are eight starters, each one that says when to reach for it, with a model that passes", () => {
+test("there are ten starters, two of them in 3D, each one that says when to reach for it, with a model that passes", () => {
   const all = archetypes();
   assert.deepEqual(all.map((a) => a.name), NAMES);
+  assert.deepEqual(NAMES.filter((name) => drawsIn3d(path.join(STARTERS, name, "figure.tsx"))), IN_3D);
+  for (const name of IN_3D) {
+    const source = read(STARTERS, name, "figure.tsx");
+    assert.match(all.find((a) => a.name === name).about, /It needs three\.js where it is shown/, `${name}: says what it costs`);
+    assert.doesNotMatch(source, /from "(three|@react-three\/[a-z]+)"/, `${name}: a figure draws with the kit, which is what imports three.js`);
+    assert.match(source, /fallback=|IsoScene3D/, `${name}: something stands in until the canvas has drawn`);
+    assert.equal(read(STARTERS, name, "model.json"), read(STARTERS, name.replace(/-3d$/, ""), "model.json"), `${name}: draws the same example as its 2D twin`);
+  }
   for (const a of all) {
     assert.match(a.about, /Reach for it when /, `${a.name}: its first comment says when it fits`);
     assert.ok(a.about.length < 420, `${a.name}: the comment is the header, not the whole file's`);
@@ -62,7 +71,8 @@ test("draft new lays a round out: the model in every draft, a starter each, and 
     assert.equal(read(round, id, "figure.tsx"), read(STARTERS, archetype, "figure.tsx"), `${id} starts as the ${archetype} starter`);
     assert.deepEqual(JSON.parse(read(round, id, "model.json")), JSON.parse(MODEL));
   }
-  for (const rel of kitFiles(path.join(PLUGIN, "kit"))) assert.ok(fs.existsSync(path.join(round, "kit", rel)), `kit/${rel}`);
+  for (const rel of kitFiles(path.join(PLUGIN, "kit"), { three: false })) assert.ok(fs.existsSync(path.join(round, "kit", rel)), `kit/${rel}`);
+  assert.equal(hasThree(path.join(round, "kit")), false, "a round with no 3D draft is not given the 3D tier");
   const record = JSON.parse(read(round, "round.json"));
   assert.deepEqual(record.drafts, [{ id: "a", archetype: "iso-flow" }, { id: "b", archetype: "layer-stack" }, { id: "c", archetype: "card-flow" }]);
   assert.equal(record.kit, "the plugin's");
@@ -81,6 +91,34 @@ test("draft new lays a round out: the model in every draft, a starter each, and 
   assert.ok(fs.existsSync(path.join(w.drafts, "round-2", "b", "figure.tsx")), "the next round gets the next number");
   assert.equal((await quiet(() => draft(["new", "--model", "model.json", "--archetypes", "split,series", "--round", "wider"], { cwd: w.repo }))).status, 0);
   assert.ok(fs.existsSync(path.join(w.drafts, "wider", "round.json")));
+});
+
+test("a round with a 3D draft gets the kit's 3D tier, borrowed from the plugin when the repo's kit has none", async (t) => {
+  const w = world(t);
+  const first = await quiet(() => draft(["new", "--model", "model.json", "--archetypes", "iso-flow,iso-flow-3d"], { cwd: w.repo }));
+  assert.equal(first.status, 0);
+  assert.match(first.out, /\na 3D draft is in the round: the studio draws it, and nothing is added to the repo unless it is the one landed\n$/);
+  for (const rel of kitFiles(path.join(PLUGIN, "kit"))) assert.ok(fs.existsSync(path.join(w.drafts, "round-1", "kit", rel)), `kit/${rel}`);
+  assert.equal(JSON.parse(read(w.drafts, "round-1", "round.json")).three, undefined, "the plugin's kit came whole");
+  assert.equal((await quiet(() => draft(["check", "round-1"], { cwd: w.repo }))).status, 0);
+  assert.equal(fs.existsSync(path.join(w.repo, ".agents", "picture-this", "figures")), false, "drafting in 3D puts nothing in the repo's figures");
+
+  // The repo has its own kit, without the 3D tier: the round borrows the plugin's, and is held to it.
+  await quiet(() => kit(["install"], { cwd: w.repo }));
+  await quiet(() => draft(["new", "--model", "model.json", "--archetypes", "layer-stack-3d,series"], { cwd: w.repo }));
+  const round = path.join(w.drafts, "round-2");
+  assert.deepEqual([JSON.parse(read(round, "round.json")).kit, JSON.parse(read(round, "round.json")).three], [".agents/picture-this/figures/kit", "the plugin's"]);
+  assert.equal(hasThree(path.join(round, "kit")), true);
+  assert.equal(hasThree(path.join(w.repo, ".agents", "picture-this", "figures", "kit")), false, "and the repo's own kit is left as it was");
+  assert.equal((await quiet(() => draft(["check", "round-2"], { cwd: w.repo }))).status, 0);
+  fs.appendFileSync(path.join(round, "kit", "three", "rig.tsx"), "\n// brighter\n");
+  const unfair = await quiet(() => draft(["check", "round-2"], { cwd: w.repo }));
+  assert.equal(unfair.status, 1);
+  assert.match(unfair.out, /error: round-2\/kit\/three\/rig\.tsx was edited: drafts draw with the kit as it is/);
+
+  // Landing the 3D draft is what puts the 3D tier in the repo.
+  assert.equal((await quiet(() => land(["round-2/a", "--as", "stack"], { cwd: w.repo }))).status, 0);
+  assert.equal(hasThree(path.join(w.repo, ".agents", "picture-this", "figures", "kit")), true);
 });
 
 test("a round draws with the repo's own kit once it has one, edits and all", async (t) => {

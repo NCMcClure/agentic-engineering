@@ -41,6 +41,36 @@ line, accent, hue. A colour with no job is decoration, and it goes.
   store is a drum, a client is a flat slab, a service or a worker is a block.
 - Keep things low and apart. Height is for emphasis, used once.
 
+## 3D
+
+The same house, lit. A 3D figure keeps the isometric framing, the one accent,
+the flat labels and the tokens; what changes is that shapes are made of
+something and stand in light.
+
+- **Four materials, each with a job.** Clay is the default: matte, pale,
+  quiet. Matte black is for the one or two things that carry weight (a
+  service). Frosted glass is for what holds other things (a queue, a layer),
+  because it shows what is behind it. The accent is not chosen: a shape turns
+  the accent when the beat is about it, exactly as in 2D.
+- **A top face is its token colour, exactly.** Nothing is tone-mapped, and
+  the lights are set so a top gets its own colour, its left face about 0.78
+  of it and its right about 0.62. So an accent top is the accent, and a still
+  matches the page it sits on.
+- **Shadows are soft and short.** One lamp casts them, to the right. Under
+  each thing is a contact shadow; glass leaves only a faint one. No glow, no
+  bloom, no reflections of anything but a plain lit room.
+- **Wires and pulses are flat colour.** They are marks on the picture, not
+  objects in it: unlit, in the wire and accent tokens.
+- **Labels never go into the scene.** They are the same flat SVG as in 2D,
+  over the canvas. Their leaders end at a shape's far top corner, so a line
+  never crosses a lit face.
+- **Dim by colour here too.** A shape the story has left moves a little
+  toward the page. Glass thins out instead.
+
+The materials and the lights are tokens in `kit.css` (`--pt-clay`,
+`--pt-matte`, `--pt-glass`, `--pt-light-key` and their neighbours), in both
+themes. A figure never sets a material colour or a light of its own.
+
 ## Words
 
 - **Labels are flat and upright**, in small mono capitals, with a hairline

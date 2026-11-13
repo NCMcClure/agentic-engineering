@@ -90,9 +90,12 @@ export default defineConfig({
   // server. Stated here, no tsconfig is looked up at all.
   esbuild: { tsconfigRaw: JSON.stringify({ compilerOptions: { jsx: "react-jsx", target: "es2022", useDefineForClassFields: true } }) },
   // Figures live outside this folder and have no node_modules of their own:
-  // React is always this app's copy, and there is only one of it.
-  resolve: { dedupe: ["react", "react-dom"] },
-  optimizeDeps: { include: ["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime"] },
+  // React is always this app's copy, and there is only one of it. The same
+  // goes for the three packages a 3D figure draws with.
+  resolve: { dedupe: ["react", "react-dom", "three", "@react-three/fiber", "@react-three/drei"] },
+  // Named here so they are bundled before the first figure asks: a package
+  // found late makes Vite reload the page, in the middle of a photograph.
+  optimizeDeps: { include: ["react", "react-dom", "react-dom/client", "react/jsx-runtime", "react/jsx-dev-runtime", "three", "three/addons/loaders/SVGLoader.js", "@react-three/fiber", "@react-three/drei"] },
   server: {
     host: "127.0.0.1",
     fs: { strict: true, allow: [root, figuresDir, draftsDir].filter(Boolean) },

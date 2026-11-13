@@ -6,13 +6,16 @@ import { layout, slug } from "../lib/config.mjs";
 import { findFigure } from "../lib/figures.mjs";
 import { PLUGIN_ROOT, repoRoot } from "../lib/home.mjs";
 import { checkModel } from "../lib/model-check.mjs";
-import { installKit } from "./kit.mjs";
+import { drawsIn3d, isThree } from "../lib/owned.mjs";
+import { THREE_NOTE, installKit } from "./kit.mjs";
 
 const HELP = `usage: node pt.mjs land <draft> --as <name> [--replace] [--repo <dir>] [--json]
 
 Copies a draft's figure.tsx and model.json into the repo's figures folder as
 <name>, and puts the kit beside them if it is not there yet. A draft is laid
-out exactly as a figure is, so nothing in it is rewritten.
+out exactly as a figure is, so nothing in it is rewritten. A draft drawn in
+3D brings the kit's 3D tier with it, and says which packages it needs where
+it is shown: no package is added.
 
   <draft>     round/draft, or the draft's folder
   --replace   write over a figure of that name (without it, landing on one is refused)
@@ -40,15 +43,18 @@ export async function run(argv, deps = {}) {
   const to = path.join(at.figures, name);
   if (fs.existsSync(to) && !opts.replace) throw new PtError(`${posix(path.relative(at.repo, to))} is already there: pick another name, or pass --replace to write over it`);
 
-  const kitPlan = installKit(at.kit, pluginRoot);
+  const in3d = drawsIn3d(path.join(draft.dir, "figure.tsx"));
+  const kitPlan = installKit(at.kit, pluginRoot, { three: in3d });
   fs.mkdirSync(to, { recursive: true });
   for (const file of ["figure.tsx", "model.json"]) fs.copyFileSync(path.join(draft.dir, file), path.join(to, file));
 
   const rel = (p) => posix(path.relative(at.repo, p));
   const added = kitPlan.files.filter((f) => f.action === "add").length;
-  emit({ ok: true, figure: name, dir: to, kit: at.kit, kitAdded: added }, opts.json, [
+  const base = kitPlan.files.some((f) => f.action === "add" && !isThree(f.rel));
+  emit({ ok: true, figure: name, dir: to, kit: at.kit, kitAdded: added, three: in3d }, opts.json, [
     `landed ${draft.id} as ${rel(to)}/`,
-    ...(added ? [`the kit was added: ${rel(at.kit)}/ (${added} files)`] : []),
+    ...(added ? [base ? `the kit was added: ${rel(at.kit)}/ (${added} files)` : `the kit's 3D tier was added: ${rel(at.kit)}/three/ (${added} files)`] : []),
+    ...(in3d ? [THREE_NOTE] : []),
     "",
     "To show it in a page:",
     `  import ${pascal(name)} from "<path to>/${rel(to)}/figure";`,
