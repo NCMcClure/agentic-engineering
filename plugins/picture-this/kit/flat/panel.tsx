@@ -1,40 +1,21 @@
 "use client";
-// Windows and what is in them. A panel is a framed box that clips what it
-// holds: a context window, a screen, a page, a buffer. Rows are the bars
-// stacked inside one, and they scroll by an offset the figure reads off the
-// clock. A spawn is a panel that comes out of a point on a connector: one
-// thing starting another. None of them knows the model: a figure works out
-// what to show from the frame and hands it over.
+// Boxes, bars and tiles. A panel is a framed box that clips what it holds: a
+// page, a screen, a case, a buffer. A bar is one of a kind of thing, its
+// length or height saying how much. A tile is a square that holds a value.
+// None of them knows the model: a figure works out what to show from the
+// frame and hands it over.
 import { useId } from "react";
 import type { ReactNode } from "react";
-import { anchor, bar, column, mix, windowed } from "./geometry";
+import { mix } from "./geometry";
 import type { Box, P2 } from "./geometry";
-import { Elbow } from "./connect";
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
-/** How heavy a row reads: dark for what leads, mid for the usual, light for what is quiet. */
-export type Tone = "dark" | "mid" | "light";
-/** One row of a column: its weight, how far it has taken the accent, and its shape within the column. */
-export type RowSpec = {
-  tone?: Tone;
-  /** 0 to 1: the row the story is on now, filled with the accent. */
-  accent?: number;
-  /** 0 to 1: a row that mattered earlier and still should be findable: a tint of the accent, with its line. */
-  marked?: number;
-  /** Px in from the left. */
-  indent?: number;
-  /** Share of the width left after the indent, 0 to 1. */
-  span?: number;
-  height?: number;
-  /** 0 to 1: how much of the row is there. A row arriving, or one being pressed flat. */
-  here?: number;
-  /** Drawn as an outline, not a fill: a row put there by something other than the conversation. */
-  outline?: boolean;
-};
+/** How heavy a shape reads against the page: strong for what leads, mid for the usual, quiet for what is in the background. The same in light and dark. */
+export type Tone = "strong" | "mid" | "quiet";
 
-const INK = { dark: 0.66, mid: 0.33, light: 0.13 } as const;
-/** A row's fill: ink thinned into the panel's face, so the three tones hold in light and dark. */
+const INK = { strong: 0.66, mid: 0.33, quiet: 0.13 } as const;
+/** A tone's fill: ink thinned into the panel's face, so the three weights hold in light and dark. */
 export const toneFill = (tone: Tone = "mid") => mix("var(--pt-ink)", "var(--pt-top)", INK[tone]);
 
 /**
@@ -75,73 +56,61 @@ export function Panel({ box, radius = 8, here = 1, lit = 1, accent = 0, shift = 
   );
 }
 
-/** One row: a bar with rounded ends. */
-export function Bar({ box, tone = "mid", accent = 0, marked = 0, here = 1, opacity = 1, outline = false }: { box: Box; tone?: Tone; accent?: number; marked?: number; here?: number; opacity?: number; outline?: boolean }) {
+/**
+ * A bar: one of a kind of thing whose length or height says how much, or
+ * simply one item in a row of them. `tone` is its weight; `accent` (0 to 1)
+ * takes it to the accent, for the one the beat is about; `marked` leaves a
+ * tint of the accent on one the story marked earlier; `here` (0 to 1) is how
+ * much of it has arrived, grown from `grow` ("middle", or the side it stands
+ * on); `outline` draws it empty; `label` writes a word or a number on it.
+ */
+export function Bar({ box, tone = "mid", accent = 0, marked = 0, here = 1, opacity = 1, outline = false, grow = "middle", radius = 3, label }: {
+  box: Box; tone?: Tone; accent?: number; marked?: number; here?: number; opacity?: number; outline?: boolean;
+  grow?: "middle" | "bottom" | "top" | "left"; radius?: number; label?: string;
+}) {
   if (here <= 0 || opacity <= 0 || box.width <= 0) return null;
-  if (outline) {
-    const h = box.height * here;
-    const ink = accent > 0 ? mix("var(--pt-accent)", "var(--pt-ink-2)", accent) : "var(--pt-ink-2)";
-    return <rect className="pt-bar" x={box.x + 0.5} y={r3(box.y + (box.height - h) / 2) + 0.5} width={Math.max(0, box.width - 1)} height={Math.max(0, r3(h) - 1)} rx={Math.min(3, h / 2)} opacity={r3(opacity)} style={{ fill: accent > 0 ? mix("var(--pt-accent-soft)", "var(--pt-top)", accent) : "var(--pt-top)", stroke: ink }} />;
-  }
+  const upright = grow !== "left";
+  const w = upright ? box.width : box.width * here, h = upright ? box.height * here : box.height;
+  const x = box.x, y = grow === "middle" ? box.y + (box.height - h) / 2 : grow === "bottom" ? box.y + box.height - h : box.y;
+  const r = Math.min(radius, w / 2, h / 2);
   const base = toneFill(tone);
   const tinted = marked > 0 ? mix("var(--pt-accent-soft)", base, marked) : base;
-  const fill = accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted;
   const line = Math.max(accent, marked);
-  const h = box.height * here;
+  const style = outline
+    ? { fill: accent > 0 ? mix("var(--pt-accent-soft)", "var(--pt-top)", accent) : "var(--pt-top)", stroke: accent > 0 ? mix("var(--pt-accent)", "var(--pt-ink-2)", accent) : "var(--pt-ink-2)" }
+    : { fill: accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted, stroke: line > 0 ? mix("var(--pt-accent)", "transparent", line) : "none" };
+  const dark = !outline && (accent > 0.5 || tone === "strong");
   return (
-    <rect
-      className="pt-bar" x={box.x} y={r3(box.y + (box.height - h) / 2)} width={box.width} height={r3(h)} rx={Math.min(3, h / 2)} opacity={r3(opacity)}
-      style={{ fill, stroke: line > 0 ? mix("var(--pt-accent)", "transparent", line) : "none" }}
-    />
+    <g opacity={r3(opacity)}>
+      <rect className="pt-bar" x={r3(x) + (outline ? 0.5 : 0)} y={r3(y) + (outline ? 0.5 : 0)} width={Math.max(0, r3(w) - (outline ? 1 : 0))} height={Math.max(0, r3(h) - (outline ? 1 : 0))} rx={r} style={style} />
+      {label && h >= 10 && w >= 10 ? <text className="pt-num" x={r3(x + w / 2)} y={r3(y + h / 2 + 3.5)} textAnchor="middle" style={{ fill: dark ? "var(--pt-bg)" : undefined }}>{label}</text> : null}
+    </g>
   );
 }
 
 /**
- * A column of rows inside `box`, scrolled `offset` px down it. Rows are laid
- * top to bottom, `gap` apart; one crossing the top or bottom edge fades as it
- * goes. Put it inside a Panel and the panel clips it. `bar` (in geometry)
- * gives the same row's box, for a connector that leaves from it.
+ * One square tile that holds a value: a cell of a table, a number in a
+ * list, a slot. It can stand anywhere and be moved by the frame. `share` (0
+ * to 1) tints it by how large its value is; `accent` takes it to the accent;
+ * `marked` leaves a tint; `empty` draws a dashed place nothing is in yet.
  */
-export function Rows({ box, rows, offset = 0, gap = 6, rowHeight = 12, fade = true }: { box: Box; rows: readonly RowSpec[]; offset?: number; gap?: number; rowHeight?: number; fade?: boolean }) {
-  const slots = column(rows.map((r) => r.height ?? rowHeight), gap);
-  return (
-    <>
-      {windowed(slots, offset, box.height).map(({ index, shown }) => {
-        const row = rows[index];
-        return <Bar key={index} box={bar(box, slots[index], offset, row)} tone={row.tone} accent={row.accent} marked={row.marked} here={row.here} outline={row.outline} opacity={fade ? shown : 1} />;
-      })}
-    </>
-  );
-}
-
-/**
- * One thing starting another: a connector runs from `from` to the left side
- * of `box`, and the panel slides out of its end. `progress` (0 to 1) is the
- * whole move: the line is drawn over its first half, the panel arrives over
- * its second. Children are what the new panel holds.
- */
-export function Spawn({ from, box, progress = 1, at = 0.5, via, radius, lit = 1, accent = 0, slide = 18, children }: {
-  from: P2;
-  box: Box;
-  progress?: number;
-  /** Where on the panel's left side the connector arrives, 0 (top) to 1. */
-  at?: number;
-  /** The x the connector turns at. Half-way unless said. */
-  via?: number;
-  radius?: number;
-  lit?: number;
-  accent?: number;
-  /** How far the panel travels as it arrives, in px. */
-  slide?: number;
-  children?: ReactNode;
+export function Tile({ box, label, share = 0, accent = 0, marked = 0, here = 1, empty = false, size = 9.5, tintAccent = false }: {
+  box: Box; label?: string; share?: number; accent?: number; marked?: number; here?: number; empty?: boolean;
+  /** The numeral's size, in px. */
+  size?: number;
+  /** Tint in the accent, not the ink: for a field that is the whole subject, with nothing else orange. */
+  tintAccent?: boolean;
 }) {
-  if (progress <= 0) return null;
-  const line = Math.min(1, progress * 2), arrived = Math.max(0, progress * 2 - 1);
-  const eased = 1 - (1 - arrived) ** 3;
+  if (here <= 0) return null;
+  if (empty) return <rect className="pt-guide" x={box.x + 0.5} y={box.y + 0.5} width={box.width - 1} height={box.height - 1} rx={2} opacity={r3(here)} />;
+  const base = tintAccent ? mix("var(--pt-accent)", "var(--pt-top)", share * 0.85) : mix("var(--pt-ink)", "var(--pt-top)", 0.06 + share * 0.5);
+  const tinted = marked > 0 ? mix("var(--pt-accent-soft)", base, marked) : base;
+  const fill = accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted;
+  const dark = accent > 0.5 || share > 0.7;
   return (
-    <>
-      <Elbow from={from} to={anchor(box, "left", at)} via={via} radius={radius} progress={line} lit={lit} />
-      <Panel box={box} here={eased} lit={lit} accent={accent} shift={[(eased - 1) * slide, 0]}>{children}</Panel>
-    </>
+    <g opacity={r3(here)}>
+      <rect className="pt-cell" x={box.x} y={box.y} width={box.width} height={box.height} rx={2} style={{ fill, stroke: marked > 0 && accent <= 0 ? mix("var(--pt-accent)", "var(--pt-bg)", marked) : undefined }} />
+      {label !== undefined ? <text className="pt-num" x={r3(box.x + box.width / 2)} y={r3(box.y + box.height / 2 + size * 0.36)} textAnchor="middle" style={{ fill: dark ? "var(--pt-bg)" : undefined, fontSize: size }}>{label}</text> : null}
+    </g>
   );
 }

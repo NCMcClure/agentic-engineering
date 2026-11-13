@@ -57,6 +57,8 @@ export type Figure = {
   phase(laps?: number, offset?: number): number;
   /** Is this the one thing the beat is about? 0 to 1: it is what the beat's leading flow arrives at. */
   arriving(entityId: string): number;
+  /** Is the story in one of these beats? 0 to 1, easing at the edges and never dipping between two of them in a row. */
+  on(...beatIds: string[]): number;
   /** Where a quantity stands now, in its own unit. */
   level(quantityId: string): number;
   /** The same as a share of its max: 0 to 1. */
@@ -131,6 +133,7 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
     moving,
     arriving(id) { return Math.max(0, ...model.flows.filter((fl) => fl.to === id && leading.has(fl.id)).map((fl) => moving(fl.id))); },
     phase(laps = 1, offset = 0) { return lap(frame, laps, offset); },
+    on(...ids) { return blend((b) => (ids.includes(b.id) ? 1 : 0)); },
     level(id) { return levelAt(model, id, frame.index, frame.p); },
     share(id) { const max = quantity(model, id).max; return max ? clamp(levelAt(model, id, frame.index, frame.p) / max) : 0; },
     present: since(tl, frame, opening) * leaving,

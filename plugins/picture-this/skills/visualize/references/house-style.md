@@ -11,7 +11,7 @@ and not in decoration, and so that a repo's figures look like one set.
   wire being told, the one thing the beat is about. Nothing else is fully
   orange. If two things are orange in one frame, one of them is wrong.
 - **A tint of the accent remembers.** A part the story marked earlier and
-  will come back to (a row that handed work off, a cell already worked out)
+  will come back to (a cell already worked out, the cut that was wrong)
   may keep a pale fill of the accent with its hairline. It is quieter than
   ink, so the one full accent still leads.
 - **Hues only to tell things apart.** Blue, green, violet, yellow, pink, on
@@ -45,9 +45,11 @@ line, accent, hue. A colour with no job is decoration, and it goes.
   chart, a table or a page is flat, in the page's own coordinates. Neither
   is the default, and a figure does not mix them.
 - No gradients, no shadows, no glow, in either.
-- **Flat shapes are few.** A window is a white panel with a hairline; a row
-  is a bar in one of three tones of ink; a connector is a right-angled line
-  with rounded corners and a small filled arrowhead; a unit of work is a dot.
+- **Flat shapes are few and plain.** A box is a white panel with a hairline;
+  a bar or a tile is flat ink, in whichever of three weights tells it from
+  its neighbours; a connector has rounded corners and a small filled
+  arrowhead; a unit of work is a dot. A subject's own shape (a key, a gear,
+  a coastline) is drawn as itself, in the same hairline.
 - A thing's shape comes from what it is: a queue is a stack of thin slabs, a
   store is a drum, a client is a flat slab, a service or a worker is a block.
 - Keep things low and apart. Height is for emphasis, used once.
@@ -89,9 +91,9 @@ themes. A figure never sets a material colour or a light of its own.
 - A note under a label is one quiet line in the body face.
 - **Real content.** A real file name, a real message, a real count. Never a
   grey bar standing in for text, with one exception: when the bars are the
-  subject. The turns in a context window, the entries in a log, the rows of
-  a buffer are drawn as bars when what each says does not matter and how
-  many there are does. Then the bars are data: their count, their order and
+  subject. The entries in a log, the rows of a buffer, the frames of a film
+  are drawn as bars when what each says does not matter and how many there
+  are does. Then the bars are data: their count, their order and
   their tone come from the model.
 - Words sit on a halo of the page colour, so a line behind them never cuts
   through a letter.

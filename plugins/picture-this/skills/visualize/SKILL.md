@@ -19,7 +19,7 @@ README. The figure is a React component and a `model.json`, in the repo.
 
 The picture is designed from the subject. The plugin ships a drawing
 vocabulary (the kit) and worked studies to learn technique from; it does not
-ship templates to fill in. A queue, a cutaway, a context window and a sort
+ship templates to fill in. A job queue, a lock, a sort and the solar system
 do not share a picture.
 
 `P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs"`. Every command
@@ -73,7 +73,9 @@ Read `references/archetypes.md`. A view is a kind of picture: what the page
 is, what each axis and each mark means, what moves. Design three for this
 subject, as unlike each other as the claim allows, starting from the lens and
 the subject's own shape, numbers and order. Name each for what it draws:
-`transcript`, `exploded`, `lanes`.
+`rear-view`, `tide-chart`, `two-runs`. Nothing an example in the references
+draws is yours by default: a device from one (a meter, a tint, a row of
+tiles) has to earn its place in this subject.
 
 The plugin's studies (`P draft studies`) are worked figures to learn from. A
 draft starts from one only when that study's view, as it stands, is the view
@@ -86,7 +88,8 @@ figure is a page's centrepiece: "When to draw in 3D" in
 
 ```
 P draft new --model <file> --views <a>,<b>,<c>
-P draft new --model <file> --views transcript,lanes,layers=layer-stack
+P draft new --model <file> --views zoom-strip,walk,two-rulers
+P draft new --model <file> --views exploded,cutaway,layers=layer-stack
 ```
 
 This makes a round in `.agents/picture-this/drafts/round-N/`: one folder per
@@ -123,7 +126,10 @@ together. Each brief carries:
 With no subagents, draft the three yourself, one after another, the same way.
 
 Do not polish motion yet. A rough draft has a sound layout, readable words,
-the accent in the right place, and motion that shows the mechanism.
+the accent in the right place, and motion that shows the mechanism. A beat
+is read at its middle, where the sheet holds it: `P still <round>/<id>
+--beat <id> --at <0-100>` holds any other moment, to look at the motion
+between.
 
 ## 4. Check
 

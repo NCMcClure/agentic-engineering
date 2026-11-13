@@ -1,7 +1,8 @@
 "use client";
 // What joins things in flat space, and what travels. An elbow is a
 // right-angled connector with rounded corners and an arrowhead, between any
-// two points. A token is one unit of work, and a queue is a line of them.
+// two points; a line is a straight one. A token is one unit of work, and a
+// queue is a row of them: waiting, or counted.
 import { along, heading, line, slice, smooth } from "../iso/project";
 import { elbow, mix } from "./geometry";
 import type { P2 } from "./geometry";
@@ -68,6 +69,27 @@ export function Elbow({ from, to, first, via, radius = 10, progress = 1, head = 
 }
 
 /**
+ * A straight line from one point to another: a join between the same thing
+ * in two places, a trail, a leader. Dashed says it is not a thing. `head`
+ * puts an arrowhead on its end, `progress` (0 to 1) draws part of it,
+ * `accent` takes it to the accent, `lit` dims it.
+ */
+export function Line({ from, to, progress = 1, head = false, dashed = false, accent = 0, lit = 1, quiet = true }: {
+  from: P2; to: P2; progress?: number; head?: boolean; dashed?: boolean; accent?: number; lit?: number; quiet?: boolean;
+}) {
+  if (progress <= 0) return null;
+  const pts: P2[] = [from, [from[0] + (to[0] - from[0]) * Math.min(1, progress), from[1] + (to[1] - from[1]) * Math.min(1, progress)]];
+  const ink = quiet ? mix("var(--pt-ink-2)", "var(--pt-line-2)", lit) : mix("var(--pt-line)", "var(--pt-line-2)", lit);
+  const stroke = accent > 0 ? mix("var(--pt-accent)", ink, accent) : ink;
+  return (
+    <g>
+      <path className={dashed ? "pt-guide" : "pt-link"} data-quiet={quiet ? "" : undefined} d={line(pts)} style={{ stroke }} />
+      {head ? <path className="pt-link-head" d={arrow(pts[1], heading(pts), quiet ? 5.5 : 7)} style={{ fill: stroke, stroke }} /> : null}
+    </g>
+  );
+}
+
+/**
  * One unit of work: a dot. It takes a hue to be told from its neighbours, or
  * the accent when the beat is about it. `label` is a word beside it.
  */
@@ -96,14 +118,17 @@ export function Token({ at, r = 5, hue, accent = 0, here = 1, lit = 1, label, la
 }
 
 /**
- * Tokens waiting in a line from `at`, `gap` apart, running `dir`. `count` is
- * how many places there are and `filled` how many hold a token (it may be a
- * fraction: the last one is arriving). Empty places are drawn as rings.
+ * Tokens in a row from `at`, `gap` apart, running `dir`: work waiting, or a
+ * count kept in pips. `count` is how many places there are and `filled` how
+ * many hold a token (it may be a fraction: the last one is arriving). Empty
+ * places are drawn as rings.
  */
-export function Queue({ at, count, filled = count, gap = 14, r = 4.5, dir = "right", hue, lit = 1 }: {
+export function Queue({ at, count, filled = count, gap = 14, r = 4.5, dir = "right", hue, lit = 1, accent = 0 }: {
   at: P2;
   count: number;
   filled?: number;
+  /** 0 to 1: take the newest token to the accent: the one just counted. */
+  accent?: number;
   gap?: number;
   r?: number;
   dir?: "right" | "left" | "down" | "up";
@@ -119,7 +144,7 @@ export function Queue({ at, count, filled = count, gap = 14, r = 4.5, dir = "rig
         return (
           <g key={i}>
             <circle className="pt-token-place" cx={p[0]} cy={p[1]} r={r} />
-            <Token at={p} r={r} hue={hue} here={here} lit={lit} />
+            <Token at={p} r={r} hue={hue} here={here} lit={lit} accent={i === Math.ceil(filled) - 1 ? accent : 0} />
           </g>
         );
       })}

@@ -47,6 +47,21 @@ export const lerp = (a: number, b: number, p: number): number => a + (b - a) * p
 /** How far p has travelled from a to b, held at 0 before and 1 after. */
 export const span = (p: number, a: number, b: number): number => clamp((p - a) / (b - a));
 
+/**
+ * Which of `count` equal steps p is in, between `from` and `to` of a beat,
+ * and how far through that step (0 to 1): for events that happen one after
+ * another, a comparison at a time, a card at a time. Before `from` it is the
+ * first step not begun; after `to`, the last one finished.
+ */
+export function steps(p: number, count: number, from = 0, to = 1): { index: number; t: number; done: number } {
+  const n = Math.max(1, Math.round(count));
+  // Rounded past the ninth place, so a step's edge is its edge whatever the arithmetic left behind.
+  const along = Math.round(span(p, from, to) * n * 1e9) / 1e9;
+  const index = Math.min(n - 1, Math.floor(along));
+  const t = clamp(along - index);
+  return { index, t, done: t >= 1 ? index + 1 : index };
+}
+
 export const ease = {
   linear: (p: number): number => p,
   out: (p: number): number => 1 - (1 - p) ** 3,

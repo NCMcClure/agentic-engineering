@@ -33,17 +33,37 @@ A view answers five questions. Answer them in words before drawing.
    can compare two of them.
 
 Then write the **view statement**: three short answers, in the draft's
-`view.json`, before the first line of the figure.
+`view.json`, before the first line of the figure. `drawn` is the shapes on
+the page and what each one is. `moves` is what moves, and what that says
+about the subject. `means` is what each visual property stands for: across,
+down, size, tone, the accent, a dashed line.
+
+Two statements, for two subjects that share nothing, to show the form and
+only the form:
 
 ```json
 {
-  "view": "transcript",
+  "view": "cutaway",
   "base": "blank",
-  "drawn": "Each session's context window is a column of rows, one row per turn. A session a turn starts is a smaller column to the right of that turn, joined to it by a right-angled line.",
-  "moves": "Rows scroll up as turns are added. A row turns orange as it hands work off, and the new column slides out along the line. The meter beside a column rises with its rows and drops when it is compacted.",
-  "means": "Down is time. Right is started-by. Row tone is who spoke. Orange is the turn that is delegating now; an orange tint is one that did. Meter height is tokens used against the limit."
+  "drawn": "The lock sawn in half lengthwise: the housing's metal with five chambers, the plug inside it, and in each chamber a spring, a driver pin and a key pin. The key is a blade with five cuts.",
+  "moves": "The key slides in and each stack rides up on its cut. When every gap sits on the plug's edge, the plug turns and the driver pins stay behind.",
+  "means": "Position is the real arrangement, to one scale. Grey is a driver pin, white a key pin. Orange is the length of pin that crosses the plug's edge and holds it."
 }
 ```
+
+```json
+{
+  "view": "two-rulers",
+  "base": "blank",
+  "drawn": "A page holding the Sun and the planets side by side as discs, and under it a ruler from the Sun out to the distance in view, with a tick for each planet. A dashed line joins each planet's two places.",
+  "moves": "The ruler reaches further out beat by beat, its ticks closing up toward the Sun. The page never moves.",
+  "means": "Across is distance on both: to scale on the ruler, evenly spaced on the page. A disc's width is its diameter. A dashed line is the same planet in two places."
+}
+```
+
+Nothing in an example is yours to borrow. A meter, a tint, a ring: each is in
+a picture because that subject needed it. If one turns up in your statement,
+say what in *this* subject it stands for, or take it out.
 
 `draft check` will not pass a round until every draft has said all three, and
 it prints them, so the person reads what each draft set out to draw beside
@@ -60,12 +80,12 @@ The right one is often a blend, or none of them.
 |---|---|
 | structure | the parts pulled apart along one axis, with dashed guides back to where they sit; a cutaway with the inside drawn in place; layers stacked; boxes inside boxes; a tree of what holds what |
 | path | places on a ground with a wire per hop; cards joined by threads; a route drawn on the thing's own outline; lanes, one per actor, with the message crossing between them |
-| time | stages by ticks with a token per unit of work; a transcript that scrolls; lanes along a time axis, each with a level that rises and resets; queues of work draining through workers |
+| time | stages by ticks with a token per unit of work; a record that scrolls; lanes along a time axis, each with its own level; queues of work draining through workers; one thing followed alone, then all of them |
 | field | a grid of cells tinted by value; a wireframe surface over a plane; a strip of values along a line; contours |
 | transformation | input, rule and output in one frame; an outline sampled onto a grid; a shape projected onto a plane; a list before and after a sort |
 | difference | the same parts twice, side by side; one drawn over the other; small multiples of one frame under different settings |
 | cases | one tile per case; a fork with one branch lit; a table of outcomes |
-| scale | the whole, a ring on a region, and the region enlarged; a chain of zooms, each inside the last; a ruler of sizes |
+| scale | the whole, a ring on a region, and the region enlarged; a chain of zooms, each inside the last; a ruler of sizes; a true scale beside a squeezed one; a walk at the model's scale |
 
 A second lens goes on the other axis, inside each unit, over the picture as
 one mark, or beside it as an inset: `lenses.md`, section 3.
@@ -98,13 +118,13 @@ A round is three views of one model, as unlike each other as the claim
 allows, so the choice is between pictures and not between shades of one.
 
 ```
-draft new --model <file> --views transcript,lanes,ledger
+draft new --model <file> --views two-runs,levels,bars
 draft new --model <file> --views exploded,cutaway,layers=layer-stack
 ```
 
-- Name each view for **what it draws**: `transcript`, `exploded`, `lanes`,
-  `ledger`. A study's name is not a view of your subject, and `draft new`
-  refuses one given bare.
+- Name each view for **what it draws**: `two-runs`, `exploded`, `rear-view`,
+  `tide-chart`. A study's name is not a view of your subject, and `draft
+  new` refuses one given bare.
 - A view starts on the blank stage. `<view>=<study>` starts it from a study,
   and is for one case only: the study's view, as it stands, is what this
   subject wants, and what changes is the layout and the detail.
@@ -163,20 +183,22 @@ has the test.
 The blank stage sets up the stage, the clock and the model, and draws
 nothing. The kit is a vocabulary, not a set of layouts: take the shapes the
 view needs (`kit/README.md` has each one's props) and place them yourself.
+A subject with a shape of its own (a lock, a globe, a gear) is mostly drawn
+by hand, in plain SVG with the kit's classes, and that is right: the kit
+holds only what unrelated figures share.
 
 **Flat space** is the page's own coordinates, in px. Reach for it when the
-subject is a record, a window, a chart, a table, or a page.
+subject is a chart, a table, a ruler, a section through a thing, or a page.
 
-- `Panel` is a framed box that clips what it holds; `Rows` is a column of
-  bars inside one, scrolled by an offset you read off the clock; `Spawn` is a
-  panel sliding out of the end of a connector.
-- `Elbow` is a right-angled connector with rounded corners and an arrowhead,
-  between any two points; `Token` is one unit of work and `Queue` a line of
-  them.
-- `Meter` is a number against its limit; `Cells` a grid tinted by value;
-  `Lanes` the ruled ground of a time grid.
-- `geometry` says where things are before they are drawn: `anchor`, `elbow`,
-  `column`, `windowed`, `bar`, `slotIn`, `cell`.
+- `Panel` is a framed box that clips what it holds; `Bar` is one of a kind of
+  thing, its length saying how much; `Tile` a square that holds a value and
+  can be moved.
+- `Elbow` is a right-angled connector and `Line` a straight one; `Token` is
+  one unit of work and `Queue` a row of them, waiting or counted.
+- `Meter` is a number against its limit; `Axis` a ruled line with named
+  ticks; `Cells` a grid tinted by value; `Lanes` the ground of a time grid.
+- `geometry` says where things are before they are drawn: `elbow`,
+  `between`, `slotIn`, `cell`, `spread`, `tint`.
 
 **Isometric space** is a ground, x down to the right, y down to the left, z
 up. Reach for it when the subject is things standing in space.
@@ -189,25 +211,30 @@ up. Reach for it when the subject is things standing in space.
 - `Block`, `Plate`, `Layers`, `Cylinder`, `Ground` and `Wire` are the usual
   shapes.
 
-`Label` names a thing in either space, and plain SVG with the kit's classes
-draws anything else.
+`Label` names a thing in either space.
 
-How some views are usually built:
+**A beat is read at its middle.** The sheet, the still and the strip all hold
+a beat half-way through, so the change a beat is about has happened by then:
+a part has arrived, a level has reached its value, the step being told is
+under way. `steps` and `span` in the kit's `timeline` place what happens
+inside a beat.
 
-- **Exploded**: parts in their real order along one axis, pulled apart, with
-  guides at two corners. The gap is wide enough to see each part's top.
-- **Cutaway**: the thing's real outline, one side open, the inside drawn in
+Some ways views have been built, as technique and not as a list to pick from:
+
+- **Pulled apart**: parts in their real order along the axis they move on,
+  with guides back to where they sit. The gap is wide enough to see each
+  part's top.
+- **Cut open**: the thing's real outline, one side open, the inside drawn in
   place. What is cut is drawn with a heavier edge.
-- **Time grid**: stages as rows, ticks as columns, a token per unit of work.
-  A token's place is a function of the tick, so every token steps together.
-- **Transcript**: a window, rows scrolling through it at the rate turns are
-  added, and whatever a row starts drawn beside the row.
-- **Grid or surface**: cells tinted in a few even steps; or a wireframe over
-  a plane, drawn back to front.
-- **Mapping**: the input on one side, the output on the other, and the rule
-  between them applied to one element per beat.
-- **Zoom**: the whole, a ring on one region, two lines out to the
-  enlargement. The enlargement uses the same vocabulary as the whole.
+- **Stages by ticks**: a token's place is a function of the tick, so every
+  token steps together.
+- **A field**: cells tinted in a few even steps; or a wireframe over a plane,
+  drawn back to front.
+- **Before, rule, after**: the input on one side, the output on the other,
+  and the rule between them applied to one element per beat.
+- **Two scales**: the same things on a true scale and on a squeezed one,
+  joined; or the whole, a ring on one region, and that region enlarged in
+  the same vocabulary.
 
 Everything is a function of the frame: read `useFigure()`, compute, draw.
 

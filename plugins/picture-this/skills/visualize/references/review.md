@@ -44,7 +44,8 @@ Look at `sheet.png` for the draft, every panel. Each item passes or fails.
 **It tells the story**
 
 14. Each panel shows a visible change from the one before, and the change is
-    what its caption says.
+    what its caption says. A beat is read at its middle: what it is about
+    has happened by then.
 15. The hero frame is a complete picture on its own.
 16. The captions read as sentences, and the claim is why it matters, not a
     description of the figure.
@@ -56,13 +57,13 @@ with a failing item; say so plainly if one cannot be fixed.
 
 A draft can pass every other item and still be a stock diagram with this
 subject's names on it: boxes in a row, an arrow between each pair. That
-picture explains nothing the sentence "A sends to B" did not. Four ways to
+picture explains nothing the sentence "A sends to B" did not. Five ways to
 tell, and a draft should pass all of them:
 
 - **Swap the labels.** Put another system's names on the same shapes. If the
   picture would still be right, nothing in it is about this subject. A
   picture of its own breaks under the swap: this queue has seven jobs in it,
-  this window is three quarters full, this part is the shape it really is.
+  this pin is four units long, this part is the shape it really is.
 - **Cover the labels.** Look at `sheet.nocap.png` with the words blurred. A
   reader should still be able to say what kind of thing happens (something
   fills, something is handed on, something is cut open), because the shapes
@@ -70,11 +71,15 @@ tell, and a draft should pass all of them:
 - **Find the subject's own fact.** Point at one thing drawn to the subject's
   numbers, proportions, order or shape. A study drawn straight from its
   default layout has none.
+- **Name where each device came from.** A meter, a tint, a ring, a row of
+  dots: say what in this subject each one stands for. One that is there
+  because a study or an example in these documents had one is a borrowed
+  device, and it goes.
 - **Read the cold reader's sentence.** "Things send messages to other
   things" is what a template reads as. A reader of the subject's own picture
   says something only true of this subject.
 
-A draft that began from a study is held to the same four. If it differs from
+A draft that began from a study is held to the same five. If it differs from
 the study only in labels and positions, either the study's view is exactly
 this subject's view (say so in the view statement, and say why), or the
 draft should have begun on the blank stage. A round where all three began

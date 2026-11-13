@@ -16,12 +16,14 @@ const VIEW = { x: 0, y: 0, width: 720, height: 400 };
 //
 //   The frame     useFigure(): f.frame (the beat, and how far through it), f.model,
 //                 f.here / f.lit / f.arriving (an entity), f.laid / f.moving (a flow),
-//                 f.level / f.share (a quantity), f.phase() (something circulating),
-//                 f.present (the whole figure fading in and out with the loop)
-//   Flat space    kit/flat: Panel, Rows, Bar, Spawn (windows, and what is in them),
-//                 Elbow, Token, Queue (what joins and what travels),
-//                 Meter, Cells, Lanes (quantities, grids, a time grid's ground),
-//                 and geometry: anchor, elbow, column, windowed, bar, cell, slotIn
+//                 f.level / f.share (a quantity), f.on(...beats), f.phase() (something
+//                 circulating), f.present (the whole figure fading in and out with the
+//                 loop); steps / span / ease / lerp in kit/timeline for what happens
+//                 inside a beat. A beat is read at its middle: show its point by then.
+//   Flat space    kit/flat: Panel, Bar, Tile (a box, one of a kind, a value in a square),
+//                 Elbow, Line, Token, Queue (what joins, what travels, what is counted),
+//                 Meter, Axis, Cells, Lanes (a level, a ruled scale, a grid, a time grid's ground),
+//                 and geometry: elbow, between, cell, slotIn, spread, tint, mix
 //   Isometric     kit/iso: Block, Plate, Layers, Cylinder, Face, Guide, Ground, Wire,
 //                 and project / plate / block / disc
 //   Words         Label (a name with a leader, at a page point or a ground point),

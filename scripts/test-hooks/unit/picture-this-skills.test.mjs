@@ -169,12 +169,12 @@ test("the documents put the subject before the studies, and never call a study a
 test("the kit's README names every flat shape with what it is for, and the model reference every new field", () => {
   const kit = read("kit/README.md");
   assert.match(kit, /^## Flat space$/m);
-  for (const shape of ["Panel", "Rows", "Bar", "Spawn", "Elbow", "Token", "Queue", "Meter", "Cells", "Lanes"]) {
+  for (const shape of ["Panel", "Bar", "Tile", "Elbow", "Line", "Token", "Queue", "Meter", "Axis", "Cells", "Lanes"]) {
     assert.match(kit, new RegExp(`^\\| \`${shape}\`[^|]*\\| \\S`, "m"), `${shape} has its line`);
     const source = ["panel", "connect", "chart"].map((f) => read(`kit/flat/${f}.tsx`)).join("\n");
     assert.match(source, new RegExp(`export function ${shape}\\(`), `${shape} is in the kit`);
   }
-  for (const fn of ["anchor", "elbow", "column", "windowed", "scrollTo", "bar", "slotIn", "cell", "tint", "mix"]) {
+  for (const fn of ["elbow", "between", "slotIn", "cell", "spread", "tint", "mix"]) {
     assert.match(kit, new RegExp(`\`${fn}\\(`), `${fn} is documented`);
     assert.match(read("kit/flat/geometry.ts"), new RegExp(`export function ${fn}\\(`), `${fn} is in the kit`);
   }

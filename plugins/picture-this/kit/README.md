@@ -71,11 +71,21 @@ Inside a stage, `useFigure()` answers the questions a drawing asks:
 | `f.level(quantity)` | where a quantity stands now, in its own unit (not 0 to 1) |
 | `f.share(quantity)` | the same as a share of its `max` |
 | `f.present` | is the figure on the page: 1, but for the loop's first and last moments. A value, not a call |
+| `f.on(beat, ...)` | is the story in one of these beats, easing at the edges: for an accent that holds across two beats |
 
 `f.frame` is the beat and the progress through it; `f.model`, `f.tl`,
 `f.audience` and `f.unit` are there too. An entity with a `born` beat is not
 `here` until that beat, whether or not the figure builds up, and a flow to or
 from it is not `laid` until then.
+
+**A beat is read at its middle.** A sheet, a still and a stepped strip all
+hold a beat half-way through, so what a beat is about must be true by then.
+A quantity with one value for a beat reaches it over the beat's first two
+fifths and holds it; one with a list follows the list. For things that
+happen one after another inside a beat (a comparison at a time, a card at a
+time), `steps(p, count, from, to)` in `timeline` says which step the beat is
+in and how far through it; `span(p, a, b)` is one stretch of a beat, 0 before
+it and 1 after.
 
 A quantity's whole course is in `model.ts`: `levelAt(model, id, beat, p)` is
 its level at any moment, `knots(model, id)` the points it passes through
@@ -89,48 +99,47 @@ children at one held frame whatever the clock says: a panel of a series.
 `flat/` draws in the page's own coordinates: x right, y down, in the
 `viewBox`'s px. Its shapes know nothing of the model. A figure reads the
 frame, works out what to show, and passes it in, so the same shape serves a
-context window, a log, a buffer or a page.
+chart, a table, a ruler or a page. Each one below is here because figures of
+unrelated subjects reached for it; a shape only one subject needs is drawn in
+that figure, with plain SVG and the kit's classes.
 
 | Shape | What it is for |
 |---|---|
-| `Panel` (`flat/panel`) | a framed box that clips what it holds: a window, a screen, a buffer. `open="top bottom"` draws it running on past the picture |
-| `Rows` | a column of bars inside a box, scrolled by `offset` px: the turns in a window, the lines of a log. Each row has a `tone` (`dark`, `mid`, `light`), and may take the `accent`, a `marked` tint, an `indent`, a `span`, or be an `outline` (a row something other than the conversation put there) |
-| `Bar` | one row, for a column laid out by hand |
-| `Spawn` | one thing starting another: a connector from a point, and a panel sliding out of its end, on one `progress` |
+| `Panel` (`flat/panel`) | a framed box that clips what it holds: a page, a screen, a case. `open="top bottom"` draws it running on past the picture |
+| `Bar` | one of a kind of thing, its length or height saying how much. A `tone` (`strong`, `mid`, `quiet`, the same in light and dark), the `accent`, a `marked` tint, `outline`, a `label` on it, and `here` grown from `grow` |
+| `Tile` | a square that holds a value and can stand anywhere: a number in a list, a cell, a slot. Tinted by `share`, with `accent`, `marked`, or `empty` (a dashed place) |
 | `Elbow` (`flat/connect`) | a right-angled connector with rounded corners and an arrowhead between any two points; `progress` draws part of it, `pulse` puts the accent on a stretch of it, `accent` on all of it, `quiet` is for what is said as against what is started |
+| `Line` | a straight line between two points: a join between one thing in two places, a trail, a leader. `dashed` says it is not a thing; `head` adds an arrowhead |
 | `Token` | one unit of work: a dot, with a hue or the accent, and a word |
-| `Queue` | tokens waiting in a line, some places still empty |
+| `Queue` | tokens in a row, some places still empty: work waiting, or a count kept in pips |
 | `Meter` (`flat/chart`) | one number against its limit, filling and emptying with the frame, with a `threshold` line |
-| `Cells` | a grid of square cells, each tinted by its value in a few even steps; `shown` reveals them, `mark` puts the accent on one, `numbers` writes the values |
+| `Axis` | a ruled line with named ticks, level or upright: a scale, a ruler, a threshold. `fill` puts the accent along the stretch the story is on |
+| `Cells` | a grid of tiles, each tinted by its value in a few even steps; `shown` reveals them, `mark` puts the accent on one, `numbers` writes the values |
 | `Lanes` | the ruled ground of a time grid: a named row per stage, a tick per column, a line at `now` |
 
 `flat/geometry` is where things are before they are drawn, as plain
-functions: `anchor(box, side, at)` is a point on a box's side; `elbow(from,
-to)` the corners of a right-angled route; `column(heights, gap)` rows
-stacked; `windowed(slots, offset, height)` the rows a scrolled window shows;
-`scrollTo(slots, index, height)` the offset that brings a row to the bottom;
-`bar(box, slot, offset, row)` a row's box on the page, for a connector to
-leave from; `slotIn(box, columns, rows, c, r)` and `cell(c, r, size, gap,
-origin)` one cell of a grid; `tint(value, lo, hi, steps)` a value as one of a
-few tints; `mix(a, b, p)` one token part of the way to another. `onElbow`
-(in `flat/connect`) is a point along a connector, for something riding it.
+functions: `elbow(from, to)` the corners of a right-angled route;
+`between(from, to, p)` a point part of the way from one to another;
+`slotIn(box, columns, rows, c, r)` and `cell(c, r, size, gap, origin)` one
+cell of a grid; `spread(n, from, to)` places evenly spaced; `tint(value, lo,
+hi, steps)` a value as one of a few tints; `mix(a, b, p)` one token part of
+the way to another. `onElbow` (in `flat/connect`) is a point along a
+connector, for something riding it.
 
 ```tsx
-const inner = inset(WINDOW, 12);
-const slots = column(turns.map(() => 12), 6);
-const offset = scrollTo(slots, shown, inner.height);
-<Panel box={WINDOW} open="top bottom">
-  <Rows box={inner} rows={turns.slice(0, shown + 1)} offset={offset} />
-</Panel>
-<Spawn from={anchor(bar(inner, slots[7], offset), "right")} box={CHILD} progress={p}>
-  <Rows box={inset(CHILD, 10)} rows={childTurns} rowHeight={8} gap={5} />
-</Spawn>
+const scale = (m: number) => m / 710;
+<Axis from={[40, 120]} to={[680, 120]} fill={[0, scale(reach)]}
+  ticks={bodies.map((b) => ({ at: scale(b.m), label: b.name, sub: `${b.m} m`, lit: b.m <= reach ? 1 : 0 }))} />
+<Line from={[40 + 640 * scale(123), 120]} to={[310, 220]} dashed />
+<Tile box={cell(i, 0, 34, 3, [80, 260])} label={String(v)} share={tint(v, 1, 9)} accent={i === front ? 1 : 0} />
 ```
 
 `Label` takes a page point as well as a ground point: `<Label at={[x, y]}
-title="..." />`. Plain `<text className="pt-label">` and `"pt-tag"` set words
-in the house faces, `pt-edge` is a thing's line, `pt-guide` a dashed one, and
-`pt-rule` a quiet rule.
+title="..." />`. `dot={false}` leaves off its dot (for a thing smaller than
+the dot) and `leader={false}` its hairline. Plain `<text
+className="pt-label">` sets small capitals and `"pt-tag"` lower-case mono;
+`pt-edge` is a thing's line, `pt-guide` a dashed one, and `pt-rule` a quiet
+rule.
 
 ## Isometric
 

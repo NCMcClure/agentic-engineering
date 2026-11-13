@@ -67,7 +67,7 @@ there are four:
 
 | The second sits | When | For example |
 |---|---|---|
-| **on the other axis** | both run through the whole subject | time down each column, structure across: what started what |
+| **on the other axis** | both run through the whole subject | time along the page, structure down it: which process started which |
 | **inside each unit** | the lead repeats a unit | cases, with a path inside each tile |
 | **over it**, as one mark | the second is a single thing: a route, a cut, a level | a field with a marker's path on it; a cutaway with a beam through it |
 | **beside it**, as an inset | the second is another size | a structure with a zoom on one part |
@@ -76,14 +76,14 @@ Never three. A third question is a second figure.
 
 Two subjects look as if they need a lens of their own, and do not:
 
-- **Something that fills and is emptied**: a buffer, a tank, a context
-  window. It is a quantity, but one that changes over time and not over
-  space, so **time** leads: the level against its limit, and the moment it is
-  reset. The model carries it as a `quantity`.
-- **Something that starts other things**: a process that forks, a session
-  that spawns a session. When each one starts is **time**; what belongs to
-  what is **structure**, on the other axis. The model carries it as a
-  `parent`, and a `born` beat for a thing that is not there at the start.
+- **Something that fills and is emptied**: a buffer, a tank, a battery. It
+  is a quantity, but one that changes over time and not over space, so
+  **time** leads. The model carries it as a `quantity`. How it is drawn is
+  the view's business: a level, a stack, a curve, a count.
+- **Something that starts other things**: a process that forks, a cell that
+  divides. When each one starts is **time**; what belongs to what is
+  **structure**, on the other axis. The model carries it as a `parent`, and
+  a `born` beat for a thing that is not there at the start.
 
 ## 4. Draw the thing itself
 
@@ -145,34 +145,39 @@ size chosen in question one is too small.
 
 ## 8. Three worked passes
 
+Each ends on more than one view, on purpose. A lens narrows the field; it
+does not hand over the picture. The round of three is where these are tried.
+
 **A processor's pipeline.** *Parts:* the four stages, a queue of instructions
 waiting, a pile of them finished. *Happens:* "each instruction moves one stage
 on every clock tick, with the next one right behind it." *Hidden because:*
 it is too fast, and four instructions are in flight at once. *Lens:* time.
-*View:* stages as rows, ticks as columns, each instruction a dot of its own
-hue stepping diagonally down the grid. *Beats:* one instruction alone through
-all four stages; a second enters behind it; the pipeline full, one finishing
-per tick. *Claim:* after the first, one instruction finishes every tick.
+*Views to try:* stages as rows and ticks as columns, each instruction a dot
+stepping down the grid; the same four stages as places with instructions
+queued at each; one instruction followed alone, then the pipeline full.
+*Beats:* one instruction alone through all four stages; a second enters
+behind it; the pipeline full, one finishing per tick. *Claim:* after the
+first, one instruction finishes every tick.
 
-**A cache in front of a database.** *Parts:* the app, the cache, the
-database. *Happens:* "a read is answered by the cache when it holds the row,
-and by the database when it does not." *Hidden because:* it branches. *Lens:*
-cases, with path inside each tile. *View:* two tiles, hit and miss, the same
-three things in each. *Beats:* the hit; the miss; the miss filling the cache.
-*Claim:* a miss costs one extra trip, once.
+**A pin tumbler lock.** *Parts:* the housing, the plug that turns inside it,
+five stacks of two pins on springs, the key. *Happens:* "the right key lifts
+each stack until the gap between its two pins sits at the edge of the plug."
+*Hidden because:* it is inside a case. *Lens:* structure. *Views to try:* the
+lock sawn in half lengthwise, key sliding in under the pins; its logic as a
+chart, five columns against one line; the parts pulled apart along the axis
+the pins move on. *Beats:* locked; the key goes in; every gap lines up; the
+plug turns; one wrong cut. *Claim:* it opens only when all five line up at
+once.
 
-**An agent that hands its work to other agents.** *Parts:* the first agent's
-context window, the windows of the sessions it starts, and the hook that
-runs when a window is compacted. *Happens:* "each task fills a window of its
-own, and only a line comes back." *Hidden because:* it is a quantity nobody
-watches, in several places at once, over hours. *Lens:* time, with structure
-on the other axis. *View:* each window a column that its turns scroll
-through, a new column sliding out to the right of the turn that started it,
-and a level beside the first one that barely climbs. *Beats:* one window
-working; a turn hands a task off; the new window fills while the first does
-not; the first reaches its limit, is emptied, and its instructions come back.
-*Claim:* one window carries a whole round. None of the plugin's studies draws
-this, and none should be bent to: it starts on the blank stage.
+**Merging two sorted lists.** *Parts:* two runs already in order, the front
+item of each, the merged run being built. *Happens:* "the smaller of the two
+front items is taken, again and again." *Hidden because:* the before and the
+after are never seen together, and the rule is one line of code. *Lens:*
+transformation. *Views to try:* the two runs side by side feeding one row
+below; the whole sort as rows, one per level, runs doubling in length; each
+number as a bar, so order is a shape. *Beats:* cut down to ones; merge
+neighbours; only the fronts; again, until empty; one pass per level.
+*Claim:* a merge never looks back, so each level is one pass.
 
 ## What goes in the model
 

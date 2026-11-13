@@ -93,16 +93,18 @@ none of them is as valid as it ever was.
   thing is drawn as a few: four workers standing for forty.
 - **`quantities`**: up to four numbers that change as the story is told: how
   full, how many, how far. `values` names beats. One number is where the
-  quantity stands when that beat ends, reached evenly from where it stood. A
-  list of two to eight is its course through the beat, evenly spaced, and
-  its first value may jump from the last beat's: a buffer that empties at
-  once. A beat left out holds the level. `max` is its limit, which a meter
+  quantity stands in that beat: it is reached over the beat's first two
+  fifths and then held, so the beat's middle, where a still is taken, shows
+  what the caption says. A list of two to eight is its course through the
+  beat, evenly spaced, for a change that is itself the story; its first
+  value may jump from the last beat's: a buffer that empties at once. A beat
+  left out holds the level. `max` is its limit, which a meter
   is drawn against; `start` is where it stands before the first beat; `of`
   is the entity it measures. A figure reads it with `f.level` and `f.share`.
 - **`data`**: up to eight named tables a view lays out, at most 600 values
   in all. A table is one of three kinds: a list of numbers (a series); rows
   of numbers, all the same width (cell values); or rows of named values
-  (units of work, the turns of a transcript). In a row, `of` must name an
+  (units of work, the entries of a log). In a row, `of` must name an
   entity, `at` a beat, and an `id` is unique in its table; every other key
   is the view's own. Data is what all three drafts must agree on. A number a
   single draft needs for its layout stays in that draft.

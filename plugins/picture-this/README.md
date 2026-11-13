@@ -29,8 +29,8 @@ The same model, the same layout, drawn in 3D (`studies/iso-flow-3d/`):
 
 Before anything else comes the **lens**. Not every subject is boxes with
 arrows: a device is parts inside a case, a pipeline is work stepping through
-stages in time, a blur is a number spread over a grid, a context window is a
-level that fills and is emptied. Four questions about the subject say which
+stages in time, a blur is a number spread over a grid, a lock is five gaps
+that must line up at once. Four questions about the subject say which
 of eight lenses leads (structure, path, time, field, transformation,
 difference, cases, scale), and where a second one goes when the subject
 needs two.
@@ -50,9 +50,11 @@ with new labels on it, and shown, without captions, to a reader that knows
 nothing about your system. What that reader understood is reported beside
 the draft.
 
-The plugin ships no templates. It ships a **vocabulary**: windows of rows
-that scroll, connectors, tokens and queues, meters, grids of cells, a time
-grid's ground, isometric slabs, blocks, drums and wires. And it ships
+The plugin ships no templates. It ships a **vocabulary**: boxes, bars and
+tiles, connectors, tokens, meters, ruled axes, grids of cells, isometric
+slabs, blocks, drums and wires. A shape is in the kit only if figures of
+unrelated subjects reached for it; what one subject alone needs (a key, a
+gear, a globe) is drawn in that figure. And it ships
 **studies**: eleven worked figures (a flow, a layer stack, a time grid, a
 field of cells, and so on) to learn a technique from. A draft starts on a
 blank stage unless a study's view is exactly the view the subject wants.

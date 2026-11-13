@@ -296,7 +296,8 @@ test("the kit's model type and the checker agree on kinds and hues", { skip }, a
 test("a quantity is read off the clock: one value is reached evenly, a course is followed, a beat left out holds", { skip }, () => {
   const m = { ...model, quantities: [{ id: "waiting", label: "Jobs waiting", max: 10, start: 2, values: { answer: 6, save: [8, 0, 4] } }] };
   const at = (beat, p) => M.levelAt(m, "waiting", m.beats.findIndex((b) => b.id === beat), p);
-  assert.deepEqual([at("answer", 0), at("answer", 0.5), at("answer", 1)], [2, 4, 6], "from where it started to the beat's one value");
+  assert.deepEqual([at("answer", 0), at("answer", 0.2), at("answer", 0.4), at("answer", 0.5), at("answer", 1)], [2, 4, 6, 6, 6], "one value is reached over the beat's first part and held, so the middle of the beat shows it");
+  assert.equal(M.ARRIVE, 0.4, "before the middle, where a beat is read");
   assert.deepEqual([at("work", 0), at("work", 0.7)], [6, 6], "a beat with no value holds the level");
   assert.deepEqual([at("save", 0), at("save", 0.25), at("save", 0.5), at("save", 0.75), at("save", 1)], [8, 4, 0, 2, 4], "a course opens with a jump and is followed evenly");
   assert.equal(at("rest", 0.5), 4, "and the rest holds where the story left it");
@@ -329,15 +330,24 @@ test("the kit's model type carries every field the checker reads", { skip }, () 
 test("a quantity's course can be drawn whole, and says where it falls", { skip }, () => {
   const m = { ...model, quantities: [{ id: "waiting", label: "Jobs waiting", max: 10, start: 2, values: { answer: 6, save: [8, 0, 4] } }] };
   assert.deepEqual(M.knots(m, "waiting"), [
-    { at: 0, value: 2 }, { at: 1, value: 6 }, { at: 2, value: 6 }, { at: 2, value: 8 }, { at: 2.5, value: 0 }, { at: 3, value: 4 }, { at: 4, value: 4 },
+    { at: 0, value: 2 }, { at: 0.4, value: 6 }, { at: 2, value: 6 }, { at: 2, value: 8 }, { at: 2.5, value: 0 }, { at: 3, value: 4 }, { at: 4, value: 4 },
   ], "beat-time: a beat with no value holds, a course may open with a jump, and the last level is held to the loop's end");
   assert.deepEqual(M.falls(m, "waiting"), [{ from: 2, to: 2.5, high: 8, low: 0 }]);
   // A level that holds and then climbs is flat until the beat that moves it, not a slope from the start.
   const late = { ...model, quantities: [{ id: "late", label: "Late", values: { save: 9 } }] };
-  assert.deepEqual(M.knots(late, "late"), [{ at: 0, value: 0 }, { at: 2, value: 0 }, { at: 3, value: 9 }, { at: 4, value: 9 }]);
+  assert.deepEqual(M.knots(late, "late"), [{ at: 0, value: 0 }, { at: 2, value: 0 }, { at: 2.4, value: 9 }, { at: 4, value: 9 }]);
   near(M.levelAt(late, "late", 1, 0.5), 0, "which is what levelAt says of the beat before");
   for (const k of M.knots(m, "waiting")) {
     const index = Math.min(m.beats.length - 1, Math.floor(k.at)), p = k.at - index;
     if (k.at !== 2) near(M.levelAt(m, "waiting", index, p), k.value, `the course agrees with levelAt at ${k.at}`);
   }
+});
+
+test("a beat is cut into equal steps, for things that happen one after another", { skip }, () => {
+  assert.deepEqual(T.steps(0, 4), { index: 0, t: 0, done: 0 });
+  assert.deepEqual(T.steps(0.375, 4), { index: 1, t: 0.5, done: 1 });
+  assert.deepEqual(T.steps(1, 4), { index: 3, t: 1, done: 4 }, "the last step, finished");
+  assert.deepEqual(T.steps(0.1, 4, 0.2, 0.8), { index: 0, t: 0, done: 0 }, "before the stretch the steps run in, the first has not begun");
+  assert.deepEqual(T.steps(0.5, 4, 0.2, 0.8), { index: 2, t: 0, done: 2 });
+  assert.deepEqual(T.steps(0.9, 4, 0.2, 0.8), { index: 3, t: 1, done: 4 });
 });

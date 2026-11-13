@@ -15,7 +15,7 @@ export type Entity = {
   /** Which side it belongs to, in a figure that sets two arrangements side by side. */
   group?: string;
   hue?: Hue;
-  /** The entity this one is inside, or was started by: a part in a case, a session a session spawned. */
+  /** The entity this one is inside, or was started by: a part in a case, a process a process forked. */
   parent?: string;
   /** The beat it comes into being in. Left out, it is there from the start. */
   born?: string;
@@ -25,10 +25,11 @@ export type Entity = {
 };
 /**
  * A number that changes as the story is told: how full, how many, how far.
- * `values` gives it per beat: one number is where it stands when that beat
- * ends, reached evenly from where it stood; a list is its course through the
- * beat, evenly spaced, and may open with a jump (a tank that empties). A beat
- * left out holds the level.
+ * `values` gives it per beat: one number is where it stands in that beat,
+ * reached over the beat's first part and then held, so the beat's middle
+ * shows what its caption says; a list is its course through the beat, evenly
+ * spaced, and may open with a jump (a tank that empties). A beat left out
+ * holds the level.
  */
 export type Quantity = {
   id: string;
@@ -73,7 +74,7 @@ export type Model = {
   beats: ModelBeat[];
   hero: { beat: string; at?: number };
   quantities?: Quantity[];
-  /** Named tables a view draws from: cell values, units of work, the rows of a transcript. */
+  /** Named tables a view draws from: cell values, units of work, the entries of a log. */
   data?: Record<string, Table>;
 };
 
@@ -181,10 +182,12 @@ export function quantity(model: Model, id: string): Quantity {
 }
 
 const course = (v: number | number[]): number[] => (Array.isArray(v) ? v : [v]);
+/** How far into a beat a single value is reached: before the middle, where a beat is read. */
+export const ARRIVE = 0.4;
 
 /**
  * Where a quantity stands in beat `index`, `p` (0 to 1) of the way through it.
- * A beat with one value is reached evenly from the level before it; a beat
+ * A beat with one value reaches it over its first part and holds it; a beat
  * with a list follows the list, evenly spaced; a beat with none holds.
  */
 export function levelAt(model: Model, id: string, index: number, p: number): number {
@@ -198,7 +201,7 @@ export function levelAt(model: Model, id: string, index: number, p: number): num
   if (now === undefined) return before;
   const points = course(now);
   const at = Math.min(1, Math.max(0, p));
-  if (points.length === 1) return before + (points[0] - before) * at;
+  if (points.length === 1) return before + (points[0] - before) * Math.min(1, at / ARRIVE);
   const along = at * (points.length - 1), i = Math.min(points.length - 2, Math.floor(along));
   return points[i] + (points[i + 1] - points[i]) * (along - i);
 }
@@ -218,7 +221,7 @@ export function knots(model: Model, id: string): { at: number; value: number }[]
     // A level that held through the beats before this one holds up to this beat's start.
     const held = out[out.length - 1];
     if (held.at < index) out.push({ at: index, value: held.value });
-    if (points.length === 1) out.push({ at: index + 1, value: points[0] });
+    if (points.length === 1) out.push({ at: index + ARRIVE, value: points[0] });
     else points.forEach((value, i) => out.push({ at: index + i / (points.length - 1), value }));
   });
   const last = out[out.length - 1];
@@ -256,7 +259,7 @@ export function cells(model: Model, name: string): number[][] {
   return t as number[][];
 }
 
-/** A named table that is a list of rows: units of work, turns, samples. */
+/** A named table that is a list of rows: units of work, entries, samples. */
 export function rows(model: Model, name: string): Row[] {
   const t = table(model, name);
   if (!t.every((v) => v !== null && typeof v === "object" && !Array.isArray(v))) throw new Error(`data '${name}' is not a list of rows`);
