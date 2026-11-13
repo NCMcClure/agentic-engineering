@@ -1,0 +1,22 @@
+{
+  "name": "picture-this",
+  "displayName": "Picture This",
+  "version": "0.1.0",
+  "description": "Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "repository": "https://github.com/NCMcClure/agentic-engineering",
+  "license": "MIT",
+  "keywords": [
+    "visualization",
+    "diagram",
+    "animation",
+    "explainer",
+    "isometric",
+    "mdx",
+    "readme"
+  ],
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json"
+}

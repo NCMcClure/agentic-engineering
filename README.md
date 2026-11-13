@@ -88,6 +88,15 @@ narrative arc, visual design, and motion combine so the audience follows
 the idea instead of reading past it.
 [Read more →](plugins/animated-storytelling/README.md)
 
+### picture-this
+
+A system that takes three paragraphs to explain usually takes one good
+picture. Describe it, or point at a feature in your codebase, and get three
+rough animated drafts to choose from, each a different kind of picture of the
+same model. The one you pick becomes a React component that embeds in MDX,
+with light and dark stills for a plain README.
+[Read more →](plugins/picture-this/README.md)
+
 ### write-like-me
 
 Everything an agent drafts for you ships in someone else's voice. A

@@ -45,6 +45,12 @@
       "category": "creative"
     },
     {
+      "name": "picture-this",
+      "source": "./plugins/picture-this",
+      "description": "Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.",
+      "category": "creative"
+    },
+    {
       "name": "write-like-me",
       "source": "./plugins/write-like-me",
       "description": "Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
