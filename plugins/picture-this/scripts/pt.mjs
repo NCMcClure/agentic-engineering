@@ -12,7 +12,7 @@ export const COMMANDS = {
   studio: ["studio", "run", "serve a repo's figures and drafts, live; prints the URL to open"],
   draft: ["draft", "run", "start a round of drafts on different archetypes (new), check it is fair (check), list archetypes"],
   sheet: ["shots", "sheet", "lay a figure's beats side by side, with and without captions, to look it over"],
-  still: ["shots", "still", "take a figure's still in light and dark, and print the Markdown that shows it"],
+  still: ["shots", "still", "take a figure's still in light and dark (or its beat strip, --strip, or a looping GIF, --gif), and print the Markdown that shows it"],
   init: ["kit", "init", "record where this repo keeps its figures and stills"],
   kit: ["kit", "kit", "is the kit in this repo and current (status); put it there or bring it up to date (install)"],
   land: ["land", "run", "make a chosen draft one of the repo's figures"],

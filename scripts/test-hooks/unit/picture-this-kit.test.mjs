@@ -15,6 +15,8 @@ const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const KIT = path.join(PLUGIN, "kit");
 const MODEL = fs.readFileSync(path.join(PLUGIN, "starters", "iso-flow", "model.json"), "utf8");
 const read = (...parts) => fs.readFileSync(path.join(...parts), "utf8");
+// The version the plugin ships, and one no release will reach: a bump must not break these tests.
+const SHIPPED = JSON.parse(read(KIT, "kit.json")).version, LATER = "99.0.0";
 
 function repoWith(t) {
   const { dir, git } = tempRepo(t, "pt-kit-");
@@ -70,7 +72,7 @@ test("kit status says the kit is missing, and kit install puts every file in the
 
   const dry = await quiet(() => kit(["install", "--dry-run"], { cwd: repo }));
   assert.equal(dry.status, 0);
-  assert.match(dry.out, /^would write the kit \(0\.1\.0\) into \.agents\/picture-this\/figures\/kit\/:\n/);
+  assert.ok(dry.out.startsWith(`would write the kit (${SHIPPED}) into .agents/picture-this/figures/kit/:\n`));
   assert.match(dry.out, /^ {2}stage\.tsx: would add$/m);
   assert.equal(fs.existsSync(path.join(repo, ".agents")), false, "a dry run writes nothing");
 
@@ -79,12 +81,12 @@ test("kit status says the kit is missing, and kit install puts every file in the
   const dir = path.join(repo, ".agents", "picture-this", "figures", "kit");
   for (const rel of kitFiles(KIT)) assert.equal(read(dir, rel), read(KIT, rel), rel);
   const marker = JSON.parse(read(dir, "kit.json"));
-  assert.equal(marker.version, "0.1.0");
+  assert.equal(marker.version, SHIPPED);
   assert.deepEqual(Object.keys(marker.owned).sort(), kitFiles(KIT));
 
   const after = await quiet(() => kit(["status"], { cwd: repo }));
   assert.equal(after.status, 0);
-  assert.equal(after.out, "ok: the kit in .agents/picture-this/figures/kit/ is current (0.1.0)\n");
+  assert.equal(after.out, `ok: the kit in .agents/picture-this/figures/kit/ is current (${SHIPPED})\n`);
   const again = await quiet(() => kit(["install"], { cwd: repo }));
   assert.match(again.out, /nothing to change/);
 });
@@ -97,20 +99,20 @@ test("an update replaces what nobody touched, keeps what was edited, and removes
 
   // The repo's people restyle the kit; the plugin ships a later one.
   fs.appendFileSync(path.join(dir, "kit.css"), "\n/* ours */\n");
-  fs.writeFileSync(path.join(plugin, "kit", "kit.json"), JSON.stringify({ version: "0.2.0" }));
+  fs.writeFileSync(path.join(plugin, "kit", "kit.json"), JSON.stringify({ version: LATER }));
   fs.appendFileSync(path.join(plugin, "kit", "timeline.ts"), "\n// newer\n");
   fs.appendFileSync(path.join(plugin, "kit", "kit.css"), "\n/* theirs */\n");
-  fs.writeFileSync(path.join(plugin, "kit", "three.tsx"), "// new in 0.2.0\n");
+  fs.writeFileSync(path.join(plugin, "kit", "three.tsx"), "// new in the later kit\n");
   fs.rmSync(path.join(plugin, "kit", "term.tsx"));
 
   const p = plan(path.join(plugin, "kit"), dir);
-  assert.deepEqual([p.installed, p.version, current(p)], ["0.1.0", "0.2.0", false]);
+  assert.deepEqual([p.installed, p.version, current(p)], [SHIPPED, LATER, false]);
   assert.deepEqual(actions(p), { "kit.css": "kept", "three.tsx": "add", "timeline.ts": "update" });
   assert.deepEqual(p.gone, ["term.tsx"]);
 
   const status = await quiet(() => kit(["status"], { cwd: repo, pluginRoot: plugin }));
   assert.equal(status.status, 1);
-  assert.match(status.out, /^the kit in \.agents\/picture-this\/figures\/kit\/ is 0\.1\.0; the plugin ships 0\.2\.0\n/);
+  assert.ok(status.out.startsWith(`the kit in .agents/picture-this/figures/kit/ is ${SHIPPED}; the plugin ships ${LATER}\n`));
   assert.match(status.out, /kit\.css: kept \(changed in this repo\)/);
   assert.match(status.out, /timeline\.ts: older/);
   assert.match(status.out, /term\.tsx: no longer shipped/);
@@ -123,7 +125,7 @@ test("an update replaces what nobody touched, keeps what was edited, and removes
   assert.doesNotMatch(read(dir, "kit.css"), /theirs/);
   assert.match(read(dir, "timeline.ts"), /newer/);
   assert.equal(fs.existsSync(path.join(dir, "term.tsx")), false);
-  assert.equal(JSON.parse(read(dir, "kit.json")).version, "0.2.0");
+  assert.equal(JSON.parse(read(dir, "kit.json")).version, LATER);
 
   const settled = plan(path.join(plugin, "kit"), dir);
   assert.equal(current(settled), true, "an edited file does not keep the kit forever out of date");

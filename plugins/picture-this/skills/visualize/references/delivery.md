@@ -1,7 +1,7 @@
 # Delivery
 
 A figure ends up in three places: live in a page, held for a reader who asked
-for less motion, and as a still in a README. One component serves all three.
+for less motion, and as a picture in a README. One component serves all three.
 
 ## Where things go
 
@@ -88,3 +88,41 @@ take a frame other than the hero.
 
 Commit the stills with the figure. Retake them whenever the figure or its
 model changes: `export-stills` is the skill for that.
+
+### The story, not only its best frame
+
+Two more exports show more than one frame. Each is made by holding the
+figure's clock at chosen instants and photographing it, never by recording
+the screen, so the same command twice gives the same file.
+
+```
+node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" still job-queue --strip
+node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" still job-queue --gif
+```
+
+| Export | Files | What it is |
+|---|---|---|
+| Beat strip | `job-queue.strip.light.png`, `job-queue.strip.dark.png` | the told beats in one row inside one frame, numbered, each held at its middle with its plain caption under it (`--technical` for the other track), the claim once beneath |
+| Looping GIF | `job-queue.gif`, and `job-queue.dark.gif` with `--dark` | one whole loop of the figure with its captions, 720 px wide at 15 frames a second |
+
+Each prints its own snippet. With either flag the hero still is not retaken.
+
+Choose by what the reader needs. The strip is for a system whose point is
+the order of its steps, and for a page that must hold still; its words are
+set large enough to read once a README has shrunk the row to its column,
+though the labels inside each small picture are only legible when the image
+is opened. The GIF is for a system whose point is the motion.
+
+A GIF is paid for by every reader, so its cost is capped and said out loud:
+
+- The size is printed after every export. The worked example's loop of 10.4
+  seconds is 549 KB.
+- Past 5 MB the GIF is written with a warning. Past 10 MB, the most GitHub
+  shows, it is not written and the command exits 1.
+- To bring one down: `--width` (520 at the least), then `--fps` (5 to 30),
+  then a shorter loop in the model. If none is enough, use the strip.
+- It is one GIF pixel per CSS pixel and at most 256 colours, with no
+  dithering. That suits flat colour and hairlines; it is rougher than the
+  live figure and than a still, which is taken at twice the size.
+- It moves for every reader, including one who asked for less motion, so it
+  goes beside the prose that explains the system and never replaces it.

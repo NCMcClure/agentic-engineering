@@ -10,7 +10,7 @@ import path from "node:path";
 
 // What the app needs to run; everything else in app/ stays in the plugin.
 export const SOURCE_DIRS = ["src"];
-export const SOURCE_FILES = ["index.html", "vite.config.mjs", "capture.mjs", "package.json", "package-lock.json"];
+export const SOURCE_FILES = ["index.html", "vite.config.mjs", "capture.mjs", "film.mjs", "package.json", "package-lock.json"];
 const HEALTH_TIMEOUT_MS = 5000;
 const STAMP = ".install-stamp";
 
