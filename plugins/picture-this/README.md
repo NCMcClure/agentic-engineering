@@ -18,6 +18,13 @@ That picture is one frame of the plugin's worked example, taken by the plugin.
 Live, it plays: the pulse travels, the story moves on to the next beat, and a
 strip under it pauses, steps, and scrubs. Its source is `starters/iso-flow/`.
 
+The same model, the same layout, drawn in 3D (`starters/iso-flow-3d/`):
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/iso-flow-3d.dark.png">
+  <img alt="How an upload becomes a thumbnail, in 3D. The API answers before the slow work starts, so an upload never waits on it." src="assets/iso-flow-3d.light.png" width="880">
+</picture>
+
 ## How it works
 
 Every figure starts as a **model**: the entities, the flows between them, and
@@ -36,6 +43,12 @@ The look is one **house style**: monochrome with a single orange accent,
 hairline isometric line art, flat upright labels. It ships as a small **kit**
 that is copied into your repo and is yours from then on: plain CSS, React, no
 animation library.
+
+Two archetypes draw in **3D**: the same isometric framing in matte clay,
+frosted glass and soft shadow, on React Three Fiber. A 3D figure reads the
+same clock and the same model, and its labels stay flat. Drafts and stills
+cost your repo nothing, since the studio has three.js; showing one live in a
+site needs three packages there, and the plugin asks before it adds them.
 
 A figure is drawn as a function of one **clock**. It plays when it scrolls
 into view, loops, and has a strip to pause, scrub, or step. Because any
@@ -77,4 +90,10 @@ someone non-technical", "the README needs a picture of the sync flow".
   live docs in geometry, not in typeface.
 - The cold read is a model looking at a picture. It catches a figure that
   does not explain itself; it is not a substitute for showing a person.
-- This release is 2D. Lit 3D scenes and an animated README export come later.
+- 3D is code-built, not modelled: it gets matte clay, frosted glass and soft
+  shadows right, and has no bounce light, glow, or glass that bends what is
+  behind it.
+- A 3D figure adds `three`, `@react-three/fiber` and `@react-three/drei` to
+  the site that shows it live: about 165 MB in `node_modules` with what they
+  depend on. Its stills need none of them.
+- An animated README export comes later.
