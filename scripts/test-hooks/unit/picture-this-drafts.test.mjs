@@ -18,7 +18,7 @@ const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const STARTERS = path.join(PLUGIN, "starters");
 const MODEL = fs.readFileSync(path.join(STARTERS, "iso-flow", "model.json"), "utf8");
 const read = (...parts) => fs.readFileSync(path.join(...parts), "utf8");
-const NAMES = ["card-flow", "case-loop", "iso-flow", "layer-stack", "series", "split", "staged-build"];
+const NAMES = ["blank", "card-flow", "case-loop", "iso-flow", "layer-stack", "series", "split", "staged-build"];
 
 function world(t) {
   const { dir, git } = tempRepo(t, "pt-drafts-");
@@ -33,7 +33,7 @@ async function quiet(fn) {
   try { return { status: await fn(), out }; } finally { process.stdout.write = real; }
 }
 
-test("there are seven archetypes, each a starter that says when to reach for it, with a model that passes", () => {
+test("there are eight starters, each one that says when to reach for it, with a model that passes", () => {
   const all = archetypes();
   assert.deepEqual(all.map((a) => a.name), NAMES);
   for (const a of all) {
@@ -71,6 +71,7 @@ test("draft new lays a round out: the model in every draft, a starter each, and 
     "  round-1/a  iso-flow      .agents/picture-this/drafts/round-1/a/figure.tsx",
     "  round-1/b  layer-stack   .agents/picture-this/drafts/round-1/b/figure.tsx",
     "  round-1/c  card-flow     .agents/picture-this/drafts/round-1/c/figure.tsx",
+    "lens: path. The API hands each upload to a queue, and a worker takes the jobs off it one at a time.",
     "each starts as its archetype's starter, drawing this model: make it this model's picture, then `sheet round-1/<id>`",
     "",
   ].join("\n"));
@@ -97,7 +98,10 @@ test("draft new refuses a round it could not compare fairly, before it writes an
   const w = world(t);
   const refused = async (args, pattern) => assert.rejects(() => quiet(() => draft(args, { cwd: w.repo })), (e) => e instanceof PtError && e.code === 2 && pattern.test(e.message), args.join(" "));
   await refused(["new"], /usage: node pt\.mjs draft new/);
-  await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,blueprint"], /no archetype 'blueprint': there is card-flow, case-loop, iso-flow/);
+  await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,blueprint"], /no archetype 'blueprint': there is blank, card-flow, case-loop, iso-flow/);
+  await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,blank"], /blank needs the view it will draw: blank:<view>/);
+  await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,blank:Time Grid"], /is not a view name/);
+  await refused(["new", "--model", "model.json", "--archetypes", "blank:exploded,blank:exploded"], /the same archetype twice/);
   await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,iso-flow,series"], /the same archetype twice/);
   await refused(["new", "--model", "model.json", "--archetypes", "iso-flow"], /1 archetype: a round has 2 to 4 drafts/);
   await refused(["new", "--model", "model.json", "--archetypes", "card-flow,case-loop,iso-flow,layer-stack,series"], /5 archetypes: a round has 2 to 4/);
@@ -118,6 +122,31 @@ test("draft new refuses a round it could not compare fairly, before it writes an
 
   await quiet(() => draft(["new", "--model", "model.json", "--archetypes", "iso-flow,series", "--round", "first"], { cwd: w.repo }));
   await refused(["new", "--model", "model.json", "--archetypes", "iso-flow,series", "--round", "first"], /round 'first' is already there/);
+});
+
+test("a round may hold views that have no starter, each on the blank one under its own name", async (t) => {
+  const w = world(t);
+  const { status, out } = await quiet(() => draft(["new", "--model", "model.json", "--archetypes", "layer-stack,blank:exploded,blank:cutaway"], { cwd: w.repo }));
+  assert.equal(status, 0);
+  const round = path.join(w.drafts, "round-1");
+  assert.equal(read(round, "b", "figure.tsx"), read(STARTERS, "blank", "figure.tsx"));
+  assert.equal(read(round, "c", "figure.tsx"), read(STARTERS, "blank", "figure.tsx"));
+  assert.deepEqual(JSON.parse(read(round, "round.json")).drafts.map((d) => d.archetype), ["layer-stack", "blank:exploded", "blank:cutaway"]);
+  assert.match(out, / {2}round-1\/b {2}blank:exploded /);
+  assert.equal((await quiet(() => draft(["check", "round-1"], { cwd: w.repo }))).status, 0);
+});
+
+test("a round is not started for a subject nobody has put into one sentence", async (t) => {
+  const w = world(t);
+  const bare = JSON.parse(MODEL);
+  delete bare.mechanism;
+  delete bare.lens;
+  write(w.repo, "bare.json", JSON.stringify(bare));
+  const { status, out } = await quiet(() => draft(["new", "--model", "bare.json", "--archetypes", "iso-flow,series"], { cwd: w.repo }));
+  assert.equal(status, 1);
+  assert.match(out, /error: mechanism is missing: one sentence with a verb, saying what happens/);
+  assert.match(out, /error: lens is missing: one of structure, path, time, field, transformation, difference, cases, scale/);
+  assert.equal(fs.existsSync(w.drafts), false);
 });
 
 test("draft check passes a round whose drafts were redrawn, and names what makes one unfair", async (t) => {

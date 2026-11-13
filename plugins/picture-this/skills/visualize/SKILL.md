@@ -37,9 +37,16 @@ If it is not installed, run `P setup` (it only prints what it would
 download), tell the person what it said, and ask. On a yes: `P setup --yes`.
 Do not download without that yes.
 
-## 1. Model
+## 1. Find the picture, then model it
 
-Read `references/model.md`. Write the model to a scratch file, for example
+Read `references/lenses.md` and work through it: what the subject is at one
+size, what happens (one sentence with a verb), why the reader cannot already
+see it, and so which lens leads. Not every subject is things with flows
+between them. *Done when* you can state the mechanism in one sentence and
+name the lens.
+
+Then read `references/model.md`. Write the model, with its `mechanism` and
+`lens`, to a scratch file, for example
 `.agents/picture-this/drafts/<name>.model.json`.
 
 - **From a description**: write it, then `P model check <file>`.
@@ -53,9 +60,10 @@ Read `references/model.md`. Write the model to a scratch file, for example
 
 ## 2. Form
 
-Pick three archetypes that are as unlike each other as the claim allows:
-`references/archetypes.md` has the table and how to choose. `P draft
-archetypes` lists what there is.
+Pick three archetypes from the ones the lens allows, as unlike each other as
+the claim allows: `references/archetypes.md` has the table by lens. `P draft
+archetypes` lists the starters. A view with no starter is drawn on the blank
+one, named for what it will be: `blank:exploded`, `blank:time-grid`.
 
 ```
 P draft new --model <file> --archetypes <a>,<b>,<c>
@@ -186,8 +194,9 @@ is a new round from its model: `P draft new --model <figures>/<name>/model.json 
 ```
 references/
 ├── framework.md      the six steps, and why the model comes first
+├── lenses.md         finding the picture: four questions, eight lenses, how to step through a mechanism
 ├── model.md          model.json: the fields, the limits, from a description, from code
-├── archetypes.md     the seven kinds of picture, and how to choose three
+├── archetypes.md     the kinds of picture, which lens calls for which, and drawing your own
 ├── house-style.md    colour, line, shape, words, density
 ├── motion.md         one clock, what each motion means, pacing, stills
 ├── legibility.md     the squint test, overlap, contrast, reading order

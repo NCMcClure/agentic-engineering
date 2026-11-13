@@ -8,6 +8,8 @@ it to the rules below.
 {
   "schema": 1,
   "title": "How an upload becomes a thumbnail",
+  "mechanism": "The API hands each upload to a queue, and a worker takes the jobs off it one at a time.",
+  "lens": "path",
   "claim": "The API answers before the slow work starts, so an upload never waits on it.",
   "implication": "When thumbnails fall behind, add workers, not API servers.",
   "entities": [
@@ -32,6 +34,11 @@ it to the rules below.
 
 ## The fields
 
+- **`mechanism`**: what happens, in one sentence with a verb, at most 160
+  characters. It comes from `lenses.md`, question two.
+- **`lens`**: the kind of explanation this is: `structure`, `path`, `time`,
+  `field`, `transformation`, `difference`, `cases` or `scale`. `draft new`
+  will not start a round without the mechanism and the lens.
 - **`claim`**: one sentence, at most 140 characters: why this matters. Not a
   description of the picture. "Uploads never wait on resizing", not "This
   figure shows the upload flow".
@@ -41,7 +48,8 @@ it to the rules below.
   shape (`client`, `service`, `worker`, `queue`, `store`, or your own word);
   `hue` marks at most four of them, to tell them apart; `group` sorts them
   into sides for an A/B figure (every entity, or none).
-- **`flows`**: `from` and `to` are entity ids; `kind` is one of `write`
+- **`flows`**: what passes or changes between two things. A structure figure
+  may have none. `from` and `to` are entity ids; `kind` is one of `write`
   (changes something), `read` (asks and gets an answer back), `event`
   (tells), `query` (looks). `label` is the word on the wire.
 - **`beats`**: two to seven that tell the story, then exactly one `rest` beat.

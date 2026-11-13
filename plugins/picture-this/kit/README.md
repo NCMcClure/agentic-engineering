@@ -79,6 +79,9 @@ left, z up. `unit` is px per ground unit.
   which picks one from an entity's `kind` (a queue is a stack, a store a drum,
   a client a slab). Give a shape `entity="id"` and its arrival and focus come
   from the model; `accent` takes it toward the accent colour.
+- `Face` (also in `iso/shapes`) draws any outline in the house style, for a
+  part with a shape of its own; `Guide` draws a dashed line between two ground
+  points: where a part returns to, a path through empty space.
 - `iso/wire`: `<Wire flow="id" via={[[x,y,z], ...]} />`. Its kind sets its
   line (a write is heavier, a query is dashed, a read's mark and pulses run
   home), and every wire carries a small mark for the way it runs. `part="line"` and `part="tag"` draw the line and

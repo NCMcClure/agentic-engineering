@@ -5,12 +5,22 @@ checked. Do not start a step while the one before it is unmet.
 
 | Step | Question | Done when |
 |---|---|---|
-| Model | What are the things, the flows between them, and the beats? | `model check` passes; from code, the person said yes |
+| Model | What happens, which lens shows it, and what are the things, the flows and the beats? | the mechanism is one sentence; `model check` passes; from code, the person said yes |
 | Message | What is the one claim? | the claim is one sentence and every beat has its caption |
 | Form | Which kind of picture shows it? | three drafts on three different archetypes |
 | Grammar | Does it follow the house style? | the checklist in `review.md` passes |
 | Time | What moves, when, and meaning what? | every beat names what moves and what that says |
 | Deliver | Live, held, and still | the figure renders in the page, and its stills are written |
+
+## Before the model: finding the picture
+
+Not every subject is boxes with arrows between them. A device is parts
+inside a case. A pipeline is work stepping through stages in time. A blur is
+a number spread over a grid. `lenses.md` is the method for working out which
+it is: four questions about the subject, then the lens that what is hidden
+calls for, then how to draw, reduce, encode and step through it. Work through
+it first. It ends with the two lines every model carries: the mechanism, and
+the lens.
 
 ## Why the model comes first
 

@@ -286,7 +286,9 @@ test("each beat has one leading flow: the one that arrives furthest along", { sk
 test("the kit's model type and the checker agree on kinds and hues", { skip }, async () => {
   const { FLOW_KINDS, HUES } = await import("../../../plugins/picture-this/scripts/lib/model-check.mjs");
   const source = fs.readFileSync(path.join(KIT, "model.ts"), "utf8");
+  const { LENSES } = await import("../../../plugins/picture-this/scripts/lib/model-check.mjs");
   const union = (name) => [...source.match(new RegExp(`export type ${name} = ([^;]+);`))[1].matchAll(/"([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual(union("Lens"), LENSES);
   assert.deepEqual(union("FlowKind"), FLOW_KINDS);
   assert.deepEqual(union("Hue"), HUES);
 });

@@ -25,9 +25,16 @@ the beats of the story, saved as `model.json` beside the figure. When the
 model comes from code, each entry carries the file and line it was read from,
 and you approve it before anything is drawn.
 
+Before the model comes the **lens**. Not every subject is boxes with arrows:
+a device is parts inside a case, a pipeline is work stepping through stages
+in time, a blur is a number spread over a grid. Four questions about the
+subject say which of eight lenses leads (structure, path, time, field,
+transformation, difference, cases, scale), and the lens says which kinds of
+picture can show it.
+
 The three drafts all draw that one model, each on a different **archetype**
-(a flow with travelling pulses, a lifted layer stack, a staged build-up, and
-so on), so you compare forms and not decoration. Before you see them, each
+(a flow with travelling pulses, a lifted layer stack, an exploded view, a
+time grid, and so on), so you compare forms and not decoration. Before you see them, each
 draft is checked for defects and shown, without captions, to a reader that
 knows nothing about your system. What that reader understood is reported
 beside the draft.

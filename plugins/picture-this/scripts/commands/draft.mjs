@@ -44,14 +44,20 @@ async function create(opts, { cwd, pluginRoot }) {
   if (!opts.model || !opts.archetypes) throw new PtError(HELP);
   const known = archetypes(pluginRoot).map((a) => a.name);
   const chosen = opts.archetypes.split(",").map((s) => s.trim()).filter(Boolean);
-  for (const name of chosen) if (!known.includes(name)) throw new PtError(`no archetype '${name}': there is ${known.join(", ")}`);
+  // A view with no starter of its own is drawn on the blank one and named: blank:exploded, blank:time-grid.
+  const starterOf = (name) => (name.startsWith("blank:") ? "blank" : name);
+  for (const name of chosen) {
+    if (!known.includes(starterOf(name))) throw new PtError(`no archetype '${name}': there is ${known.join(", ")} (and blank:<view> for a view with no starter)`);
+    if (name === "blank") throw new PtError("blank needs the view it will draw: blank:<view>, for example blank:exploded or blank:time-grid");
+    if (name.startsWith("blank:") && !NAME.test(name.slice(6))) throw new PtError(`'${name.slice(6)}' is not a view name: lowercase words joined by hyphens`);
+  }
   if (new Set(chosen).size !== chosen.length) throw new PtError("the same archetype twice: each draft in a round is a different kind of picture");
   if (chosen.length < 2 || chosen.length > 4) throw new PtError(`${chosen.length} archetype${chosen.length === 1 ? "" : "s"}: a round has 2 to 4 drafts, three unless there is a reason`);
 
   const at = layout(repoRoot(opts.repo, { cwd }));
   const modelFile = path.resolve(cwd, opts.model);
   const model = readModel(modelFile);
-  const { errors } = checkModel(model, { repo: at.repo, requireSource: opts.requireSource });
+  const { errors } = checkModel(model, { repo: at.repo, requireSource: opts.requireSource, requireMethod: true });
   if (errors.length) {
     emit({ ok: false, errors }, opts.json, [...errors.map((e) => `error: ${e}`), "the model does not pass, so no round was made: every draft would draw the same mistake"].join("\n"));
     return 1;
@@ -76,7 +82,7 @@ async function create(opts, { cwd, pluginRoot }) {
   const drafts = chosen.map((archetype, i) => {
     const id = String.fromCharCode(97 + i);
     fs.mkdirSync(path.join(dir, id), { recursive: true });
-    fs.copyFileSync(path.join(pluginRoot, "starters", archetype, "figure.tsx"), path.join(dir, id, "figure.tsx"));
+    fs.copyFileSync(path.join(pluginRoot, "starters", starterOf(archetype), "figure.tsx"), path.join(dir, id, "figure.tsx"));
     fs.writeFileSync(path.join(dir, id, "model.json"), text);
     return { id, archetype, dir: path.join(dir, id) };
   });
@@ -86,6 +92,7 @@ async function create(opts, { cwd, pluginRoot }) {
   emit({ ok: true, round, dir, drafts }, opts.json, [
     `${round}: ${drafts.length} drafts of "${model.title}" in ${rel(dir)}/`,
     ...drafts.map((d) => `  ${round}/${d.id}  ${d.archetype.padEnd(13)} ${rel(d.dir)}/figure.tsx`),
+    `lens: ${model.lens}. ${model.mechanism}`,
     `each starts as its archetype's starter, drawing this model: make it this model's picture, then \`sheet ${round}/<id>\``,
   ].join("\n"));
   return 0;

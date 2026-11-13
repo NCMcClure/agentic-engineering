@@ -52,6 +52,36 @@ function useEdge({ entity, lit, accent = 0 }: ShapeState): { stroke: string; top
   };
 }
 
+/**
+ * One flat face of any outline, in the house style: for a part drawn as
+ * itself (a disk, a shell, a lens) and not as a box. `points` are screen
+ * points, from `project`. `tone` is which way it faces.
+ */
+export function Face({ points: outline, tone = "top", closed = true, ...state }: ShapeState & { points: readonly (readonly [number, number])[]; tone?: "top" | "left" | "right" | "none"; closed?: boolean }) {
+  const edge = useEdge(state);
+  const fill = tone === "none" ? "none" : edge[tone];
+  const d = outline.map(([x, y], i) => `${i ? "L" : "M"} ${x} ${y}`).join(" ") + (closed ? " Z" : "");
+  return (
+    <Presence {...state}>
+      <path className="pt-edge" d={d} style={{ stroke: edge.stroke, fill }} />
+    </Presence>
+  );
+}
+
+/**
+ * A dashed line between two ground points: where a part goes back to, a path
+ * through empty space, something behind something. Never a thing itself.
+ */
+export function Guide({ from, to, ...state }: ShapeState & { from: P3; to: P3 }) {
+  const f = useFigure();
+  const [x1, y1] = project(from, f.unit), [x2, y2] = project(to, f.unit);
+  return (
+    <Presence {...state}>
+      <path className="pt-guide" d={`M ${x1} ${y1} L ${x2} ${y2}`} />
+    </Presence>
+  );
+}
+
 /** A box: `at` is its far-top corner on the ground, `size` is [width along x, depth along y, height]. */
 export function Block({ at, size, ...state }: ShapeState & { at: P3; size: readonly [number, number, number] }) {
   const f = useFigure();

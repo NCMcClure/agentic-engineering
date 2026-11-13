@@ -4,6 +4,7 @@
 export type FlowKind = "write" | "read" | "event" | "query";
 export type Hue = "blue" | "green" | "violet" | "yellow" | "pink";
 export type Audience = "plain" | "technical";
+export type Lens = "structure" | "path" | "time" | "field" | "transformation" | "difference" | "cases" | "scale";
 
 export type Entity = {
   id: string;
@@ -32,6 +33,10 @@ export type Model = {
   title: string;
   /** One sentence: why this matters. Shown under the figure the whole time. */
   claim: string;
+  /** What happens, in one sentence with a verb. */
+  mechanism?: string;
+  /** What kind of explanation this is: the lens that leads. */
+  lens?: Lens;
   /** What follows from it. Optional. */
   implication?: string;
   entities: Entity[];

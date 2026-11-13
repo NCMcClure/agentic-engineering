@@ -1,6 +1,8 @@
 {
   "schema": 1,
   "title": "How an upload becomes a thumbnail",
+  "mechanism": "The API hands each upload to a queue, and a worker takes the jobs off it one at a time.",
+  "lens": "path",
   "claim": "The API answers before the slow work starts, so an upload never waits on it.",
   "implication": "When thumbnails fall behind, add workers, not API servers.",
   "entities": [

@@ -1,9 +1,10 @@
 # Archetypes
 
-An archetype is a kind of picture. The plugin ships a working starter for
-each: `draft archetypes` lists them, and `draft new` copies one into each
-draft. A round uses three different ones, so the choice is between forms and
-not between shades of one.
+An archetype is a kind of picture. The lens (`lenses.md`) says which kinds
+fit a subject; this file says what each is and how to make one. The plugin
+ships a working starter for most: `draft archetypes` lists them, and
+`draft new` copies one into each draft. A round uses three different ones, so
+the choice is between forms and not between shades of one.
 
 | Archetype | Reach for it when | The picture | What moves |
 |---|---|---|---|
@@ -14,10 +15,32 @@ not between shades of one.
 | `card-flow` | labels are long, notes matter, or the figure sits in running prose | flat cards joined by soft threads | a pulse on the thread being told |
 | `case-loop` | the system is a handful of separate cases: hit and miss, success and failure | one small tile per beat | only the tile being told |
 | `series` | it must work as a still: a README, a slide, a printed page | one small panel per beat, each a held frame | nothing but the mark under the panel being told |
+| `blank` | the lens calls for a view with no starter (an exploded view, a cutaway, a time grid, a field, a mapping, a zoom), or the subject has a shape of its own | whatever you draw, with the kit's helpers | whatever the mechanism does |
+
+`blank` is named for the view it will become, and may be used more than once
+in a round under different names:
+
+```
+draft new --model <file> --archetypes iso-flow,blank:exploded,blank:time-grid
+```
 
 ## Choosing three
 
-Start from the claim, not from the system.
+Start from the lens. It names the views that can show the mechanism at all;
+choose three of them, or two and one from a neighbouring lens for contrast.
+
+| Lens | Draft from |
+|---|---|
+| structure | `layer-stack`, `blank:exploded`, `blank:cutaway` |
+| path | `iso-flow`, `card-flow`, `staged-build` |
+| time | `blank:time-grid`, `series`, `staged-build` |
+| field | `blank:grid`, `blank:surface`, `series` |
+| transformation | `blank:mapping`, `split`, `series` |
+| difference | `split`, `series`, `case-loop` |
+| cases | `case-loop`, `split`, `iso-flow` |
+| scale | `blank:zoom`, `layer-stack`, `series` |
+
+Then let the claim break ties:
 
 - A claim about **order** ("answers before the work starts"): `iso-flow`,
   `staged-build`, `series`.
@@ -48,6 +71,41 @@ model's picture means:
   that adds nothing, a second line of text nobody needs.
 - **Adding what only this system has.** A count on a queue, a file name on a
   store, the one detail that makes it this system and not any system.
+
+## Drawing on the blank starter
+
+The blank starter sets up the stage and draws a placeholder: the model's
+entities as slabs pulled apart along one axis. Replace the placeholder with
+the view the lens calls for. What the kit gives you (`kit/README.md` has the
+detail):
+
+- `project` turns a ground point into a screen point; `plate`, `block` and
+  `disc` give the outlines of a slab, a box and a circle on the ground.
+- `Face` draws any outline in the house style, so a part can have its own
+  shape. `Guide` draws a dashed line: where a part returns to, a path through
+  empty space.
+- `Label`, `Wire`, `Block`, `Plate`, `Layers`, `Cylinder` and `Ground` work
+  in any view.
+- A flat view (a time grid, a mapping) can ignore the isometric helpers and
+  draw plain SVG inside the stage, with the kit's classes for line and text.
+
+How each view is usually built:
+
+- **Exploded**: parts in their real order along one axis, pulled apart, with
+  guides at two corners. The gap is wide enough to see each part's top.
+- **Cutaway**: the thing's real outline, one side open, the inside drawn in
+  place. What is cut is drawn with a heavier edge.
+- **Time grid**: stages as rows, ticks as columns, a token per unit of work.
+  A token's place is a function of the tick, so every token steps together.
+- **Grid or surface**: cells tinted by value in steps of the accent; or a
+  wireframe over a plane, drawn back to front.
+- **Mapping**: the input on one side, the output on the other, and the rule
+  between them applied to one element per beat.
+- **Zoom**: the whole, a ring on one region, two lines out to the
+  enlargement. The enlargement uses the same vocabulary as the whole.
+
+Everything is still a function of the frame: read `useFigure()`, compute,
+draw.
 
 ## Isometric layout
 

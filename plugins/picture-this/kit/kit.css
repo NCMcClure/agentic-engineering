@@ -88,6 +88,7 @@
 .pt-art * { vector-effect: non-scaling-stroke; }
 
 .pt-edge { fill: none; stroke: var(--pt-line); stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }
+.pt-guide { fill: none; stroke: var(--pt-ink-3); stroke-width: var(--pt-hair); stroke-dasharray: 5 4; stroke-linecap: round; }
 .pt-ground { fill: none; stroke: var(--pt-line-2); stroke-width: var(--pt-hair); stroke-dasharray: 1 5; stroke-linecap: round; }
 
 .pt-wire { fill: none; stroke: var(--pt-line-2); stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }

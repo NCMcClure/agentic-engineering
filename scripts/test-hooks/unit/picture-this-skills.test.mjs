@@ -9,6 +9,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
 import { archetypes } from "../../../plugins/picture-this/scripts/commands/draft.mjs";
+import { LENSES } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
 import { REPO } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
@@ -98,6 +99,13 @@ test("the documents name the commands, archetypes, agent and limits that the cod
   const example = JSON.parse(model.slice(model.indexOf("```json") + 7, model.indexOf("```", model.indexOf("```json") + 7)));
   assert.equal(example.schema, 1, "the example in the reference is a model");
   assert.match(model, /two to nine/);
+  const lenses = read("skills/visualize/references/lenses.md");
+  for (const lens of LENSES) assert.match(lenses, new RegExp(`^\\| \\*\\*${lens}\\*\\* \\|`, "m"), `${lens} is a row of the lens table`);
+  for (const lens of LENSES) assert.match(table, new RegExp(`^\\| ${lens} \\|`, "m"), `${lens} has drafts to choose from`);
+  for (const m of [...lenses.matchAll(/`([a-z-]+)`/g), ...table.matchAll(/`([a-z-]+)(?::[a-z-]+)?`/g)]) {
+    if (/^(layer-stack|iso-flow|card-flow|staged-build|series|split|case-loop|blank)$/.test(m[1])) assert.ok(archetypes().some((a) => a.name === m[1]), m[1]);
+  }
+  assert.match(visualize.text, /references\/lenses\.md/);
   assert.match(model, /at most 140\s+characters/);
 });
 

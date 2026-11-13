@@ -5,11 +5,13 @@ import fs from "node:fs";
 import path from "node:path";
 
 export const FLOW_KINDS = ["write", "read", "event", "query"];
+/** What kind of explanation a figure is: what hides the mechanism picks the picture. */
+export const LENSES = ["structure", "path", "time", "field", "transformation", "difference", "cases", "scale"];
 /** The entity hues the kit's tokens define, beside the one accent. */
 export const HUES = ["blue", "green", "violet", "yellow", "pink"];
 export const LIMITS = {
   entities: [2, 9], beats: [2, 7], hues: 4,
-  claim: 140, plain: 140, technical: 200, label: 28, note: 36, groups: 3,
+  claim: 140, mechanism: 160, plain: 140, technical: 200, label: 28, note: 36, groups: 3,
   beatMs: [1200, 8000], restMs: [400, 4000], loopMs: 30000,
 };
 
@@ -35,7 +37,7 @@ function sourceProblem(source, repo) {
  * `requireSource` (a figure drawn from code) wants one on every entity and flow.
  * Returns { errors, warnings }, each a list of sentences.
  */
-export function checkModel(model, { repo = null, requireSource = false } = {}) {
+export function checkModel(model, { repo = null, requireSource = false, requireMethod = false } = {}) {
   const errors = [], warnings = [];
   const bad = (m) => errors.push(m);
   if (!model || typeof model !== "object" || Array.isArray(model)) return { errors: ["the model is not a JSON object"], warnings };
@@ -47,6 +49,17 @@ export function checkModel(model, { repo = null, requireSource = false } = {}) {
     if (model.claim.length > LIMITS.claim) bad(`claim is ${model.claim.length} characters, over ${LIMITS.claim}`);
     if (/[.!?]\s+\S/.test(model.claim.trim())) bad("claim is more than one sentence");
   }
+  // The method's two lines: what happens, in one sentence, and the lens that leads.
+  if (model.mechanism === undefined) {
+    if (requireMethod) bad("mechanism is missing: one sentence with a verb, saying what happens");
+  } else if (!text(model.mechanism)) bad("mechanism is empty");
+  else {
+    if (model.mechanism.length > LIMITS.mechanism) bad(`mechanism is ${model.mechanism.length} characters, over ${LIMITS.mechanism}`);
+    if (/[.!?]\s+\S/.test(model.mechanism.trim())) bad("mechanism is more than one sentence");
+  }
+  if (model.lens === undefined) {
+    if (requireMethod) bad(`lens is missing: one of ${LENSES.join(", ")}`);
+  } else if (!LENSES.includes(model.lens)) bad(`lens ${JSON.stringify(model.lens)} is not one of ${LENSES.join(", ")}`);
   if (model.implication !== undefined) {
     if (!text(model.implication)) bad("implication is empty: drop it or say it");
     else if (model.implication.length > LIMITS.claim) bad(`implication is ${model.implication.length} characters, over ${LIMITS.claim}`);

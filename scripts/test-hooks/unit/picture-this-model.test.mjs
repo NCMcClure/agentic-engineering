@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { checkModel, FLOW_KINDS, HUES, LIMITS } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
+import { checkModel, FLOW_KINDS, HUES, LENSES, LIMITS } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
 import { main, COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
@@ -33,6 +33,18 @@ test("the schema, the title and the one-sentence claim are required", () => {
   has(broken((m) => { m.claim = "It answers first. Then it works."; }), /more than one sentence/);
   has(broken((m) => { m.claim = "x".repeat(LIMITS.claim + 1); }), /claim is 141 characters/);
   has(broken((m) => { m.implication = ""; }), /implication is empty/);
+});
+
+test("the mechanism is one sentence and the lens is one of eight, and a round requires both", () => {
+  assert.deepEqual(LENSES, ["structure", "path", "time", "field", "transformation", "difference", "cases", "scale"]);
+  has(broken((m) => { m.lens = "flow"; }), /lens "flow" is not one of structure, path, time/);
+  has(broken((m) => { m.mechanism = "It queues. Then it works."; }), /mechanism is more than one sentence/);
+  has(broken((m) => { m.mechanism = "x".repeat(161); }), /mechanism is 161 characters, over 160/);
+  has(broken((m) => { m.mechanism = " "; }), /mechanism is empty/);
+  const bare = (options) => broken((m) => { delete m.mechanism; delete m.lens; }, options);
+  assert.deepEqual(bare().errors, [], "a model checked on its own may leave them out");
+  has(bare({ requireMethod: true }), /mechanism is missing: one sentence with a verb/);
+  has(bare({ requireMethod: true }), /lens is missing: one of structure/);
 });
 
 test("ids are kebab-case and unique within their list", () => {

@@ -1,6 +1,8 @@
 {
   "schema": 1,
   "title": "An upload, with and without a queue",
+  "mechanism": "The API either does the slow work itself before it replies, or hands it to a queue and replies at once.",
+  "lens": "difference",
   "claim": "Hand slow work to a queue and the upload stops waiting for it.",
   "implication": "When thumbnails fall behind, add workers, not API servers.",
   "entities": [
