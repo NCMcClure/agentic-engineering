@@ -8,6 +8,8 @@ import fs from "node:fs";
 import { PtError } from "./lib/args.mjs";
 
 export const COMMANDS = {
+  setup: ["setup", "run", "install the studio into the plugin's data folder, once (asks first: --yes installs)"],
+  studio: ["studio", "run", "serve a repo's figures and drafts, live; prints the URL to open"],
   model: ["model", "run", "check a figure's model.json: ids, flows, beats, captions, sources"],
 };
 
