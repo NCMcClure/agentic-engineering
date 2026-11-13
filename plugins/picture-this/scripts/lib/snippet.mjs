@@ -10,6 +10,14 @@ export function altText(model) {
   return [title, claim].filter(Boolean).join(". ").replace(/\.\.$/, ".");
 }
 
+/** What a beat strip says: the title, then the steps it shows, in order. */
+export function stripAlt(model) {
+  const steps = (model?.beats ?? []).filter((b) => !b.rest).map((b) => (b.title ?? "").trim());
+  const title = (model?.title ?? "").trim().replace(/\.$/, "");
+  if (!title || !steps.length || steps.some((s) => !s)) return altText(model);
+  return `${title}, in ${steps.length} ${steps.length === 1 ? "step" : "steps"}: ${steps.join(", ")}.`;
+}
+
 /** `light` and `dark` are paths as the Markdown file will reach them, with forward slashes. */
 export function pictureSnippet({ light, dark, alt, width }) {
   return [

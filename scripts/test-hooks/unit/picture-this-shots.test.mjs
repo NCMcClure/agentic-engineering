@@ -10,7 +10,7 @@ import { sheet, still } from "../../../plugins/picture-this/scripts/commands/sho
 import { PtError } from "../../../plugins/picture-this/scripts/lib/args.mjs";
 import { layout } from "../../../plugins/picture-this/scripts/lib/config.mjs";
 import { findFigure, listFigures } from "../../../plugins/picture-this/scripts/lib/figures.mjs";
-import { altText, pictureSnippet } from "../../../plugins/picture-this/scripts/lib/snippet.mjs";
+import { altText, pictureSnippet, stripAlt } from "../../../plugins/picture-this/scripts/lib/snippet.mjs";
 import { homeLayout, lockHash, playwrightVersion } from "../../../plugins/picture-this/scripts/lib/studio.mjs";
 import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
@@ -171,6 +171,73 @@ test("a figure that fails to draw is a failed still, with what the page said", a
 
   const dead = { ...w.deps, capture: async () => ({ status: 2, shots: [] }) };
   await assert.rejects(() => quiet(() => still(["job-queue"], dead)), /the camera could not run: is the browser installed\?/);
+});
+
+test("still --strip photographs the told beats in one row, in light and dark, instead of the still", async (t) => {
+  const w = world(t);
+  const { status, out } = await quiet(() => still(["job-queue", "--strip"], w.deps));
+  assert.equal(status, 0);
+  assert.equal(w.jobs.length, 1, "one run of the camera");
+  const { shots } = w.jobs[0];
+  assert.deepEqual(shots.map((s) => s.url), [
+    "/strip?figure=job-queue&width=640&theme=light",
+    "/strip?figure=job-queue&width=640&theme=dark",
+  ]);
+  assert.deepEqual(shots.map((s) => s.selector), ["[data-pt-strip]", "[data-pt-strip]"]);
+  assert.deepEqual(shots.map((s) => s.colorScheme), ["light", "dark"]);
+  assert.deepEqual(shots.map((s) => s.out), ["light", "dark"].map((theme) => path.join(w.repo, "docs", "figures", `job-queue.strip.${theme}.png`)));
+  assert.deepEqual(shots[0].viewport, { width: 3 * 641 + 49, height: 900 }, "three told beats side by side: the rest beat is not one");
+  assert.equal(out, [
+    "wrote docs/figures/job-queue.strip.light.png",
+    "wrote docs/figures/job-queue.strip.dark.png",
+    "",
+    "<picture>",
+    `  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/job-queue.strip.dark.png">`,
+    `  <img alt="How an upload becomes a thumbnail, in 3 steps: Answer first, Work later, Keep the result." src="docs/figures/job-queue.strip.light.png">`,
+    "</picture>",
+    "",
+  ].join("\n"));
+  assert.deepEqual(fs.readdirSync(path.join(w.repo, "docs", "figures")).sort(), ["job-queue.strip.dark.png", "job-queue.strip.light.png"], "nothing but the strip is written");
+  assert.deepEqual(w.stopped, [true]);
+});
+
+test("a strip takes the technical track and another width, lands beside a draft, and says what it wrote as JSON", async (t) => {
+  const w = world(t);
+  assert.equal((await quiet(() => still(["round-1/a", "--strip", "--technical", "--width", "520"], w.deps))).status, 0);
+  assert.equal(w.jobs[0].shots[0].url, "/strip?figure=round-1%2Fa&width=520&audience=technical&theme=light");
+  assert.deepEqual(w.jobs[0].shots.map((s) => path.relative(w.repo, s.out).split(path.sep).join("/")), [
+    ".agents/picture-this/drafts/round-1/a/still.strip.light.png",
+    ".agents/picture-this/drafts/round-1/a/still.strip.dark.png",
+  ]);
+
+  const json = await quiet(() => still(["job-queue", "--strip", "--from", path.join(w.repo, "docs"), "--json"], w.deps));
+  const doc = JSON.parse(json.out);
+  assert.deepEqual([doc.ok, doc.figure, doc.errors, doc.strip.beats, doc.strip.width], [true, "job-queue", [], 3, 640]);
+  assert.equal(doc.strip.light, path.join(w.repo, "docs", "figures", "job-queue.strip.light.png"));
+  assert.match(doc.strip.snippet, /srcset="figures\/job-queue\.strip\.dark\.png"/);
+
+  await assert.rejects(() => quiet(() => still(["job-queue", "--strip", "--beat", "save"], w.deps)), (e) => e instanceof PtError && /--beat and --at choose the still's frame/.test(e.message));
+  await assert.rejects(() => quiet(() => still(["job-queue", "--strip", "--width", "200"], w.deps)), /--width is the figure's width in CSS px, 520 to 1600/);
+
+  const failing = { ...w.deps, capture: async ({ shots }) => ({ status: 1, shots: shots.map((s) => ({ out: s.out, url: s.url, ok: false, errors: ["job-queue: boom"], console: [] })) }) };
+  const failed = await quiet(() => still(["job-queue", "--strip"], failing));
+  assert.deepEqual([failed.status, failed.out], [1, "error: job-queue.strip.light.png: job-queue: boom\nerror: job-queue.strip.dark.png: job-queue: boom\n"]);
+});
+
+test("a strip's alt text names the steps it shows, and falls back to the claim when a beat has no title", () => {
+  const model = JSON.parse(MODEL);
+  assert.equal(stripAlt(model), "How an upload becomes a thumbnail, in 3 steps: Answer first, Work later, Keep the result.");
+  assert.equal(stripAlt({ title: "How it works.", beats: [{ id: "a", title: "Only" }, { id: "r", rest: true }] }), "How it works, in 1 step: Only.");
+  assert.equal(stripAlt({ title: "How it works", claim: "It answers first.", beats: [{ id: "a" }, { id: "b", title: "B" }] }), "How it works. It answers first.");
+  assert.equal(stripAlt(null), "");
+});
+
+test("the strip is a page of the studio: one row inside one frame that wears the kit's colours", () => {
+  const page = fs.readFileSync(path.join(PLUGIN, "app", "src", "main.tsx"), "utf8");
+  assert.match(page, /page === "strip"/);
+  assert.match(page, /className="pt-stage studio-strip-frame" data-pt-strip=\{entry\.id\}/, "the frame is the kit's, so its colours are the figure's");
+  assert.match(page, /beat=\{beat\.id\} at=\{0\.5\} still captions=\{false\} controls=\{false\}/, "each beat is held at its middle, with no words or strip of its own");
+  assert.doesNotMatch(page.slice(page.indexOf("function Strip"), page.indexOf("function App")), /<h[1-6]/, "no studio headings in a picture for a README");
 });
 
 test("sheet lays the beats out with and without captions, and records what the page complained about", async (t) => {

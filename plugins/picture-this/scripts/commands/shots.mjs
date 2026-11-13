@@ -1,5 +1,6 @@
 // pt still and pt sheet: pictures of a figure, taken in the studio.
-//   still   the hero frame (or any held frame), light and dark, for a README
+//   still   the hero frame (or any held frame), light and dark, for a README;
+//           with --strip, the beats in one row instead
 //   sheet   every beat side by side, to look a draft over and to show a cold reader
 import fs from "node:fs";
 import path from "node:path";
@@ -7,24 +8,28 @@ import { PtError, emit, parseArgs } from "../lib/args.mjs";
 import { ensureDrafts, layout } from "../lib/config.mjs";
 import { findFigure } from "../lib/figures.mjs";
 import { PLUGIN_ROOT, dataHome, repoRoot } from "../lib/home.mjs";
-import { altText, pictureSnippet } from "../lib/snippet.mjs";
+import { altText, pictureSnippet, stripAlt } from "../lib/snippet.mjs";
 import { capture, ensureServer } from "../lib/studio.mjs";
 import { requireStudio } from "./studio.mjs";
 
-const STILL_HELP = `usage: node pt.mjs still <figure> [--beat <id>] [--at <0-100>] [--technical] [--width <px>] [--out <dir>] [--from <dir>] [--repo <dir>] [--json]
+const STILL_HELP = `usage: node pt.mjs still <figure> [--strip] [--beat <id>] [--at <0-100>] [--technical] [--width <px>] [--out <dir>] [--from <dir>] [--repo <dir>] [--json]
 
 Takes a figure's still in light and dark, at twice its size, and prints the
 Markdown that shows the right one. The frame is the model's hero frame unless
 --beat (and --at, a percentage through the beat) says otherwise.
 
   <figure>      a figure's name, round/draft for a draft, or fixture/<name>
+  --strip       instead of the still, the beat strip: the told beats in one row,
+                numbered, each held at its middle with its caption under it
+                (<name>.strip.light.png and <name>.strip.dark.png)
   --technical   the technical captions instead of the plain ones
-  --width       the figure's width in CSS px (880 unless given)
+  --width       the figure's width in CSS px (880 unless given; in a strip, each
+                beat's width, 640 unless given)
   --out         where to write; a figure's stills go to the repo's stills folder,
                 a draft's beside the draft
   --from        the folder of the Markdown file the snippet is for (the repo's root unless given)
 
-Exit codes: 0 both stills written, 1 the figure failed to draw, 2 usage or environment.`;
+Exit codes: 0 every picture written, 1 the figure failed to draw, 2 usage or environment.`;
 
 const SHEET_HELP = `usage: node pt.mjs sheet <figure> [--dark] [--technical] [--out <dir>] [--repo <dir>] [--json]
 
@@ -59,7 +64,7 @@ const failures = (taken) => taken.flatMap((s) => s.errors.map((e) => `${path.bas
 
 /** `deps` stands in for the outside world in tests: env, cwd, pluginRoot, server, capture. */
 export async function still(argv, deps = {}) {
-  const opts = parseArgs(argv, { beat: "string", at: "int", technical: "bool", width: "int", out: "string", from: "string", repo: "string" });
+  const opts = parseArgs(argv, { strip: "bool", beat: "string", at: "int", technical: "bool", width: "int", out: "string", from: "string", repo: "string" });
   if (opts.help) { process.stdout.write(STILL_HELP + "\n"); return 0; }
   if (opts._.length !== 1) throw new PtError(STILL_HELP);
   const ctx = prepare(opts, deps, opts._[0]);
@@ -74,6 +79,10 @@ export async function still(argv, deps = {}) {
   const outDir = opts.out ? path.resolve(opts.out) : figure.kind === "figure" ? at.stills : figure.kind === "draft" ? figure.dir : null;
   if (!outDir) throw new PtError(`${figure.id} is a fixture: say where its stills go with --out`);
   const base = figure.kind === "draft" && !opts.out ? "still" : name;
+  if (opts.strip) {
+    if (opts.beat || opts.at !== undefined) throw new PtError("--beat and --at choose the still's frame: a strip shows every beat at its middle");
+    return exported(opts, ctx, deps, { outDir, base });
+  }
   const query = [`figure=${encodeURIComponent(figure.id)}`, "still=1", "controls=0", `width=${width}`,
     ...(opts.beat ? [`beat=${encodeURIComponent(opts.beat)}`] : []),
     ...(opts.at !== undefined ? [`at=${opts.at / 100}`] : []),
@@ -96,6 +105,38 @@ export async function still(argv, deps = {}) {
   const ok = status === 0 && !problems.length;
   emit({ ok, figure: figure.id, light, dark, width, snippet, errors: problems }, opts.json, ok
     ? [`wrote ${rel(light)}`, `wrote ${rel(dark)}`, "", snippet].join("\n")
+    : problems.map((p) => `error: ${p}`).join("\n"));
+  return ok ? 0 : 1;
+}
+
+/**
+ * The README exports that show more than one frame. The strip is a studio
+ * page, photographed like any other: the page lays the beats out, so nothing
+ * here composes an image.
+ */
+async function exported(opts, ctx, deps, { outDir, base }) {
+  const { at, figure } = ctx;
+  const told = figure.model.beats.filter((b) => !b.rest);
+  const from = path.resolve(opts.from ?? at.repo);
+  const rel = (file) => posix(path.relative(from, file));
+  const cell = opts.width ?? 640;
+  const query = `figure=${encodeURIComponent(figure.id)}&width=${cell}${opts.technical ? "&audience=technical" : ""}`;
+  const shots = ["light", "dark"].map((theme) => ({
+    url: `/strip?${query}&theme=${theme}`,
+    selector: "[data-pt-strip]",
+    out: path.join(outDir, `${base}.strip.${theme}.png`),
+    colorScheme: theme,
+    viewport: { width: told.length * (cell + 1) + 49, height: 900 },
+  }));
+
+  const { status, shots: taken } = await shoot(ctx, shots, deps);
+  const problems = failures(taken);
+  if (status === 2 || (status !== 0 && !taken.length)) throw new PtError("the camera could not run: is the browser installed? `setup --check` says");
+  const ok = status === 0 && !problems.length;
+  const [light, dark] = shots.map((s) => s.out);
+  const strip = { light, dark, beats: told.length, width: cell, snippet: pictureSnippet({ light: rel(light), dark: rel(dark), alt: stripAlt(figure.model) }) };
+  emit({ ok, figure: figure.id, strip, errors: problems }, opts.json, ok
+    ? [`wrote ${rel(light)}`, `wrote ${rel(dark)}`, "", strip.snippet].join("\n")
     : problems.map((p) => `error: ${p}`).join("\n"));
   return ok ? 0 : 1;
 }

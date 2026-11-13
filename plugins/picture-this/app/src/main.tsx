@@ -1,7 +1,8 @@
-// The studio: three pages over the same figures.
+// The studio: four pages over the same figures.
 //   /        the gallery: every figure, live
 //   /frame   one figure and nothing else, for capture
 //   /sheet   one figure's beats side by side, as stills
+//   /strip   the beats in one row and one frame, for a README
 // A figure is imported from where it lives (a repo's figures folder, a draft
 // round, a fixture) and given its props from the query string.
 import "@fontsource-variable/inter";
@@ -11,7 +12,7 @@ import { Component, StrictMode, Suspense, lazy, useEffect, useState } from "reac
 import type { ComponentType, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
-type Model = { title?: string; claim?: string; beats?: { id: string; title?: string; rest?: boolean }[]; hero?: { beat: string; at?: number } };
+type Model = { title?: string; claim?: string; beats?: { id: string; title?: string; plain?: string; technical?: string; rest?: boolean }[]; hero?: { beat: string; at?: number } };
 type Entry = { id: string; kind: "figure" | "draft" | "fixture"; dir: string; url: string; model: Model | null; problem: string | null };
 type FigureProps = {
   theme?: "light" | "dark";
@@ -145,6 +146,41 @@ function Sheet({ entry }: { entry: Entry }) {
   );
 }
 
+// What a strip's words are sized against: the width a README shows a picture at.
+const READ_AT = 880;
+
+/**
+ * The told beats in one row, inside one frame drawn in the figure's own
+ * colours: each beat held at its middle with its number, title and caption
+ * under it, and the claim once beneath them all. The row is far wider than a
+ * README will show it, so its words are set larger by as much and read at
+ * the size a still's do.
+ */
+function Strip({ entry }: { entry: Entry }) {
+  const beats = (entry.model?.beats ?? []).filter((b) => !b.rest);
+  const width = Number(query.get("width")) || 640;
+  const technical = query.get("audience") === "technical";
+  const type = Math.max(1, (beats.length * width) / READ_AT);
+  return (
+    <main className="studio-strip">
+      <figure className="pt-stage studio-strip-frame" data-pt-strip={entry.id} data-pt-theme={theme} style={{ width: beats.length * (width + 1) + 1, fontSize: 14 * type }}>
+        <div className="studio-strip-row" style={{ gridTemplateColumns: `repeat(${beats.length}, ${width}px)` }}>
+          {beats.map((beat, index) => (
+            <section key={beat.id} className="studio-strip-beat" data-pt-cell={beat.id}>
+              <Figure entry={entry} beat={beat.id} at={0.5} still captions={false} controls={false} audience={technical ? "technical" : "plain"} />
+              <p className="studio-strip-words">
+                <span className="pt-caption-mark">{String(index + 1).padStart(2, "0")}{beat.title ? ` · ${beat.title}` : ""}</span>
+                <span className="pt-caption-text">{(technical && beat.technical) || beat.plain}</span>
+              </p>
+            </section>
+          ))}
+        </div>
+        {entry.model?.claim ? <p className="studio-strip-claim">{entry.model.claim}</p> : null}
+      </figure>
+    </main>
+  );
+}
+
 function App() {
   const state = useFigures();
   if (!state) return <div className="studio-wait">loading</div>;
@@ -153,6 +189,7 @@ function App() {
   const id = query.get("figure") ?? "";
   const entry = state.figures.find((f) => f.id === id);
   if (!entry) return <pre className="studio-error" data-pt-error={id}>no figure '{id}'</pre>;
+  if (page === "strip") return <Strip entry={entry} />;
   return page === "sheet" ? <Sheet entry={entry} /> : <Frame entry={entry} />;
 }
 

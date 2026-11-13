@@ -37,3 +37,17 @@ a { color: inherit; }
 .studio-sheet { padding: 24px 0 24px 24px; box-sizing: border-box; }
 .studio-cells { display: grid; gap: 24px; }
 .studio-cell h2 { margin: 0 0 8px; font: 500 11px var(--pt-font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--studio-muted); }
+
+/* /strip is a picture for a README: one frame in the figure's own colours (it
+   wears the kit's .pt-stage), the beats in a row inside it. Each beat's own
+   frame is taken off, so the row reads as one figure. Sizes are in em: the
+   page sets the frame's type so the words read once the row is shown small. */
+.studio-strip { margin: 0; padding: 24px; width: max-content; }
+/* The rule between two beats is the row's own colour showing through a 1px gap, so every beat is exactly as wide as the next. */
+.studio-strip-frame .studio-strip-row { display: grid; gap: 1px; background: var(--pt-rule); }
+.studio-strip-frame .studio-strip-beat { display: flex; flex-direction: column; min-width: 0; background: var(--pt-bg); }
+.studio-strip-frame .studio-strip-beat .pt-stage { border: 0; border-radius: 0; background: none; }
+.studio-strip-frame .studio-strip-words { flex: 1; display: grid; align-content: start; gap: 0.35em; margin: 0; padding: 1em 1.4em 1.2em; border-top: 1px solid var(--pt-rule); line-height: 1.45; }
+.studio-strip-frame .studio-strip-words .pt-caption-mark { font-size: 0.75em; }
+.studio-strip-frame .studio-strip-words .pt-caption-text { font-size: 1em; }
+.studio-strip-frame .studio-strip-claim { margin: 0; padding: 0.9em 1.4em 1em; border-top: 1px solid var(--pt-rule); font-size: 0.93em; line-height: 1.45; color: var(--pt-ink-2); text-wrap: pretty; }
