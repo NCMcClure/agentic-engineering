@@ -17,7 +17,8 @@ const STILL_HELP = `usage: node pt.mjs still <figure> [--strip] [--gif [--dark] 
 
 Takes a figure's still in light and dark, at twice its size, and prints the
 Markdown that shows the right one. The frame is the model's hero frame unless
---beat (and --at, a percentage through the beat) says otherwise.
+--beat (and --at, a percentage through the beat) says otherwise. Any beat may
+be held, the rest beat too: it is where to look at the loop's seam.
 
 With --strip or --gif it writes those instead of the still (give both for both):
 
@@ -79,7 +80,8 @@ export async function still(argv, deps = {}) {
   if (opts._.length !== 1) throw new PtError(STILL_HELP);
   const ctx = prepare(opts, deps, opts._[0]);
   const { at, figure } = ctx;
-  const beats = figure.model.beats.filter((b) => !b.rest).map((b) => b.id);
+  // Any beat may be held to look at, the rest beat too: it is where the loop's seam is.
+  const beats = figure.model.beats.map((b) => b.id);
   if (opts.beat && !beats.includes(opts.beat)) throw new PtError(`${figure.id} has no beat '${opts.beat}': its beats are ${beats.join(", ")}`);
   if (opts.at !== undefined && (opts.at < 0 || opts.at > 100)) throw new PtError("--at is a percentage through the beat, 0 to 100");
   const width = opts.width ?? 880;

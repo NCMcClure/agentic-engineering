@@ -30,7 +30,7 @@ export function elbowPoints(from: P2, to: P2, { first, via, radius = 10 }: { fir
  * when the story is elsewhere. `quiet` draws a thinner, greyer line, for what
  * is said between things as against what starts them.
  */
-export function Elbow({ from, to, first, via, radius = 10, progress = 1, head = true, pulse, lit = 1, quiet = false, dashed = false }: {
+export function Elbow({ from, to, first, via, radius = 10, progress = 1, head = true, pulse, pulseLength = 0.18, accent = 0, lit = 1, quiet = false, dashed = false }: {
   from: P2;
   to: P2;
   /** Leave sideways ("h") or up and down ("v"). Sideways unless said. */
@@ -41,6 +41,10 @@ export function Elbow({ from, to, first, via, radius = 10, progress = 1, head = 
   progress?: number;
   head?: boolean;
   pulse?: number;
+  /** How long the pulse is, as a share of the line. */
+  pulseLength?: number;
+  /** 0 to 1: take the whole line to the accent, for the one connector the beat is about. */
+  accent?: number;
   lit?: number;
   quiet?: boolean;
   dashed?: boolean;
@@ -49,9 +53,10 @@ export function Elbow({ from, to, first, via, radius = 10, progress = 1, head = 
   const pts = elbowPoints(from, to, { first, via, radius });
   const laid = progress >= 1 ? pts : slice(pts, 0, progress);
   if (laid.length < 2) return null;
-  const stroke = quiet ? mix("var(--pt-ink-2)", "var(--pt-line-2)", lit) : mix("var(--pt-line)", "var(--pt-line-2)", lit);
+  const ink = quiet ? mix("var(--pt-ink-2)", "var(--pt-line-2)", lit) : mix("var(--pt-line)", "var(--pt-line-2)", lit);
+  const stroke = accent > 0 ? mix("var(--pt-accent)", ink, accent) : ink;
   const tip = laid[laid.length - 1];
-  const length = 0.18;
+  const length = pulseLength;
   const on = pulse === undefined ? [] : slice(pts, pulse * (1 + length) - length, pulse * (1 + length));
   return (
     <g>

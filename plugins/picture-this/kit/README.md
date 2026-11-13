@@ -74,7 +74,14 @@ Inside a stage, `useFigure()` answers the questions a drawing asks:
 
 `f.frame` is the beat and the progress through it; `f.model`, `f.tl`,
 `f.audience` and `f.unit` are there too. An entity with a `born` beat is not
-`here` until that beat, whether or not the figure builds up. `<Hold beat="..." build>` draws its
+`here` until that beat, whether or not the figure builds up, and a flow to or
+from it is not `laid` until then.
+
+A quantity's whole course is in `model.ts`: `levelAt(model, id, beat, p)` is
+its level at any moment, `knots(model, id)` the points it passes through
+(for a curve drawn up to now), and `falls(model, id)` where it drops (for a
+window that is emptied). Words inside a `Panel` wear a halo of the panel's
+face, not the page's. `<Hold beat="..." build>` draws its
 children at one held frame whatever the clock says: a panel of a series.
 
 ## Flat space
@@ -87,10 +94,10 @@ context window, a log, a buffer or a page.
 | Shape | What it is for |
 |---|---|
 | `Panel` (`flat/panel`) | a framed box that clips what it holds: a window, a screen, a buffer. `open="top bottom"` draws it running on past the picture |
-| `Rows` | a column of bars inside a box, scrolled by `offset` px: the turns in a window, the lines of a log. Each row has a `tone` (`dark`, `mid`, `light`), and may take the `accent`, a `marked` tint, an `indent`, a `span` |
+| `Rows` | a column of bars inside a box, scrolled by `offset` px: the turns in a window, the lines of a log. Each row has a `tone` (`dark`, `mid`, `light`), and may take the `accent`, a `marked` tint, an `indent`, a `span`, or be an `outline` (a row something other than the conversation put there) |
 | `Bar` | one row, for a column laid out by hand |
 | `Spawn` | one thing starting another: a connector from a point, and a panel sliding out of its end, on one `progress` |
-| `Elbow` (`flat/connect`) | a right-angled connector with rounded corners and an arrowhead between any two points; `progress` draws part of it, `pulse` puts the accent on a stretch of it, `quiet` is for what is said as against what is started |
+| `Elbow` (`flat/connect`) | a right-angled connector with rounded corners and an arrowhead between any two points; `progress` draws part of it, `pulse` puts the accent on a stretch of it, `accent` on all of it, `quiet` is for what is said as against what is started |
 | `Token` | one unit of work: a dot, with a hue or the accent, and a word |
 | `Queue` | tokens waiting in a line, some places still empty |
 | `Meter` (`flat/chart`) | one number against its limit, filling and emptying with the frame, with a `threshold` line |

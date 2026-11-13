@@ -156,7 +156,7 @@ test("still refuses what it cannot do before it starts anything", async (t) => {
   };
   await refused([], /usage: node pt\.mjs still/);
   await refused(["nope"], /no figure 'nope'/);
-  await refused(["job-queue", "--beat", "rest"], /has no beat 'rest': its beats are answer, work, save/);
+  await refused(["job-queue", "--beat", "later"], /has no beat 'later': its beats are answer, work, save, rest/);
   await refused(["job-queue", "--at", "140"], /--at is a percentage through the beat, 0 to 100/);
   await refused(["job-queue", "--width", "200"], /--width is the figure's width in CSS px, 520 to 1600/);
   write(w.repo, ".agents/picture-this/figures/broken/figure.tsx", "x");

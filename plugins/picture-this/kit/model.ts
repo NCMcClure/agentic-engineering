@@ -203,6 +203,36 @@ export function levelAt(model: Model, id: string, index: number, p: number): num
   return points[i] + (points[i + 1] - points[i]) * (along - i);
 }
 
+/**
+ * A quantity's whole course, as the points it passes through: `at` counts in
+ * beats (2.5 is half-way through the third), so a figure can draw the curve
+ * up to now, or find where it falls. A fall is two points close together.
+ */
+export function knots(model: Model, id: string): { at: number; value: number }[] {
+  const q = quantity(model, id);
+  const out = [{ at: 0, value: q.start ?? 0 }];
+  model.beats.forEach((b, index) => {
+    const v = q.values[b.id];
+    if (v === undefined) return;
+    const points = course(v);
+    if (points.length === 1) out.push({ at: index + 1, value: points[0] });
+    else points.forEach((value, i) => out.push({ at: index + i / (points.length - 1), value }));
+  });
+  const last = out[out.length - 1];
+  if (last.at < model.beats.length) out.push({ at: model.beats.length, value: last.value });
+  return out;
+}
+
+/** Where a quantity falls: each stretch of its course that goes down, as the beat-time it starts and ends at, and from what to what. */
+export function falls(model: Model, id: string): { from: number; to: number; high: number; low: number }[] {
+  const points = knots(model, id);
+  const out = [];
+  for (let i = 1; i < points.length; i++) {
+    if (points[i].value < points[i - 1].value) out.push({ from: points[i - 1].at, to: points[i].at, high: points[i - 1].value, low: points[i].value });
+  }
+  return out;
+}
+
 function table(model: Model, name: string): Table {
   const found = model.data?.[name];
   if (!found) throw new Error(`no data '${name}'`);

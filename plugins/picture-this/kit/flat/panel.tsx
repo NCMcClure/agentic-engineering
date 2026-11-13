@@ -29,6 +29,8 @@ export type RowSpec = {
   height?: number;
   /** 0 to 1: how much of the row is there. A row arriving, or one being pressed flat. */
   here?: number;
+  /** Drawn as an outline, not a fill: a row put there by something other than the conversation. */
+  outline?: boolean;
 };
 
 const INK = { dark: 0.66, mid: 0.33, light: 0.13 } as const;
@@ -67,15 +69,20 @@ export function Panel({ box, radius = 8, here = 1, lit = 1, accent = 0, shift = 
     <g opacity={r3(here)} transform={shift[0] || shift[1] ? `translate(${r3(shift[0])} ${r3(shift[1])})` : undefined}>
       <clipPath id={id}><rect x={x} y={y} width={width} height={height} rx={outline ? 0 : radius} /></clipPath>
       <rect className="pt-panel" x={x} y={y} width={width} height={height} rx={outline ? 0 : radius} style={{ stroke: outline ? "none" : stroke }} />
-      <g clipPath={`url(#${id})`}>{children}</g>
+      <g clipPath={`url(#${id})`} style={{ ["--pt-halo" as string]: "var(--pt-top)" }}>{children}</g>
       {outline ? <path className="pt-edge" d={outline} style={{ stroke }} /> : null}
     </g>
   );
 }
 
 /** One row: a bar with rounded ends. */
-export function Bar({ box, tone = "mid", accent = 0, marked = 0, here = 1, opacity = 1 }: { box: Box; tone?: Tone; accent?: number; marked?: number; here?: number; opacity?: number }) {
+export function Bar({ box, tone = "mid", accent = 0, marked = 0, here = 1, opacity = 1, outline = false }: { box: Box; tone?: Tone; accent?: number; marked?: number; here?: number; opacity?: number; outline?: boolean }) {
   if (here <= 0 || opacity <= 0 || box.width <= 0) return null;
+  if (outline) {
+    const h = box.height * here;
+    const ink = accent > 0 ? mix("var(--pt-accent)", "var(--pt-ink-2)", accent) : "var(--pt-ink-2)";
+    return <rect className="pt-bar" x={box.x + 0.5} y={r3(box.y + (box.height - h) / 2) + 0.5} width={Math.max(0, box.width - 1)} height={Math.max(0, r3(h) - 1)} rx={Math.min(3, h / 2)} opacity={r3(opacity)} style={{ fill: accent > 0 ? mix("var(--pt-accent-soft)", "var(--pt-top)", accent) : "var(--pt-top)", stroke: ink }} />;
+  }
   const base = toneFill(tone);
   const tinted = marked > 0 ? mix("var(--pt-accent-soft)", base, marked) : base;
   const fill = accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted;
@@ -101,7 +108,7 @@ export function Rows({ box, rows, offset = 0, gap = 6, rowHeight = 12, fade = tr
     <>
       {windowed(slots, offset, box.height).map(({ index, shown }) => {
         const row = rows[index];
-        return <Bar key={index} box={bar(box, slots[index], offset, row)} tone={row.tone} accent={row.accent} marked={row.marked} here={row.here} opacity={fade ? shown : 1} />;
+        return <Bar key={index} box={bar(box, slots[index], offset, row)} tone={row.tone} accent={row.accent} marked={row.marked} here={row.here} outline={row.outline} opacity={fade ? shown : 1} />;
       })}
     </>
   );

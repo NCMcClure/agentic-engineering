@@ -121,7 +121,11 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
     },
     lit(id) { return blend((b) => (b.rest || inFocus(model, b.id, id) ? 1 : 0)); },
     laid(id) {
-      const first = build ? firstBeatOf(model, id) : opening;
+      // A wire to or from a thing that is not there yet is laid when the later of its ends is born.
+      const flow = model.flows.find((fl) => fl.id === id);
+      const births = flow ? [born.get(flow.from), born.get(flow.to)].filter((b): b is string => Boolean(b)) : [];
+      const latest = births.sort((a, b) => tl.beats.findIndex((x) => x.id === b) - tl.beats.findIndex((x) => x.id === a))[0];
+      const first = build ? firstBeatOf(model, id) : latest ?? opening;
       return (first ? since(tl, frame, first, 900) : 1) * leaving;
     },
     moving,

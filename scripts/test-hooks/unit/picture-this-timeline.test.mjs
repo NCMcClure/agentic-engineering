@@ -325,3 +325,15 @@ test("the kit's model type carries every field the checker reads", { skip }, () 
   const source = fs.readFileSync(path.join(KIT, "model.ts"), "utf8");
   for (const field of ["parent?: string", "born?: string", "repeat?: number", "quantities?: Quantity[]", "data?: Record<string, Table>"]) assert.ok(source.includes(field), field);
 });
+
+test("a quantity's course can be drawn whole, and says where it falls", { skip }, () => {
+  const m = { ...model, quantities: [{ id: "waiting", label: "Jobs waiting", max: 10, start: 2, values: { answer: 6, save: [8, 0, 4] } }] };
+  assert.deepEqual(M.knots(m, "waiting"), [
+    { at: 0, value: 2 }, { at: 1, value: 6 }, { at: 2, value: 8 }, { at: 2.5, value: 0 }, { at: 3, value: 4 }, { at: 4, value: 4 },
+  ], "beat-time: the third beat's course runs from 2 to 3, and the last level is held to the loop's end");
+  assert.deepEqual(M.falls(m, "waiting"), [{ from: 2, to: 2.5, high: 8, low: 0 }]);
+  for (const k of M.knots(m, "waiting")) {
+    const index = Math.min(m.beats.length - 1, Math.floor(k.at)), p = k.at - index;
+    if (k.at !== 2) near(M.levelAt(m, "waiting", index, p), k.value, `the course agrees with levelAt at ${k.at}`);
+  }
+});
