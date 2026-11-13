@@ -1,0 +1,266 @@
+{
+  "schema": 1,
+  "title": "How one remark becomes part of your profile",
+  "mechanism": "A hook logs the style remark you type, and when the turn ends another hook has a forked helper fold it into the profile every session loads.",
+  "lens": "path",
+  "claim": "Say how you write once, and it becomes a line in the profile that every later session loads.",
+  "implication": "The profile changes by revising lines, not piling them up, so it stays under budget and every edit can be undone from the changelog.",
+  "entities": [
+    {
+      "id": "you",
+      "label": "You",
+      "kind": "client",
+      "note": "\"too formal\"",
+      "source": "plugins/write-like-me/hooks/prompt-submit.mjs:12"
+    },
+    {
+      "id": "listener",
+      "label": "Prompt hook",
+      "kind": "service",
+      "note": "spots style feedback",
+      "source": "plugins/write-like-me/scripts/wlm/feedback.mjs:58"
+    },
+    {
+      "id": "ledger",
+      "label": "observations.jsonl",
+      "kind": "queue",
+      "note": "remarks waiting",
+      "source": "plugins/write-like-me/scripts/wlm/observations.mjs:8"
+    },
+    {
+      "id": "stop",
+      "label": "Stop hook",
+      "kind": "service",
+      "note": "once a session, hourly at most",
+      "source": "plugins/write-like-me/hooks/stop.mjs:27"
+    },
+    {
+      "id": "helper",
+      "label": "Forked helper",
+      "kind": "worker",
+      "note": "has the whole conversation",
+      "born": "fork",
+      "source": "plugins/write-like-me/hooks/refine-profile.md:3"
+    },
+    {
+      "id": "profile",
+      "label": "Profile",
+      "kind": "store",
+      "note": "loads into every session",
+      "source": "plugins/write-like-me/scripts/wlm/paths.mjs:24"
+    },
+    {
+      "id": "changelog",
+      "label": "changelog.md",
+      "kind": "store",
+      "note": "old and new, dated",
+      "source": "plugins/write-like-me/scripts/wlm/paths.mjs:28"
+    },
+    {
+      "id": "later",
+      "label": "Next session",
+      "kind": "client",
+      "note": "starts with the new line",
+      "born": "load",
+      "source": "plugins/write-like-me/hooks/session-start.mjs:6"
+    }
+  ],
+  "flows": [
+    {
+      "id": "say",
+      "from": "you",
+      "to": "listener",
+      "kind": "event",
+      "label": "too formal",
+      "source": "plugins/write-like-me/hooks/prompt-submit.mjs:15"
+    },
+    {
+      "id": "record",
+      "from": "listener",
+      "to": "ledger",
+      "kind": "write",
+      "label": "append",
+      "source": "plugins/write-like-me/hooks/prompt-submit.mjs:20"
+    },
+    {
+      "id": "check",
+      "from": "ledger",
+      "to": "stop",
+      "kind": "read",
+      "label": "pending",
+      "source": "plugins/write-like-me/hooks/stop.mjs:34"
+    },
+    {
+      "id": "spawn",
+      "from": "stop",
+      "to": "helper",
+      "kind": "event",
+      "label": "fork",
+      "source": "plugins/write-like-me/hooks/stop.mjs:57"
+    },
+    {
+      "id": "revise",
+      "from": "helper",
+      "to": "profile",
+      "kind": "write",
+      "label": "one line",
+      "source": "plugins/write-like-me/hooks/refine-profile.md:24"
+    },
+    {
+      "id": "log",
+      "from": "helper",
+      "to": "changelog",
+      "kind": "write",
+      "label": "old → new",
+      "source": "plugins/write-like-me/hooks/refine-profile.md:45"
+    },
+    {
+      "id": "clear",
+      "from": "helper",
+      "to": "ledger",
+      "kind": "write",
+      "label": "delete",
+      "source": "plugins/write-like-me/hooks/refine-profile.md:53"
+    },
+    {
+      "id": "load",
+      "from": "profile",
+      "to": "later",
+      "kind": "read",
+      "label": "loads at start",
+      "source": "plugins/write-like-me/hooks/session-start.mjs:6"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "waiting",
+      "label": "Remarks waiting",
+      "of": "ledger",
+      "unit": "remarks",
+      "max": 3,
+      "start": 0,
+      "values": {
+        "record": 1,
+        "clear": 0
+      }
+    },
+    {
+      "id": "lines",
+      "label": "Profile lines",
+      "of": "profile",
+      "unit": "lines",
+      "max": 60,
+      "start": 52,
+      "values": {
+        "revise": 52
+      }
+    }
+  ],
+  "beats": [
+    {
+      "id": "say",
+      "title": "You say it once",
+      "plain": "You tell Claude a draft sounds too formal.",
+      "technical": "UserPromptSubmit runs prompt-submit.mjs; detect() matches \"too formal\" against PATTERNS.",
+      "focus": [
+        "you",
+        "listener"
+      ],
+      "flows": [
+        "say"
+      ],
+      "ms": 3000
+    },
+    {
+      "id": "record",
+      "title": "Written down",
+      "plain": "A hook writes the remark down and tells Claude to honor it in this reply.",
+      "technical": "append() adds {label, phrase, prompt_excerpt, ts} to observations.jsonl; additionalContext asks for it now.",
+      "focus": [
+        "ledger"
+      ],
+      "flows": [
+        "record"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "check",
+      "title": "The turn ends",
+      "plain": "When Claude finishes, a second hook finds the remark not yet folded in.",
+      "technical": "stop.mjs reads pending(), then checks refine-disabled, the session flag and the one-hour last-refined stamp.",
+      "focus": [
+        "stop"
+      ],
+      "flows": [
+        "check"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "fork",
+      "title": "A helper forks",
+      "plain": "Instead of ending, Claude forks a helper that carries the whole conversation, not only the remark.",
+      "technical": "stop.mjs prints {decision: \"block\"}; the reason asks for a forked sonnet subagent to run refine-profile.md, which prefers the conversation over the excerpt.",
+      "focus": [
+        "helper"
+      ],
+      "flows": [
+        "spawn"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "revise",
+      "title": "One line changes",
+      "plain": "The helper rewrites one line of your profile, keeping it at 52 lines, and logs the old and new wording.",
+      "technical": "The subagent revises a line of ~/.claude/rules/write-like-me.md in place; over BUDGET (60) it merges or evicts a line. It appends old and new to changelog.md.",
+      "focus": [
+        "profile",
+        "changelog"
+      ],
+      "flows": [
+        "revise",
+        "log"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "clear",
+      "title": "Folded in",
+      "plain": "The helper deletes the remark it used and reports the change to you. Nothing asks first; review can undo it.",
+      "technical": "The subagent deletes observations.jsonl; its final message, quoting old and new, is the closing summary. /write-like-me:review reverts.",
+      "focus": [
+        "ledger"
+      ],
+      "flows": [
+        "clear"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "load",
+      "title": "From now on",
+      "plain": "The next session starts with the new line already in its instructions.",
+      "technical": "Claude Code loads ~/.claude/rules/ into every session and after a compaction; no hook prints it.",
+      "focus": [
+        "later"
+      ],
+      "flows": [
+        "load"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "revise",
+    "at": 0.5
+  }
+}
