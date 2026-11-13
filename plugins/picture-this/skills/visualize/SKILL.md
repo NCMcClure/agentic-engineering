@@ -149,7 +149,10 @@ P still <name>
 
 `land` copies the figure and its model into the repo's figures folder and
 adds the kit beside them the first time. `still` writes the light and dark
-PNGs and prints the Markdown that shows them.
+PNGs and prints the Markdown that shows them. When the README should show
+the steps or the motion as well, `still --strip` writes a beat strip and
+`still --gif` a looping GIF; `references/delivery.md` says which to reach
+for and what a GIF costs.
 
 Tell the person where the figure is, how to embed it in a page, and give them
 the README snippet. Add it to a README or a page yourself only if they asked.
@@ -192,6 +195,6 @@ references/
 ├── motion.md         one clock, what each motion means, pacing, stills
 ├── legibility.md     the squint test, overlap, contrast, reading order
 ├── accessibility.md  reduced motion, text alternatives, the strip
-├── delivery.md       where figures live, MDX, README stills
+├── delivery.md       where figures live, MDX, README stills, strip and GIF
 └── review.md         the checklist, and the cold read
 ```
