@@ -289,3 +289,18 @@ test("a server started for one job keeps a lock of its own, and never takes the 
   assert.doesNotMatch(ensure, /rmSync\(at\.lock/, "two jobs at once never remove the lock a third may be reading");
   assert.match(fs.readFileSync(path.join(PLUGIN, "app", "vite.config.mjs"), "utf8"), /process\.env\.PT_LOCK \? path\.resolve\(process\.env\.PT_LOCK\)/);
 });
+
+test("the studio's copy of the sources is left alone while it is current, and repaired when it is not", async (t) => {
+  const { syncSources } = await import("../../../plugins/picture-this/scripts/lib/studio.mjs");
+  const w = world(t);
+  syncSources(w.at.home, PLUGIN);
+  const fixture = path.join(w.at.app, "fixtures", "iso-flow", "figure.tsx");
+  const before = fs.statSync(fixture).ino;
+  syncSources(w.at.home, PLUGIN);
+  assert.equal(fs.statSync(fixture).ino, before, "a second sync writes nothing: commands taking pictures at once do not pull files from under each other");
+  fs.rmSync(fixture);
+  syncSources(w.at.home, PLUGIN);
+  assert.ok(fs.existsSync(fixture), "a copy with a file missing is brought back whole");
+  assert.deepEqual(fs.readdirSync(w.at.app).filter((name) => name.startsWith(".next-") || name.startsWith(".old-")), [], "and nothing is left behind by the swap");
+  assert.ok(fs.existsSync(path.join(w.at.app, "fixtures", "blank", "figure.tsx")), "the blank stage is a fixture too");
+});

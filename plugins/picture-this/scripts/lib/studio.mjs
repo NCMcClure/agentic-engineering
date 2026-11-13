@@ -77,24 +77,60 @@ export function installState(home, pluginRoot) {
   };
 }
 
+const SOURCES_STAMP = ".sources-stamp";
+
+/** Every file under a folder, relative, sorted. */
+const filesIn = (dir) => fs.readdirSync(dir, { recursive: true }).map(String).filter((rel) => fs.statSync(path.join(dir, rel)).isFile()).sort();
+
+/** One hash over everything the install home copies from the plugin: unchanged sources hash the same. */
+function sourcesDigest(pluginRoot) {
+  const hash = createHash("sha256");
+  const add = (file, name) => { hash.update(name); hash.update("\0"); hash.update(fs.readFileSync(file)); };
+  for (const file of SOURCE_FILES) add(path.join(pluginRoot, "app", file), file);
+  for (const dir of [...SOURCE_DIRS.map((d) => path.join("app", d)), "studies", "blank", "kit"]) {
+    for (const rel of filesIn(path.join(pluginRoot, dir))) add(path.join(pluginRoot, dir, rel), `${dir}/${rel}`);
+  }
+  return hash.digest("hex");
+}
+
 /**
- * Replace the install home's copy of the app sources, and of the studies and
- * the blank stage, which the studio shows as fixtures, with the kit they draw
- * with. node_modules and the stamps are left alone.
+ * Bring the install home's copy of the app sources up to date, and of the
+ * studies and the blank stage, which the studio shows as fixtures, with the
+ * kit they draw with. node_modules and the install stamps are left alone.
+ * Nothing is touched when the copy is already current, so several commands
+ * taking pictures at once do not pull the files out from under each other;
+ * when it must change, each folder is built beside the old one and swapped in.
  */
 export function syncSources(home, pluginRoot) {
   const from = path.join(pluginRoot, "app"), to = homeLayout(home).app;
   fs.mkdirSync(to, { recursive: true });
-  for (const dir of SOURCE_DIRS) {
-    fs.rmSync(path.join(to, dir), { recursive: true, force: true });
-    fs.cpSync(path.join(from, dir), path.join(to, dir), { recursive: true });
-  }
+  const digest = sourcesDigest(pluginRoot);
+  // Current, and whole: every file the copy should hold is still there.
+  const expected = [
+    ...SOURCE_FILES,
+    ...SOURCE_DIRS.flatMap((dir) => filesIn(path.join(from, dir)).map((rel) => path.join(dir, rel))),
+    ...filesIn(path.join(pluginRoot, "studies")).map((rel) => path.join("fixtures", rel)),
+    ...filesIn(path.join(pluginRoot, "blank")).map((rel) => path.join("fixtures", "blank", rel)),
+    ...filesIn(path.join(pluginRoot, "kit")).map((rel) => path.join("fixtures", "kit", rel)),
+  ];
+  if (read(path.join(to, SOURCES_STAMP)) === digest && expected.every((rel) => fs.existsSync(path.join(to, rel)))) return;
+  const swap = (name, build) => {
+    const next = path.join(to, `.next-${name}-${process.pid}`), old = path.join(to, `.old-${name}-${process.pid}`);
+    fs.rmSync(next, { recursive: true, force: true });
+    build(next);
+    try { fs.renameSync(path.join(to, name), old); } catch { /* not there yet */ }
+    fs.renameSync(next, path.join(to, name));
+    fs.rmSync(old, { recursive: true, force: true });
+  };
+  for (const dir of SOURCE_DIRS) swap(dir, (next) => fs.cpSync(path.join(from, dir), next, { recursive: true }));
   for (const file of SOURCE_FILES) fs.copyFileSync(path.join(from, file), path.join(to, file));
   // The fixtures the gallery shows are the studies and the blank stage, drawing with the plugin's own kit.
-  fs.rmSync(path.join(to, "fixtures"), { recursive: true, force: true });
-  fs.cpSync(path.join(pluginRoot, "studies"), path.join(to, "fixtures"), { recursive: true });
-  fs.cpSync(path.join(pluginRoot, "blank"), path.join(to, "fixtures", "blank"), { recursive: true });
-  fs.cpSync(path.join(pluginRoot, "kit"), path.join(to, "fixtures", "kit"), { recursive: true });
+  swap("fixtures", (next) => {
+    fs.cpSync(path.join(pluginRoot, "studies"), next, { recursive: true });
+    fs.cpSync(path.join(pluginRoot, "blank"), path.join(next, "blank"), { recursive: true });
+    fs.cpSync(path.join(pluginRoot, "kit"), path.join(next, "kit"), { recursive: true });
+  });
+  fs.writeFileSync(path.join(to, SOURCES_STAMP), digest + "\n");
 }
 
 /** The child's environment: PATH ends with this Node's folder, so `node` is found even when this script was started by full path. */
