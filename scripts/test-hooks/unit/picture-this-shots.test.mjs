@@ -209,6 +209,9 @@ test("the camera script waits for every figure to say it is painted, and photogr
   assert.match(source, /\[data-pt-error\], \.studio-error/);
   assert.match(source, /reducedMotion: "reduce"/);
   assert.match(source, /deviceScaleFactor: scale/);
+  assert.match(source, /"--use-angle=swiftshader-webgl", "--enable-unsafe-swiftshader"/, "3D is drawn by software, so a machine with a graphics card and one without take the same still");
+  assert.match(source, /chromium\.launch\(\{ args: BROWSER_ARGS \}\)/);
+  assert.match(source, /getAttribute\("data-pt-paints"\) === s\.getAttribute\("data-pt-ready"\)/, "a 3D scene's canvas has drawn the frame the stage holds");
   const stage = fs.readFileSync(path.join(PLUGIN, "kit", "stage.tsx"), "utf8");
   assert.match(stage, /setAttribute\("data-pt-ready", key\)/, "the stage is what says so");
   assert.match(stage, /document\.fonts/, "and only once its fonts are in");

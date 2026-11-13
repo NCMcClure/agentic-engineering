@@ -12,13 +12,22 @@ import fs from "node:fs";
 import path from "node:path";
 import { chromium } from "playwright";
 
-const READY_TIMEOUT_MS = 20000;
+// A 3D figure is drawn by software here, never by a graphics card, so a still
+// is the same picture on every machine. It is slower: a sheet of 3D beats can
+// take most of a minute.
+const READY_TIMEOUT_MS = 90000;
+const BROWSER_ARGS = ["--use-angle=swiftshader-webgl", "--enable-unsafe-swiftshader"];
 
-/** Every stage on the page has painted its held frame, or a figure has failed. */
+/**
+ * Every stage on the page has painted its held frame, or a figure has failed.
+ * A 3D scene says which frame its canvas last drew (data-pt-paints); the
+ * stage waits for it before it says ready, and so does this.
+ */
 const settled = () => {
   if (document.querySelector("[data-pt-error], .studio-error")) return true;
   const stages = [...document.querySelectorAll("[data-pt-stage]")];
-  return stages.length > 0 && stages.every((s) => s.hasAttribute("data-pt-ready"));
+  return stages.length > 0 && stages.every((s) => s.hasAttribute("data-pt-ready")
+    && [...s.querySelectorAll("[data-pt-paints]")].every((gl) => gl.getAttribute("data-pt-paints") === s.getAttribute("data-pt-ready")));
 };
 
 async function shoot(browser, base, scale, shot) {
@@ -61,7 +70,7 @@ async function main(argv) {
     return 2;
   }
   let browser;
-  try { browser = await chromium.launch(); } catch (error) {
+  try { browser = await chromium.launch({ args: BROWSER_ARGS }); } catch (error) {
     process.stderr.write(`capture: the browser did not start: ${String(error.message ?? error).split("\n")[0]}\n`);
     return 2;
   }
