@@ -13,7 +13,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [workflow-studio](#workflow-studio) | 1.0.0 | 2 | workflow |
 | [picture-this](#picture-this) | 0.2.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.0 | 4 | writing |
-| [code-diet](#code-diet) | 1.0.0 | 5 | code-quality |
+| [code-diet](#code-diet) | 1.0.1 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 1.0.0 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.0 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.0 | 6 | documentation |
@@ -136,7 +136,7 @@ Version 1.0.0. [README](../plugins/write-like-me/README.md), [changelog](../plug
 
 Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.
 
-Version 1.0.0. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|

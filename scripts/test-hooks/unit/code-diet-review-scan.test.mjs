@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { STDLIB_DUPES, extract, langOf, shouldSkip } from "../../../plugins/code-diet/scripts/review-scan.mjs";
+import { STDLIB_DUPES, ended, extract, langOf, shouldSkip } from "../../../plugins/code-diet/scripts/review-scan.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const SCAN = path.join(REPO, "plugins", "code-diet", "scripts", "review-scan.mjs");
@@ -205,8 +205,8 @@ test("a scope or an --apply step it does not know is a usage error", (t) => {
 // ---- --apply ----------------------------------------------------------------
 
 const NODE = `"${process.execPath}"`;
-const PASS = `${NODE} -e "process.exit(0)"`;
-const FAIL = `${NODE} -e "console.log('boom: orphaned import'); process.exit(3)"`;
+const PASS = `${NODE} -e "process.exitCode = 0"`;
+const FAIL = `${NODE} -e "console.log('boom: orphaned import'); process.exitCode = 3"`;
 const TWO_FNS = "export function keep() {\n  return 1;\n}\n\nexport function cut() {\n  return 2;\n}\n";
 const ONE_FN = "export function keep() {\n  return 1;\n}\n";
 
@@ -272,6 +272,23 @@ test("--apply check on red stops at the failing command and carries the tail of 
   assert.equal(read("src/a.mjs"), ONE_FN, "a red check leaves the cut in place for one repair");
 });
 
+test("--apply check names what ended a command that gave no exit code", { skip: process.platform === "win32" && "no signals on Windows" }, (t) => {
+  const { dir, apply } = landing(t);
+  write(dir, "src/a.mjs", ONE_FN);
+  // exec, so the signal lands on the command itself whether or not this shell would have forked for it.
+  const killed = `exec ${NODE} -e "process.kill(process.pid, 'SIGKILL')"`;
+  const check = apply("check", "src/a.mjs", "--check", killed, "--check", PASS);
+  assert.equal(check.json.green, false);
+  assert.deepEqual(check.json.checks, [{ command: killed, exit: 137, tail: "killed by SIGKILL" }]);
+});
+
+test("a check that gave no exit code gets the shell's code for it and the reason as its tail", () => {
+  assert.deepEqual(ended({ status: 3, signal: null }), [3, ""]);
+  assert.deepEqual(ended({ status: null, signal: "SIGSEGV" }), [139, "killed by SIGSEGV"]);
+  assert.deepEqual(ended({ status: null, signal: "SIGTERM", error: { code: "ETIMEDOUT", message: "spawnSync /bin/sh ETIMEDOUT" } }), [124, "stopped after 300 s: the check ran past its cap"]);
+  assert.deepEqual(ended({ status: null, signal: null, error: { code: "ENOENT", message: "spawnSync /bin/sh ENOENT" } }), [1, "spawnSync /bin/sh ENOENT"]);
+});
+
 test("--apply check with no command is green and says nothing was validated", (t) => {
   const { dir, apply } = landing(t);
   write(dir, "src/a.mjs", ONE_FN);
@@ -281,7 +298,7 @@ test("--apply check with no command is green and says nothing was validated", (t
 test("--apply check runs its commands from the repo root", (t) => {
   const { dir, apply } = landing(t);
   write(dir, "src/a.mjs", ONE_FN);
-  const marker = `${NODE} -e "process.exit(require('fs').existsSync('notes.txt') ? 0 : 9)"`;
+  const marker = `${NODE} -e "process.exitCode = require('fs').existsSync('notes.txt') ? 0 : 9"`;
   const r = runNode(SCAN, ["--apply", "check", "src/a.mjs", "--check", marker], { cwd: path.join(dir, "src") });
   assert.equal(JSON.parse(r.stdout).green, true, r.stdout);
   assert.equal(apply("check", "src/a.mjs", "--check", marker).json.green, true);
