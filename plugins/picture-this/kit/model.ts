@@ -5,7 +5,17 @@ export type FlowKind = "write" | "read" | "event" | "query";
 export type Hue = "blue" | "green" | "violet" | "yellow" | "pink";
 export type Audience = "plain" | "technical";
 
-export type Entity = { id: string; label: string; kind: string; hue?: Hue; source?: string };
+export type Entity = {
+  id: string;
+  label: string;
+  kind: string;
+  /** A few words under the name: what it does here. */
+  note?: string;
+  /** Which side it belongs to, in a figure that sets two arrangements side by side. */
+  group?: string;
+  hue?: Hue;
+  source?: string;
+};
 export type Flow = { id: string; from: string; to: string; kind: FlowKind; label?: string; source?: string };
 export type ModelBeat = {
   id: string;
@@ -74,6 +84,30 @@ export function inFocus(model: Model, beatId: string, entityId: string): boolean
 /** Is this flow moving during the beat? */
 export function flowing(model: Model, beatId: string, flowId: string): boolean {
   return beat(model, beatId).flows.includes(flowId);
+}
+
+/** The groups entities are sorted into, in the order they first appear. */
+export function groups(model: Model): string[] {
+  return [...new Set(model.entities.map((e) => e.group).filter((g): g is string => Boolean(g)))];
+}
+
+/**
+ * The flow that leads each beat: of the flows a beat tells, the one arriving
+ * furthest along (its target comes latest in the model). What it arrives at
+ * is the one thing that beat is about, and the one thing that takes the accent.
+ */
+export function leads(model: Model): Set<string> {
+  const order = new Map(model.entities.map((e, i) => [e.id, i]));
+  const out = new Set<string>();
+  for (const b of model.beats) {
+    let best: Flow | null = null;
+    for (const id of b.flows) {
+      const f = model.flows.find((x) => x.id === id);
+      if (f && (!best || (order.get(f.to) ?? -1) > (order.get(best.to) ?? -1))) best = f;
+    }
+    if (best) out.add(best.id);
+  }
+  return out;
 }
 
 /** The first beat that tells a flow: when its wire is drawn. */

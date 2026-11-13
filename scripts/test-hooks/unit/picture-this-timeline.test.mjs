@@ -14,7 +14,8 @@ const load = (rel) => import(new URL(`file://${path.join(KIT, rel).split(path.se
 const T = skip ? null : await load("timeline.ts");
 const I = skip ? null : await load("iso/project.ts");
 const M = skip ? null : await load("model.ts");
-const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "app", "fixtures", "queue", "model.json"), "utf8"));
+const P = skip ? null : await load("iso/place.ts");
+const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "starters", "iso-flow", "model.json"), "utf8"));
 const beats = [{ id: "a", ms: 3000 }, { id: "b", ms: 2000 }, { id: "rest", ms: 1000, rest: true }];
 const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 1e-9, `${message ?? ""} ${actual} is not ${expected}`);
 
@@ -245,6 +246,41 @@ test("focus, flow and first appearance follow the beats", { skip }, () => {
   assert.equal(M.firstBeatWith(model, "queue"), "answer");
   assert.equal(M.firstBeatWith(model, "worker"), "work");
   assert.equal(M.firstBeatWith(model, "store"), "save");
+});
+
+test("a row and a grid place boxes, and a grid's rows run back and forth", { skip }, () => {
+  const r = P.row(["a", "b", "c"]);
+  assert.deepEqual([r.a.at, r.b.at, r.c.at], [[0, 0, 0], [4, 0, 0], [8, 0, 0]]);
+  assert.deepEqual(P.row(["a", "b"], { gap: 2, y: 5 }).b.at, [3.6, 5, 0]);
+  const g = P.grid(["a", "b", "c", "d", "e"], { columns: 3, gap: 2.4 });
+  assert.deepEqual([g.a.at, g.c.at], [[0, 0, 0], [8, 0, 0]]);
+  assert.deepEqual([g.d.at, g.e.at], [[8, 4, 0], [4, 4, 0]], "the second row starts in front of where the first ended");
+});
+
+test("a wire crosses the gap from the face it leaves, turns once when it must, and goes round what stands between", { skip }, () => {
+  const r = P.row(["a", "b", "c"]);
+  assert.deepEqual(P.hop(r.a, r.b), [[1.6, 0.8, 0], [4, 0.8, 0]]);
+  assert.deepEqual(P.hop(r.b, r.a), [[4, 0.8, 0], [1.6, 0.8, 0]], "back the other way, from the other face");
+  assert.deepEqual(P.hop(r.a, r.b, -0.3), [[1.6, 0.5, 0], [4, 0.5, 0]], "shifted, to run beside its pair");
+  const front = { at: [0, 4, 0], size: [1.6, 1.6], height: 0.7 };
+  assert.deepEqual(P.hop(r.a, front), [[0.8, 1.6, 0], [0.8, 4, 0]]);
+  assert.deepEqual(P.hop(front, r.a), [[0.8, 4, 0], [0.8, 1.6, 0]]);
+  const corner = { at: [4, 4, 0], size: [1.6, 1.6], height: 0.7 };
+  assert.deepEqual(P.hop(r.a, corner), [[0.8, 1.6, 0], [0.8, 4.8, 0], [4, 4.8, 0]], "out of the front, along, and in at the side");
+  assert.equal(P.between(r.a, r.c, r.b), true);
+  assert.equal(P.between(r.a, r.b, r.c), false);
+  assert.equal(P.between(r.a, r.c, corner), false, "what stands in another row is not in the way");
+  assert.deepEqual(P.around(r.a, r.c, 2.5), [[0.8, 1.6, 0], [0.8, 2.5, 0], [8.8, 2.5, 0], [8.8, 1.6, 0]]);
+  const e = P.extent([r.a, r.c], 0.5);
+  assert.deepEqual([e.at, e.size], [[-0.5, -0.5, 0], [10.6, 2.6]]);
+  assert.equal(e.points.length, 6);
+});
+
+test("each beat has one leading flow: the one that arrives furthest along", { skip }, () => {
+  assert.deepEqual([...M.leads(model)].sort(), ["enqueue", "save", "take"], "of upload, enqueue and reply, the queue is furthest along");
+  assert.deepEqual(M.groups(model), []);
+  const split = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "starters", "split", "model.json"), "utf8"));
+  assert.deepEqual(M.groups(split), ["Without a queue", "With a queue"]);
 });
 
 test("the kit's model type and the checker agree on kinds and hues", { skip }, async () => {

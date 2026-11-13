@@ -10,6 +10,7 @@ import { PtError } from "./lib/args.mjs";
 export const COMMANDS = {
   setup: ["setup", "run", "install the studio into the plugin's data folder, once (asks first: --yes installs)"],
   studio: ["studio", "run", "serve a repo's figures and drafts, live; prints the URL to open"],
+  draft: ["draft", "run", "start a round of drafts on different archetypes (new), check it is fair (check), list archetypes"],
   sheet: ["shots", "sheet", "lay a figure's beats side by side, with and without captions, to look it over"],
   still: ["shots", "still", "take a figure's still in light and dark, and print the Markdown that shows it"],
   init: ["kit", "init", "record where this repo keeps its figures and stills"],

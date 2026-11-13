@@ -13,7 +13,7 @@ import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const KIT = path.join(PLUGIN, "kit");
-const MODEL = fs.readFileSync(path.join(PLUGIN, "app", "fixtures", "queue", "model.json"), "utf8");
+const MODEL = fs.readFileSync(path.join(PLUGIN, "starters", "iso-flow", "model.json"), "utf8");
 const read = (...parts) => fs.readFileSync(path.join(...parts), "utf8");
 
 function repoWith(t) {

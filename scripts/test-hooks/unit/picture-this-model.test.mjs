@@ -11,7 +11,7 @@ import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const PT = path.join(PLUGIN, "scripts", "pt.mjs");
-const FIXTURE = path.join(PLUGIN, "app", "fixtures", "queue", "model.json");
+const FIXTURE = path.join(PLUGIN, "starters", "iso-flow", "model.json");
 const good = () => JSON.parse(fs.readFileSync(FIXTURE, "utf8"));
 /** The fixture with one edit, checked. */
 const broken = (edit, options) => { const m = good(); edit(m); return checkModel(m, options); };
@@ -50,6 +50,14 @@ test("a figure holds two to nine entities, at most four of them hued", () => {
   const long = broken((m) => { m.entities[0].label = "A label that is far too long to fit"; });
   assert.deepEqual(long.errors, []);
   assert.match(long.warnings[0], /label is 35 characters/);
+});
+
+test("a note is short, and groups are for every entity or none", () => {
+  has(broken((m) => { m.entities[0].note = "x".repeat(37); }), /entity 'app': note is 37 characters, over 36/);
+  has(broken((m) => { m.entities[0].note = " "; }), /entity 'app': note is empty/);
+  has(broken((m) => { m.entities[0].group = "Before"; }), /some entities have a group and some have none: every one, or none/);
+  has(broken((m) => { m.entities.forEach((e, i) => { e.group = `side ${i % 4}`; }); }), /4 groups: a figure sets at most 3 arrangements side by side/);
+  assert.deepEqual(broken((m) => { m.entities.forEach((e, i) => { e.group = i < 2 ? "Before" : "After"; }); }).errors, []);
 });
 
 test("a flow joins two different entities and has a known kind", () => {

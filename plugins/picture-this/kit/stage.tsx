@@ -7,7 +7,7 @@ import { createContext, useContext, useEffect, useId, useMemo, useRef, useState,
 import type { ReactNode } from "react";
 import "./kit.css";
 import type { Audience, Model } from "./model";
-import { caption, firstBeatOf, firstBeatWith, flowing, hasTechnical, inFocus, told } from "./model";
+import { caption, firstBeatOf, firstBeatWith, flowing, hasTechnical, inFocus, leads, told } from "./model";
 import type { Clock, Frame, Timeline } from "./timeline";
 import { clamp, createClock, createTimeline, ease, frameAt, lap, lerp, outro, since, timeOf } from "./timeline";
 
@@ -55,6 +55,8 @@ export type Figure = {
   moving(flowId: string): number;
   /** Where a pulse on this flow is along its wire: 0 to 1, in whole laps per beat. */
   phase(laps?: number, offset?: number): number;
+  /** Is this the one thing the beat is about? 0 to 1: it is what the beat's leading flow arrives at. */
+  arriving(entityId: string): number;
 };
 
 const FigureContext = createContext<Figure | null>(null);
@@ -80,6 +82,8 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
   };
   const leaving = outro(tl, frame);
   const opening = model.beats[0].id;
+  const leading = leads(model);
+  const moving = (id: string) => blend((b) => (!b.rest && flowing(model, b.id, id) ? 1 : 0));
   return {
     model, tl, frame, audience, unit,
     here(id) {
@@ -91,9 +95,21 @@ function describe(model: Model, tl: Timeline, frame: Frame, audience: Audience, 
       const first = build ? firstBeatOf(model, id) : opening;
       return (first ? since(tl, frame, first, 900) : 1) * leaving;
     },
-    moving(id) { return blend((b) => (!b.rest && flowing(model, b.id, id) ? 1 : 0)); },
+    moving,
+    arriving(id) { return Math.max(0, ...model.flows.filter((fl) => fl.to === id && leading.has(fl.id)).map((fl) => moving(fl.id))); },
     phase(laps = 1, offset = 0) { return lap(frame, laps, offset); },
   };
+}
+
+/**
+ * Draw what is inside at one held frame, whatever the clock says: a panel of
+ * a series, a "before" that stays still beside an "after" that moves. With
+ * `build`, only what has arrived by that frame is drawn.
+ */
+export function Hold({ beat, at = 0.5, build = false, children }: { beat: string; at?: number; build?: boolean; children: ReactNode }) {
+  const f = useFigure();
+  const held = useMemo(() => describe(f.model, f.tl, frameAt(f.tl, timeOf(f.tl, beat, at)), f.audience, f.unit, build), [f.model, f.tl, f.audience, f.unit, beat, at, build]);
+  return <FigureContext.Provider value={held}>{children}</FigureContext.Provider>;
 }
 
 type Capture = { beats: string[]; seek(beat: string, at?: number): Promise<void> };
@@ -106,7 +122,13 @@ const readyKey = (frame: Frame) => `${frame.beat.id}:${frame.p.toFixed(3)}`;
 export function Stage({
   model, viewBox, unit = 40, children,
   theme, beat, at, still = false, audience: audienceProp = "plain", captions = true, controls = true, autoplay = true, build = false, className,
-}: StageProps & { model: Model; viewBox: ViewBox; unit?: number; children: ReactNode }) {
+}: StageProps & {
+  model: Model;
+  /** The art's own coordinates. Left out, the figure draws HTML (cards and threads) and takes its height from it. */
+  viewBox?: ViewBox;
+  unit?: number;
+  children: ReactNode;
+}) {
   const tl = useMemo(() => createTimeline(model.beats.map((b) => ({ id: b.id, ms: b.ms, rest: b.rest }))), [model]);
   const start = useMemo(() => timeOf(tl, beat ?? model.hero.beat, at ?? model.hero.at ?? 0.5), [tl, model, beat, at]);
   const clock: Clock = useMemo(() => createClock(tl, { at: start }), [tl, start]);
@@ -205,11 +227,17 @@ export function Stage({
       aria-labelledby={label}
     >
       <div className="pt-scroll">
-        <div className="pt-canvas" style={{ aspectRatio: `${viewBox.width} / ${viewBox.height}` }}>
-          <svg className="pt-art" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`} role="img" aria-label={model.title}>
+        {viewBox ? (
+          <div className="pt-canvas" style={{ aspectRatio: `${viewBox.width} / ${viewBox.height}` }}>
+            <svg className="pt-art" viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`} role="img" aria-label={model.title}>
+              <FigureContext.Provider value={figure}>{children}</FigureContext.Provider>
+            </svg>
+          </div>
+        ) : (
+          <div className="pt-canvas pt-flat" role="img" aria-label={model.title}>
             <FigureContext.Provider value={figure}>{children}</FigureContext.Provider>
-          </svg>
-        </div>
+          </div>
+        )}
       </div>
 
       {captions ? (

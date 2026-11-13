@@ -33,13 +33,16 @@ export function Label({
   const [x, y] = project(at, f.unit);
   const tx = x + dx, ty = y + dy;
   const above = dy < 0;
-  // The leader stops short of the text: under its last line when the text is above, over its first when below.
-  const stop = above ? ty + (sub ? 20 : 6) : ty - 13;
+  // The leader stops short of the text: under its last line when the text is
+  // above, over its first when below, and at its near end when it is to the side.
+  const sideways = Math.abs(dx) > Math.abs(dy) * 1.5;
+  const sx = sideways ? tx + (dx < 0 ? 7 : -7) : tx;
+  const stop = sideways ? ty - 4 : above ? ty + (sub ? 20 : 6) : ty - 13;
   const text = title ?? found?.label ?? "";
   const dot = found?.hue ? `var(--pt-hue-${found.hue})` : undefined;
   return (
     <g opacity={r3(h * (0.62 + 0.38 * l))} data-label={entity}>
-      <path className="pt-leader" d={`M ${x} ${y} L ${tx} ${stop}`} />
+      <path className="pt-leader" d={`M ${x} ${y} L ${sx} ${stop}`} />
       <circle className="pt-dot" cx={x} cy={y} r={found?.hue ? 2.75 : 1.75} style={dot ? { fill: dot } : undefined} />
       <text className="pt-label" x={tx} y={ty} textAnchor={anchor}>{text}</text>
       {sub ? <text className="pt-label pt-label-sub" x={tx} y={ty + 14} textAnchor={anchor}>{sub}</text> : null}

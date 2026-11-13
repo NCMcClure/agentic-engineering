@@ -9,7 +9,7 @@ import os from "node:os";
 import path from "node:path";
 
 // What the app needs to run; everything else in app/ stays in the plugin.
-export const SOURCE_DIRS = ["src", "fixtures"];
+export const SOURCE_DIRS = ["src"];
 export const SOURCE_FILES = ["index.html", "vite.config.mjs", "capture.mjs", "package.json", "package-lock.json"];
 const HEALTH_TIMEOUT_MS = 5000;
 const STAMP = ".install-stamp";
@@ -78,8 +78,8 @@ export function installState(home, pluginRoot) {
 }
 
 /**
- * Replace the install home's copy of the app sources, and give its fixtures
- * the kit they draw with. node_modules and the stamps are left alone.
+ * Replace the install home's copy of the app sources and of the starters,
+ * which the studio shows as fixtures, with the kit they draw with. node_modules and the stamps are left alone.
  */
 export function syncSources(home, pluginRoot) {
   const from = path.join(pluginRoot, "app"), to = homeLayout(home).app;
@@ -89,6 +89,9 @@ export function syncSources(home, pluginRoot) {
     fs.cpSync(path.join(from, dir), path.join(to, dir), { recursive: true });
   }
   for (const file of SOURCE_FILES) fs.copyFileSync(path.join(from, file), path.join(to, file));
+  // The fixtures the gallery shows are the starters, drawing with the plugin's own kit.
+  fs.rmSync(path.join(to, "fixtures"), { recursive: true, force: true });
+  fs.cpSync(path.join(pluginRoot, "starters"), path.join(to, "fixtures"), { recursive: true });
   fs.cpSync(path.join(pluginRoot, "kit"), path.join(to, "fixtures", "kit"), { recursive: true });
 }
 

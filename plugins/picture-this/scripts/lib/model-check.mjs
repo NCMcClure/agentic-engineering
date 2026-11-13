@@ -9,7 +9,7 @@ export const FLOW_KINDS = ["write", "read", "event", "query"];
 export const HUES = ["blue", "green", "violet", "yellow", "pink"];
 export const LIMITS = {
   entities: [2, 9], beats: [2, 7], hues: 4,
-  claim: 140, plain: 140, technical: 200, label: 28,
+  claim: 140, plain: 140, technical: 200, label: 28, note: 36, groups: 3,
   beatMs: [1200, 8000], restMs: [400, 4000], loopMs: 30000,
 };
 
@@ -80,12 +80,17 @@ export function checkModel(model, { repo = null, requireSource = false } = {}) {
     if (!text(e?.label)) bad(`entity '${e?.id}' has no label`);
     else if (e.label.length > LIMITS.label) warnings.push(`entity '${e.id}': label is ${e.label.length} characters, over ${LIMITS.label}, and may not fit`);
     if (!text(e?.kind)) bad(`entity '${e?.id}' has no kind`);
+    if (e?.note !== undefined && (!text(e.note) || e.note.length > LIMITS.note)) bad(`entity '${e.id}': note is ${text(e.note) ? `${e.note.length} characters, over ${LIMITS.note}` : "empty"}`);
+    if (e?.group !== undefined && !text(e.group)) bad(`entity '${e.id}': group is empty`);
     if (e?.hue !== undefined) {
       hued += 1;
       if (!HUES.includes(e.hue)) bad(`entity '${e.id}': hue '${e.hue}' is not one of ${HUES.join(", ")}`);
     }
     if (e) sourced(e, "entity");
   }
+  const grouped = new Set(entities.map((e) => e?.group).filter(Boolean));
+  if (grouped.size > LIMITS.groups) bad(`${grouped.size} groups: a figure sets at most ${LIMITS.groups} arrangements side by side`);
+  if (grouped.size && entities.some((e) => !e?.group)) bad("some entities have a group and some have none: every one, or none");
   if (hued > LIMITS.hues) bad(`${hued} entities carry a hue: at most ${LIMITS.hues}, the rest stay neutral`);
 
   const flows = list(model.flows);
