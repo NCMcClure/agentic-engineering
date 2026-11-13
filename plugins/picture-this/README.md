@@ -9,6 +9,15 @@ each a different kind of picture. You pick one, it gets finished, and you end
 up with a React component that drops into MDX and a pair of images for a
 plain README.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/iso-flow.dark.png">
+  <img alt="How an upload becomes a thumbnail. The API answers before the slow work starts, so an upload never waits on it." src="assets/iso-flow.light.png" width="880">
+</picture>
+
+That picture is one frame of the plugin's worked example, taken by the plugin.
+Live, it plays: the pulse travels, the story moves on to the next beat, and a
+strip under it pauses, steps, and scrubs. Its source is `starters/iso-flow/`.
+
 ## How it works
 
 Every figure starts as a **model**: the entities, the flows between them, and
