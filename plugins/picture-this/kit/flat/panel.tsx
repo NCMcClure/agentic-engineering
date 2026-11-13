@@ -79,7 +79,8 @@ export function Bar({ box, tone = "mid", accent = 0, marked = 0, here = 1, opaci
   const style = outline
     ? { fill: accent > 0 ? mix("var(--pt-accent-soft)", "var(--pt-top)", accent) : "var(--pt-top)", stroke: accent > 0 ? mix("var(--pt-accent)", "var(--pt-ink-2)", accent) : "var(--pt-ink-2)" }
     : { fill: accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted, stroke: line > 0 ? mix("var(--pt-accent)", "transparent", line) : "none" };
-  const dark = !outline && (accent > 0.5 || tone === "strong");
+  // Words on a bar are the page colour only where the bar is dark enough to carry them: not on a tinted one.
+  const dark = !outline && (accent > 0.5 || (tone === "strong" && marked < 0.5));
   return (
     <g opacity={r3(opacity)}>
       <rect className="pt-bar" x={r3(x) + (outline ? 0.5 : 0)} y={r3(y) + (outline ? 0.5 : 0)} width={Math.max(0, r3(w) - (outline ? 1 : 0))} height={Math.max(0, r3(h) - (outline ? 1 : 0))} rx={r} style={style} />
@@ -106,7 +107,7 @@ export function Tile({ box, label, share = 0, accent = 0, marked = 0, here = 1, 
   const base = tintAccent ? mix("var(--pt-accent)", "var(--pt-top)", share * 0.85) : mix("var(--pt-ink)", "var(--pt-top)", 0.06 + share * 0.5);
   const tinted = marked > 0 ? mix("var(--pt-accent-soft)", base, marked) : base;
   const fill = accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted;
-  const dark = accent > 0.5 || share > 0.7;
+  const dark = accent > 0.5 || (share > 0.7 && marked < 0.5);
   return (
     <g opacity={r3(here)}>
       <rect className="pt-cell" x={box.x} y={box.y} width={box.width} height={box.height} rx={2} style={{ fill, stroke: marked > 0 && accent <= 0 ? mix("var(--pt-accent)", "var(--pt-bg)", marked) : undefined }} />
