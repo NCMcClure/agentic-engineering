@@ -55,8 +55,9 @@ tiles, connectors, tokens, meters, ruled axes, grids of cells, isometric
 slabs, blocks, drums and wires. A shape is in the kit only if figures of
 unrelated subjects reached for it; what one subject alone needs (a key, a
 gear, a globe) is drawn in that figure. And it ships
-**studies**: eleven worked figures (a flow, a layer stack, a time grid, a
-field of cells, and so on) to learn a technique from. A draft starts on a
+**studies**: thirteen worked figures, at least one for each lens (a flow, a
+layer stack, a time grid, a field of cells, a sort, a scale model) to learn
+a technique from. A draft starts on a
 blank stage unless a study's view is exactly the view the subject wants.
 
 The look is one **house style**: monochrome with a single orange accent,

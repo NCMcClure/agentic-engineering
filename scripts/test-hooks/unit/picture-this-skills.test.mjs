@@ -184,3 +184,21 @@ test("the kit's README names every flat shape with what it is for, and the model
   const model = read("skills/visualize/references/model.md");
   for (const field of ["parent", "born", "repeat", "quantities", "data"]) assert.match(model, new RegExp(`^- \\*\\*\`${field}\`\\*\\*`, "m"), `${field} is documented`);
 });
+
+test("every lens has a study, and every flat shape is drawn by a figure the plugin ships", () => {
+  const lenses = read("skills/visualize/references/lenses.md");
+  for (const lens of LENSES) {
+    const row = lenses.match(new RegExp(`^\\| \\*\\*${lens}\\*\\* \\|.*$`, "m"))[0];
+    const named = [...row.split("|").at(-2).matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]);
+    assert.ok(named.length >= 1, `${lens} names a study`);
+    for (const name of named) {
+      const model = JSON.parse(read(`studies/${name}/model.json`));
+      if (!["layer-stack", "split", "case-loop"].includes(name)) assert.ok(model.lens, `${name} says its lens`);
+    }
+  }
+  // A shape nothing ships with is a shape nobody has looked at: each is used by a study.
+  const figures = fs.readdirSync(path.join(PLUGIN, "studies")).map((name) => read(`studies/${name}/figure.tsx`)).join("\n");
+  for (const shape of ["Panel", "Tile", "Elbow", "Line", "Token", "Queue", "Meter", "Axis", "Cells", "Lanes"]) {
+    assert.match(figures, new RegExp(`<${shape}[\\s/>]`), `${shape} is drawn by a study`);
+  }
+});

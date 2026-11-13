@@ -98,11 +98,14 @@ read its `figure.tsx` to see how a technique is done with the kit.
 | `series` | one small held panel per beat | any, as a still | holding frames with `Hold`, for a figure that must work printed |
 | `time-grid` | stages by ticks, a token per unit, trails left behind | time | mapping the clock to ticks, tokens that step together, a meter beside a grid |
 | `cell-field` | a table of cells tinted by value, filled in order | field | revealing cells with the clock, the accent on the cell being worked out |
+| `before-after` | a list, the rule, and the list it becomes, one element moved per step | transformation | tiles that move, `steps` for events inside a beat, a count kept in pips |
+| `two-rulers` | things at one scale of size over a ruler true to it, then a page that squeezes it | scale | an `Axis` that rescales, joins between one thing in two places, labels with no dot |
 | `iso-flow-3d` | the isometric flow, lit | path | the 3D tier: materials, flat labels over a canvas |
 | `layer-stack-3d` | the layer stack in frosted glass | structure | glass, and lifting in 3D |
 
-Transformation and scale have no study yet. Their views are drawn on the
-blank stage, like any view a study does not cover.
+Every lens has at least one study. That is one worked figure per lens, not
+the lens's picture: a lens has many views, and most subjects want one no
+study draws.
 
 ## Choosing three
 

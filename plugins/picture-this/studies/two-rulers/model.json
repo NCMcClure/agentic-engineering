@@ -1,0 +1,242 @@
+{
+  "schema": 1,
+  "title": "How empty the solar system is",
+  "mechanism": "Shrink the Sun to a football and Earth becomes a peppercorn 24 metres away, with Neptune a pea 710 metres off.",
+  "lens": "scale",
+  "claim": "The solar system is nearly all gap, so no single picture can show the planets' sizes and their distances at one scale.",
+  "implication": "A diagram that fits a page keeps the sizes and squeezes the distances about seven hundred times.",
+  "entities": [
+    {
+      "id": "sun",
+      "label": "Sun",
+      "kind": "star",
+      "note": "a football, 22 cm"
+    },
+    {
+      "id": "mercury",
+      "label": "Mercury",
+      "kind": "planet",
+      "note": "a grain of sand, 9 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "venus",
+      "label": "Venus",
+      "kind": "planet",
+      "note": "a peppercorn, 17 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "earth",
+      "label": "Earth",
+      "kind": "planet",
+      "note": "a peppercorn, 24 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "mars",
+      "label": "Mars",
+      "kind": "planet",
+      "note": "a pinhead, 36 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "jupiter",
+      "label": "Jupiter",
+      "kind": "planet",
+      "note": "a grape, 123 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "saturn",
+      "label": "Saturn",
+      "kind": "planet",
+      "note": "a smaller grape, 225 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "uranus",
+      "label": "Uranus",
+      "kind": "planet",
+      "note": "a pea, 454 m out",
+      "parent": "sun"
+    },
+    {
+      "id": "neptune",
+      "label": "Neptune",
+      "kind": "planet",
+      "note": "a pea, 710 m out",
+      "parent": "sun"
+    }
+  ],
+  "flows": [],
+  "quantities": [
+    {
+      "id": "reach",
+      "label": "Distance in view",
+      "of": "sun",
+      "unit": "metres",
+      "max": 710,
+      "start": 1,
+      "values": {
+        "sizes": 1,
+        "inner": 36,
+        "giants": 225,
+        "edge": 710,
+        "page": 710
+      }
+    }
+  ],
+  "data": {
+    "bodies": [
+      {
+        "id": "sun",
+        "of": "sun",
+        "km": 1392000,
+        "mm": 220,
+        "au": 0,
+        "m": 0
+      },
+      {
+        "id": "mercury",
+        "of": "mercury",
+        "km": 4879,
+        "mm": 0.8,
+        "au": 0.39,
+        "m": 9
+      },
+      {
+        "id": "venus",
+        "of": "venus",
+        "km": 12104,
+        "mm": 1.9,
+        "au": 0.72,
+        "m": 17
+      },
+      {
+        "id": "earth",
+        "of": "earth",
+        "km": 12742,
+        "mm": 2,
+        "au": 1,
+        "m": 24
+      },
+      {
+        "id": "mars",
+        "of": "mars",
+        "km": 6779,
+        "mm": 1.1,
+        "au": 1.52,
+        "m": 36
+      },
+      {
+        "id": "jupiter",
+        "of": "jupiter",
+        "km": 139820,
+        "mm": 22,
+        "au": 5.2,
+        "m": 123
+      },
+      {
+        "id": "saturn",
+        "of": "saturn",
+        "km": 116460,
+        "mm": 18,
+        "au": 9.54,
+        "m": 225
+      },
+      {
+        "id": "uranus",
+        "of": "uranus",
+        "km": 50724,
+        "mm": 8,
+        "au": 19.19,
+        "m": 454
+      },
+      {
+        "id": "neptune",
+        "of": "neptune",
+        "km": 49244,
+        "mm": 7.8,
+        "au": 30.07,
+        "m": 710
+      }
+    ],
+    "page-crush": [
+      710
+    ]
+  },
+  "beats": [
+    {
+      "id": "sizes",
+      "title": "Sizes, at one scale",
+      "plain": "On a ruler one metre long the Sun is a football, and at that scale Jupiter and Saturn are grapes and Earth is a peppercorn.",
+      "focus": [
+        "sun",
+        "jupiter",
+        "saturn",
+        "earth"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "inner",
+      "title": "The inner four",
+      "plain": "Run the ruler out to 36 metres and the four rocky planets are on it, each a speck, with the football shrunk to a dot.",
+      "focus": [
+        "sun",
+        "mercury",
+        "venus",
+        "earth",
+        "mars"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "giants",
+      "title": "Out to the giants",
+      "plain": "Jupiter is 123 metres out and Saturn 225, and the inner four have closed up toward the Sun.",
+      "focus": [
+        "jupiter",
+        "saturn"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "edge",
+      "title": "The edge",
+      "plain": "Uranus is at 454 metres and Neptune at 710, a pea too far off to see from the football.",
+      "focus": [
+        "uranus",
+        "neptune"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "page",
+      "title": "What a page does",
+      "plain": "To fit a page, a diagram keeps the sizes and draws those 710 metres in the room of one.",
+      "focus": [
+        "sun",
+        "neptune"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1500
+    }
+  ],
+  "hero": {
+    "beat": "page",
+    "at": 0.5
+  }
+}

@@ -104,14 +104,15 @@ export function Tile({ box, label, share = 0, accent = 0, marked = 0, here = 1, 
 }) {
   if (here <= 0) return null;
   if (empty) return <rect className="pt-guide" x={box.x + 0.5} y={box.y + 0.5} width={box.width - 1} height={box.height - 1} rx={2} opacity={r3(here)} />;
-  const base = tintAccent ? mix("var(--pt-accent)", "var(--pt-top)", share * 0.85) : mix("var(--pt-ink)", "var(--pt-top)", 0.06 + share * 0.5);
+  // The darkest tint stays light enough for a numeral in ink to read on it, in both themes.
+  const base = tintAccent ? mix("var(--pt-accent)", "var(--pt-top)", share * 0.85) : mix("var(--pt-ink)", "var(--pt-top)", 0.06 + share * 0.38);
   const tinted = marked > 0 ? mix("var(--pt-accent-soft)", base, marked) : base;
   const fill = accent > 0 ? mix("var(--pt-accent)", tinted, accent) : tinted;
-  const dark = accent > 0.5 || (share > 0.7 && marked < 0.5);
+  const dark = accent > 0.5 || (tintAccent && share > 0.7 && marked < 0.5);
   return (
     <g opacity={r3(here)}>
       <rect className="pt-cell" x={box.x} y={box.y} width={box.width} height={box.height} rx={2} style={{ fill, stroke: marked > 0 && accent <= 0 ? mix("var(--pt-accent)", "var(--pt-bg)", marked) : undefined }} />
-      {label !== undefined ? <text className="pt-num" x={r3(box.x + box.width / 2)} y={r3(box.y + box.height / 2 + size * 0.36)} textAnchor="middle" style={{ fill: dark ? "var(--pt-bg)" : undefined, fontSize: size }}>{label}</text> : null}
+      {label !== undefined ? <text className="pt-num" x={r3(box.x + box.width / 2)} y={r3(box.y + box.height / 2 + size * 0.36)} textAnchor="middle" style={{ fill: dark ? "var(--pt-bg)" : "var(--pt-ink)", fontSize: size }}>{label}</text> : null}
     </g>
   );
 }

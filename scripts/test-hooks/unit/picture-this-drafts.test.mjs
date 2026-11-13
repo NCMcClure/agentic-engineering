@@ -21,10 +21,10 @@ const STUDIES = path.join(PLUGIN, "studies");
 const BLANK_STAGE = path.join(PLUGIN, "blank", "figure.tsx");
 const MODEL = fs.readFileSync(path.join(STUDIES, "iso-flow", "model.json"), "utf8");
 const read = (...parts) => fs.readFileSync(path.join(...parts), "utf8");
-const NAMES = ["card-flow", "case-loop", "cell-field", "iso-flow", "iso-flow-3d", "layer-stack", "layer-stack-3d", "series", "split", "staged-build", "time-grid"];
+const NAMES = ["before-after", "card-flow", "case-loop", "cell-field", "iso-flow", "iso-flow-3d", "layer-stack", "layer-stack-3d", "series", "split", "staged-build", "time-grid", "two-rulers"];
 const IN_3D = ["iso-flow-3d", "layer-stack-3d"];
 /** The studies that draw the worked example every path study shares; the others bring a subject of their own. */
-const OWN_SUBJECT = ["cell-field", "time-grid"];
+const OWN_SUBJECT = ["before-after", "cell-field", "time-grid", "two-rulers"];
 
 function world(t) {
   const { dir, git } = tempRepo(t, "pt-drafts-");
@@ -178,7 +178,7 @@ test("draft new refuses a round it could not compare fairly, before it writes an
   const w = world(t);
   const refused = async (args, pattern) => assert.rejects(() => quiet(() => draft(args, { cwd: w.repo })), (e) => e instanceof PtError && e.code === 2 && pattern.test(e.message), args.join(" "));
   await refused(["new"], /usage: node pt\.mjs draft new/);
-  await refused(["new", "--model", "model.json", "--views", "path,plan=blueprint"], /no study 'blueprint': there is card-flow, case-loop, cell-field, iso-flow.*A view with no study starts on the blank stage: leave the =<study> off/);
+  await refused(["new", "--model", "model.json", "--views", "path,plan=blueprint"], /no study 'blueprint': there is before-after, card-flow, case-loop, cell-field, iso-flow.*A view with no study starts on the blank stage: leave the =<study> off/);
   await refused(["new", "--model", "model.json", "--views", "path,iso-flow"], /'iso-flow' is a study's name, not a view of this subject: name the view for what it draws, and write <view>=iso-flow/);
   await refused(["new", "--model", "model.json", "--views", "path,Time Grid"], /is not a view name/);
   await refused(["new", "--model", "model.json", "--views", "path,ledger="], /is not a view: <view>, or <view>=<study>/);

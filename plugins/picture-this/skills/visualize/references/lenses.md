@@ -38,10 +38,10 @@ need a second, and section 3 says where it goes.
 | **path** | Where does it go? | it passes through places you cannot follow | the places, in the arrangement they really have, and a line for each hop | something travels the hop being told | `iso-flow`, `card-flow`, `staged-build` |
 | **time** | What happens when? | it is too fast, too slow, or several things overlap | time drawn as an axis: stages by ticks with a token per unit of work; or a record that scrolls; or a level that rises against its limit and is reset | everything steps with the clock, together | `time-grid` |
 | **field** | How much, and where? | it is a quantity spread over a space | a grid of cells tinted by value, or a surface standing over a plane | the value changes, or a marker travels over it | `cell-field` |
-| **transformation** | What does it turn into? | the before and the after are never seen together | both in one frame, with the rule drawn between them | the rule applied to one element, then the next | none yet |
+| **transformation** | What does it turn into? | the before and the after are never seen together | both in one frame, with the rule drawn between them | the rule applied to one element, then the next | `before-after` |
 | **difference** | How do these two differ? | you only ever see one of them | the same parts drawn twice, side by side, in the same vocabulary | the story tells one, then the other | `split` |
 | **cases** | What happens if? | it branches | one small tile per case | only the tile being told | `case-loop` |
-| **scale** | What is inside this? | it is too small, or there are too many | the whole, a ring around one region, and that region enlarged beside it | the ring travels, or the enlargement opens | none yet |
+| **scale** | How big, how far, what is inside? | it is too small, too large, or there are too many | the whole, a ring around one region, and that region enlarged beside it; or the same things on a true scale and a squeezed one | the ring travels, or the enlargement opens | `two-rulers` |
 
 The view column is a place to start thinking, not a menu. The subject decides
 the picture: its own shape, its own numbers, its own order. A study is one
