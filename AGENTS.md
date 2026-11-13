@@ -14,6 +14,12 @@ enforces.
 
 - `.agents/rules/` - this repo's own rules. `dev-rules.md` is the contract
   imported above.
+- `.agents/picture-this.json`, `.agents/picture-this/figures/` - the figures
+  this repo draws of its own plugins: each one's source (a React component
+  and the model it draws) and the picture-this kit beside them. Their stills
+  go into the plugin they illustrate; no plugin ships the source. A model's
+  sources name its plugin, and `pt still <figure> --gif --dark --out
+  plugins/<plugin>/assets/figures` retakes what that plugin's README shows.
 - `.claude-plugin/marketplace.json` - the catalog. One entry per plugin, never a
   `version` key.
 - `plugins/` - the shipped plugins, one self-contained directory each. Its

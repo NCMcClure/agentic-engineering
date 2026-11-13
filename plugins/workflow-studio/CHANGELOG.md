@@ -1,5 +1,6 @@
 # Changelog
 
+- **1.0.1**: The README shows how a graph on disk becomes a workflow Claude Code runs: `assets/figures/two-folders`, a looping GIF in light and dark. Nothing the plugin runs changed.
 - **1.0.0**: The launcher is Node, not bash: `scripts/launch-studio.mjs` replaces `launch-studio.sh`, with the same three arguments, the same messages, and the same install home and stamp, so an existing install is reused as it is. It starts the app the same way on macOS, Linux and Windows, passes a stop signal on to the dev server, and gives a studio that holds the lock but does not answer five seconds before treating the lock as stale. The app itself is unchanged.
 - **0.5.0**: Architecture + polish release. Canvas logic decomposed into deep,
   unit-testable modules: `graph/document.ts` (pure node/edge operations),

@@ -27,6 +27,11 @@ four layers apply the same rules:
 command in a chain is judged in the repo it will run in (`cd`, `git -C`,
 `bash -c`, `sudo`), and the strictest verdict wins.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/four-commands-one-answer.dark.gif">
+  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="assets/figures/four-commands-one-answer.gif" width="720">
+</picture>
+
 | Action | Verdict |
 |---|---|
 | Commit or push on a protected branch | refused |

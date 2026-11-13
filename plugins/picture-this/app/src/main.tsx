@@ -13,7 +13,8 @@ import type { ComponentType, ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 
 type Model = { title?: string; claim?: string; beats?: { id: string; title?: string; plain?: string; technical?: string; rest?: boolean }[]; hero?: { beat: string; at?: number } };
-type Entry = { id: string; kind: "figure" | "draft" | "fixture"; dir: string; url: string; model: Model | null; problem: string | null };
+type View = { view?: string; base?: string; drawn?: string; moves?: string; means?: string };
+type Entry = { id: string; kind: "figure" | "draft" | "fixture"; dir: string; url: string; model: Model | null; problem: string | null; view?: View | null };
 type FigureProps = {
   theme?: "light" | "dark";
   beat?: string;
@@ -134,6 +135,7 @@ function Sheet({ entry }: { entry: Entry }) {
   const columns = Math.min(beats.length, Number(query.get("columns")) || (beats.length > 4 ? 3 : 2));
   return (
     <main className="studio-sheet" data-pt-sheet={entry.id} style={{ width: columns * (width + 24) + 24 }}>
+      {captions && entry.view?.view ? <Stated view={entry.view} /> : null}
       <div className="studio-cells" style={{ gridTemplateColumns: `repeat(${columns}, ${width}px)` }}>
         {beats.map((beat, index) => (
           <section key={beat.id} className="studio-cell" data-pt-cell={beat.id}>
@@ -143,6 +145,21 @@ function Sheet({ entry }: { entry: Entry }) {
         ))}
       </div>
     </main>
+  );
+}
+
+/**
+ * A draft's view in its own words, over its sheet: what is drawn, what moves,
+ * what each visual property means. Left off the caption-free sheet, which a
+ * cold reader must read without being told.
+ */
+function Stated({ view }: { view: View }) {
+  const said = ([["drawn", view.drawn], ["moves", view.moves], ["means", view.means]] as const).filter(([, text]) => text && text.trim());
+  return (
+    <header className="studio-view" data-pt-view={view.view}>
+      <h1>{view.view}<span>{view.base && view.base !== "blank" ? `from the ${view.base} study` : "drawn on the blank stage"}</span></h1>
+      {said.length ? <dl>{said.map(([key, text]) => <div key={key}><dt>{key}</dt><dd>{text}</dd></div>)}</dl> : <p>its view is not stated yet</p>}
+    </header>
   );
 }
 

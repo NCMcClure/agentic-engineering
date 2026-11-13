@@ -30,7 +30,7 @@ const CLAUDE_MD = "# fixture\n\n## Team workflow rules\n\n- Full checklist: `.cl
 const SETTINGS = '{\n  "permissions": { "deny": ["Bash(git push --force:*)"] }\n}\n';
 
 const node = (code) => `"${process.execPath}" -e "${code}"`;
-const FAILING = node("console.log('1 failing: adds two numbers'); process.exit(1)");
+const FAILING = node("console.log('1 failing: adds two numbers'); process.exitCode = 1");
 
 const env = (dir) => ({ ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: dir, CLAUDE_PLUGIN_DATA: "", TMPDIR: TMP });
 const read = (dir, rel) => fs.readFileSync(path.join(dir, rel), "utf8");

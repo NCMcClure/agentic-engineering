@@ -47,6 +47,11 @@ swaps the status label, sets the Project board's Status). `check` exits 0
 only when a node is done and every surface agrees. The markdown is written
 first, so a tracker that cannot be reached is a warning, never a failure.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/folders-climb.dark.gif">
+  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="assets/figures/folders-climb.gif" width="720">
+</picture>
+
 ## What lands in your repo
 
 ```

@@ -1,0 +1,303 @@
+{
+  "schema": 1,
+  "title": "How a code change drags its docs along",
+  "mechanism": "The checker reads each changed file through the surface map, and a surface whose code moved while its pages and shots did not is handed back to the agent.",
+  "lens": "transformation",
+  "claim": "Docs ride in the same change as the code: a surface whose code moved without its pages or shots is caught before the turn ends.",
+  "implication": "Map each surface narrowly, and the only way past the check is to update the docs or write down why not.",
+  "entities": [
+    {
+      "id": "diff",
+      "label": "This change",
+      "kind": "diff",
+      "note": "every file changed since HEAD",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:455"
+    },
+    {
+      "id": "surface",
+      "label": "Surface: export",
+      "kind": "map",
+      "note": "one thing a reader meets",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:466"
+    },
+    {
+      "id": "code",
+      "label": "Code",
+      "kind": "glob",
+      "note": "src/export/**",
+      "parent": "surface",
+      "hue": "blue",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:469"
+    },
+    {
+      "id": "pages",
+      "label": "Pages",
+      "kind": "glob",
+      "note": "docs/exporting.md",
+      "parent": "surface",
+      "hue": "green",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:471"
+    },
+    {
+      "id": "shots",
+      "label": "Shots",
+      "kind": "glob",
+      "note": "docs/images/export/**",
+      "parent": "surface",
+      "hue": "green",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:472"
+    },
+    {
+      "id": "checker",
+      "label": "docs-check",
+      "kind": "script",
+      "note": "--changed HEAD",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:462"
+    },
+    {
+      "id": "stophook",
+      "label": "Stop hook",
+      "kind": "hook",
+      "note": "tells the agent once",
+      "source": "plugins/docs-parity/hooks/stop-check.mjs:94"
+    },
+    {
+      "id": "agent",
+      "label": "Agent",
+      "kind": "agent",
+      "note": "still holding the change",
+      "source": "plugins/docs-parity/hooks/stop-check.mjs:112"
+    }
+  ],
+  "flows": [
+    {
+      "id": "match-code",
+      "from": "diff",
+      "to": "code",
+      "kind": "query",
+      "label": "matches",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:469"
+    },
+    {
+      "id": "match-pages",
+      "from": "diff",
+      "to": "pages",
+      "kind": "query",
+      "label": "no match",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:471"
+    },
+    {
+      "id": "match-shots",
+      "from": "diff",
+      "to": "shots",
+      "kind": "query",
+      "label": "no match",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:472"
+    },
+    {
+      "id": "flag",
+      "from": "surface",
+      "to": "checker",
+      "kind": "event",
+      "label": "PARITY_MISSING",
+      "source": "plugins/docs-parity/scripts/docs-check.mjs:475"
+    },
+    {
+      "id": "findings",
+      "from": "checker",
+      "to": "stophook",
+      "kind": "read",
+      "label": "findings",
+      "source": "plugins/docs-parity/hooks/stop-check.mjs:50"
+    },
+    {
+      "id": "tell",
+      "from": "stophook",
+      "to": "agent",
+      "kind": "event",
+      "label": "additionalContext",
+      "source": "plugins/docs-parity/hooks/stop-check.mjs:112"
+    },
+    {
+      "id": "rewrite",
+      "from": "agent",
+      "to": "pages",
+      "kind": "write",
+      "label": "rewrite",
+      "source": "plugins/docs-parity/skills/docs-sync/SKILL.md:36"
+    },
+    {
+      "id": "retake",
+      "from": "agent",
+      "to": "shots",
+      "kind": "write",
+      "label": "retake",
+      "source": "plugins/docs-parity/skills/docs-sync/SKILL.md:51"
+    }
+  ],
+  "data": {
+    "changed": [
+      {
+        "id": "c1",
+        "label": "src/export/menu.tsx",
+        "of": "code",
+        "at": "change"
+      },
+      {
+        "id": "c2",
+        "label": "docs/exporting.md",
+        "of": "pages",
+        "at": "page-first"
+      },
+      {
+        "id": "c3",
+        "label": "docs/images/export/format.png",
+        "of": "shots",
+        "at": "catch-up"
+      },
+      {
+        "id": "c4",
+        "label": "docs/images/export/format.dark.png",
+        "of": "shots",
+        "at": "catch-up"
+      }
+    ],
+    "outcomes": [
+      {
+        "id": "o1",
+        "of": "surface",
+        "at": "flagged",
+        "code": "moved",
+        "docs": "neither",
+        "verdict": "PARITY_MISSING",
+        "severity": "warning"
+      },
+      {
+        "id": "o2",
+        "of": "surface",
+        "at": "page-first",
+        "code": "moved",
+        "docs": "pages only",
+        "verdict": "SHOTS_UNCHANGED",
+        "severity": "info"
+      },
+      {
+        "id": "o3",
+        "of": "surface",
+        "at": "catch-up",
+        "code": "moved",
+        "docs": "pages and shots",
+        "verdict": "none",
+        "severity": "clean"
+      },
+      {
+        "id": "o4",
+        "of": "surface",
+        "at": "flagged",
+        "code": "moved",
+        "docs": "Docs: none, <why>",
+        "verdict": "PARITY_MISSING",
+        "severity": "info"
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "map",
+      "title": "The map",
+      "plain": "Each part of the product a reader meets is a surface, tied to its code, its pages and its screenshots.",
+      "technical": "A surface in .agents/docs-parity.json: code, pages and shots globs, and a capture group to retake.",
+      "focus": [
+        "surface",
+        "code",
+        "pages",
+        "shots"
+      ],
+      "flows": [],
+      "ms": 3400
+    },
+    {
+      "id": "change",
+      "title": "Code moves",
+      "plain": "The agent edits the export menu. The changed file falls inside the export surface's code.",
+      "technical": "changedFiles(root, \"HEAD\") lists src/export/menu.tsx, and it matches the surface's code glob src/export/**.",
+      "focus": [
+        "diff",
+        "code"
+      ],
+      "flows": [
+        "match-code"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "flagged",
+      "title": "Docs stood still",
+      "plain": "As the turn ends, a hook runs the checker. The code changed but no page or screenshot did, so the surface is flagged.",
+      "technical": "stop-check.mjs runs docs-check --changed HEAD; checkChanged finds nothing under pages or shots: PARITY_MISSING, a warning.",
+      "focus": [
+        "pages",
+        "shots",
+        "checker"
+      ],
+      "flows": [
+        "match-pages",
+        "match-shots",
+        "flag"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "told",
+      "title": "A note, not a block",
+      "plain": "The finding reaches the agent as a note and its turn goes on once more. Nothing is blocked, and the same finding is not repeated.",
+      "technical": "The hook returns additionalContext, which continues the turn once; firstTelling stays quiet on the same findings text for the session.",
+      "focus": [
+        "stophook",
+        "agent"
+      ],
+      "flows": [
+        "findings",
+        "tell"
+      ],
+      "ms": 4600
+    },
+    {
+      "id": "page-first",
+      "title": "One page is enough to pass",
+      "plain": "The agent rewrites the page. One changed page or screenshot clears the warning; the missing screenshots are only a quiet reminder.",
+      "technical": "docs/exporting.md matches pages, so PARITY_MISSING is gone; shots are mapped and none changed: SHOTS_UNCHANGED, info only.",
+      "focus": [
+        "pages"
+      ],
+      "flows": [
+        "rewrite"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "catch-up",
+      "title": "Shots retaken",
+      "plain": "The agent retakes the screenshots too, and the checker comes back clean, in the same change as the code.",
+      "technical": "Capture group export rewrites format.png and format.dark.png; docs-sync reruns docs-check --changed HEAD: 0 findings, exit 0.",
+      "focus": [
+        "shots"
+      ],
+      "flows": [
+        "retake"
+      ],
+      "ms": 4000
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "told",
+    "at": 0.5
+  }
+}

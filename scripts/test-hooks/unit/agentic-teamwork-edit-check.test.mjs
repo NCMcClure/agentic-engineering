@@ -14,7 +14,7 @@ const HOME = tempDir(suite, "tw-edit-home-");
 const MANIFEST = { standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test" }, owned: {} };
 // A linter any shell can run: it fails a file that contains the word BAD.
 const LINTER = "tools/lint.cjs";
-const LINTER_SOURCE = "const text = require('fs').readFileSync(process.argv[2], 'utf8');\nif (text.includes('BAD')) { console.log(process.argv[2] + ': line 1: BAD is not allowed'); process.exit(1); }\n";
+const LINTER_SOURCE = "const text = require('fs').readFileSync(process.argv[2], 'utf8');\nif (text.includes('BAD')) { console.log(process.argv[2] + ': line 1: BAD is not allowed'); process.exitCode = 1; }\n";
 const lint = (file = "{file}") => `"${process.execPath}" ${LINTER} ${file}`;
 const COUPLED = [{ files: ["api/schema.json", "web/src/types.ts", "docs/api/*.md"], message: "The schema, its types and its pages describe one API." }];
 

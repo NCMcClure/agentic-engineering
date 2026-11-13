@@ -77,22 +77,60 @@ export function installState(home, pluginRoot) {
   };
 }
 
+const SOURCES_STAMP = ".sources-stamp";
+
+/** Every file under a folder, relative, sorted. */
+const filesIn = (dir) => fs.readdirSync(dir, { recursive: true }).map(String).filter((rel) => fs.statSync(path.join(dir, rel)).isFile()).sort();
+
+/** One hash over everything the install home copies from the plugin: unchanged sources hash the same. */
+function sourcesDigest(pluginRoot) {
+  const hash = createHash("sha256");
+  const add = (file, name) => { hash.update(name); hash.update("\0"); hash.update(fs.readFileSync(file)); };
+  for (const file of SOURCE_FILES) add(path.join(pluginRoot, "app", file), file);
+  for (const dir of [...SOURCE_DIRS.map((d) => path.join("app", d)), "studies", "blank", "kit"]) {
+    for (const rel of filesIn(path.join(pluginRoot, dir))) add(path.join(pluginRoot, dir, rel), `${dir}/${rel}`);
+  }
+  return hash.digest("hex");
+}
+
 /**
- * Replace the install home's copy of the app sources and of the starters,
- * which the studio shows as fixtures, with the kit they draw with. node_modules and the stamps are left alone.
+ * Bring the install home's copy of the app sources up to date, and of the
+ * studies and the blank stage, which the studio shows as fixtures, with the
+ * kit they draw with. node_modules and the install stamps are left alone.
+ * Nothing is touched when the copy is already current, so several commands
+ * taking pictures at once do not pull the files out from under each other;
+ * when it must change, each folder is built beside the old one and swapped in.
  */
 export function syncSources(home, pluginRoot) {
   const from = path.join(pluginRoot, "app"), to = homeLayout(home).app;
   fs.mkdirSync(to, { recursive: true });
-  for (const dir of SOURCE_DIRS) {
-    fs.rmSync(path.join(to, dir), { recursive: true, force: true });
-    fs.cpSync(path.join(from, dir), path.join(to, dir), { recursive: true });
-  }
+  const digest = sourcesDigest(pluginRoot);
+  // Current, and whole: every file the copy should hold is still there.
+  const expected = [
+    ...SOURCE_FILES,
+    ...SOURCE_DIRS.flatMap((dir) => filesIn(path.join(from, dir)).map((rel) => path.join(dir, rel))),
+    ...filesIn(path.join(pluginRoot, "studies")).map((rel) => path.join("fixtures", rel)),
+    ...filesIn(path.join(pluginRoot, "blank")).map((rel) => path.join("fixtures", "blank", rel)),
+    ...filesIn(path.join(pluginRoot, "kit")).map((rel) => path.join("fixtures", "kit", rel)),
+  ];
+  if (read(path.join(to, SOURCES_STAMP)) === digest && expected.every((rel) => fs.existsSync(path.join(to, rel)))) return;
+  const swap = (name, build) => {
+    const next = path.join(to, `.next-${name}-${process.pid}`), old = path.join(to, `.old-${name}-${process.pid}`);
+    fs.rmSync(next, { recursive: true, force: true });
+    build(next);
+    try { fs.renameSync(path.join(to, name), old); } catch { /* not there yet */ }
+    fs.renameSync(next, path.join(to, name));
+    fs.rmSync(old, { recursive: true, force: true });
+  };
+  for (const dir of SOURCE_DIRS) swap(dir, (next) => fs.cpSync(path.join(from, dir), next, { recursive: true }));
   for (const file of SOURCE_FILES) fs.copyFileSync(path.join(from, file), path.join(to, file));
-  // The fixtures the gallery shows are the starters, drawing with the plugin's own kit.
-  fs.rmSync(path.join(to, "fixtures"), { recursive: true, force: true });
-  fs.cpSync(path.join(pluginRoot, "starters"), path.join(to, "fixtures"), { recursive: true });
-  fs.cpSync(path.join(pluginRoot, "kit"), path.join(to, "fixtures", "kit"), { recursive: true });
+  // The fixtures the gallery shows are the studies and the blank stage, drawing with the plugin's own kit.
+  swap("fixtures", (next) => {
+    fs.cpSync(path.join(pluginRoot, "studies"), next, { recursive: true });
+    fs.cpSync(path.join(pluginRoot, "blank"), path.join(next, "blank"), { recursive: true });
+    fs.cpSync(path.join(pluginRoot, "kit"), path.join(next, "kit"), { recursive: true });
+  });
+  fs.writeFileSync(path.join(to, SOURCES_STAMP), digest + "\n");
 }
 
 /** The child's environment: PATH ends with this Node's folder, so `node` is found even when this script was started by full path. */
@@ -175,9 +213,14 @@ export async function runningPort(lockFile, repo, fetchImpl = globalThis.fetch) 
   } catch { return null; }
 }
 
-/** What the dev server is told about the repo it serves. */
-export function studioEnv(at) {
-  return { PT_REPO: at.repo, PT_FIGURES: at.figures, PT_DRAFTS: at.drafts };
+/**
+ * What the dev server is told about the repo it serves. `lock` is where it
+ * writes its port when it is not the repo's one studio: a server started for
+ * a single job keeps a lock of its own, so no other job finds it and is left
+ * holding its port when it stops.
+ */
+export function studioEnv(at, lock = null) {
+  return { PT_REPO: at.repo, PT_FIGURES: at.figures, PT_DRAFTS: at.drafts, ...(lock ? { PT_LOCK: lock } : {}) };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -189,18 +232,23 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function ensureServer({ at, studio, env = process.env, fetch: fetchImpl = globalThis.fetch, timeoutMs = 30000 }) {
   const running = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
   if (running !== null) return { port: running, stop: async () => {} };
-  fs.rmSync(at.lock, { force: true });
-  const child = spawn(process.execPath, [studio.vite], { cwd: studio.app, env: childEnv(env, studioEnv(at)), stdio: "ignore" });
+  // No studio is answering for this repo, so this job gets a server of its
+  // own, on a lock of its own. The repo's lock is left alone: it may belong
+  // to a studio too busy to answer just now, and two jobs taking pictures at
+  // once must not find, and then lose, each other's server.
+  const own = fs.mkdtempSync(path.join(os.tmpdir(), "pt-studio-"));
+  const lock = path.join(own, "lock");
+  const child = spawn(process.execPath, [studio.vite], { cwd: studio.app, env: childEnv(env, studioEnv(at, lock)), stdio: "ignore" });
   let exited = null;
   child.on("exit", (code) => { exited = code ?? 1; });
   child.on("error", () => { exited = 127; });
   const stop = async () => {
     if (exited === null) { child.kill("SIGTERM"); for (let i = 0; i < 40 && exited === null; i++) await sleep(50); }
-    fs.rmSync(at.lock, { force: true });
+    fs.rmSync(own, { recursive: true, force: true });
   };
   for (let waited = 0; waited < timeoutMs; waited += 150) {
     if (exited !== null) break;
-    const port = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
+    const port = fs.existsSync(lock) ? await runningPort(lock, at.repo, fetchImpl) : null;
     if (port !== null) return { port, stop };
     await sleep(150);
   }

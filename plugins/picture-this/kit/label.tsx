@@ -4,17 +4,17 @@
 // readable long before the geometry stops being pretty.
 import { useFigure } from "./stage";
 import { project } from "./iso/project";
-import type { P3 } from "./iso/project";
+import type { P2, P3 } from "./iso/project";
 
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
 
 export function Label({
-  entity, at, title, sub, dx = 0, dy = -46, anchor = "middle", here, lit,
+  entity, at, title, sub, dx = 0, dy = -46, anchor = "middle", here, lit, dot: withDot = true, leader = true,
 }: {
   /** The entity it names: the title, the hue of its dot, its arrival and focus come from the model. */
   entity?: string;
-  /** The ground point the leader starts from. */
-  at: P3;
+  /** Where the leader starts: a ground point [x, y, z], or, in a flat figure, a point on the page [x, y]. */
+  at: P3 | P2;
   title?: string;
   /** A second, quieter line: a role, a file, a number. */
   sub?: string;
@@ -24,13 +24,17 @@ export function Label({
   anchor?: "start" | "middle" | "end";
   here?: number;
   lit?: number;
+  /** The dot where the leader starts. Leave it off a thing smaller than the dot. */
+  dot?: boolean;
+  /** The hairline from the point to the words. Leave it off words that sit on the thing they name. */
+  leader?: boolean;
 }) {
   const f = useFigure();
   const found = entity ? f.model.entities.find((e) => e.id === entity) : undefined;
   const h = here ?? (entity ? f.here(entity) : 1);
   const l = lit ?? (entity ? f.lit(entity) : 1);
   if (h <= 0) return null;
-  const [x, y] = project(at, f.unit);
+  const [x, y] = at.length === 2 ? at : project(at, f.unit);
   const tx = x + dx, ty = y + dy;
   const above = dy < 0;
   // The leader stops short of the text: under its last line when the text is
@@ -42,8 +46,8 @@ export function Label({
   const dot = found?.hue ? `var(--pt-hue-${found.hue})` : undefined;
   return (
     <g opacity={r3(h * (0.62 + 0.38 * l))} data-label={entity}>
-      <path className="pt-leader" d={`M ${x} ${y} L ${sx} ${stop}`} />
-      <circle className="pt-dot" cx={x} cy={y} r={found?.hue ? 2.75 : 1.75} style={dot ? { fill: dot } : undefined} />
+      {leader ? <path className="pt-leader" d={`M ${x} ${y} L ${sx} ${stop}`} /> : null}
+      {withDot ? <circle className="pt-dot" cx={x} cy={y} r={found?.hue ? 2.75 : 1.75} style={dot ? { fill: dot } : undefined} /> : null}
       <text className="pt-label" x={tx} y={ty} textAnchor={anchor}>{text}</text>
       {sub ? <text className="pt-label pt-label-sub" x={tx} y={ty + 14} textAnchor={anchor}>{sub}</text> : null}
     </g>

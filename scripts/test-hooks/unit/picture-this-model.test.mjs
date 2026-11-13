@@ -11,7 +11,7 @@ import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "picture-this");
 const PT = path.join(PLUGIN, "scripts", "pt.mjs");
-const FIXTURE = path.join(PLUGIN, "starters", "iso-flow", "model.json");
+const FIXTURE = path.join(PLUGIN, "studies", "iso-flow", "model.json");
 const good = () => JSON.parse(fs.readFileSync(FIXTURE, "utf8"));
 /** The fixture with one edit, checked. */
 const broken = (edit, options) => { const m = good(); edit(m); return checkModel(m, options); };
@@ -178,5 +178,68 @@ test("every command in the table has its file and its function", async () => {
   for (const [name, [file, fn]] of Object.entries(COMMANDS)) {
     const mod = await import(`../../../plugins/picture-this/scripts/commands/${file}.mjs`);
     assert.equal(typeof mod[fn], "function", `${name}: commands/${file}.mjs exports ${fn}`);
+  }
+});
+
+test("a thing may be inside another, and nothing is inside itself", () => {
+  assert.deepEqual(broken((m) => { m.entities[2].parent = "api"; }).errors, []);
+  has(broken((m) => { m.entities[2].parent = "ghost"; }), /entity 'queue': parent 'ghost' is not an entity/);
+  has(broken((m) => { m.entities[2].parent = "queue"; }), /entity 'queue' is its own parent/);
+  has(broken((m) => { m.entities[1].parent = "queue"; m.entities[2].parent = "worker"; m.entities[3].parent = "api"; }), /entity 'api' is inside itself: its parents come back round to it/);
+});
+
+test("a thing that comes into being is born in a told beat, and is not told before it", () => {
+  assert.deepEqual(broken((m) => { m.entities[3].born = "work"; }).errors, []);
+  has(broken((m) => { m.entities[3].born = "later"; }), /entity 'worker': born 'later' is not a beat that is told/);
+  has(broken((m) => { m.entities[3].born = "rest"; }), /entity 'worker': born 'rest' is not a beat that is told/);
+  has(broken((m) => { m.entities[1].born = "work"; }), /beat 'answer' tells 'api' before it is born in 'work'/);
+});
+
+test("a repeated unit is a few, standing for the many", () => {
+  assert.deepEqual(LIMITS.repeat, [2, 24]);
+  assert.deepEqual(broken((m) => { m.entities[3].repeat = 3; }).errors, []);
+  for (const bad of [1, 25, 2.5, "3"]) has(broken((m) => { m.entities[3].repeat = bad; }), /entity 'worker': repeat .* is not a whole number from 2 to 24/);
+});
+
+test("a quantity names its beats, stays between 0 and its max, and takes one value or a short course per beat", () => {
+  const withQuantity = (edit = () => {}, options) => broken((m) => {
+    m.quantities = [{ id: "waiting", label: "Jobs waiting", of: "queue", unit: "jobs", max: 8, values: { answer: 3, work: [3, 6, 1] } }];
+    edit(m.quantities[0], m);
+  }, options);
+  assert.deepEqual(withQuantity().errors, []);
+  has(withQuantity((q) => { q.id = "Jobs Waiting"; }), /quantity id "Jobs Waiting" is not kebab-case/);
+  has(withQuantity((q) => { delete q.label; }), /quantity 'waiting' has no label/);
+  has(withQuantity((q) => { q.of = "ghost"; }), /quantity 'waiting': of 'ghost' is not an entity/);
+  has(withQuantity((q) => { q.max = 0; }), /quantity 'waiting': max 0 is not a number above 0/);
+  has(withQuantity((q) => { q.values = {}; }), /quantity 'waiting' has no values/);
+  has(withQuantity((q) => { q.values.later = 2; }), /quantity 'waiting': 'later' is not a beat/);
+  has(withQuantity((q) => { q.values.work = 9; }), /quantity 'waiting': 9 in beat 'work' is over its max, 8/);
+  has(withQuantity((q) => { q.values.work = -1; }), /quantity 'waiting': -1 in beat 'work' is not a number from 0 up/);
+  has(withQuantity((q) => { q.values.work = Array(LIMITS.course + 1).fill(1); }), /beat 'work' has 9 values: one, or a course of 2 to 8/);
+  has(withQuantity((q, m) => { m.quantities = Array.from({ length: 5 }, (_, i) => ({ ...q, id: `q-${i}` })); }), /5 quantities: a figure follows at most 4/);
+  has(broken((m) => { m.quantities = { waiting: 1 }; }), /quantities is not a list/);
+});
+
+test("data is named tables of one kind each: a series, a grid of cells, or rows that name real things", () => {
+  const withData = (data) => broken((m) => { m.data = data; });
+  assert.deepEqual(withData({ sizes: [1, 2, 3], heat: [[0, 1], [2, 3]], jobs: [{ id: "j1", of: "queue", at: "work", label: "resize", big: true, kb: 240 }] }).errors, []);
+  has(withData([1, 2]), /data is not an object of named tables/);
+  has(withData({ "Cell Values": [1] }), /data 'Cell Values': the name is not kebab-case/);
+  has(withData({ heat: [] }), /data 'heat' is not a list with something in it/);
+  has(withData({ heat: [[1, 2], [3]] }), /data 'heat': its rows are not all 2 cells wide/);
+  has(withData({ heat: [1, [2]] }), /data 'heat' mixes kinds/);
+  has(withData({ jobs: [{ id: "a" }, { id: "a" }] }), /data 'jobs': row id 'a' is used twice/);
+  has(withData({ jobs: [{ of: "ghost" }] }), /data 'jobs': row 1, of 'ghost' is not an entity/);
+  has(withData({ jobs: [{ at: "later" }] }), /data 'jobs': row 1, at 'later' is not a beat/);
+  has(withData({ jobs: [{ tags: ["a"] }] }), /data 'jobs': row 1, 'tags' is not a word, a number, or true or false/);
+  has(withData({ heat: Array.from({ length: 25 }, () => Array(25).fill(1)) }), /625 values of data: a figure draws a few standing for the many, at most 600/);
+  has(withData(Object.fromEntries(Array.from({ length: 9 }, (_, i) => [`t-${i}`, [1]]))), /9 tables of data: a figure reads at most 8/);
+});
+
+test("every model the plugin ships passes, the ones written before these fields among them", () => {
+  const dirs = [path.join(PLUGIN, "blank"), ...fs.readdirSync(path.join(PLUGIN, "studies")).map((name) => path.join(PLUGIN, "studies", name))];
+  for (const dir of dirs) {
+    const model = JSON.parse(fs.readFileSync(path.join(dir, "model.json"), "utf8"));
+    assert.deepEqual(checkModel(model, { requireMethod: true }).errors, [], path.basename(dir));
   }
 });

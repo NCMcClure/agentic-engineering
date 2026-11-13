@@ -1,5 +1,6 @@
 # Changelog
 
+- **1.0.1**: The README shows how a code change brings its docs along: `assets/figures/three-buckets`, a looping GIF in light and dark. Nothing the plugin runs changed.
 - **1.0.0**: runs on Node 22 alone, with Python gone: `docs-check.mjs` replaces `docs_check.py` (the same
   `.agents/docs-parity.json`, findings, output and exit codes; `--flag=value` and a config found from a
   subfolder are new) and both hooks are `.mjs`. The rule is now one critical line from the shared session

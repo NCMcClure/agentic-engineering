@@ -169,7 +169,7 @@ test("an argv render command is spawned without a shell, one argument per shot",
   const bad = pl(dir, ["iterate", "odd name"]);
   assert.equal(bad.status, 2);
   assert.match(bad.stderr, /odd name/);
-  // exitCode, not process.exit(): exit() after start-up segfaults now and then on node 24 / macOS (dev-rules)
+  // exitCode, never an exit call: see "Stack" in dev-rules
   const failing = project({ render: "node -e \"process.exitCode = 3\"" });
   const f = pl(failing, ["iterate", "sky_0"]);
   assert.equal(f.status, 2);

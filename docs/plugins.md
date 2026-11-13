@@ -6,24 +6,24 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agent-works](#agent-works) | 1.0.0 | 15 | orchestration |
-| [but-first-planning](#but-first-planning) | 5.0.0 | 18 | planning |
-| [codebase-optimizer](#codebase-optimizer) | 1.0.0 | 3 | refactoring |
-| [agentic-teamwork](#agentic-teamwork) | 1.0.0 | 6 | collaboration |
-| [workflow-studio](#workflow-studio) | 1.0.0 | 2 | workflow |
-| [picture-this](#picture-this) | 0.2.0 | 2 | creative |
-| [write-like-me](#write-like-me) | 1.0.0 | 4 | writing |
-| [code-diet](#code-diet) | 1.0.0 | 5 | code-quality |
-| [plugin-workbench](#plugin-workbench) | 1.0.0 | 5 | authoring |
-| [perceptual-loop](#perceptual-loop) | 1.0.0 | 9 | evaluation |
-| [docs-parity](#docs-parity) | 1.0.0 | 6 | documentation |
-| [marvelous-miro](#marvelous-miro) | 0.1.0 | 4 | documentation |
+| [agent-works](#agent-works) | 1.0.1 | 15 | orchestration |
+| [but-first-planning](#but-first-planning) | 5.0.1 | 18 | planning |
+| [codebase-optimizer](#codebase-optimizer) | 1.0.1 | 3 | refactoring |
+| [agentic-teamwork](#agentic-teamwork) | 1.0.1 | 6 | collaboration |
+| [workflow-studio](#workflow-studio) | 1.0.1 | 2 | workflow |
+| [picture-this](#picture-this) | 0.3.0 | 2 | creative |
+| [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
+| [code-diet](#code-diet) | 1.0.2 | 5 | code-quality |
+| [plugin-workbench](#plugin-workbench) | 1.0.1 | 5 | authoring |
+| [perceptual-loop](#perceptual-loop) | 1.0.1 | 9 | evaluation |
+| [docs-parity](#docs-parity) | 1.0.1 | 6 | documentation |
+| [marvelous-miro](#marvelous-miro) | 0.1.1 | 4 | documentation |
 
 ## agent-works
 
 Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.
 
-Version 1.0.0. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -47,7 +47,7 @@ Version 1.0.0. [README](../plugins/agent-works/README.md), [changelog](../plugin
 
 Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.
 
-Version 5.0.0. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
+Version 5.0.1. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -74,7 +74,7 @@ Version 5.0.0. [README](../plugins/but-first-planning/README.md), [changelog](..
 
 Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.
 
-Version 1.0.0. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -86,7 +86,7 @@ Version 1.0.0. [README](../plugins/codebase-optimizer/README.md), [changelog](..
 
 Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.
 
-Version 1.0.0. [README](../plugins/agentic-teamwork/README.md), [changelog](../plugins/agentic-teamwork/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/agentic-teamwork/README.md), [changelog](../plugins/agentic-teamwork/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -101,7 +101,7 @@ Version 1.0.0. [README](../plugins/agentic-teamwork/README.md), [changelog](../p
 
 Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.
 
-Version 1.0.0. [README](../plugins/workflow-studio/README.md), [changelog](../plugins/workflow-studio/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/workflow-studio/README.md), [changelog](../plugins/workflow-studio/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -110,20 +110,20 @@ Version 1.0.0. [README](../plugins/workflow-studio/README.md), [changelog](../pl
 
 ## picture-this
 
-Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.
+Turns a description or a feature in your codebase into a minimalist animated figure of how something works, designed from the subject and not from a template: three drafts to choose from, a React component that embeds in MDX, and stills, strips and GIFs for a README.
 
-Version 0.2.0. [README](../plugins/picture-this/README.md), [changelog](../plugins/picture-this/CHANGELOG.md).
+Version 0.3.0. [README](../plugins/picture-this/README.md), [changelog](../plugins/picture-this/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
 | `/picture-this:export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent, or by hand | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
-| `/picture-this:visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent, or by hand | Turn a description, or a feature in a codebase, into a minimalist animated visualization of how a system works: model it, draft three variations, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture or idea works, or to explain one to a non-technical audience. |
+| `/picture-this:visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent, or by hand | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
 
 ## write-like-me
 
 Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.
 
-Version 1.0.0. [README](../plugins/write-like-me/README.md), [changelog](../plugins/write-like-me/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/write-like-me/README.md), [changelog](../plugins/write-like-me/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -136,7 +136,7 @@ Version 1.0.0. [README](../plugins/write-like-me/README.md), [changelog](../plug
 
 Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.
 
-Version 1.0.0. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -150,7 +150,7 @@ Version 1.0.0. [README](../plugins/code-diet/README.md), [changelog](../plugins/
 
 A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.
 
-Version 1.0.0. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -164,7 +164,7 @@ Version 1.0.0. [README](../plugins/plugin-workbench/README.md), [changelog](../p
 
 An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.
 
-Version 1.0.0. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -182,7 +182,7 @@ Version 1.0.0. [README](../plugins/perceptual-loop/README.md), [changelog](../pl
 
 User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.
 
-Version 1.0.0. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
+Version 1.0.1. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -197,7 +197,7 @@ Version 1.0.0. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 
 Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
-Version 0.1.0. [README](../plugins/marvelous-miro/README.md), [changelog](../plugins/marvelous-miro/CHANGELOG.md).
+Version 0.1.1. [README](../plugins/marvelous-miro/README.md), [changelog](../plugins/marvelous-miro/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|

@@ -8,8 +8,12 @@ and not in decoration, and so that a repo's figures look like one set.
 - **Monochrome first.** Neutrals carry the picture: a page colour, three face
   tones, ink, a quieter line. A figure should read in greyscale.
 - **One accent: orange.** It marks where the story is now: the pulse on the
-  wire being told, the one thing the beat is about. Nothing else is orange.
-  If two things are orange in one frame, one of them is wrong.
+  wire being told, the one thing the beat is about. Nothing else is fully
+  orange. If two things are orange in one frame, one of them is wrong.
+- **A tint of the accent remembers.** A part the story marked earlier and
+  will come back to (a cell already worked out, the cut that was wrong)
+  may keep a pale fill of the accent with its hairline. It is quieter than
+  ink, so the one full accent still leads.
 - **Hues only to tell things apart.** Blue, green, violet, yellow, pink, on
   two to four entities, as a dot on the label. One hue alone tells nothing
   apart and leaves a reader wondering what it means. A hue never means "good"
@@ -35,8 +39,17 @@ line, accent, hue. A colour with no job is decoration, and it goes.
 
 ## Shape
 
-- **2D leans isometric.** Low slabs and blocks on a ground, drawn as
-  hairlines with three flat face tones. No gradients, no shadows, no glow.
+- **Flat or isometric, by what the subject is.** Things standing in space
+  (services, parts, layers) are isometric: low slabs and blocks on a ground,
+  drawn as hairlines with three flat face tones. A record, a window, a
+  chart, a table or a page is flat, in the page's own coordinates. Neither
+  is the default, and a figure does not mix them.
+- No gradients, no shadows, no glow, in either.
+- **Flat shapes are few and plain.** A box is a white panel with a hairline;
+  a bar or a tile is flat ink, in whichever of three weights tells it from
+  its neighbours; a connector has rounded corners and a small filled
+  arrowhead; a unit of work is a dot. A subject's own shape (a key, a gear,
+  a coastline) is drawn as itself, in the same hairline.
 - A thing's shape comes from what it is: a queue is a stack of thin slabs, a
   store is a drum, a client is a flat slab, a service or a worker is a block.
 - Keep things low and apart. Height is for emphasis, used once.
@@ -77,7 +90,11 @@ themes. A figure never sets a material colour or a light of its own.
   leader to the thing they name. Text is never skewed onto a plane.
 - A note under a label is one quiet line in the body face.
 - **Real content.** A real file name, a real message, a real count. Never a
-  grey bar standing in for text.
+  grey bar standing in for text, with one exception: when the bars are the
+  subject. The entries in a log, the rows of a buffer, the frames of a film
+  are drawn as bars when what each says does not matter and how many there
+  are does. Then the bars are data: their count, their order and
+  their tone come from the model.
 - Words sit on a halo of the page colour, so a line behind them never cuts
   through a letter.
 - The caption under the figure is a sentence. The claim under that is the

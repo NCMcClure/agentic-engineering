@@ -83,9 +83,9 @@ hand-authoring without the GUI. [Read more →](plugins/workflow-studio/README.m
 ### picture-this
 
 A system that takes three paragraphs to explain usually takes one good
-picture. Describe it, or point at a feature in your codebase, and get three
-rough animated drafts to choose from, each a different kind of picture of the
-same model. The one you pick becomes a React component that embeds in MDX,
+picture. Describe how something works, or point at a feature in your
+codebase, and get three rough animated drafts to choose from, each a
+different picture designed from that subject and not from a template. The one you pick becomes a React component that embeds in MDX,
 with light and dark stills for a plain README. It replaces
 `animated-storytelling`: uninstall that one and install this.
 [Read more →](plugins/picture-this/README.md)

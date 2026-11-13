@@ -44,6 +44,11 @@ left the docs behind it tells the agent, which gets one more go at the turn, and
 same findings reach the agent once a session; after that only your line repeats. It never blocks. The same
 script in CI fails the pull request.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/three-buckets.dark.gif">
+  <img alt="How a code change drags its docs along. Docs ride in the same change as the code: a surface whose code moved without its pages or shots is caught before the turn ends." src="assets/figures/three-buckets.gif" width="720">
+</picture>
+
 **A README for people.** A README in a repo agents build fills up with prompts, rule restatements and
 plumbing paths. `scripts/readme-check.mjs` holds one to 800 words, standard-readme's section order, and no
 agent plumbing, and the `readme` skill rewrites one that fails, moving every sentence it cuts to

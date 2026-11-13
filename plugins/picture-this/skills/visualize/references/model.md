@@ -1,7 +1,8 @@
 # The model
 
 `model.json` sits beside every figure. It is what the figure draws, what the
-three drafts share, and what a later session starts from. `model check` holds
+three drafts share, and what a later session starts from. It says what the
+subject is, never how to draw it: no positions, no sizes, no view. `model check` holds
 it to the rules below.
 
 ```json
@@ -59,6 +60,58 @@ it to the rules below.
 - **`hero`**: the beat, and the point in it, that the still is taken at. Pick
   the beat a reader should see if they see only one.
 - **`source`**: `path:line`, on an entity or a flow, when it was read from code.
+
+## More than things and flows
+
+Not every subject is things with flows between them. Five further fields,
+each optional, describe the rest. Use the ones the subject has; a model with
+none of them is as valid as it ever was.
+
+```json
+"entities": [
+  { "id": "parent", "label": "Shell", "kind": "process" },
+  { "id": "child", "label": "Build", "kind": "process", "parent": "parent", "born": "fork" },
+  { "id": "worker", "label": "Worker", "kind": "thread", "parent": "child", "repeat": 4 }
+],
+"quantities": [
+  { "id": "queued", "label": "Jobs queued", "of": "child", "unit": "jobs", "max": 8,
+    "values": { "fork": 6, "drain": [6, 3, 0] } }
+],
+"data": {
+  "jobs": [{ "id": "j1", "label": "compile a.c", "of": "worker", "at": "drain" }],
+  "heat": [[0, 1, 2], [1, 2, 3]]
+}
+```
+
+- **`parent`**, on an entity: the entity it is inside, or was started by. A
+  part in a case, a row in a table, a process a process forked. Nothing is
+  inside itself.
+- **`born`**, on an entity: the beat it comes into being in. It is absent
+  before that beat in every draft, and no earlier beat may be about it. Left
+  out, the thing is there from the start.
+- **`repeat`**, on an entity: how many of it are drawn, 2 to 24. Many of a
+  thing is drawn as a few: four workers standing for forty.
+- **`quantities`**: up to four numbers that change as the story is told: how
+  full, how many, how far. `values` names beats. One number is where the
+  quantity stands in that beat: it is reached over the beat's first two
+  fifths and then held, so the beat's middle, where a still is taken, shows
+  what the caption says. A list of two to eight is its course through the
+  beat, evenly spaced, for a change that is itself the story; its first
+  value may jump from the last beat's: a buffer that empties at once. A beat
+  left out holds the level. `max` is its limit, which a meter
+  is drawn against; `start` is where it stands before the first beat; `of`
+  is the entity it measures. A figure reads it with `f.level` and `f.share`.
+- **`data`**: up to eight named tables a view lays out, at most 600 values
+  in all. A table is one of three kinds: a list of numbers (a series); rows
+  of numbers, all the same width (cell values); or rows of named values
+  (units of work, the entries of a log). In a row, `of` must name an
+  entity, `at` a beat, and an `id` is unique in its table; every other key
+  is the view's own. Data is what all three drafts must agree on. A number a
+  single draft needs for its layout stays in that draft.
+
+Which lens tends to need which: structure and scale use `parent`; time uses
+`born`, `repeat` and `quantities`; field uses `data` as cells;
+transformation uses `data` as rows, before and after.
 
 Every entity must be in some beat and every flow must be told by some beat.
 The whole loop runs at most 30 seconds.

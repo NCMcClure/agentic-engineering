@@ -26,6 +26,11 @@ cut is checked while it is the only change in the tree, committed on green,
 and put back on red; the report says what was realized, never what was
 possible.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/cut-by-cut.dark.gif">
+  <img alt="How review-diet lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="assets/figures/cut-by-cut.gif" width="720">
+</picture>
+
 **In every later session.** A deliberate shortcut carries a comment
 `debt: <ceiling>, <trigger>`. `/code-diet:debt` inventories the markers and
 re-judges each, so a deferral expires on its trigger instead of rotting. A

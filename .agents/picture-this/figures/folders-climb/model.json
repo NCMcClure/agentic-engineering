@@ -1,0 +1,286 @@
+{
+  "schema": 1,
+  "title": "One command moves a status everywhere",
+  "mechanism": "One set rewrites the issue, then each parent's status is worked out from its children, up to the index, and only then is the ticket moved.",
+  "lens": "path",
+  "claim": "A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree.",
+  "implication": "Never hand-edit a Status: run set, and check will name any surface that drifted.",
+  "entities": [
+    {
+      "id": "command",
+      "label": "plan-status set",
+      "kind": "command",
+      "note": "the only writer",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:280"
+    },
+    {
+      "id": "issue",
+      "label": "Issue 07",
+      "kind": "file",
+      "note": "Status field, criteria boxes",
+      "parent": "sprint",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:290"
+    },
+    {
+      "id": "siblings",
+      "label": "Other issues",
+      "kind": "file",
+      "note": "already done",
+      "parent": "sprint",
+      "repeat": 2,
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:131"
+    },
+    {
+      "id": "sprint",
+      "label": "sprint.md",
+      "kind": "file",
+      "note": "Issues table, own Status",
+      "parent": "epic",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:293"
+    },
+    {
+      "id": "epic",
+      "label": "epic.md",
+      "kind": "file",
+      "note": "Sprints table, own Status",
+      "parent": "index",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:286"
+    },
+    {
+      "id": "index",
+      "label": "plan/index.md",
+      "kind": "file",
+      "note": "Epics table",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:49"
+    },
+    {
+      "id": "ledger",
+      "label": "Verified row",
+      "kind": "file",
+      "note": "progress/completed/<epic>.md",
+      "born": "ledger",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:243"
+    },
+    {
+      "id": "ticket",
+      "label": "Ticket #42",
+      "kind": "ticket",
+      "note": "GitHub or GitLab",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/tracker.mjs:162"
+    }
+  ],
+  "flows": [
+    {
+      "id": "invoke",
+      "from": "command",
+      "to": "issue",
+      "kind": "write",
+      "label": "done",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:290"
+    },
+    {
+      "id": "row",
+      "from": "issue",
+      "to": "sprint",
+      "kind": "write",
+      "label": "row",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:297"
+    },
+    {
+      "id": "tally",
+      "from": "siblings",
+      "to": "sprint",
+      "kind": "read",
+      "label": "rollup",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:298"
+    },
+    {
+      "id": "up-epic",
+      "from": "sprint",
+      "to": "epic",
+      "kind": "write",
+      "label": "row",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:309"
+    },
+    {
+      "id": "up-index",
+      "from": "epic",
+      "to": "index",
+      "kind": "write",
+      "label": "row",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:320"
+    },
+    {
+      "id": "record",
+      "from": "command",
+      "to": "ledger",
+      "kind": "write",
+      "label": "evidence",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:326"
+    },
+    {
+      "id": "close",
+      "from": "command",
+      "to": "ticket",
+      "kind": "event",
+      "label": "close",
+      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:332"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "surfaces",
+      "label": "Plan surfaces in step",
+      "of": "command",
+      "unit": "surfaces",
+      "max": 6,
+      "start": 0,
+      "values": {
+        "ask": 1,
+        "sprint": 3,
+        "epic": 5,
+        "index": 6
+      }
+    }
+  ],
+  "data": {
+    "statuses": [
+      {
+        "id": "s-issue",
+        "of": "issue",
+        "at": "ask",
+        "was": "in-progress",
+        "now": "done"
+      },
+      {
+        "id": "s-siblings",
+        "of": "siblings",
+        "at": "sprint",
+        "was": "done",
+        "now": "done"
+      },
+      {
+        "id": "s-sprint",
+        "of": "sprint",
+        "at": "sprint",
+        "was": "in-progress",
+        "now": "done"
+      },
+      {
+        "id": "s-epic",
+        "of": "epic",
+        "at": "epic",
+        "was": "in-progress",
+        "now": "in-progress"
+      },
+      {
+        "id": "s-index",
+        "of": "index",
+        "at": "index",
+        "was": "in-progress",
+        "now": "in-progress"
+      },
+      {
+        "id": "s-ticket",
+        "of": "ticket",
+        "at": "ticket",
+        "was": "open",
+        "now": "closed"
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "ask",
+      "title": "One command",
+      "plain": "A builder marks issue 07 done with one command. It rewrites the issue file: its status, and ticks its checklist.",
+      "technical": "plan-status.mjs set 01-03-07 done: cmdSet rewrites 07's **Status** field and ticks its acceptance boxes (surface 1 of 6).",
+      "focus": [
+        "command",
+        "issue"
+      ],
+      "flows": [
+        "invoke"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "sprint",
+      "title": "Worked out, not copied",
+      "plain": "The sprint's row for 07 becomes done, and the sprint's own status is worked out from every issue: all done, so done.",
+      "technical": "setTableCell rewrites the Issues row (2); rollup(issueStatuses()) reads every issue file and sets sprint.md's Status to done (3).",
+      "focus": [
+        "sprint",
+        "siblings"
+      ],
+      "flows": [
+        "row",
+        "tally"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "epic",
+      "title": "Up a level",
+      "plain": "The epic's row for sprint 03 becomes done. Its status is worked out again: sprint 04 has not started, so it stays in progress.",
+      "technical": "setTableCell on epic.md's Sprints row (4); rollup(sprintStatuses()) gives in-progress: one done, one not-started (5).",
+      "focus": [
+        "epic"
+      ],
+      "flows": [
+        "up-epic"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "index",
+      "title": "Six places agree",
+      "plain": "The plan's index is worked out from the epic: unchanged, so the file is left alone. All six places now agree.",
+      "technical": "Index Epics row (6) is still in-progress, so writeIfChanged skips the write. Prints OK: 01-03-07 -> done; epic 01 -> in-progress.",
+      "focus": [
+        "index"
+      ],
+      "flows": [
+        "up-index"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "ledger",
+      "title": "On the record",
+      "plain": "The same command adds a row to the epic's list of finished work, with the proof the builder gave: here, a passing test.",
+      "technical": "--evidence on done: appendCompletedRow writes 01-03/07, its #42 and the evidence to progress/completed/01-auth.md.",
+      "focus": [
+        "ledger"
+      ],
+      "flows": [
+        "record"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "ticket",
+      "title": "Ticket last",
+      "plain": "Last, the same command closes ticket #42, the one the issue file names. If GitHub or GitLab cannot be reached, it only warns.",
+      "technical": "trackerSync reads 07's **Tracker**: #42 after every markdown write; tracker.syncStatus closes it via gh or glab, or warns.",
+      "focus": [
+        "ticket"
+      ],
+      "flows": [
+        "close"
+      ],
+      "ms": 4000
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "index",
+    "at": 0.6
+  }
+}

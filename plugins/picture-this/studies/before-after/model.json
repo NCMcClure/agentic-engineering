@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "title": "How merge sort puts a list in order",
+  "mechanism": "It cuts the list down to single items, then merges neighbouring runs by taking the smaller of their two front items each time.",
+  "lens": "transformation",
+  "claim": "Merging two sorted runs only ever compares their front items, so each level of merging is one pass over the list.",
+  "implication": "Eight items take three levels of merging, and a million take only twenty.",
+  "entities": [
+    {
+      "id": "list",
+      "label": "The list",
+      "kind": "list",
+      "note": "tinted by value"
+    },
+    {
+      "id": "level",
+      "label": "A level",
+      "kind": "pass",
+      "note": "one pass over the list",
+      "repeat": 3
+    },
+    {
+      "id": "left",
+      "label": "Left run",
+      "kind": "run",
+      "note": "already in order"
+    },
+    {
+      "id": "right",
+      "label": "Right run",
+      "kind": "run",
+      "note": "already in order"
+    },
+    {
+      "id": "fronts",
+      "label": "The two fronts",
+      "kind": "pair",
+      "note": "the only items compared"
+    },
+    {
+      "id": "merged",
+      "label": "Merged run",
+      "kind": "run",
+      "note": "built smallest first"
+    }
+  ],
+  "flows": [
+    {
+      "id": "cut",
+      "from": "list",
+      "to": "level",
+      "kind": "event",
+      "label": "cut in half"
+    },
+    {
+      "id": "offer-left",
+      "from": "left",
+      "to": "fronts",
+      "kind": "event",
+      "label": "its front"
+    },
+    {
+      "id": "offer-right",
+      "from": "right",
+      "to": "fronts",
+      "kind": "event",
+      "label": "its front"
+    },
+    {
+      "id": "take",
+      "from": "fronts",
+      "to": "merged",
+      "kind": "write",
+      "label": "the smaller"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "compared",
+      "label": "Comparisons in the last merge",
+      "of": "fronts",
+      "unit": "comparisons",
+      "max": 7,
+      "values": {
+        "fronts": 1,
+        "drain": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          7
+        ]
+      }
+    }
+  ],
+  "data": {
+    "levels": [
+      [
+        5,
+        2,
+        8,
+        1,
+        9,
+        3,
+        7,
+        4
+      ],
+      [
+        2,
+        5,
+        1,
+        8,
+        3,
+        9,
+        4,
+        7
+      ],
+      [
+        1,
+        2,
+        5,
+        8,
+        3,
+        4,
+        7,
+        9
+      ],
+      [
+        1,
+        2,
+        3,
+        4,
+        5,
+        7,
+        8,
+        9
+      ]
+    ],
+    "run-lengths": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "last-merge": [
+      {
+        "id": "m1",
+        "from": "left",
+        "value": 1,
+        "against": 3
+      },
+      {
+        "id": "m2",
+        "from": "left",
+        "value": 2,
+        "against": 3
+      },
+      {
+        "id": "m3",
+        "from": "right",
+        "value": 3,
+        "against": 5
+      },
+      {
+        "id": "m4",
+        "from": "right",
+        "value": 4,
+        "against": 5
+      },
+      {
+        "id": "m5",
+        "from": "left",
+        "value": 5,
+        "against": 7
+      },
+      {
+        "id": "m6",
+        "from": "right",
+        "value": 7,
+        "against": 8
+      },
+      {
+        "id": "m7",
+        "from": "left",
+        "value": 8,
+        "against": 9
+      },
+      {
+        "id": "m8",
+        "from": "right",
+        "value": 9,
+        "last": true
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "cut",
+      "title": "Cut down to ones",
+      "plain": "The list is cut in half again and again until every piece is one number, and one number is already in order.",
+      "focus": [
+        "list",
+        "level"
+      ],
+      "flows": [
+        "cut"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "pairs",
+      "title": "Merge neighbours",
+      "plain": "Neighbouring pieces are merged into sorted pairs, then the pairs into sorted fours.",
+      "focus": [
+        "level",
+        "left",
+        "right"
+      ],
+      "flows": [],
+      "ms": 3600
+    },
+    {
+      "id": "fronts",
+      "title": "Only the fronts",
+      "plain": "To merge two sorted runs, compare the front item of each and take the smaller.",
+      "focus": [
+        "fronts",
+        "left",
+        "right"
+      ],
+      "flows": [
+        "offer-left",
+        "offer-right",
+        "take"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "drain",
+      "title": "Again, until empty",
+      "plain": "The next item steps to the front and is compared in turn, and neither run is ever searched or revisited.",
+      "focus": [
+        "fronts",
+        "merged"
+      ],
+      "flows": [
+        "take"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "sorted",
+      "title": "One pass per level",
+      "plain": "Three levels of merging, each one pass over the list, put all eight numbers in order.",
+      "focus": [
+        "merged",
+        "level",
+        "list"
+      ],
+      "flows": [],
+      "ms": 3200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1500
+    }
+  ],
+  "hero": {
+    "beat": "drain",
+    "at": 0.5
+  }
+}

@@ -1,0 +1,320 @@
+{
+  "schema": 1,
+  "title": "How a round keeps only changes that broke nothing new",
+  "mechanism": "Each round notes which tests already fail, makes one change, and keeps it only if nothing new fails, repairing up to three times before resetting.",
+  "lens": "time",
+  "claim": "A test the repo already failed never blocks a change, and a change that breaks a new one never lands.",
+  "implication": "The branch holds only rounds that broke nothing new, so you review commits, not attempts.",
+  "entities": [
+    {
+      "id": "base",
+      "label": "Round base",
+      "kind": "store",
+      "note": "the clean tree at HEAD",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1410"
+    },
+    {
+      "id": "oracle",
+      "label": "Already red",
+      "kind": "list",
+      "note": "tests failing before the change",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1411"
+    },
+    {
+      "id": "change",
+      "label": "The change",
+      "kind": "worker",
+      "note": "one split or one deepening",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1415"
+    },
+    {
+      "id": "check",
+      "label": "Validator",
+      "kind": "service",
+      "note": "smoke, tests, lint",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1434"
+    },
+    {
+      "id": "repair",
+      "label": "Repair",
+      "kind": "worker",
+      "note": "fixes forward, at most 3 times",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1456"
+    },
+    {
+      "id": "branch",
+      "label": "Branch",
+      "kind": "store",
+      "note": "one commit per green round",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1472"
+    }
+  ],
+  "flows": [
+    {
+      "id": "snapshot",
+      "from": "base",
+      "to": "oracle",
+      "kind": "read",
+      "label": "tests before",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1402"
+    },
+    {
+      "id": "edit",
+      "from": "base",
+      "to": "change",
+      "kind": "write",
+      "label": "edit",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1415"
+    },
+    {
+      "id": "submit",
+      "from": "change",
+      "to": "check",
+      "kind": "event",
+      "label": "run checks",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1434"
+    },
+    {
+      "id": "subtract",
+      "from": "oracle",
+      "to": "check",
+      "kind": "event",
+      "label": "known reds",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1434"
+    },
+    {
+      "id": "sendback",
+      "from": "check",
+      "to": "repair",
+      "kind": "event",
+      "label": "new failures",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1456"
+    },
+    {
+      "id": "fix",
+      "from": "repair",
+      "to": "change",
+      "kind": "write",
+      "label": "fix in place",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1462"
+    },
+    {
+      "id": "land",
+      "from": "check",
+      "to": "branch",
+      "kind": "write",
+      "label": "commit",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1472"
+    },
+    {
+      "id": "putback",
+      "from": "check",
+      "to": "base",
+      "kind": "write",
+      "label": "reset",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1499"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "newred",
+      "label": "New failures",
+      "of": "check",
+      "unit": "tests",
+      "max": 4,
+      "start": 0,
+      "values": {
+        "check": 2,
+        "repair": [
+          2,
+          1,
+          0,
+          0,
+          0
+        ],
+        "land": 0,
+        "putback": [
+          1,
+          1
+        ]
+      }
+    },
+    {
+      "id": "repairs",
+      "label": "Repairs used",
+      "of": "repair",
+      "unit": "attempts",
+      "max": 3,
+      "start": 0,
+      "values": {
+        "repair": [
+          0,
+          1,
+          2,
+          2,
+          2
+        ],
+        "land": 2,
+        "putback": [
+          0,
+          3,
+          3,
+          3
+        ]
+      }
+    }
+  ],
+  "data": {
+    "known": [
+      {
+        "id": "k1",
+        "label": "test_legacy_io",
+        "of": "oracle",
+        "at": "oracle"
+      },
+      {
+        "id": "k2",
+        "label": "test_flaky_clock",
+        "of": "oracle",
+        "at": "oracle"
+      }
+    ],
+    "rounds": [
+      {
+        "id": "r1",
+        "label": "split parser.py",
+        "of": "branch",
+        "at": "land",
+        "outcome": "committed",
+        "repairs": 2
+      },
+      {
+        "id": "r2",
+        "label": "deepen cache seam",
+        "of": "base",
+        "at": "putback",
+        "outcome": "reset",
+        "repairs": 3
+      }
+    ],
+    "fresh": [
+      {
+        "id": "n1",
+        "label": "test_imports",
+        "of": "check",
+        "at": "check",
+        "round": 1
+      },
+      {
+        "id": "n2",
+        "label": "test_patch_seam",
+        "of": "check",
+        "at": "check",
+        "round": 1
+      },
+      {
+        "id": "n3",
+        "label": "test_cache_ttl",
+        "of": "check",
+        "at": "putback",
+        "round": 2
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "oracle",
+      "title": "Note what is already red",
+      "plain": "Before touching anything, the round runs the tests on the clean starting point, HEAD, and writes down which already fail.",
+      "technical": "The oracle agent runs TEST_CMD(VAL_PATHS) on the clean tree; ROUND_RED joins BASELINE_RED and its red_tests, ROUND_BASE is HEAD.",
+      "focus": [
+        "base",
+        "oracle"
+      ],
+      "flows": [
+        "snapshot"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "change",
+      "title": "Make one change",
+      "plain": "One focused change is made: a god-file split, or one shallow module deepened.",
+      "technical": "applyMemberOnRoot calls cfg.implPrompt; the implementer extracts one cluster behind compat shims.",
+      "focus": [
+        "change"
+      ],
+      "flows": [
+        "edit"
+      ],
+      "ms": 3000
+    },
+    {
+      "id": "check",
+      "title": "Only new reds count",
+      "plain": "The tests run again. A failure on the already-red list is crossed off; only the ones left over count against the change.",
+      "technical": "validatePrompt gets ROUND_RED; a test is a regression only if it fails now and is not in the oracle, reported as new_failures.",
+      "focus": [
+        "check",
+        "oracle"
+      ],
+      "flows": [
+        "submit",
+        "subtract"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "repair",
+      "title": "Fix forward first",
+      "plain": "Each new failure goes back to be fixed in place, and the tests run again after every repair: here two repairs clear both.",
+      "technical": "While passed is not true and repairs < MAX_REPAIRS (3), repairPrompt gets new_failures, then validateWithRetry runs again.",
+      "focus": [
+        "repair",
+        "change"
+      ],
+      "flows": [
+        "sendback",
+        "fix"
+      ],
+      "ms": 4800
+    },
+    {
+      "id": "land",
+      "title": "Green lands",
+      "plain": "With no new failures left, the change is committed, and that commit is the HEAD the next round starts from.",
+      "technical": "val.passed === true: cfg.commitPrompt commits; the next round's oracle records the new HEAD as its ROUND_BASE.",
+      "focus": [
+        "branch"
+      ],
+      "flows": [
+        "land"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "putback",
+      "title": "Still red: put back",
+      "plain": "The next change still breaks one test after all three repairs, so it is undone, back to the HEAD that round began from.",
+      "technical": "Repairs exhausted: safeRevertPrompt soft-resets to ROUND_BASE and checks out tracked files. Nothing is committed; git clean is banned.",
+      "focus": [
+        "base"
+      ],
+      "flows": [
+        "putback"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1800
+    }
+  ],
+  "hero": {
+    "beat": "check",
+    "at": 0.5
+  }
+}

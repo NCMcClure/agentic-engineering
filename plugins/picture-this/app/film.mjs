@@ -42,12 +42,15 @@ export async function film(page, target, shot) {
     pictures.push(await target.screenshot({ animations: "disabled" }));
   }
 
-  // The palette is built from these frames. No dithering: the figures are flat
-  // colour and hairlines, and dither would put noise in every flat face and
-  // weight in the file. A frame that repeats the one before it is folded into it.
+  // No dithering: the figures are flat colour and hairlines, and dither would
+  // put noise in every flat face and weight in the file. A frame that repeats
+  // the one before it is folded into it. Each frame gets a palette of its own
+  // (interPaletteMaxError 0): a loop opens on a faded frame, and a palette
+  // carried on from that one has no white in it, so a white panel on the clay
+  // page came out the page's colour, with white patches round whatever moved.
   const { default: sharp } = await import("sharp");
   const gif = await sharp(pictures, { join: { animated: true } })
-    .gif({ delay: frames.map((f) => f.delay), loop: 0, dither: 0 })
+    .gif({ delay: frames.map((f) => f.delay), loop: 0, dither: 0, interPaletteMaxError: 0 })
     .toBuffer();
   const over = Boolean(maxBytes) && gif.length > maxBytes;
   if (!over) {

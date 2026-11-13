@@ -1,0 +1,222 @@
+{
+  "schema": 1,
+  "title": "How a graph on disk becomes a workflow Claude Code runs",
+  "mechanism": "The canvas and an agent both write one diagram.json, a watcher keeps the canvas level with it, and only Publish copies the compiled script out.",
+  "lens": "path",
+  "claim": "The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish.",
+  "implication": "Edit by hand or by mouse, compile as often as you like; .claude/workflows moves only on a confirmed Publish.",
+  "entities": [
+    {
+      "id": "agent",
+      "label": "Agent",
+      "kind": "client",
+      "note": "edits diagram.json directly",
+      "hue": "violet",
+      "source": "plugins/workflow-studio/skills/author-workflow/SKILL.md:13"
+    },
+    {
+      "id": "project",
+      "label": "Your project",
+      "kind": "folder",
+      "note": "Publish never writes outside it",
+      "source": "plugins/workflow-studio/app/vite.config.ts:43"
+    },
+    {
+      "id": "studio",
+      "label": ".claude/workflow-studio",
+      "kind": "folder",
+      "note": "Compile writes only in here",
+      "parent": "project",
+      "source": "plugins/workflow-studio/app/vite.config.ts:35"
+    },
+    {
+      "id": "diagram",
+      "label": "diagram.json",
+      "kind": "store",
+      "note": "the graph",
+      "parent": "studio",
+      "source": "plugins/workflow-studio/app/vite.config.ts:125"
+    },
+    {
+      "id": "server",
+      "label": "Studio server",
+      "kind": "service",
+      "note": "watches the studio root",
+      "source": "plugins/workflow-studio/app/vite.config.ts:289"
+    },
+    {
+      "id": "canvas",
+      "label": "Canvas",
+      "kind": "client",
+      "note": "the graph in your browser",
+      "hue": "blue",
+      "source": "plugins/workflow-studio/app/src/App.tsx:299"
+    },
+    {
+      "id": "compiled",
+      "label": "compiled.js",
+      "kind": "store",
+      "note": "made only by Compile",
+      "parent": "studio",
+      "born": "compile",
+      "source": "plugins/workflow-studio/app/vite.config.ts:126"
+    },
+    {
+      "id": "published",
+      "label": "my-workflow.js",
+      "kind": "store",
+      "note": "what Claude Code runs",
+      "parent": "project",
+      "born": "publish",
+      "source": "plugins/workflow-studio/app/vite.config.ts:413"
+    }
+  ],
+  "flows": [
+    {
+      "id": "autosave",
+      "from": "canvas",
+      "to": "diagram",
+      "kind": "write",
+      "label": "save, via server",
+      "source": "plugins/workflow-studio/app/src/hooks/usePersistence.ts:78"
+    },
+    {
+      "id": "handedit",
+      "from": "agent",
+      "to": "diagram",
+      "kind": "write",
+      "label": "hand edit",
+      "source": "plugins/workflow-studio/skills/workflow-studio/SKILL.md:49"
+    },
+    {
+      "id": "watch",
+      "from": "diagram",
+      "to": "server",
+      "kind": "event",
+      "label": "change",
+      "source": "plugins/workflow-studio/app/vite.config.ts:290"
+    },
+    {
+      "id": "notify",
+      "from": "server",
+      "to": "canvas",
+      "kind": "event",
+      "label": "studio:changed",
+      "source": "plugins/workflow-studio/app/vite.config.ts:286"
+    },
+    {
+      "id": "reload",
+      "from": "canvas",
+      "to": "diagram",
+      "kind": "read",
+      "label": "load, via server",
+      "source": "plugins/workflow-studio/app/src/App.tsx:343"
+    },
+    {
+      "id": "compile",
+      "from": "canvas",
+      "to": "compiled",
+      "kind": "write",
+      "label": "compile",
+      "source": "plugins/workflow-studio/app/src/App.tsx:375"
+    },
+    {
+      "id": "publish",
+      "from": "compiled",
+      "to": "published",
+      "kind": "write",
+      "label": "publish",
+      "source": "plugins/workflow-studio/app/vite.config.ts:418"
+    }
+  ],
+  "beats": [
+    {
+      "id": "draw",
+      "title": "Draw on the canvas",
+      "plain": "You add a step on the canvas in your browser, and the studio saves the graph to one file in your project.",
+      "technical": "noteChange debounces 800 ms, then POST /api/workflows/save has the server write diagram.json under the studio root.",
+      "focus": [
+        "canvas",
+        "diagram",
+        "studio",
+        "project"
+      ],
+      "flows": [
+        "autosave"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "handedit",
+      "title": "An agent edits the same file",
+      "plain": "An agent adds a step by editing that same file directly, with no browser involved.",
+      "technical": "The agent writes diagram.json itself, following /author-workflow's docs; the studio may be open the whole time.",
+      "focus": [
+        "agent",
+        "diagram"
+      ],
+      "flows": [
+        "handedit"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "sync",
+      "title": "The canvas catches up",
+      "plain": "The studio notices the file changed and the canvas reloads it, so both show the same graph.",
+      "technical": "The watcher sends studio:changed; the canvas reloads unless isEcho matches its own save, or asks first if it is dirty.",
+      "focus": [
+        "diagram",
+        "server",
+        "canvas"
+      ],
+      "flows": [
+        "watch",
+        "notify",
+        "reload"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "compile",
+      "title": "Compile stays inside",
+      "plain": "Pressing Compile turns the graph into a script, but keeps it inside the studio's own folder.",
+      "technical": "The Compile button runs compileChecked (JS plus an @workflow-graph sidecar); POST /api/compile writes only compiled.js.",
+      "focus": [
+        "canvas",
+        "compiled",
+        "studio"
+      ],
+      "flows": [
+        "compile"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "publish",
+      "title": "Publish crosses out",
+      "plain": "Only pressing Publish, and confirming, copies the script to where Claude Code runs it, inside your project.",
+      "technical": "Publish confirms, recompiles, then /api/publish copies compiled.js to exportPath, refused if it leaves exportRoot.",
+      "focus": [
+        "compiled",
+        "published",
+        "project"
+      ],
+      "flows": [
+        "publish"
+      ],
+      "ms": 4000
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "publish",
+    "at": 0.3
+  }
+}

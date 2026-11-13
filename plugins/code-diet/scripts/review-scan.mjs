@@ -28,6 +28,9 @@
 //                                       confirms the named files are the only tracked
 //                                       change, then runs each command from the root:
 //                                       {"green", "validated", "files", "checks"}
+//                                       a command that was killed, or ran past five
+//                                       minutes, exits 128 + the signal or 124, and
+//                                       its tail ends with which
 //   --apply revert <file>...            puts the named files back as HEAD has them
 //   --apply report --base <sha>         {"commits", "insertions", "deletions", "net"}
 //                                       for everything landed since begin
@@ -35,6 +38,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 
 const EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
@@ -368,6 +372,18 @@ function cutFiles(root, files) {
   return { rels };
 }
 
+/**
+ * A finished check as `[exit code, why]`. A command that was killed or ran past the cap has no code of its own and
+ * often printed nothing, so it gets the one a shell would report (128 + the signal's number, 124 at the cap) and
+ * the reason, which becomes the last line of its tail.
+ */
+export function ended(r) {
+  if (typeof r.status === "number") return [r.status, ""];
+  if (r.error?.code === "ETIMEDOUT") return [124, `stopped after ${CHECK_MS / 1000} s: the check ran past its cap`];
+  if (r.signal) return [128 + (os.constants.signals[r.signal] ?? 0), `killed by ${r.signal}`];
+  return [1, r.error?.message ?? ""];
+}
+
 function check(root, files, commands) {
   const named = cutFiles(root, files);
   if (named.usage) { console.error(`review-scan: ${named.usage}`); return 2; }
@@ -380,8 +396,8 @@ function check(root, files, commands) {
   const checks = [];
   for (const command of commands) {
     const r = spawnSync(command, { cwd: root, shell: true, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], timeout: CHECK_MS });
-    const exit = r.status ?? 1;
-    checks.push(exit === 0 ? { command, exit } : { command, exit, tail: tail(`${r.stdout ?? ""}\n${r.stderr ?? ""}${r.error ? `\n${r.error.message}` : ""}`) });
+    const [exit, why] = ended(r);
+    checks.push(exit === 0 ? { command, exit } : { command, exit, tail: tail(`${r.stdout ?? ""}\n${r.stderr ?? ""}\n${why}`) });
     if (exit !== 0) break;
   }
   // Green with nothing run is not a pass: `validated` says whether a check stood behind it.

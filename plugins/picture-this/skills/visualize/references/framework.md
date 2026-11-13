@@ -5,9 +5,9 @@ checked. Do not start a step while the one before it is unmet.
 
 | Step | Question | Done when |
 |---|---|---|
-| Model | What happens, which lens shows it, and what are the things, the flows and the beats? | the mechanism is one sentence; `model check` passes; from code, the person said yes |
+| Model | What happens, which lens shows it, and what are the things, what changes, and the beats? | the mechanism is one sentence; `model check` passes; from code, the person said yes |
 | Message | What is the one claim? | the claim is one sentence and every beat has its caption |
-| Form | Which kind of picture shows it? | three drafts on three different archetypes |
+| Form | Which picture is this subject's own? | three drafts of three different views, each stated in words before it was drawn |
 | Grammar | Does it follow the house style? | the checklist in `review.md` passes |
 | Time | What moves, when, and meaning what? | every beat names what moves and what that says |
 | Deliver | Live, held, and still | the figure renders in the page, and its stills are written |
@@ -24,8 +24,9 @@ the lens.
 
 ## Why the model comes first
 
-Simulate, then draw. The picture is a view of a small model of the system:
-what exists, what passes between what, and in what order the story is told.
+Simulate, then draw. The picture is a view of a small model of the subject:
+what exists, what is inside what, what passes or changes, how much, and in
+what order the story is told.
 Get that wrong and three well-drawn drafts are wrong three ways. Get it right
 and the drafts differ only in form, which is the comparison worth making.
 
@@ -60,5 +61,8 @@ the picture is too dense: fix the picture, not the caption.
 - Do not draw the org chart of the code. Draw what happens.
 - Do not animate to decorate. Every motion says something about the system.
 - Do not explain in the caption what the picture fails to show.
+- Do not fill in a template. The plugin's studies are worked examples of
+  technique. A subject's picture is designed from the subject, and most of
+  the time it starts on the blank stage.
 - Do not ship the first draft. The round of three exists because the first
   form that comes to mind is rarely the best one.

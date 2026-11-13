@@ -63,6 +63,11 @@ coexist peacefully. A `.studio.lock` under the studio root lets the launcher
 detect an already-running instance and hand back its URL instead of starting a
 second one.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/two-folders.dark.gif">
+  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="assets/figures/two-folders.gif" width="720">
+</picture>
+
 ## Manual fallback
 
 If you'd rather skip the launcher script:

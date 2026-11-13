@@ -41,7 +41,7 @@
     {
       "name": "picture-this",
       "source": "./plugins/picture-this",
-      "description": "Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.",
+      "description": "Turns a description or a feature in your codebase into a minimalist animated figure of how something works, designed from the subject and not from a template: three drafts to choose from, a React component that embeds in MDX, and stills, strips and GIFs for a README.",
       "category": "creative"
     },
     {

@@ -22,6 +22,11 @@ and a fill-in HTML scorecard. Every judgment grade carries a file and a
 quote; the script owns all arithmetic, weight renormalization, and verdict
 gates (broken installs, prompt-injection content). Node 22, no dependencies.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/ledger-to-verdict.dark.gif">
+  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="assets/figures/ledger-to-verdict.gif" width="720">
+</picture>
+
 - **create-plugin** interviews you for intent, scaffolds the layout with a
   script (`plugin-scaffold.mjs`), authors skills and scripts against the
   rubric, then scores what it built and fixes the biggest-delta findings

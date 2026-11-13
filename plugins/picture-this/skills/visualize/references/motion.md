@@ -18,6 +18,10 @@ draw from the frame, with the helpers on `useFigure()` and in `timeline.ts`:
 | `f.lit(entity)`, `f.moving(flow)` | something that is on only while it is told |
 | `f.arriving(entity)` | the one thing the beat is about |
 | `f.phase(laps, offset)` | something circulating during a beat: a pulse, a tick |
+| `f.level(quantity)`, `f.share(quantity)` | a number that changes: a level, a count, a fill against its limit |
+| `f.on(beat, ...)` | something that holds across two or three beats without dipping between them |
+| `steps(p, count, from, to)` | things that happen one after another inside a beat: a comparison at a time |
+| `f.present` | the whole figure fading in as the loop starts and out as it ends, for a drawing with no entity of its own |
 | `since`, `during`, `outro`, `ease`, `lerp`, `span` | anything of your own, from `f.tl` and `f.frame` |
 
 A pulse makes a whole number of laps per beat. Then the beat and the progress
@@ -46,6 +50,16 @@ What each helper looks like there:
 Camera moves, orbiting, and a shape that turns to show itself off are not in
 the kit. The framing is fixed so that labels stay where they point.
 
+## A beat is read at its middle
+
+A sheet, a still and a stepped strip all hold a beat half-way through, and a
+reader who steps through a figure lands there too. So the change a beat is
+about has happened by its middle: the part has arrived, the level has
+reached its value, the step being told is under way. A quantity with one
+value for a beat is reached over the beat's first two fifths and held, for
+this reason. Put a motion's start early in its beat and its settling before
+the middle; what follows the middle is the hold the caption is read in.
+
 ## Every motion has a job
 
 Before adding one, say what it tells the reader about the system:
@@ -55,6 +69,9 @@ Before adding one, say what it tells the reader about the system:
 - **Lift or accent**: this is what is happening now.
 - **Dimming**: this is not what we are talking about.
 - **Filling, counting, stacking**: this much has built up.
+- **Emptying at once**: it was reset, and what it held is gone.
+- **Scrolling**: time is passing in a record, at the rate things are added.
+- **Sliding out of something**: that thing started this one.
 
 If a motion says nothing about the system, remove it. The test: would a
 reader be confused if it were gone? If not, it was decoration.
@@ -89,5 +106,11 @@ to step through the beats. That same frame is what a server renders and what
 the camera photographs. So the hero frame must be a complete picture on its
 own: check it as a still before anything else.
 
-With `build` on, a part is absent until its beat. Pick a late hero beat for a
+A loop that scrolls or fills must start where it ends, or the seam shows.
+The figure fades out over the loop's last half second and in over its first
+(`f.present`); what is under the fade should be the same state at both ends:
+a level back at its start, a column back at its first row.
+
+With `build` on, a part is absent until its beat. A thing with a `born` beat
+is absent until then whether or not the figure builds up. Pick a late hero beat for a
 build-up, or the still shows half a system.

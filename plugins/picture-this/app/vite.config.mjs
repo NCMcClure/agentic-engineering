@@ -7,6 +7,7 @@
 //   PT_REPO      the repo being worked on (shown, and the lock's owner)
 //   PT_FIGURES   that repo's figures folder
 //   PT_DRAFTS    that repo's scratch drafts folder; the lock file lives in it
+//   PT_LOCK      another place for the lock: a server started for one job keeps its own
 import fs from "node:fs";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
@@ -17,7 +18,8 @@ const repo = process.env.PT_REPO ? path.resolve(process.env.PT_REPO) : "";
 const figuresDir = process.env.PT_FIGURES ? path.resolve(process.env.PT_FIGURES) : "";
 const draftsDir = process.env.PT_DRAFTS ? path.resolve(process.env.PT_DRAFTS) : "";
 const fixturesDir = path.join(root, "fixtures");
-const lockFile = draftsDir ? path.join(draftsDir, ".studio.lock") : "";
+// A server started for one job says where its own lock goes; the repo's studio keeps the one in the drafts folder.
+const lockFile = process.env.PT_LOCK ? path.resolve(process.env.PT_LOCK) : draftsDir ? path.join(draftsDir, ".studio.lock") : "";
 
 const exists = (p) => { try { return fs.statSync(p); } catch { return null; } };
 const folders = (dir) => (exists(dir)?.isDirectory() ? fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => e.name).sort() : []);
@@ -30,7 +32,10 @@ function figure(dir, id, kind) {
   if (!exists(file)) return null;
   let model = null, problem = null;
   try { model = JSON.parse(fs.readFileSync(modelFile, "utf8")); } catch (e) { problem = exists(modelFile) ? `model.json is not JSON: ${e.message}` : "no model.json"; }
-  return { id, kind, dir, url: fsUrl(file), model, problem };
+  // A draft says what its view is before it is drawn: the sheet shows that beside the picture.
+  let view = null;
+  try { view = JSON.parse(fs.readFileSync(path.join(dir, "view.json"), "utf8")); } catch { /* a figure that is not a draft has none */ }
+  return { id, kind, dir, url: fsUrl(file), model, problem, view };
 }
 
 /** Every figure the studio can show: the repo's, its drafts (round/draft), and the shipped fixtures. */
@@ -62,9 +67,9 @@ function api() {
 
       for (const dir of [figuresDir, draftsDir]) if (dir && exists(dir)) server.watcher.add(dir);
       const changed = (file) => {
-        if (/(^|[\\/])(figure\.tsx|model\.json)$/.test(file)) server.ws.send({ type: "custom", event: "pt:changed" });
+        if (/(^|[\\/])(figure\.tsx|model\.json|view\.json)$/.test(file)) server.ws.send({ type: "custom", event: "pt:changed" });
       };
-      server.watcher.on("add", changed).on("unlink", changed).on("change", (file) => { if (file.endsWith("model.json")) changed(file); });
+      server.watcher.on("add", changed).on("unlink", changed).on("change", (file) => { if (file.endsWith("model.json") || file.endsWith("view.json")) changed(file); });
 
       // The lock names the port actually bound, so a second `pt studio` hands
       // back this server's URL instead of starting another.

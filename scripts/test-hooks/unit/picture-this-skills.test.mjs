@@ -8,7 +8,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
-import { archetypes } from "../../../plugins/picture-this/scripts/commands/draft.mjs";
+import { STATEMENT, studies } from "../../../plugins/picture-this/scripts/commands/draft.mjs";
 import { LENSES } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
 import { THREE_PACKAGES } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
 import { REPO } from "./helpers.mjs";
@@ -81,12 +81,12 @@ test("every reference the skill routes to exists, and every reference is on its 
   }
 });
 
-test("the documents name the commands, archetypes, agent and limits that the code has", () => {
+test("the documents name the commands, studies, agent and limits that the code has", () => {
   const all = markdown.map(read).join("\n");
   for (const m of all.matchAll(/node "\$\{CLAUDE_PLUGIN_ROOT\}\/scripts\/pt\.mjs" ([a-z]+)/g)) assert.ok(COMMANDS[m[1]], `pt.mjs ${m[1]}`);
   const table = read("skills/visualize/references/archetypes.md");
-  for (const a of archetypes()) assert.match(table, new RegExp(`\\| \`${a.name}\` \\|`), `${a.name} is in the archetype table`);
-  assert.equal([...table.matchAll(/^\| `[a-z0-9-]+` \|/gm)].length, archetypes().length, "and the table names no archetype the plugin does not ship");
+  for (const a of studies()) assert.match(table, new RegExp(`\\| \`${a.name}\` \\|`), `${a.name} is in the table of studies`);
+  assert.equal([...table.matchAll(/^\| `[a-z0-9-]+` \|/gm)].length, studies().length, "and the table names no study the plugin does not ship");
 
   assert.ok(fs.existsSync(path.join(PLUGIN, "agents", "cold-reader.md")));
   const agent = parseFrontmatter(read("agents/cold-reader.md"));
@@ -102,10 +102,11 @@ test("the documents name the commands, archetypes, agent and limits that the cod
   assert.match(model, /two to nine/);
   const lenses = read("skills/visualize/references/lenses.md");
   for (const lens of LENSES) assert.match(lenses, new RegExp(`^\\| \\*\\*${lens}\\*\\* \\|`, "m"), `${lens} is a row of the lens table`);
-  for (const lens of LENSES) assert.match(table, new RegExp(`^\\| ${lens} \\|`, "m"), `${lens} has drafts to choose from`);
-  for (const m of [...lenses.matchAll(/`([a-z-]+)`/g), ...table.matchAll(/`([a-z-]+)(?::[a-z-]+)?`/g)]) {
-    if (/^(layer-stack|iso-flow|card-flow|staged-build|series|split|case-loop|blank)$/.test(m[1])) assert.ok(archetypes().some((a) => a.name === m[1]), m[1]);
-  }
+  for (const lens of LENSES) assert.match(table, new RegExp(`^\\| ${lens} \\|`, "m"), `${lens} has views to think with`);
+  // A study named in a lens row, or in the table of studies, is one the plugin ships.
+  const named = [...lenses.matchAll(/^\| \*\*[a-z]+\*\* \|.*\|([^|]*)\|$/gm)].flatMap((row) => [...row[1].matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]));
+  assert.ok(named.length >= 6, "the lens table points at studies");
+  for (const name of named) assert.ok(studies().some((a) => a.name === name), `lenses.md names the study ${name}`);
   assert.match(visualize.text, /references\/lenses\.md/);
   assert.match(model, /at most 140\s+characters/);
 });
@@ -135,5 +136,69 @@ test("the plugin ships no Python or shell outside the studio app, and no documen
   assert.deepEqual(own.filter((f) => /\.(py|pyc|sh|bash)$/.test(f)), []);
   for (const file of markdown.filter((f) => f !== "CHANGELOG.md")) {
     assert.doesNotMatch(read(file), /\bbash "|\bpython3?\b/, file);
+  }
+});
+
+test("the documents put the subject before the studies, and never call a study a template to fill", () => {
+  const views = read("skills/visualize/references/archetypes.md");
+  assert.match(views, /^# Views and studies$/m);
+  assert.match(views, /a study is reached for only when its view is the\s+view/, "the plain rule");
+  assert.match(views, /A round of three is rarely three studies/);
+  for (const key of STATEMENT) assert.match(views, new RegExp(`^- \`${key}\`, of a `, "m"), `the view statement's ${key} is shown, from a subject of its own`);
+  assert.doesNotMatch(views, /```json/, "no whole statement is given to borrow from: three fields from three subjects");
+  // No one subject is the running example: nothing an agent reads leans on the figure this phase was built around.
+  for (const file of markdown.filter((f) => f !== "CHANGELOG.md")) assert.doesNotMatch(read(file), /orchestrat|context window|transcript/i, file);
+  assert.match(visualize.text, /--views /);
+  assert.match(visualize.text, /states its view\*\* in its `view\.json`, before any drawing/);
+  assert.match(visualize.text, /it does not\s+ship templates to fill in/);
+  assert.match(visualize.text, /A round of three is rarely three studies/);
+  const review = read("skills/visualize/references/review.md");
+  assert.match(review, /^## Its own picture, or a template with new labels\?$/m);
+  assert.match(review, /\*\*Swap the labels\.\*\*/);
+  assert.match(review, /^12\. It fails the swap test/m, "the test is an item of the checklist");
+  const lenses = read("skills/visualize/references/lenses.md");
+  assert.match(lenses, /^## 3\. Two lenses in one picture$/m);
+  for (const where of ["on the other axis", "inside each unit", "over it", "beside it"]) assert.match(lenses, new RegExp(`\\*\\*${where}\\*\\*`), `a second lens may sit ${where}`);
+  assert.match(lenses, /Never three/);
+  // Nothing an agent reads still speaks of starters or archetypes, but for the file's own name.
+  for (const file of markdown.filter((f) => f !== "CHANGELOG.md")) {
+    assert.doesNotMatch(read(file).replace(/archetypes\.md/g, ""), /\bstarters?\b|\barchetypes?\b/i, file);
+  }
+  for (const name of [...fs.readdirSync(path.join(PLUGIN, "studies")).map((n) => `studies/${n}`), "blank"]) {
+    assert.doesNotMatch(read(`${name}/figure.tsx`), /\bstarters?\b|\barchetypes?\b/i, name);
+  }
+});
+
+test("the kit's README names every flat shape with what it is for, and the model reference every new field", () => {
+  const kit = read("kit/README.md");
+  assert.match(kit, /^## Flat space$/m);
+  for (const shape of ["Panel", "Bar", "Tile", "Elbow", "Line", "Token", "Queue", "Meter", "Axis", "Cells", "Lanes"]) {
+    assert.match(kit, new RegExp(`^\\| \`${shape}\`[^|]*\\| \\S`, "m"), `${shape} has its line`);
+    const source = ["panel", "connect", "chart"].map((f) => read(`kit/flat/${f}.tsx`)).join("\n");
+    assert.match(source, new RegExp(`export function ${shape}\\(`), `${shape} is in the kit`);
+  }
+  for (const fn of ["elbow", "between", "slotIn", "cell", "spread", "tint", "mix"]) {
+    assert.match(kit, new RegExp(`\`${fn}\\(`), `${fn} is documented`);
+    assert.match(read("kit/flat/geometry.ts"), new RegExp(`export function ${fn}\\(`), `${fn} is in the kit`);
+  }
+  const model = read("skills/visualize/references/model.md");
+  for (const field of ["parent", "born", "repeat", "quantities", "data"]) assert.match(model, new RegExp(`^- \\*\\*\`${field}\`\\*\\*`, "m"), `${field} is documented`);
+});
+
+test("every lens has a study, and every flat shape is drawn by a figure the plugin ships", () => {
+  const lenses = read("skills/visualize/references/lenses.md");
+  for (const lens of LENSES) {
+    const row = lenses.match(new RegExp(`^\\| \\*\\*${lens}\\*\\* \\|.*$`, "m"))[0];
+    const named = [...row.split("|").at(-2).matchAll(/`([a-z0-9-]+)`/g)].map((m) => m[1]);
+    assert.ok(named.length >= 1, `${lens} names a study`);
+    for (const name of named) {
+      const model = JSON.parse(read(`studies/${name}/model.json`));
+      if (!["layer-stack", "split", "case-loop"].includes(name)) assert.ok(model.lens, `${name} says its lens`);
+    }
+  }
+  // A shape nothing ships with is a shape nobody has looked at: each is used by a study.
+  const figures = fs.readdirSync(path.join(PLUGIN, "studies")).map((name) => read(`studies/${name}/figure.tsx`)).join("\n");
+  for (const shape of ["Panel", "Tile", "Elbow", "Line", "Token", "Queue", "Meter", "Axis", "Cells", "Lanes"]) {
+    assert.match(figures, new RegExp(`<${shape}[\\s/>]`), `${shape} is drawn by a study`);
   }
 });

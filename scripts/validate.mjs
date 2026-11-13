@@ -42,6 +42,12 @@ const NON_NODE_EXT = /\.(py|sh|bash|zsh|ps1|rb|pl)$/;
 // A vendored app tree carries its toolchain's own files; path rules skip it.
 const VENDORED = /^plugins\/[^/]+\/app\//;
 const ABS_PATH = new RegExp("/(?:Users|home/[a-z]|fast)/");
+// A Node file here never calls exit, and neither does a one-line command a
+// test hands to node: with NODE_USE_SYSTEM_CA set, Node 24 reads the system's
+// certificates on a thread at start-up, and an exit that lands before it has
+// finished crashes the process. A line that is only a comment may name it.
+const NODE_FILE = /^(?:plugins|scripts)\/.*\.(?:mjs|js|cjs)$/;
+const EXIT_CALL = /^(?!\s*(?:\/\/|\/?\*)).*\bprocess\.exit\(/;
 // Critical lines are paid for on every request of every session, so each
 // plugin's lines and chain lines stay under its own cap, all of them together
 // under the combined target, and each session hook's worst case under the
@@ -281,7 +287,7 @@ async function validate() {
   } catch (e) { fail(`the plugin guide could not be generated (${e.message})`, "scripts/gen-guide.mjs"); }
 
   // ---- tree-wide -------------------------------------------------------
-  let text = 0, crlf = 0, abs = 0, junk = 0;
+  let text = 0, crlf = 0, abs = 0, junk = 0, exits = 0;
   for (const f of tracked) {
     if (/(^|\/)(\.DS_Store|node_modules|__pycache__)(\/|$)/.test(f)) { fail(`${f} is junk and is tracked`, f); junk++; }
     const full = at(f);
@@ -292,10 +298,16 @@ async function validate() {
     const body = buf.toString("utf8");
     if (body.includes("\r\n")) { fail(`${f} has CRLF line endings`, f); crlf++; }
     if (!VENDORED.test(f) && ABS_PATH.test(body)) { fail(`${f} carries an absolute machine path`, f); abs++; }
+    if (!VENDORED.test(f) && NODE_FILE.test(f)) {
+      body.split("\n").forEach((line, i) => {
+        if (EXIT_CALL.test(line)) { fail(`${f}:${i + 1} calls process.exit: set process.exitCode and let Node unwind`, f); exits++; }
+      });
+    }
   }
   if (!junk) ok("no .DS_Store, node_modules, or __pycache__ tracked");
   if (!crlf) ok(`no CRLF in ${text} tracked text file(s)`);
   if (!abs) ok("no absolute machine paths in tracked files");
+  if (!exits) ok("no process.exit call in a Node file under plugins/ or scripts/");
 
   let checked = 0, bad = 0;
   for (const f of tracked.filter((t) => t.endsWith(".mjs") && exists(at(t)))) {

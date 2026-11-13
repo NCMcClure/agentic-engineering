@@ -209,9 +209,9 @@ test("agent-works store: the store is AW_HOME, and nothing is written outside it
 
 test("agent-works store: a command runs as a program with its arguments, its code passed through", async () => {
   const run = (command, options = {}) => store.runChild(command, { env: { ...process.env }, ...options });
-  assert.deepEqual(await run([NODE, "-e", "process.exit(7)"]), [7, false]);
-  assert.deepEqual(await run([NODE, "-e", "process.exit(Number(process.env.AW_TEST_CODE))"], { extra: { AW_TEST_CODE: "5" } }), [5, false]);
-  assert.deepEqual(await run(["AW_TEST_CODE=9", NODE, "-e", "process.exit(Number(process.env.AW_TEST_CODE))"]), [9, false], "leading NAME=value words are its environment");
+  assert.deepEqual(await run([NODE, "-e", "process.exitCode = 7"]), [7, false]);
+  assert.deepEqual(await run([NODE, "-e", "process.exitCode = Number(process.env.AW_TEST_CODE)"], { extra: { AW_TEST_CODE: "5" } }), [5, false]);
+  assert.deepEqual(await run(["AW_TEST_CODE=9", NODE, "-e", "process.exitCode = Number(process.env.AW_TEST_CODE)"]), [9, false], "leading NAME=value words are its environment");
   const errors = [];
   assert.deepEqual(await run(["aw-no-such-program-xyz", "a"], { onError: (why) => errors.push(why) }), [127, false]);
   assert.match(errors[0], /was not found/);

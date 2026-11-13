@@ -1,0 +1,367 @@
+{
+  "schema": 1,
+  "title": "A gate that compares a picture with itself",
+  "mechanism": "Each run's score is gated against the candidate's own accepted score, inside a band measured from its own run-to-run noise.",
+  "lens": "time",
+  "claim": "The gate asks whether anything moved that you did not mean to move, not how close you are to the reference.",
+  "implication": "A failed gate is a reason to open the picture; only a look decides whether the move was better or worse.",
+  "entities": [
+    {
+      "id": "reference",
+      "label": "Reference",
+      "kind": "picture",
+      "note": "another renderer, a design export",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:72"
+    },
+    {
+      "id": "candidate",
+      "label": "Candidate render",
+      "kind": "picture",
+      "note": "your renderer, one shot",
+      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:98"
+    },
+    {
+      "id": "runs",
+      "label": "Quiet runs",
+      "kind": "run",
+      "note": "same shot, nothing changed",
+      "repeat": 6,
+      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:188"
+    },
+    {
+      "id": "baseline",
+      "label": "baseline.json",
+      "kind": "store",
+      "note": "its own accepted numbers",
+      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:17"
+    },
+    {
+      "id": "tolerance",
+      "label": "Tolerance",
+      "kind": "band",
+      "note": "2.5 x the widest wobble",
+      "parent": "baseline",
+      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:205"
+    },
+    {
+      "id": "gate",
+      "label": "Gate",
+      "kind": "check",
+      "note": "ok, beyond, new, missing",
+      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:66"
+    },
+    {
+      "id": "sheet",
+      "label": "Sheet",
+      "kind": "picture",
+      "note": "reference, before, after",
+      "born": "look",
+      "source": "plugins/perceptual-loop/scripts/commands/sheet.mjs:65"
+    },
+    {
+      "id": "agent",
+      "label": "Agent's look",
+      "kind": "person",
+      "note": "one of six verdicts",
+      "source": "plugins/perceptual-loop/references/doctrine.md:13"
+    }
+  ],
+  "flows": [
+    {
+      "id": "measure",
+      "from": "reference",
+      "to": "candidate",
+      "kind": "query",
+      "label": "ssim vs reference",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:82"
+    },
+    {
+      "id": "spread",
+      "from": "runs",
+      "to": "tolerance",
+      "kind": "write",
+      "label": "spread x 2.5",
+      "source": "plugins/perceptual-loop/scripts/commands/calibrate.mjs:52"
+    },
+    {
+      "id": "now",
+      "from": "candidate",
+      "to": "gate",
+      "kind": "event",
+      "label": "this run",
+      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:111"
+    },
+    {
+      "id": "before",
+      "from": "baseline",
+      "to": "gate",
+      "kind": "read",
+      "label": "accepted",
+      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:59"
+    },
+    {
+      "id": "band",
+      "from": "tolerance",
+      "to": "gate",
+      "kind": "read",
+      "label": "+/- tolerance",
+      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:64"
+    },
+    {
+      "id": "open",
+      "from": "gate",
+      "to": "sheet",
+      "kind": "event",
+      "label": "open the sheets",
+      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:163"
+    },
+    {
+      "id": "look",
+      "from": "sheet",
+      "to": "agent",
+      "kind": "query",
+      "label": "look",
+      "source": "plugins/perceptual-loop/skills/iterate-shots/SKILL.md:38"
+    },
+    {
+      "id": "accept",
+      "from": "agent",
+      "to": "baseline",
+      "kind": "write",
+      "label": "baseline update",
+      "source": "plugins/perceptual-loop/scripts/commands/baseline.mjs:71"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "score",
+      "label": "frame.ssim, this run",
+      "of": "candidate",
+      "unit": "ssim",
+      "max": 1,
+      "start": 0.9612,
+      "values": {
+        "quiet": [
+          0.9612,
+          0.9606,
+          0.9614,
+          0.9609,
+          0.9613,
+          0.9607
+        ],
+        "change": 0.9481
+      }
+    },
+    {
+      "id": "accepted",
+      "label": "frame.ssim, accepted",
+      "of": "baseline",
+      "unit": "ssim",
+      "max": 1,
+      "start": 0.9612,
+      "values": {
+        "accept": 0.9481
+      }
+    },
+    {
+      "id": "tol",
+      "label": "tolerance",
+      "of": "tolerance",
+      "unit": "ssim",
+      "max": 0.01,
+      "start": 0,
+      "values": {
+        "band": 0.002
+      }
+    }
+  ],
+  "data": {
+    "runs": [
+      {
+        "id": "cal1",
+        "label": "cal1",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9612
+      },
+      {
+        "id": "cal2",
+        "label": "cal2",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9606
+      },
+      {
+        "id": "cal3",
+        "label": "cal3",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9614
+      },
+      {
+        "id": "cal4",
+        "label": "cal4",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9609
+      },
+      {
+        "id": "cal5",
+        "label": "cal5",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9613
+      },
+      {
+        "id": "cal6",
+        "label": "cal6",
+        "of": "runs",
+        "at": "quiet",
+        "ssim": 0.9607
+      },
+      {
+        "id": "iterate",
+        "label": "iterate",
+        "of": "candidate",
+        "at": "change",
+        "ssim": 0.9481,
+        "status": "beyond"
+      }
+    ],
+    "verdicts": [
+      {
+        "id": "wrong",
+        "label": "wrong",
+        "of": "agent",
+        "at": "look",
+        "work": "yes"
+      },
+      {
+        "id": "less-plausible",
+        "label": "less-plausible",
+        "of": "agent",
+        "at": "look",
+        "work": "yes, or ask the owner"
+      },
+      {
+        "id": "more-correct",
+        "label": "more-correct",
+        "of": "agent",
+        "at": "look",
+        "work": "no: record why",
+        "chosen": true
+      },
+      {
+        "id": "different-ok",
+        "label": "different-ok",
+        "of": "agent",
+        "at": "look",
+        "work": "no"
+      },
+      {
+        "id": "noise",
+        "label": "noise",
+        "of": "agent",
+        "at": "look",
+        "work": "no: measure it"
+      },
+      {
+        "id": "stale",
+        "label": "stale",
+        "of": "agent",
+        "at": "look",
+        "work": "no: update separately"
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "quiet",
+      "title": "Six runs, no change",
+      "plain": "The same shot is rendered six times with nothing changed. Each time its score against the reference wobbles a little.",
+      "technical": "pl.mjs iterate --group smoke --run cal --repeat 6 writes cal1 to cal6; compareOne() scores each against the reference.",
+      "focus": [
+        "reference",
+        "candidate",
+        "runs"
+      ],
+      "flows": [
+        "measure"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "band",
+      "title": "The wobble becomes the band",
+      "plain": "The widest wobble, times two and a half, becomes how far the score may move before anyone is asked to look.",
+      "technical": "pl.mjs calibrate --write-tolerances: max(2.5 x max spread, floor 0.002) into baseline.json tolerances.",
+      "focus": [
+        "runs",
+        "tolerance",
+        "baseline"
+      ],
+      "flows": [
+        "spread"
+      ],
+      "ms": 4000
+    },
+    {
+      "id": "change",
+      "title": "A change moves it",
+      "plain": "After a change the shot is rendered again. Its score lands outside the band around its own last score, so the run fails.",
+      "technical": "pl.mjs iterate <shot>: gate() marks frame.ssim beyond, since |now - baseline| > tolerance; exit 1.",
+      "focus": [
+        "candidate",
+        "baseline",
+        "gate"
+      ],
+      "flows": [
+        "now",
+        "before",
+        "band"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "look",
+      "title": "Out of the band means look",
+      "plain": "Failing says only that the score moved. The agent opens the reference, the old picture and the new one side by side and judges.",
+      "technical": "iterate prints 'the number is not the judgement'; the agent opens runs/iterate/<shot>/sheet.<source>.png and gives a doctrine verdict.",
+      "focus": [
+        "gate",
+        "sheet",
+        "agent"
+      ],
+      "flows": [
+        "open",
+        "look"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "accept",
+      "title": "Accepted on purpose",
+      "plain": "The agent finds the new picture truer, though further from the reference, and accepts its score for that shot. The band stays as wide.",
+      "technical": "Verdict more-correct; the agent runs pl.mjs baseline update --source <c> --run iterate <shot>. Tolerances are not touched.",
+      "focus": [
+        "agent",
+        "baseline"
+      ],
+      "flows": [
+        "accept"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "accept",
+    "at": 0.6
+  }
+}

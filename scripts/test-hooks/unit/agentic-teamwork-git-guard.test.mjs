@@ -16,8 +16,8 @@ const TMP = tempDir(suite, "tw-guard-tmp-");
 const MANIFEST = { standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test", e2e: "cd e2e && npx playwright test" }, owned: {} };
 // Commands any shell can run, for the test gate.
 const node = (code) => `"${process.execPath}" -e "${code}"`;
-const PASSING = node("process.exit(0)");
-const FAILING = node("console.log('1 failing: adds two numbers'); process.exit(1)");
+const PASSING = node("process.exitCode = 0");
+const FAILING = node("console.log('1 failing: adds two numbers'); process.exitCode = 1");
 
 /**
  * A repo with one commit and something staged. `teamwork` is the manifest's
@@ -629,7 +629,7 @@ test("requireTestsPass: a passing test command lets the commit through, and a pu
 });
 
 test("requireTestsPass is read from rules too, runs in test.dir, and falls back to build.command", (t) => {
-  const inDir = guardRepo(t, { teamwork: { rules: { requireTestsPass: true }, test: { command: node("process.exit(require('fs').existsSync('marker.txt') ? 1 : 0)"), dir: "pkg" } }, tracked: { "pkg/marker.txt": "here\n" } });
+  const inDir = guardRepo(t, { teamwork: { rules: { requireTestsPass: true }, test: { command: node("process.exitCode = require('fs').existsSync('marker.txt') ? 1 : 0"), dir: "pkg" } }, tracked: { "pkg/marker.txt": "here\n" } });
   assert.equal(decisionOf(guard("git commit -m x", inDir)), "deny", "the command ran in pkg, where the marker is");
   const build = guardRepo(t, { teamwork: { requireTestsPass: true, build: { command: FAILING } } });
   assert.equal(decisionOf(guard("git commit -m x", build)), "deny");

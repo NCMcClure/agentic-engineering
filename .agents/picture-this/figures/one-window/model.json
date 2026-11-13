@@ -1,0 +1,610 @@
+{
+  "schema": 1,
+  "title": "How one context window carries a whole round",
+  "mechanism": "The orchestrator hands each task to a child session with a window of its own and takes back one line, so its own window fills slowly.",
+  "lens": "time",
+  "claim": "A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round.",
+  "implication": "Set auto-compaction to 500K tokens or less: the hook brings the instructions back, and the board brings back the round.",
+  "entities": [
+    {
+      "id": "orchestrator",
+      "label": "Orchestrator",
+      "kind": "session",
+      "note": "plans, hands off, reviews",
+      "source": "plugins/agent-works/skills/orchestrate/SKILL.md:11"
+    },
+    {
+      "id": "child-a",
+      "label": "card-12",
+      "kind": "session",
+      "note": "a child session, its own window",
+      "parent": "orchestrator",
+      "born": "hand-off",
+      "source": "plugins/agent-works/skills/dispatch/SKILL.md:59"
+    },
+    {
+      "id": "child-b",
+      "label": "card-13",
+      "kind": "session",
+      "note": "a second child, in parallel",
+      "parent": "orchestrator",
+      "born": "fan-out",
+      "source": "plugins/agent-works/skills/work-card/SKILL.md:9"
+    },
+    {
+      "id": "subagent",
+      "label": "Subagent",
+      "kind": "session",
+      "note": "a helper a child starts",
+      "parent": "child-a",
+      "born": "fan-out",
+      "source": "plugins/agent-works/hooks/hooks.json:16"
+    },
+    {
+      "id": "hook",
+      "label": "SessionStart hook",
+      "kind": "hook",
+      "note": "runs after a compaction",
+      "source": "plugins/agent-works/hooks/hooks.json:5"
+    }
+  ],
+  "flows": [
+    {
+      "id": "dispatch-a",
+      "from": "orchestrator",
+      "to": "child-a",
+      "kind": "event",
+      "label": "brief",
+      "source": "plugins/agent-works/skills/dispatch/SKILL.md:57"
+    },
+    {
+      "id": "dispatch-b",
+      "from": "orchestrator",
+      "to": "child-b",
+      "kind": "event",
+      "label": "brief",
+      "source": "plugins/agent-works/lib/brief.mjs:97"
+    },
+    {
+      "id": "delegate",
+      "from": "child-a",
+      "to": "subagent",
+      "kind": "event",
+      "label": "task",
+      "source": "plugins/agent-works/hooks/critical.json:8"
+    },
+    {
+      "id": "note",
+      "from": "child-a",
+      "to": "child-b",
+      "kind": "event",
+      "label": "note",
+      "source": "plugins/agent-works/scripts/coord/notes.mjs:9"
+    },
+    {
+      "id": "report",
+      "from": "child-a",
+      "to": "orchestrator",
+      "kind": "event",
+      "label": "CARD line",
+      "source": "plugins/agent-works/skills/work-card/SKILL.md:83"
+    },
+    {
+      "id": "reinject",
+      "from": "hook",
+      "to": "orchestrator",
+      "kind": "write",
+      "label": "instructions",
+      "source": "plugins/agent-works/hooks/session-start.mjs:154"
+    },
+    {
+      "id": "reinject-child",
+      "from": "hook",
+      "to": "child-b",
+      "kind": "write",
+      "label": "card and cadence",
+      "source": "plugins/agent-works/hooks/session-start.mjs:157"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "context",
+      "label": "Orchestrator's window",
+      "of": "orchestrator",
+      "unit": "K tokens",
+      "max": 500,
+      "start": 30,
+      "values": {
+        "round": [
+          30,
+          60
+        ],
+        "hand-off": [
+          60,
+          80
+        ],
+        "fan-out": [
+          80,
+          100
+        ],
+        "talk": [
+          100,
+          110
+        ],
+        "report": [
+          110,
+          135
+        ],
+        "compact": [
+          135,
+          318,
+          500,
+          50,
+          55,
+          60,
+          65,
+          70
+        ],
+        "same-below": [
+          70,
+          70,
+          70,
+          80,
+          95
+        ]
+      }
+    },
+    {
+      "id": "context-a",
+      "label": "card-12's window",
+      "of": "child-a",
+      "unit": "K tokens",
+      "max": 500,
+      "values": {
+        "hand-off": [
+          0,
+          0,
+          50,
+          100,
+          150
+        ],
+        "fan-out": [
+          150,
+          300
+        ],
+        "talk": [
+          300,
+          380
+        ],
+        "report": [
+          380,
+          420,
+          420,
+          420,
+          420,
+          420
+        ]
+      }
+    },
+    {
+      "id": "context-b",
+      "label": "card-13's window",
+      "of": "child-b",
+      "unit": "K tokens",
+      "max": 500,
+      "values": {
+        "fan-out": [
+          0,
+          0,
+          40,
+          80,
+          120
+        ],
+        "talk": [
+          120,
+          250
+        ],
+        "report": [
+          250,
+          360
+        ],
+        "compact": [
+          360,
+          470
+        ],
+        "same-below": [
+          470,
+          500,
+          60,
+          78,
+          90,
+          105,
+          120
+        ]
+      }
+    }
+  ],
+  "data": {
+    "turns": [
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "person",
+        "says": "work the sprint backlog"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "agent",
+        "says": "/agent-works:orchestrate"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "tool",
+        "says": "aw board status"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "tool",
+        "says": "aw board lint"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "agent",
+        "says": "cut the tasks: cards 12, 13, 14"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "tool",
+        "says": "aw board propose"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "person",
+        "says": "yes, run 12 and 13"
+      },
+      {
+        "of": "orchestrator",
+        "at": "round",
+        "role": "tool",
+        "says": "aw board grant 12,13"
+      },
+      {
+        "of": "orchestrator",
+        "at": "hand-off",
+        "role": "tool",
+        "says": "aw board brief 12"
+      },
+      {
+        "of": "orchestrator",
+        "at": "hand-off",
+        "role": "agent",
+        "says": "start_session card-12",
+        "starts": "child-a"
+      },
+      {
+        "of": "orchestrator",
+        "at": "hand-off",
+        "role": "tool",
+        "says": "aw board bind 12"
+      },
+      {
+        "of": "orchestrator",
+        "at": "hand-off",
+        "role": "agent",
+        "says": "card-12 is in progress"
+      },
+      {
+        "of": "orchestrator",
+        "at": "fan-out",
+        "role": "tool",
+        "says": "aw board brief 13"
+      },
+      {
+        "of": "orchestrator",
+        "at": "fan-out",
+        "role": "agent",
+        "says": "start_session card-13",
+        "starts": "child-b"
+      },
+      {
+        "of": "orchestrator",
+        "at": "fan-out",
+        "role": "tool",
+        "says": "aw board bind 13"
+      },
+      {
+        "of": "orchestrator",
+        "at": "fan-out",
+        "role": "agent",
+        "says": "two cards in flight"
+      },
+      {
+        "of": "orchestrator",
+        "at": "talk",
+        "role": "tool",
+        "says": "aw status"
+      },
+      {
+        "of": "orchestrator",
+        "at": "talk",
+        "role": "tool",
+        "says": "aw notes"
+      },
+      {
+        "of": "orchestrator",
+        "at": "report",
+        "role": "tool",
+        "says": "CARD 12 review !41 lanes=unit:pass owed=-",
+        "reports": "child-a"
+      },
+      {
+        "of": "orchestrator",
+        "at": "report",
+        "role": "agent",
+        "says": "/agent-works:review-card 12"
+      },
+      {
+        "of": "orchestrator",
+        "at": "report",
+        "role": "tool",
+        "says": "git diff origin/main...origin/feat/12"
+      },
+      {
+        "of": "orchestrator",
+        "at": "report",
+        "role": "tool",
+        "says": "gh pr merge 41"
+      },
+      {
+        "of": "orchestrator",
+        "at": "report",
+        "role": "tool",
+        "says": "aw board done 12"
+      },
+      {
+        "of": "orchestrator",
+        "at": "compact",
+        "role": "hook",
+        "says": "The board is the record: /agent-works:orchestrate resumes it."
+      },
+      {
+        "of": "orchestrator",
+        "at": "compact",
+        "role": "hook",
+        "says": "Nothing starts without the person's yes, and nothing merges without a review."
+      },
+      {
+        "of": "orchestrator",
+        "at": "compact",
+        "role": "hook",
+        "says": "Never poll by hand: a child wakes you when it ends a turn."
+      },
+      {
+        "of": "orchestrator",
+        "at": "compact",
+        "role": "tool",
+        "says": "aw board status"
+      },
+      {
+        "of": "orchestrator",
+        "at": "same-below",
+        "role": "tool",
+        "says": "aw board brief 19"
+      },
+      {
+        "of": "orchestrator",
+        "at": "same-below",
+        "role": "agent",
+        "says": "start_session card-19",
+        "starts": "next"
+      },
+      {
+        "of": "orchestrator",
+        "at": "same-below",
+        "role": "tool",
+        "says": "aw board bind 19"
+      }
+    ],
+    "one-card": [
+      {
+        "role": "tool",
+        "says": "aw board brief <id>"
+      },
+      {
+        "role": "agent",
+        "says": "start_session card-<id>",
+        "starts": "a child"
+      },
+      {
+        "role": "tool",
+        "says": "aw board bind <id>"
+      },
+      {
+        "role": "tool",
+        "says": "CARD <id> review !<n>"
+      },
+      {
+        "role": "agent",
+        "says": "/agent-works:review-card <id>"
+      },
+      {
+        "role": "tool",
+        "says": "gh pr merge <n>"
+      },
+      {
+        "role": "tool",
+        "says": "aw board done <id>"
+      }
+    ],
+    "child-turns": [
+      {
+        "role": "agent",
+        "says": "git switch -c feat/<topic>"
+      },
+      {
+        "role": "tool",
+        "says": "aw board claim <id>"
+      },
+      {
+        "role": "tool",
+        "says": "git merge origin/main"
+      },
+      {
+        "role": "agent",
+        "says": "write the failing test"
+      },
+      {
+        "role": "tool",
+        "says": "npm test: 1 failing"
+      },
+      {
+        "role": "agent",
+        "says": "make it pass"
+      },
+      {
+        "role": "tool",
+        "says": "the diff"
+      },
+      {
+        "role": "tool",
+        "says": "npm test: all passing"
+      },
+      {
+        "role": "tool",
+        "says": "git commit"
+      },
+      {
+        "role": "agent",
+        "says": "the next criterion"
+      },
+      {
+        "role": "tool",
+        "says": "read src/"
+      },
+      {
+        "role": "tool",
+        "says": "the file"
+      }
+    ],
+    "cards-before-full": [
+      6
+    ]
+  },
+  "beats": [
+    {
+      "id": "round",
+      "title": "One window",
+      "ms": 3000,
+      "focus": [
+        "orchestrator"
+      ],
+      "flows": [],
+      "plain": "The orchestrator plans the round in its own context window, one turn after another.",
+      "technical": "/agent-works:orchestrate reads the board (aw board status, propose) and records the person's yes with aw board grant."
+    },
+    {
+      "id": "hand-off",
+      "title": "A turn hands a task off",
+      "ms": 3400,
+      "focus": [
+        "orchestrator",
+        "child-a"
+      ],
+      "flows": [
+        "dispatch-a"
+      ],
+      "plain": "One turn starts a child session with a brief, and the task's work fills that session's window instead.",
+      "technical": "dispatch calls start_session with the brief from aw board brief; the child is card-12, in its own worktree."
+    },
+    {
+      "id": "fan-out",
+      "title": "More at once, and deeper",
+      "ms": 4000,
+      "focus": [
+        "child-a",
+        "child-b",
+        "subagent"
+      ],
+      "flows": [
+        "dispatch-b",
+        "delegate"
+      ],
+      "plain": "A second child starts beside the first, and a child starts a helper of its own.",
+      "technical": "Cards whose files are disjoint run in parallel; a child's subagent gets the critical lines marked for every agent."
+    },
+    {
+      "id": "talk",
+      "title": "They coordinate",
+      "ms": 3000,
+      "focus": [
+        "child-a",
+        "child-b"
+      ],
+      "flows": [
+        "note"
+      ],
+      "plain": "Sessions leave each other notes, so one learns what another changed without the orchestrator relaying it.",
+      "technical": "aw note writes one line to the project's notes log, which every worktree shares; aw notes reads it."
+    },
+    {
+      "id": "report",
+      "title": "One line comes back",
+      "ms": 3200,
+      "focus": [
+        "child-a",
+        "orchestrator"
+      ],
+      "flows": [
+        "report"
+      ],
+      "plain": "The child's whole task returns as a single line, so the orchestrator's window grows by a few rows per task.",
+      "technical": "The first line of the child's final message is the CARD line: only the start of a report is quoted back."
+    },
+    {
+      "id": "compact",
+      "title": "Full, emptied, resumed",
+      "ms": 4600,
+      "focus": [
+        "orchestrator",
+        "hook"
+      ],
+      "flows": [
+        "reinject"
+      ],
+      "plain": "Six cards later the window reaches its threshold and is compacted, and the hook puts the instructions back.",
+      "technical": "SessionStart matches compact: session-start.mjs prints the critical lines and the board in one line."
+    },
+    {
+      "id": "same-below",
+      "title": "The same, one level down",
+      "ms": 3200,
+      "focus": [
+        "child-b",
+        "hook",
+        "orchestrator"
+      ],
+      "flows": [
+        "reinject-child"
+      ],
+      "plain": "A child that fills is compacted the same way, gets its card and cadence back, and the round carries on.",
+      "technical": "In a card's worktree the hook prints the card, its done criteria, and the command that prints its brief."
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "ms": 1500,
+      "focus": [],
+      "flows": []
+    }
+  ],
+  "hero": {
+    "beat": "report",
+    "at": 0.5
+  }
+}
