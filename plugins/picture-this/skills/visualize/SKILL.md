@@ -72,8 +72,9 @@ and the data a view lays out (`data`).
 Read `references/archetypes.md`. A view is a kind of picture: what the page
 is, what each axis and each mark means, what moves. Design three for this
 subject, as unlike each other as the claim allows, starting from the lens and
-the subject's own shape, numbers and order. Name each for what it draws:
-`cutaway`, `two-runs`, `zoom-strip`. Nothing an example in the references
+the subject's own shape, numbers and order. Name each for what it draws,
+in the subject's own nouns: for a lock, `sawn-lock`, `five-gaps`,
+`pins-apart`. Nothing an example in the references
 draws is yours by default: a device from one (a meter, a tint, a row of
 tiles) has to earn its place in this subject.
 
@@ -88,8 +89,8 @@ figure is a page's centrepiece: "When to draw in 3D" in
 
 ```
 P draft new --model <file> --views <a>,<b>,<c>
-P draft new --model <file> --views zoom-strip,walk,two-rulers
-P draft new --model <file> --views exploded,cutaway,layers=layer-stack
+P draft new --model <file> --views sawn-lock,five-gaps,pins-apart
+P draft new --model <file> --views <a>,<b>,layers=layer-stack
 ```
 
 This makes a round in `.agents/picture-this/drafts/round-N/`: one folder per

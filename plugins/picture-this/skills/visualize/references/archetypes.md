@@ -110,13 +110,15 @@ A round is three views of one model, as unlike each other as the claim
 allows, so the choice is between pictures and not between shades of one.
 
 ```
-draft new --model <file> --views two-runs,levels,bars
-draft new --model <file> --views exploded,cutaway,layers=layer-stack
+draft new --model <file> --views two-piles,eight-in-a-row,staircase
+draft new --model <file> --views <a>,<b>,layers=layer-stack
 ```
 
-- Name each view for **what it draws**: `two-runs`, `exploded`, `gap-chart`.
-  A study's name is not a view of your subject, and `draft new` refuses one
-  given bare.
+- Name each view for **what it draws, in the subject's own nouns**: a sort's
+  might be `two-piles`, `eight-in-a-row`, `staircase`. A name that would fit
+  another subject (`chart`, `flow`, `diagram`) says the view has not been
+  designed yet. A study's name is not a view of your subject, and `draft
+  new` refuses one given bare.
 - A view starts on the blank stage. `<view>=<study>` starts it from a study,
   and is for one case only: the study's view, as it stands, is what this
   subject wants, and what changes is the layout and the detail.
