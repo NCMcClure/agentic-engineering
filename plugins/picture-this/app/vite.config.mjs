@@ -7,6 +7,7 @@
 //   PT_REPO      the repo being worked on (shown, and the lock's owner)
 //   PT_FIGURES   that repo's figures folder
 //   PT_DRAFTS    that repo's scratch drafts folder; the lock file lives in it
+//   PT_LOCK      another place for the lock: a server started for one job keeps its own
 import fs from "node:fs";
 import path from "node:path";
 import react from "@vitejs/plugin-react";
@@ -17,7 +18,8 @@ const repo = process.env.PT_REPO ? path.resolve(process.env.PT_REPO) : "";
 const figuresDir = process.env.PT_FIGURES ? path.resolve(process.env.PT_FIGURES) : "";
 const draftsDir = process.env.PT_DRAFTS ? path.resolve(process.env.PT_DRAFTS) : "";
 const fixturesDir = path.join(root, "fixtures");
-const lockFile = draftsDir ? path.join(draftsDir, ".studio.lock") : "";
+// A server started for one job says where its own lock goes; the repo's studio keeps the one in the drafts folder.
+const lockFile = process.env.PT_LOCK ? path.resolve(process.env.PT_LOCK) : draftsDir ? path.join(draftsDir, ".studio.lock") : "";
 
 const exists = (p) => { try { return fs.statSync(p); } catch { return null; } };
 const folders = (dir) => (exists(dir)?.isDirectory() ? fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith(".")).map((e) => e.name).sort() : []);

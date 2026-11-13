@@ -177,9 +177,14 @@ export async function runningPort(lockFile, repo, fetchImpl = globalThis.fetch) 
   } catch { return null; }
 }
 
-/** What the dev server is told about the repo it serves. */
-export function studioEnv(at) {
-  return { PT_REPO: at.repo, PT_FIGURES: at.figures, PT_DRAFTS: at.drafts };
+/**
+ * What the dev server is told about the repo it serves. `lock` is where it
+ * writes its port when it is not the repo's one studio: a server started for
+ * a single job keeps a lock of its own, so no other job finds it and is left
+ * holding its port when it stops.
+ */
+export function studioEnv(at, lock = null) {
+  return { PT_REPO: at.repo, PT_FIGURES: at.figures, PT_DRAFTS: at.drafts, ...(lock ? { PT_LOCK: lock } : {}) };
 }
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -191,18 +196,23 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function ensureServer({ at, studio, env = process.env, fetch: fetchImpl = globalThis.fetch, timeoutMs = 30000 }) {
   const running = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
   if (running !== null) return { port: running, stop: async () => {} };
-  fs.rmSync(at.lock, { force: true });
-  const child = spawn(process.execPath, [studio.vite], { cwd: studio.app, env: childEnv(env, studioEnv(at)), stdio: "ignore" });
+  // No studio is answering for this repo, so this job gets a server of its
+  // own, on a lock of its own. The repo's lock is left alone: it may belong
+  // to a studio too busy to answer just now, and two jobs taking pictures at
+  // once must not find, and then lose, each other's server.
+  const own = fs.mkdtempSync(path.join(os.tmpdir(), "pt-studio-"));
+  const lock = path.join(own, "lock");
+  const child = spawn(process.execPath, [studio.vite], { cwd: studio.app, env: childEnv(env, studioEnv(at, lock)), stdio: "ignore" });
   let exited = null;
   child.on("exit", (code) => { exited = code ?? 1; });
   child.on("error", () => { exited = 127; });
   const stop = async () => {
     if (exited === null) { child.kill("SIGTERM"); for (let i = 0; i < 40 && exited === null; i++) await sleep(50); }
-    fs.rmSync(at.lock, { force: true });
+    fs.rmSync(own, { recursive: true, force: true });
   };
   for (let waited = 0; waited < timeoutMs; waited += 150) {
     if (exited !== null) break;
-    const port = fs.existsSync(at.lock) ? await runningPort(at.lock, at.repo, fetchImpl) : null;
+    const port = fs.existsSync(lock) ? await runningPort(lock, at.repo, fetchImpl) : null;
     if (port !== null) return { port, stop };
     await sleep(150);
   }

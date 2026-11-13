@@ -277,3 +277,15 @@ test("the studio's own files: every source it copies exists, and its lockfile pi
   assert.match(config, /strict: true/);
   assert.match(config, /app: "picture-this"/, "health names the app the launcher looks for");
 });
+
+test("a server started for one job keeps a lock of its own, and never takes the repo's", async () => {
+  const { studioEnv } = await import("../../../plugins/picture-this/scripts/lib/studio.mjs");
+  const at = { repo: "/r", figures: "/r/f", drafts: "/r/d", lock: "/r/d/.studio.lock" };
+  assert.deepEqual(studioEnv(at), { PT_REPO: "/r", PT_FIGURES: "/r/f", PT_DRAFTS: "/r/d" }, "the repo's studio writes the repo's lock");
+  assert.equal(studioEnv(at, "/tmp/x/lock").PT_LOCK, "/tmp/x/lock");
+  const lib = fs.readFileSync(path.join(PLUGIN, "scripts", "lib", "studio.mjs"), "utf8");
+  const ensure = lib.slice(lib.indexOf("export async function ensureServer("), lib.indexOf("* Take pictures: write the job"));
+  assert.match(ensure, /studioEnv\(at, lock\)/, "the job's server is told its own lock");
+  assert.doesNotMatch(ensure, /rmSync\(at\.lock/, "two jobs at once never remove the lock a third may be reading");
+  assert.match(fs.readFileSync(path.join(PLUGIN, "app", "vite.config.mjs"), "utf8"), /process\.env\.PT_LOCK \? path\.resolve\(process\.env\.PT_LOCK\)/);
+});
