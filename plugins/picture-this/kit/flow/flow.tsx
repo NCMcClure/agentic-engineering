@@ -6,8 +6,9 @@
 // renders the cards alone.
 import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { along, line, slice } from "../iso/project";
+import { along, heading, line, slice } from "../iso/project";
 import type { P2 } from "../iso/project";
+import { chevron } from "../iso/wire";
 import { useFigure } from "../stage";
 
 type Rect = { x: number; y: number; width: number; height: number };
@@ -133,6 +134,7 @@ function Threads({ part }: { part: "line" | "tag" }) {
         return (
           <g key={fl.id}>
             <path className="pt-wire" data-kind={fl.kind} d={line(slice(pts, 0, laid))} style={{ stroke: mix("var(--pt-line)", "var(--pt-line-2)", live) }} />
+            {laid > 0.66 ? <path className="pt-wire-head" data-kind={fl.kind} d={chevron(along(path, 0.66), heading(slice(path, 0.6, 0.66)), 5)} style={{ stroke: mix("var(--pt-line)", "var(--pt-line-2)", live) }} /> : null}
             {pulse.length ? <path className="pt-pulse" d={line(pulse)} opacity={r3(live)} /> : null}
           </g>
         );

@@ -80,8 +80,8 @@ left, z up. `unit` is px per ground unit.
   a client a slab). Give a shape `entity="id"` and its arrival and focus come
   from the model; `accent` takes it toward the accent colour.
 - `iso/wire`: `<Wire flow="id" via={[[x,y,z], ...]} />`. Its kind sets its
-  line (a write is heavier and carries a direction mark, a query is dashed, a
-  read's pulses run home). `part="line"` and `part="tag"` draw the line and
+  line (a write is heavier, a query is dashed, a read's mark and pulses run
+  home), and every wire carries a small mark for the way it runs. `part="line"` and `part="tag"` draw the line and
   its word separately, so the word can go over the shapes.
 - `label`: `<Label entity="id" at={[x,y,z]} sub="..." dx dy anchor />`, flat
   and upright with a hairline leader. Labels are drawn last.

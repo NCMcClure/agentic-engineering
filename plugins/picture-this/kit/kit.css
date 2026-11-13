@@ -94,7 +94,8 @@
 .pt-wire[data-kind="write"] { stroke-width: var(--pt-hair-bold); }
 .pt-wire[data-kind="query"] { stroke-dasharray: 3 4; }
 .pt-wire[data-kind="read"] { stroke-dasharray: 1 4; }
-.pt-wire-head { fill: none; stroke-width: var(--pt-hair-bold); stroke-linejoin: round; stroke-linecap: round; }
+.pt-wire-head { fill: none; stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }
+.pt-wire-head[data-kind="write"] { stroke-width: var(--pt-hair-bold); }
 .pt-pulse { fill: none; stroke: var(--pt-accent); stroke-width: 2.5px; stroke-linecap: round; stroke-linejoin: round; }
 
 .pt-leader { fill: none; stroke: var(--pt-ink-3); stroke-width: var(--pt-hair); }

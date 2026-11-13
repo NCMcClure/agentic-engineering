@@ -10,9 +10,10 @@ and not in decoration, and so that a repo's figures look like one set.
 - **One accent: orange.** It marks where the story is now: the pulse on the
   wire being told, the one thing the beat is about. Nothing else is orange.
   If two things are orange in one frame, one of them is wrong.
-- **Hues only to tell things apart.** Blue, green, violet, yellow, pink, on at
-  most four entities, as a dot on the label. A hue never means "good" or
-  "bad", and never repeats the accent's job.
+- **Hues only to tell things apart.** Blue, green, violet, yellow, pink, on
+  two to four entities, as a dot on the label. One hue alone tells nothing
+  apart and leaves a reader wondering what it means. A hue never means "good"
+  or "bad", and never repeats the accent's job.
 - **Dim by colour, not by opacity.** What the story has left keeps solid
   faces and moves toward the page colour. A see-through shape stops hiding
   what is behind it.
@@ -25,9 +26,10 @@ line, accent, hue. A colour with no job is decoration, and it goes.
 ## Line
 
 - Hairlines: one pixel, at any size the figure is shown.
-- The line says what kind of flow it is. A write is a little heavier and
-  carries a direction mark. A query is dashed. A read's pulses run back to
-  whoever asked. An event is a plain line.
+- Every wire carries a small mark for the way it runs, so a still says so
+  too. The line says what kind of flow it is: a write is a little heavier, a
+  query is dashed, a read's mark and pulses run back to whoever asked, an
+  event is a plain line.
 - Corners are rounded a little. Wires run along the ground's axes, never at
   an arbitrary angle.
 

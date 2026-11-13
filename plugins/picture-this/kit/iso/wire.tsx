@@ -50,11 +50,12 @@ export function Wire({
   const path = type === "read" ? [...pts].reverse() : pts;
   const stroke = mix("var(--pt-line)", "var(--pt-line-2)", live);
   const laidPts = slice(pts, 0, drawn);
-  // The mark that says which way a write goes sits part-way along: in an
-  // isometric view a wire often arrives behind the thing it arrives at.
+  // The mark that says which way the wire runs sits part-way along it: in an
+  // isometric view a wire often arrives behind the thing it arrives at. It
+  // points the way the pulses travel, so a read's points home.
   const markAt = 0.66;
-  const mark = along(pts, markAt);
-  const angle = heading(slice(pts, markAt - 0.04, markAt));
+  const mark = along(path, markAt);
+  const angle = heading(slice(path, markAt - 0.04, markAt));
   // Whatever the lap count, a pulse is half-way along at the middle of the beat, where the hero frame is taken.
   const centred = 0.5 - ((laps * 0.5) % 1);
   const word = tag ?? found?.label;
@@ -69,9 +70,7 @@ export function Wire({
   return (
     <g data-flow={flow}>
       <path className="pt-wire" data-kind={type} d={line(laidPts)} style={{ stroke }} />
-      {type === "write" && drawn > markAt ? (
-        <path className="pt-wire-head" d={chevron(mark, angle, 6)} style={{ stroke }} />
-      ) : null}
+      {drawn > markAt ? <path className="pt-wire-head" data-kind={type} d={chevron(mark, angle, type === "write" ? 6 : 5)} style={{ stroke }} /> : null}
       {live > 0 ? Array.from({ length: pulses }, (_, i) => {
         const head = f.phase(laps, i / pulses + centred) * (1 + length);
         const part = slice(path, head - length, head);
@@ -83,7 +82,7 @@ export function Wire({
 }
 
 /** An open arrowhead at a point, facing the way the line arrives. */
-function chevron([x, y]: P2, degrees: number, size: number): string {
+export function chevron([x, y]: P2, degrees: number, size: number): string {
   const wing = (turn: number): P2 => {
     const a = ((degrees + turn) * Math.PI) / 180;
     return [Math.round((x + Math.cos(a) * size) * 100) / 100, Math.round((y + Math.sin(a) * size) * 100) / 100];

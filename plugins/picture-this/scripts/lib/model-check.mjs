@@ -91,6 +91,7 @@ export function checkModel(model, { repo = null, requireSource = false } = {}) {
   const grouped = new Set(entities.map((e) => e?.group).filter(Boolean));
   if (grouped.size > LIMITS.groups) bad(`${grouped.size} groups: a figure sets at most ${LIMITS.groups} arrangements side by side`);
   if (grouped.size && entities.some((e) => !e?.group)) bad("some entities have a group and some have none: every one, or none");
+  if (hued === 1) warnings.push("one entity carries a hue: a hue tells things apart, and one alone leaves a reader wondering what it means");
   if (hued > LIMITS.hues) bad(`${hued} entities carry a hue: at most ${LIMITS.hues}, the rest stay neutral`);
 
   const flows = list(model.flows);

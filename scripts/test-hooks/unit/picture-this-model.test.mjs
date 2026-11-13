@@ -47,6 +47,8 @@ test("a figure holds two to nine entities, at most four of them hued", () => {
   has(broken((m) => { for (let i = 0; i < 6; i++) m.entities.push({ id: `extra-${i}`, label: "Extra", kind: "service" }); }), /11 entities/);
   has(broken((m) => { m.entities[0].hue = "orange"; }), /hue 'orange' is not one of blue, green, violet, yellow, pink/);
   has(broken((m) => { m.entities.forEach((e, i) => { e.hue = HUES[i % HUES.length]; }); }), /5 entities carry a hue: at most 4/);
+  assert.match(broken((m) => { m.entities[3].hue = "blue"; }).warnings[0], /one entity carries a hue: a hue tells things apart/);
+  assert.deepEqual(broken((m) => { m.entities[3].hue = "blue"; m.entities[4].hue = "green"; }).warnings, []);
   const long = broken((m) => { m.entities[0].label = "A label that is far too long to fit"; });
   assert.deepEqual(long.errors, []);
   assert.match(long.warnings[0], /label is 35 characters/);

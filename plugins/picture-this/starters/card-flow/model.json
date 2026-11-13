@@ -26,8 +26,7 @@
       "id": "worker",
       "label": "Resizer",
       "kind": "worker",
-      "note": "makes the thumbnail",
-      "hue": "blue"
+      "note": "makes the thumbnail"
     },
     {
       "id": "store",
@@ -62,7 +61,8 @@
       "id": "take",
       "from": "queue",
       "to": "worker",
-      "kind": "event"
+      "kind": "event",
+      "label": "next job"
     },
     {
       "id": "save",
