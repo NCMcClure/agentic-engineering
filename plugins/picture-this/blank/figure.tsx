@@ -21,10 +21,9 @@ const VIEW = { x: 0, y: 0, width: 720, height: 400 };
 //   Flat space    kit/flat: Panel, Rows, Bar, Spawn (windows, and what is in them),
 //                 Elbow, Token, Queue (what joins and what travels),
 //                 Meter, Cells, Lanes (quantities, grids, a time grid's ground),
-//                 Zoom (a ring on a region, and that region enlarged),
 //                 and geometry: anchor, elbow, column, windowed, bar, cell, slotIn
 //   Isometric     kit/iso: Block, Plate, Layers, Cylinder, Face, Guide, Ground, Wire,
-//                 Surface, CellFloor, and project / plate / block / disc
+//                 and project / plate / block / disc
 //   Words         Label (a name with a leader, at a page point or a ground point),
 //                 and plain <text className="pt-label"> or "pt-tag"
 //   Plain SVG     anything else, with the kit's classes: pt-edge (a thing's line),
