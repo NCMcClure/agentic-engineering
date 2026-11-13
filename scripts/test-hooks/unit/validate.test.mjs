@@ -136,6 +136,20 @@ test("an absolute machine path in a tracked file fails", (t) => {
   assert.match(result.stdout, /^FAIL: plugins\/code-diet\/README\.md carries an absolute machine path/m);
 });
 
+test("a Node file that calls process.exit fails, a test's one-line command included, and a comment does not", (t) => {
+  const call = ["process", "exit(1)"].join(".");
+  const result = validate(tree(t, withTidy({
+    "plugins/tidy/skills/sweep/sweep.mjs": `console.log("swept");\n${call};\n`,
+    "plugins/tidy/skills/sweep/note.mjs": `// never ${call}: set the exit code\nprocess.exitCode = 1;\n`,
+    "scripts/test-hooks/unit/tidy.test.mjs": `const FAILING = 'node -e "${call}"';\n`,
+  })));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: plugins\/tidy\/skills\/sweep\/sweep\.mjs:2 calls process\.exit: set process\.exitCode and let Node unwind/m);
+  assert.match(result.stdout, /^FAIL: scripts\/test-hooks\/unit\/tidy\.test\.mjs:1 calls process\.exit/m);
+  assert.doesNotMatch(result.stdout, /note\.mjs/);
+  assert.equal(result.stdout.match(/^FAIL: /gm).length, 2, result.stdout);
+});
+
 test("a hub that is gone, or a CLAUDE.md that is its own file, fails", (t) => {
   const result = validate(tree(t, { remove: ["plugins/AGENTS.md", "CLAUDE.md"], write: { "CLAUDE.md": "# Rules of my own\n" } }));
   assert.equal(result.status, 1);
