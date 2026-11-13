@@ -38,7 +38,7 @@ test("agent-works lease: a lease lives while its command runs, and another proje
 
 test("agent-works lease: the lease goes when the command fails, cannot start, or is killed at its limit", (t) => {
   const w = world(t);
-  const failing = w.aw(["lease", "gpu", "--for", "fails", "--", NODE, "-e", "process.exit(7)"]);
+  const failing = w.aw(["lease", "gpu", "--for", "fails", "--", NODE, "-e", "process.exitCode = 7"]);
   assert.equal(failing.status, 7, failing.stderr);
   assert.deepEqual(live(w), []);
   const missing = w.aw(["lease", "gpu", "--for", "no such program", "--", "aw-no-such-program-xyz", "a"]);

@@ -96,7 +96,7 @@ test("agent-works sys: every probe answers or says nothing", async () => {
   assert.ok(rows[0].free > 0 && rows[0].free <= rows[0].total);
   assert.deepEqual(sysinfo.probe(["aw-no-such-program-xyz"]), [null, true], "a missing tool is no reading");
   assert.deepEqual(sysinfo.probe([NODE, "-e", "setTimeout(() => {}, 5000)"], { timeoutMs: 300 }), [null, false], "too slow: no reading");
-  assert.deepEqual(sysinfo.probe([NODE, "-e", "process.exit(3)"]), [null, false], "a failing tool is no reading");
+  assert.deepEqual(sysinfo.probe([NODE, "-e", "process.exitCode = 3"]), [null, false], "a failing tool is no reading");
   assert.deepEqual(sysinfo.probe([NODE, "-e", "console.log('ok')"]), ["ok\n", false]);
 });
 

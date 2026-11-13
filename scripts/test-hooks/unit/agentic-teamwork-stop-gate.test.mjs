@@ -15,8 +15,8 @@ const TMP = tempDir(suite, "tw-stop-tmp-");
 
 const MANIFEST = { standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test", e2e: "not wired: no browser yet" }, owned: {} };
 const node = (code) => `"${process.execPath}" -e "${code}"`;
-const PASSING = node("process.exit(0)");
-const FAILING = node("console.log('1 failing: adds two numbers'); process.exit(1)");
+const PASSING = node("process.exitCode = 0");
+const FAILING = node("console.log('1 failing: adds two numbers'); process.exitCode = 1");
 
 /** A repo on a feature branch with one commit; `after` is written once the commit exists, so it is uncommitted work. */
 function repo(t, { manifest = true, teamwork, choice, old, files = { "src/a.mjs": "export const a = 1;\n" }, after: later = {} } = {}) {

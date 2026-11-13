@@ -12,9 +12,13 @@ When a rule changes, change the check in the same commit.
   or `.js` file.
 - A non-Node file that has to stay is listed by exact path in
   `NON_NODE_ALLOWLIST` in `scripts/validate.mjs`, with the reason beside it.
-- Set `process.exitCode` and let Node unwind. Never call `process.exit()` after
-  writing to stdout: a hook's stdout is its whole contract, and an early exit
-  can cut it short.
+- Set `process.exitCode` and let Node unwind. Never call `process.exit()`: a
+  hook's stdout is its whole contract, and an early exit can cut it short. An
+  early exit can also crash: where `NODE_USE_SYSTEM_CA` is set, Node 24 reads the
+  system's certificates on a thread at start-up, and an exit that lands before it
+  has finished takes the process down with a segfault (one run in five on a busy
+  Mac). The one-line commands a test hands to `node -e` are held to the same
+  rule; validate fails a call in any Node file under `plugins/` or `scripts/`.
 
 ## Layout invariants
 
