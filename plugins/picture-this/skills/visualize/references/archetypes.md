@@ -38,32 +38,24 @@ the page and what each one is. `moves` is what moves, and what that says
 about the subject. `means` is what each visual property stands for: across,
 down, size, tone, the accent, a dashed line.
 
-Two statements, for two subjects that share nothing, to show the form and
-only the form:
+What a good answer sounds like, one field each from three subjects that
+share nothing (never a whole statement to borrow):
 
-```json
-{
-  "view": "cutaway",
-  "base": "blank",
-  "drawn": "The lock sawn in half lengthwise: the housing's metal with five chambers, the plug inside it, and in each chamber a spring, a driver pin and a key pin. The key is a blade with five cuts.",
-  "moves": "The key slides in and each stack rides up on its cut. When every gap sits on the plug's edge, the plug turns and the driver pins stay behind.",
-  "means": "Position is the real arrangement, to one scale. Grey is a driver pin, white a key pin. Orange is the length of pin that crosses the plug's edge and holds it."
-}
-```
+- `drawn`, of a lock: "The lock sawn in half lengthwise: the housing's metal
+  with five chambers, and in each a spring, a driver pin and a key pin."
+  Every shape is named, and so is what it is.
+- `moves`, of a sort: "The smaller of the two front numbers drops to the
+  next free place below, and the one behind it steps up." The motion is the
+  mechanism's verb, and nothing else moves.
+- `means`, of a scale model: "Across is distance, to one scale. A disc's
+  width is its diameter. A dashed line is the same planet in two places."
+  Each property has one meaning, and a reader could check the picture
+  against it.
 
-```json
-{
-  "view": "two-rulers",
-  "base": "blank",
-  "drawn": "A page holding the Sun and the planets side by side as discs, and under it a ruler from the Sun out to the distance in view, with a tick for each planet. A dashed line joins each planet's two places.",
-  "moves": "The ruler reaches further out beat by beat, its ticks closing up toward the Sun. The page never moves.",
-  "means": "Across is distance on both: to scale on the ruler, evenly spaced on the page. A disc's width is its diameter. A dashed line is the same planet in two places."
-}
-```
-
-Nothing in an example is yours to borrow. A meter, a tint, a ring: each is in
-a picture because that subject needed it. If one turns up in your statement,
-say what in *this* subject it stands for, or take it out.
+Design the marks from this subject. A meter, a tint, a ring, a row of tiles:
+each is in some other picture because that subject needed it. If one turns
+up in your statement, say what in *this* subject it stands for, or take it
+out.
 
 `draft check` will not pass a round until every draft has said all three, and
 it prints them, so the person reads what each draft set out to draw beside
@@ -122,9 +114,9 @@ draft new --model <file> --views two-runs,levels,bars
 draft new --model <file> --views exploded,cutaway,layers=layer-stack
 ```
 
-- Name each view for **what it draws**: `two-runs`, `exploded`, `rear-view`,
-  `tide-chart`. A study's name is not a view of your subject, and `draft
-  new` refuses one given bare.
+- Name each view for **what it draws**: `two-runs`, `exploded`, `gap-chart`.
+  A study's name is not a view of your subject, and `draft new` refuses one
+  given bare.
 - A view starts on the blank stage. `<view>=<study>` starts it from a study,
   and is for one case only: the study's view, as it stands, is what this
   subject wants, and what changes is the layout and the detail.

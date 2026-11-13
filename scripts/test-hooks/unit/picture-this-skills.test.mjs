@@ -144,7 +144,10 @@ test("the documents put the subject before the studies, and never call a study a
   assert.match(views, /^# Views and studies$/m);
   assert.match(views, /a study is reached for only when its view is the\s+view/, "the plain rule");
   assert.match(views, /A round of three is rarely three studies/);
-  for (const key of STATEMENT) assert.match(views, new RegExp(`"${key}": "`), `the view statement's ${key} is shown`);
+  for (const key of STATEMENT) assert.match(views, new RegExp(`^- \`${key}\`, of a `, "m"), `the view statement's ${key} is shown, from a subject of its own`);
+  assert.doesNotMatch(views, /```json/, "no whole statement is given to borrow from: three fields from three subjects");
+  // No one subject is the running example: nothing an agent reads leans on the figure this phase was built around.
+  for (const file of markdown.filter((f) => f !== "CHANGELOG.md")) assert.doesNotMatch(read(file), /orchestrat|context window|transcript/i, file);
   assert.match(visualize.text, /--views /);
   assert.match(visualize.text, /states its view\*\* in its `view\.json`, before any drawing/);
   assert.match(visualize.text, /it does not\s+ship templates to fill in/);

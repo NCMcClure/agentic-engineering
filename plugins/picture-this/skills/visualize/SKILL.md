@@ -73,7 +73,7 @@ Read `references/archetypes.md`. A view is a kind of picture: what the page
 is, what each axis and each mark means, what moves. Design three for this
 subject, as unlike each other as the claim allows, starting from the lens and
 the subject's own shape, numbers and order. Name each for what it draws:
-`rear-view`, `tide-chart`, `two-runs`. Nothing an example in the references
+`cutaway`, `two-runs`, `zoom-strip`. Nothing an example in the references
 draws is yours by default: a device from one (a meter, a tint, a row of
 tiles) has to earn its place in this subject.
 

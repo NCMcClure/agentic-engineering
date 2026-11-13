@@ -22,7 +22,7 @@ const HELP = `usage: node pt.mjs draft new --model <model.json> --views <a,b,c=s
             (a, b, c ...), each holding the model, a figure to draw in, and a
             view.json to state the view in before drawing it; and a copy of the
             kit they all draw with. A view is named for what it draws
-            (cutaway, two-runs, tide-chart) and starts on the blank stage.
+            (cutaway, two-runs, gap-chart) and starts on the blank stage.
             <view>=<study> starts it from a study instead, for when that
             study's view is this subject's view. The drafts are laid out
             exactly as a landed figure is.
