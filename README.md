@@ -80,21 +80,14 @@ An Unreal-Blueprint-style node canvas that compiles graphs to runnable
 `.claude/workflows/*.js` and round-trips them back, plus a skill for
 hand-authoring without the GUI. [Read more →](plugins/workflow-studio/README.md)
 
-### animated-storytelling
-
-Most ideas don't fail because they're wrong; they fail because they're
-presented in bullet points. Craft knowledge for the alternative: how
-narrative arc, visual design, and motion combine so the audience follows
-the idea instead of reading past it.
-[Read more →](plugins/animated-storytelling/README.md)
-
 ### picture-this
 
 A system that takes three paragraphs to explain usually takes one good
 picture. Describe it, or point at a feature in your codebase, and get three
 rough animated drafts to choose from, each a different kind of picture of the
 same model. The one you pick becomes a React component that embeds in MDX,
-with light and dark stills for a plain README.
+with light and dark stills for a plain README. It replaces
+`animated-storytelling`: uninstall that one and install this.
 [Read more →](plugins/picture-this/README.md)
 
 ### write-like-me

@@ -11,7 +11,6 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [codebase-optimizer](#codebase-optimizer) | 1.0.0 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.0 | 6 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.0 | 2 | workflow |
-| [animated-storytelling](#animated-storytelling) | 1.0.0 | 1 | creative |
 | [picture-this](#picture-this) | 0.1.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.0 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.0 | 5 | code-quality |
@@ -108,16 +107,6 @@ Version 1.0.0. [README](../plugins/workflow-studio/README.md), [changelog](../pl
 |---|---|---|
 | `/workflow-studio:author-workflow` | by the agent, or by hand | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
 | `/workflow-studio:workflow-studio` | by the agent, or by hand | Launch the Workflow Studio — a visual, Unreal-Blueprint-style node editor for Claude Code dynamic workflows — in the browser (a local Vite dev server). Use when the user wants to open the studio, visually build or edit a workflow graph, or asks to "open the canvas". |
-
-## animated-storytelling
-
-Make ideas land at the intersection of narrative arc, visual design, and motion: NCP story structure, hierarchy/typography/color craft, and tasteful Motion (Framer Motion v12) animation — with a catalog of showcase recipes.
-
-Version 1.0.0. [README](../plugins/animated-storytelling/README.md), [changelog](../plugins/animated-storytelling/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/animated-storytelling:animated-storytelling` | by the agent, or by hand | Make an idea land by working three levers — narrative arc, visual hierarchy (type, color, composition), and tasteful accessible animation (Motion / Framer Motion). Use when content "reads flat" or "is just bullet points", when a page / hero / explainer / diagram should be animated or "brought to life", when a transition needs easing/timing/spring choices or polish, or when something should look more professional — fix hierarchy, pick type or color — even when the user never says "narrative" or "animation". |
 
 ## picture-this
 

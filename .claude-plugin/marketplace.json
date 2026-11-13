@@ -39,12 +39,6 @@
       "category": "workflow"
     },
     {
-      "name": "animated-storytelling",
-      "source": "./plugins/animated-storytelling",
-      "description": "Make ideas land at the intersection of narrative arc, visual design, and motion: NCP story structure, hierarchy/typography/color craft, and tasteful Motion (Framer Motion v12) animation — with a catalog of showcase recipes.",
-      "category": "creative"
-    },
-    {
       "name": "picture-this",
       "source": "./plugins/picture-this",
       "description": "Turns a description or a feature in your codebase into a minimalist animated visualization of how a system works: three drafts to choose from, a React component that embeds in MDX, and light and dark stills for a README.",
