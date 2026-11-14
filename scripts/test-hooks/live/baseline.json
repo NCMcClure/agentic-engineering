@@ -2,12 +2,12 @@
   "claudeCodeVersion": "2.1.314",
   "date": "2026-11-14",
   "model": "haiku",
-  "pluginsTree": "532172f3dcffa4e406ee7be25603fa89ce613f3f",
-  "costUsd": 0.203,
+  "pluginsTree": "006979c420025f2c3aa6a7e0f1894d7d66c6c761",
+  "costUsd": 0.2018,
   "expectedFailures": {},
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 33221,
+      "firstRequestTokens": 33224,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 607,
@@ -18,7 +18,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -32,7 +32,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -87,7 +87,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -115,10 +115,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
@@ -150,7 +150,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21684,
+          "firstRequestTokens": 21691,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -161,7 +161,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -169,7 +169,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23862,
+          "firstRequestTokens": 23867,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -180,7 +180,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -188,7 +188,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5255,
+          "firstRequestTokens": 5253,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -196,7 +196,7 @@
       }
     },
     "outside": {
-      "firstRequestTokens": 33218,
+      "firstRequestTokens": 33700,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 607,
@@ -207,7 +207,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -221,7 +221,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -276,7 +276,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -304,10 +304,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
@@ -339,7 +339,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21682,
+          "firstRequestTokens": 21688,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -350,7 +350,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -358,7 +358,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23857,
+          "firstRequestTokens": 23865,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -369,7 +369,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -377,7 +377,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5250,
+          "firstRequestTokens": 5251,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -385,7 +385,7 @@
       }
     },
     "adopted": {
-      "firstRequestTokens": 36058,
+      "firstRequestTokens": 36061,
       "start": {
         "agent-works": 1770,
         "agentic-teamwork": 1168,
@@ -396,7 +396,7 @@
         "perceptual-loop": 1240,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -410,7 +410,7 @@
         "perceptual-loop": 781,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -470,7 +470,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -498,10 +498,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 1,
           "person": 2,
-          "silent": 1,
+          "silent": 2,
           "error": 0
         },
         "write-like-me": {
@@ -513,7 +513,7 @@
       },
       "compaction": {
         "Stop · agentic-teamwork": "not since",
-        "Stop · docs-parity": "not since",
+        "Stop · docs-parity or system-map": "not since",
         "agents · perceptual-loop": "kept",
         "agents · picture-this": "kept",
         "mcp-instructions · agent-works": "kept",
@@ -540,7 +540,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21683,
+          "firstRequestTokens": 21689,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -551,7 +551,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -559,7 +559,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 25494,
+          "firstRequestTokens": 25496,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or perceptual-loop or system-map": 907,
@@ -571,7 +571,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -581,7 +581,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5618,
+          "firstRequestTokens": 5613,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -589,7 +589,7 @@
       }
     },
     "teamwork-only": {
-      "firstRequestTokens": 35134,
+      "firstRequestTokens": 35141,
       "start": {
         "agent-works": 1408,
         "agentic-teamwork": 1168,
@@ -600,7 +600,7 @@
         "perceptual-loop": 881,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -614,7 +614,7 @@
         "perceptual-loop": 663,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -673,7 +673,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -701,10 +701,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 6,
           "error": 0
         },
         "write-like-me": {
@@ -741,7 +741,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21687,
+          "firstRequestTokens": 21692,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -752,7 +752,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -760,7 +760,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 24839,
+          "firstRequestTokens": 24846,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or perceptual-loop or system-map": 680,
@@ -772,7 +772,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -790,7 +790,7 @@
       }
     },
     "standard": {
-      "firstRequestTokens": 35404,
+      "firstRequestTokens": 35412,
       "start": {
         "agent-works": 1566,
         "agentic-teamwork": 1037,
@@ -801,7 +801,7 @@
         "perceptual-loop": 1015,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -815,7 +815,7 @@
         "perceptual-loop": 730,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -875,7 +875,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -903,10 +903,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 1,
           "person": 2,
-          "silent": 1,
+          "silent": 2,
           "error": 0
         },
         "write-like-me": {
@@ -918,7 +918,7 @@
       },
       "compaction": {
         "Stop · agentic-teamwork": "not since",
-        "Stop · docs-parity": "not since",
+        "Stop · docs-parity or system-map": "not since",
         "agents · perceptual-loop": "kept",
         "agents · picture-this": "kept",
         "mcp-instructions · agent-works": "kept",
@@ -945,7 +945,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21683,
+          "firstRequestTokens": 21688,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -956,7 +956,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -964,7 +964,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 25428,
+          "firstRequestTokens": 25434,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or perceptual-loop or system-map": 907,
@@ -976,7 +976,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -986,7 +986,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5552,
+          "firstRequestTokens": 5551,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -994,7 +994,7 @@
       }
     },
     "portable": {
-      "firstRequestTokens": 34750,
+      "firstRequestTokens": 34756,
       "start": {
         "agent-works": 1029,
         "agentic-teamwork": 663,
@@ -1005,7 +1005,7 @@
         "perceptual-loop": 663,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -1019,7 +1019,7 @@
         "perceptual-loop": 663,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -1078,7 +1078,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -1097,25 +1097,25 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 2,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 2,
+          "silent": 1,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 2,
           "error": 0
         }
       },
@@ -1146,7 +1146,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21682,
+          "firstRequestTokens": 21688,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1157,7 +1157,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -1165,7 +1165,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 24708,
+          "firstRequestTokens": 24715,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or perceptual-loop or system-map": 603,
@@ -1177,7 +1177,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -1195,7 +1195,7 @@
       }
     },
     "unplugged": {
-      "firstRequestTokens": 33531,
+      "firstRequestTokens": 33535,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 479,
@@ -1206,7 +1206,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -1220,7 +1220,7 @@
         "perceptual-loop": 445,
         "picture-this": 293,
         "plugin-workbench": 304,
-        "system-map": 570,
+        "system-map": 574,
         "workflow-studio": 157,
         "write-like-me": 187
       },
@@ -1273,7 +1273,7 @@
           "bare": 0
         },
         "system-map": {
-          "tokens": 260,
+          "tokens": 264,
           "skills": 2,
           "bare": 0
         },
@@ -1301,10 +1301,10 @@
           "silent": 2,
           "error": 0
         },
-        "docs-parity": {
+        "docs-parity or system-map": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
@@ -1335,7 +1335,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21686,
+          "firstRequestTokens": 21690,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1346,7 +1346,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -1354,7 +1354,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23875,
+          "firstRequestTokens": 23878,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1365,7 +1365,7 @@
             "perceptual-loop": 389,
             "picture-this": 229,
             "plugin-workbench": 304,
-            "system-map": 570,
+            "system-map": 574,
             "workflow-studio": 157,
             "write-like-me": 187
           },
@@ -1373,7 +1373,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5268,
+          "firstRequestTokens": 5264,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
