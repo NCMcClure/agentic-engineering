@@ -409,7 +409,7 @@ function checkImports(root, ex, only) {
 }
 
 /** [changed files, the range's commit messages]. A plain ref compares the working tree, untracked files included. */
-function changedFiles(root, base) {
+export function changedFiles(root, base) {
   if (base.includes("..")) return [new Set(lines(git(root, "diff", "--name-only", base))), git(root, "log", "--format=%B", base)];
   return [new Set([...lines(git(root, "diff", "--name-only", base)), ...lines(git(root, "ls-files", "--others", "--exclude-standard"))]), ""];
 }

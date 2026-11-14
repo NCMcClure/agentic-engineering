@@ -50,8 +50,8 @@ const NO_CHROME = (t) => ({ SYSTEM_MAP_CHROME: path.join(tempDir(t, "miro-none-"
 
 // ---- what is registered -----------------------------------------------------
 
-test("hooks.json registers the session hook for every session start and every subagent, and nothing else", () => {
-  assert.deepEqual(Object.keys(HOOKS).sort(), ["SessionStart", "SubagentStart"]);
+test("hooks.json registers the session hook for every session start and every subagent, and the Stop hook beside it", () => {
+  assert.deepEqual(Object.keys(HOOKS).sort(), ["SessionStart", "Stop", "SubagentStart"]);
   assert.equal(HOOKS.SessionStart.length, 1);
   const [start] = HOOKS.SessionStart;
   assert.equal(start.matcher, "startup|resume|clear|compact");

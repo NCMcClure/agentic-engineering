@@ -234,7 +234,7 @@ function Scene() {
 
       {/* The check: what the script printed, and how it exited */}
       <text className="pt-label" x={TERM.x + 2} y={TERM.y - 7} opacity={r(0.6 + 0.4 * termLit)}>The check</text>
-      <text className="pt-tag" x={TERM.x + TERM.width - 2} y={TERM.y - 7} textAnchor="end" opacity={r(0.6 + 0.4 * termLit)}>run by hand, by diagrams-sync, and in CI</text>
+      <text className="pt-tag" x={TERM.x + TERM.width - 2} y={TERM.y - 7} textAnchor="end" opacity={r(0.6 + 0.4 * termLit)}>run as the turn ends, by diagrams-sync, and in CI</text>
       <Panel box={TERM} radius={6} lit={Math.max(termLit, 0.35)}>
         <g opacity={r(0.55 + 0.45 * termLit)}>
           {phaseA > 0 ? (

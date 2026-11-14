@@ -4,7 +4,7 @@ description: >
   Bring the system map and its Miro board level with a code change: fix the
   @system annotations, regenerate diagrams/system-map.json, and republish the
   board. Use when adding a module or a call between modules in a repo that
-  carries .agents/system-map.json, when the checker or CI reports MAP_STALE,
+  carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE,
   MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the
   user says "update the diagram", "sync the board", or "redraw the system
   map". Also the whole-repo sweep, which assesses every module's annotations

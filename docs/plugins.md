@@ -17,7 +17,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
-| [system-map](#system-map) | 0.2.1 | 4 | documentation |
+| [system-map](#system-map) | 0.3.0 | 4 | documentation |
 
 ## agent-works
 
@@ -197,11 +197,11 @@ Version 1.0.3. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 
 An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
-Version 0.2.1. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
+Version 0.3.0. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
 | `/system-map:browser-setup` | by hand | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
 | `/system-map:diagrams-init [board name or URL]` | by hand | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
-| `/system-map:diagrams-sync` | by the agent, or by hand | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
+| `/system-map:diagrams-sync` | by the agent, or by hand | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
 | `/system-map:miro-board` | by the agent, or by hand | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |

@@ -10,7 +10,7 @@
 // this machine lacks what the live check's browser server needs (a new enough
 // Node, npx, Google Chrome). It looks at paths and versions and starts
 // nothing; the system map is not checked here, since that would walk the tree
-// on every start.
+// on every start. stop-check.mjs checks it, once a turn that changed something.
 //
 // No migration: nothing this plugin reads from a repo has had another path.
 //

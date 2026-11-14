@@ -304,7 +304,8 @@ into the code: each module declares what it is and whom it calls in `@system`
 comment lines, the map is extracted from them into a diffable file committed
 beside the code, and a checker holds it to the real import graph, so a module
 or a call nobody declared fails the check instead of quietly dating the
-picture. A whole-repo sweep reads every module's lines against its code for
+picture. A Stop hook runs that check on what a turn changed and tells the
+agent before the turn ends; the same script in CI fails the pull request. A whole-repo sweep reads every module's lines against its code for
 what a checker cannot judge. Miro is where the map is drawn: generators put
 it, or any other frame, on a board through a lint that refuses overlaps and
 crossed connectors, a live check of what Miro actually drew, and a pull that

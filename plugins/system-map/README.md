@@ -43,6 +43,14 @@ is classified. A stale map is `MAP_STALE`; an import nobody declared is
 `Diagram: none, <why>` in the commit message. The grammar and every finding
 are in `skills/diagrams-sync/references/grammar.md`.
 
+**Told in session, failed in CI.** A Stop hook runs the checker on what a
+turn changed since the last commit. When the turn left the map behind, the
+agent is told the finding, the file and the line, gets one more go at the
+turn, and you see one short line. The same findings reach the agent once a
+session; after that only your line repeats. It never blocks, and a board that
+is behind the map is never raised there: publishing is yours to ask for. The
+same script in CI fails the pull request.
+
 **The sweep covers what one change does not.** The check follows a change.
 The whole-repo sweep reads every module's annotations against its code,
 including what no checker can judge: a label that says nothing, an HTTP call
@@ -155,6 +163,9 @@ until it is copied in again.
 | `browser-setup` | `/system-map:browser-setup` | Checks Node, npx, and Chrome, connects the bundled browser server on the current surface, and waits while you sign in to Miro once. |
 
 ## The check, by hand and in CI
+
+The Stop hook runs the second of these for you, in a repo that carries
+`.agents/system-map.json`:
 
 ```bash
 node <plugin root>/scripts/system-map.mjs                  # check the whole repo

@@ -190,7 +190,7 @@
       "id": "check",
       "title": "The check says so",
       "plain": "The check compares the diagram with what the code really imports. It finds the missing arrow, and fails.",
-      "technical": "checkImports resolves every import to the node that owns it: UNDECLARED_IMPORT at cart/index.mjs:4, exit 1. Run by hand, by diagrams-sync, or in CI with --changed <base>..HEAD.",
+      "technical": "checkImports resolves every import to the node that owns it: UNDECLARED_IMPORT at cart/index.mjs:4, exit 1. Run by the Stop hook as the turn ends, by diagrams-sync, or in CI.",
       "focus": ["imports", "checker", "map"],
       "flows": ["crosscheck"],
       "ms": 3800
