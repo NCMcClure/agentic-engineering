@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner.dark.gif">
+  <img alt="Nick McClure. I build superpowers, creative bridges, for tomorrow. Agentic Engineering: twelve plugins for Claude Code." src="docs/assets/banner.gif" width="100%">
+</picture>
+
 # Agentic Engineering
 
 A personal marketplace of Claude Code plugins. Each one solves a problem
@@ -40,6 +45,20 @@ let sessions across projects share one machine. Node 22, nothing else. It is
 the foundation the plugins below lean on; each still runs without it.
 [Read more →](plugins/agent-works/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agent-works/assets/figures/one-window.dark.gif">
+  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="plugins/agent-works/assets/figures/one-window.gif" width="720">
+</picture>
+
+<sub>One orchestrator window carries a whole round: it holds hand-offs and one-line reports, not the work.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agent-works/assets/screens/doctor.dark.png">
+  <img alt="The aw doctor report for this repo: every check, its severity and what to do about it." src="plugins/agent-works/assets/screens/doctor.light.png" width="720">
+</picture>
+
+<sub><code>aw doctor</code>, run on this repo.</sub>
+
 ### but-first-planning
 
 Code written before the spec is settled is a loan against your future self.
@@ -49,6 +68,25 @@ with an autopilot that runs the whole graph hands-off. The backlog publishes
 to GitHub or GitLab, and one script owns every status change so the plan and
 the tracker cannot disagree quietly.
 [Read more →](plugins/but-first-planning/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/figures/folders-climb.dark.gif">
+  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="plugins/but-first-planning/assets/figures/folders-climb.gif" width="720">
+</picture>
+
+<sub>A status is set in one place and derived everywhere else.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/screens/spec-site.dark.png">
+  <img alt="A page of the spec site: navigation, prose, a diagram and a callout." src="plugins/but-first-planning/assets/screens/spec-site.light.png" width="720">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/screens/plan-view.dark.png">
+  <img alt="The plan view: epics and their issues as cards, each in its state." src="plugins/but-first-planning/assets/screens/plan-view.light.png" width="720">
+</picture>
+
+<sub>The spec site and its plan view.</sub>
 
 ### agentic-teamwork
 
@@ -62,6 +100,13 @@ hard test gate is one opt-in away. Owns team version-control conventions; how
 agents share a codebase is agent-works' job. The two are meant to run together.
 [Read more →](plugins/agentic-teamwork/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-teamwork/assets/figures/four-commands-one-answer.dark.gif">
+  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="plugins/agentic-teamwork/assets/figures/four-commands-one-answer.gif" width="720">
+</picture>
+
+<sub>Each git call in a shell line is judged where it really runs, and one deny stops the line.</sub>
+
 ### codebase-optimizer
 
 A staged, autonomous optimizer for whatever language your repo speaks
@@ -73,12 +118,40 @@ change sits behind CI-faithful validation with revert-on-red, and nothing is
 ever pushed. It writes the hubs and checks that each one names its children.
 [Read more →](plugins/codebase-optimizer/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/figures/red-list-subtraction.dark.gif">
+  <img alt="How a round keeps only changes that broke nothing new. A test the repo already failed never blocks a change, and a change that breaks a new one never lands." src="plugins/codebase-optimizer/assets/figures/red-list-subtraction.gif" width="720">
+</picture>
+
+<sub>A round keeps only the changes that broke nothing new.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/screens/report.dark.png">
+  <img alt="The architecture report: candidates for deepening, each with the files and the evidence." src="plugins/codebase-optimizer/assets/screens/report.light.png" width="720">
+</picture>
+
+<sub>The architecture report, written about this repo's own tooling.</sub>
+
 ### workflow-studio
 
 Claude Code dynamic workflows are programs; you should be able to see them.
 An Unreal-Blueprint-style node canvas that compiles graphs to runnable
 `.claude/workflows/*.js` and round-trips them back, plus a skill for
 hand-authoring without the GUI. [Read more →](plugins/workflow-studio/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/workflow-studio/assets/figures/two-folders.dark.gif">
+  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="plugins/workflow-studio/assets/figures/two-folders.gif" width="720">
+</picture>
+
+<sub>The graph file is the one truth, and nothing Claude Code runs changes until you publish.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/workflow-studio/assets/screens/canvas.dark.png">
+  <img alt="The workflow canvas: nodes wired together, one selected, its fields in the details panel." src="plugins/workflow-studio/assets/screens/canvas.light.png" width="720">
+</picture>
+
+<sub>The canvas.</sub>
 
 ### picture-this
 
@@ -90,6 +163,13 @@ with light and dark stills for a plain README. It replaces
 `animated-storytelling`: uninstall that one and install this.
 [Read more →](plugins/picture-this/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/iso-flow.dark.gif">
+  <img alt="How an upload becomes a thumbnail. The API answers before the slow work starts, so an upload never waits on it." src="docs/assets/iso-flow.gif" width="720">
+</picture>
+
+<sub>The plugin's worked example, filmed by the plugin. Every other figure on this page was drawn with it, and so was the banner.</sub>
+
 ### write-like-me
 
 Everything an agent drafts for you ships in someone else's voice. A
@@ -99,6 +179,13 @@ co-occurring patterns rather than lone buzzwords, and reflective hooks fold
 your style feedback back into the profile.
 Prose only: code and commit messages stay out of scope.
 [Read more →](plugins/write-like-me/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/write-like-me/assets/figures/profile-page-revised.dark.gif">
+  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="plugins/write-like-me/assets/figures/profile-page-revised.gif" width="720">
+</picture>
+
+<sub>One remark about your style becomes a line in the profile every later session loads.</sub>
 
 ### code-diet
 
@@ -111,6 +198,13 @@ candidates and cuts applied behind validate-or-revert, and tracks every
 deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved from
 the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
 [Read more →](plugins/code-diet/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/code-diet/assets/figures/cut-by-cut.dark.gif">
+  <img alt="How review-diet lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="plugins/code-diet/assets/figures/cut-by-cut.gif" width="720">
+</picture>
+
+<sub>A cut that turns a check red costs only itself, and the report counts the lines that landed.</sub>
 
 ### plugin-workbench
 
@@ -126,6 +220,25 @@ session's transcript and shows what each plugin put in the agent's context,
 who saw it, and what a compaction threw away.
 [Read more →](plugins/plugin-workbench/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/figures/ledger-to-verdict.dark.gif">
+  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="plugins/plugin-workbench/assets/figures/ledger-to-verdict.gif" width="720">
+</picture>
+
+<sub>Every number on the scorecard is the script's.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/screens/scorecard.dark.png">
+  <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/plugin-workbench/assets/screens/scorecard.light.png" width="720">
+</picture>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/screens/context-lens.dark.png">
+  <img alt="context-lens: what each plugin put into a session's context, and what a compaction dropped." src="plugins/plugin-workbench/assets/screens/context-lens.light.png" width="720">
+</picture>
+
+<sub>A scorecard for picture-this, and context-lens reading a synthetic session.</sub>
+
 ### perceptual-loop
 
 An agent can't iterate on what it can't measure. For work judged by eye or ear
@@ -136,6 +249,20 @@ the taste questions for you. One Node CLI does the measuring, a hook keeps
 runs small, and a blind critic judges a picture without being told what it was
 meant to be. It measures looks and does not coordinate agents: locks, leases
 and machine load are agent-works' job. [Read more →](plugins/perceptual-loop/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/score-beside-its-band.dark.gif">
+  <img alt="A gate that compares a picture with itself. The gate asks whether anything moved that you did not mean to move, not how close you are to the reference." src="plugins/perceptual-loop/assets/figures/score-beside-its-band.gif" width="720">
+</picture>
+
+<sub>The gate asks whether anything moved that you did not mean to move.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/screens/review.dark.png">
+  <img alt="The review page: the taste questions batched for a person, each with its pictures." src="plugins/perceptual-loop/assets/screens/review.light.png" width="720">
+</picture>
+
+<sub>The review page.</sub>
 
 ### docs-parity
 
@@ -149,6 +276,13 @@ agent in session and failing in CI, for a site, a `docs/` folder, a wiki or a
 README. A README check keeps the front page written for people.
 [Read more →](plugins/docs-parity/README.md)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/docs-parity/assets/figures/three-buckets.dark.gif">
+  <img alt="How a code change drags its docs along. Docs ride in the same change as the code: a surface whose code moved without its pages or shots is caught before the turn ends." src="plugins/docs-parity/assets/figures/three-buckets.gif" width="720">
+</picture>
+
+<sub>A surface whose code moved without its pages or shots is caught before the turn ends.</sub>
+
 ### marvelous-miro
 
 An architecture diagram is true on the day it is drawn, and a diagram an agent
@@ -161,6 +295,13 @@ lint that refuses overlaps and crossed connectors, a live check of what Miro
 actually drew, and a pull that keeps layout changes made on the board. It
 holds no credentials: publishing goes through the Miro MCP you connect.
 [Read more →](plugins/marvelous-miro/README.md)
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/marvelous-miro/assets/figures/repo-and-board.dark.gif">
+  <img alt="How a Miro frame goes round from code to board and back. Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew." src="plugins/marvelous-miro/assets/figures/repo-and-board.gif" width="720">
+</picture>
+
+<sub>Words come from code, positions from the board, and one lint reads both.</sub>
 
 Every plugin, version and skill on one page: [docs/plugins.md](docs/plugins.md).
 

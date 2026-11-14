@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "title": "Agentic Engineering",
+  "mechanism": "One builder makes three kinds of thing, and the banner names them one at a time.",
+  "lens": "cases",
+  "claim": "Twelve Claude Code plugins, each a fix for a problem that keeps turning up when engineering with agents.",
+  "entities": [
+    { "id": "nick", "label": "nick mcclure", "kind": "client", "note": "xr technical designer" },
+    { "id": "superpowers", "label": "superpowers.", "kind": "service" },
+    { "id": "bridges", "label": "creative bridges.", "kind": "service" },
+    { "id": "tomorrow", "label": "for tomorrow.", "kind": "service" }
+  ],
+  "flows": [
+    { "id": "builds-superpowers", "from": "nick", "to": "superpowers", "kind": "write", "label": "builds" },
+    { "id": "builds-bridges", "from": "nick", "to": "bridges", "kind": "write", "label": "builds" },
+    { "id": "builds-tomorrow", "from": "nick", "to": "tomorrow", "kind": "write", "label": "builds" }
+  ],
+  "beats": [
+    { "id": "superpowers", "title": "Superpowers", "plain": "I build superpowers.", "focus": ["nick", "superpowers"], "flows": ["builds-superpowers"], "ms": 2000 },
+    { "id": "bridges", "title": "Creative bridges", "plain": "I build creative bridges.", "focus": ["nick", "bridges"], "flows": ["builds-bridges"], "ms": 2600 },
+    { "id": "tomorrow", "title": "For tomorrow", "plain": "I build for tomorrow.", "focus": ["nick", "tomorrow"], "flows": ["builds-tomorrow"], "ms": 2600 },
+    { "id": "rest", "title": "And round again", "plain": "I build superpowers.", "focus": [], "flows": [], "rest": true, "ms": 1400 }
+  ],
+  "hero": { "beat": "superpowers", "at": 0.5 }
+}
