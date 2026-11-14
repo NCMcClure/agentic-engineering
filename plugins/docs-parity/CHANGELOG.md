@@ -1,5 +1,6 @@
 # Changelog
 
+- **1.0.3**: The README's figure now draws a surface as what it is, a source file, a page and a screenshot, and shows the page rewritten and the shot retaken after the code changes: `assets/figures/docs-move-with-code`, with every checker line taken from a real run. It replaces `three-buckets`. Nothing the plugin runs changed.
 - **1.0.2**: The session kernel every plugin ships lists `system-map` in its `ORDER` where it listed `marvelous-miro`, that plugin's old name. This plugin's own lines, briefing and hooks are unchanged.
 - **1.0.1**: The README shows how a code change brings its docs along: `assets/figures/three-buckets`, a looping GIF in light and dark. Nothing the plugin runs changed.
 - **1.0.0**: runs on Node 22 alone, with Python gone: `docs-check.mjs` replaces `docs_check.py` (the same

@@ -35,13 +35,13 @@ Four things hold for all of them:
    at `.agents/CONTEXT.md` and the decision records under `.agents/decisions/`,
    and offers a new record when a choice would otherwise be re-argued.
 
-The second of those at work: a round writes down which tests were already
-failing before it touches the code, so only the failures a change introduces
-count against it.
+All of it on one small repo: the plan first, the loose files tidied into
+folders and the hubs written, a split that turns a test red and is put back,
+then the long file split and three thin modules folded into one.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/red-list-subtraction.dark.gif">
-  <img alt="How a round keeps only changes that broke nothing new. A test the repo already failed never blocks a change, and a change that breaks a new one never lands." src="assets/figures/red-list-subtraction.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/drifted-to-organized.dark.gif">
+  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="assets/figures/drifted-to-organized.gif" width="720">
 </picture>
 
 It detects Python, JS/TS, Go, and Rust from the manifests and runs a generic

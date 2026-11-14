@@ -1,0 +1,262 @@
+{
+  "schema": 1,
+  "title": "How a drifted repo becomes an organized one",
+  "mechanism": "Once you approve the run plan, three stages tidy the tree, split the long file and merge thin modules, and each change is checked and put back if a test breaks.",
+  "lens": "transformation",
+  "claim": "Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts.",
+  "implication": "Every round that passes is a commit on optimize-codebase/auto and nothing is pushed, so the result is yours to review, test and merge.",
+  "entities": [
+    {
+      "id": "plan",
+      "label": "Run plan",
+      "kind": "page",
+      "note": "shown to you first",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/SKILL.md:49"
+    },
+    {
+      "id": "loose",
+      "label": "Loose files",
+      "kind": "file",
+      "note": "3 at the root",
+      "source": "plugins/codebase-optimizer/skills/codebase-organizer/scripts/repo-scan.mjs:242"
+    },
+    {
+      "id": "hubs",
+      "label": "AGENTS.md hubs",
+      "kind": "file",
+      "note": "one line per child folder",
+      "born": "hubs",
+      "source": "plugins/codebase-optimizer/skills/codebase-organizer/references/agent-hubs.md:21"
+    },
+    {
+      "id": "godfile",
+      "label": "invoice.ts",
+      "kind": "file",
+      "note": "2,140 lines, over 1,500",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:49"
+    },
+    {
+      "id": "pieces",
+      "label": "Carved-out modules",
+      "kind": "file",
+      "note": "taxRules.ts, dunning.ts",
+      "born": "undone",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1608"
+    },
+    {
+      "id": "thin",
+      "label": "Thin modules",
+      "kind": "file",
+      "note": "retry, send, sign",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1929"
+    },
+    {
+      "id": "deep",
+      "label": "client.ts",
+      "kind": "file",
+      "note": "one deeper module",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:188"
+    },
+    {
+      "id": "check",
+      "label": "Check",
+      "kind": "service",
+      "note": "type check, tests, lint",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1652"
+    },
+    {
+      "id": "branch",
+      "label": "optimize-codebase/auto",
+      "kind": "store",
+      "note": "never pushed",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:23"
+    }
+  ],
+  "flows": [
+    {
+      "id": "scan",
+      "from": "loose",
+      "to": "plan",
+      "kind": "query",
+      "label": "scan",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/SKILL.md:56"
+    },
+    {
+      "id": "tidy",
+      "from": "plan",
+      "to": "loose",
+      "kind": "write",
+      "label": "git mv",
+      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:128"
+    },
+    {
+      "id": "hub",
+      "from": "plan",
+      "to": "hubs",
+      "kind": "write",
+      "label": "write hubs",
+      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:168"
+    },
+    {
+      "id": "gate",
+      "from": "hubs",
+      "to": "check",
+      "kind": "query",
+      "label": "strict gate",
+      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:195"
+    },
+    {
+      "id": "carve",
+      "from": "godfile",
+      "to": "pieces",
+      "kind": "write",
+      "label": "extract",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1608"
+    },
+    {
+      "id": "validate",
+      "from": "pieces",
+      "to": "check",
+      "kind": "query",
+      "label": "validate",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1434"
+    },
+    {
+      "id": "back",
+      "from": "check",
+      "to": "godfile",
+      "kind": "write",
+      "label": "put back",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1498"
+    },
+    {
+      "id": "fold",
+      "from": "thin",
+      "to": "deep",
+      "kind": "write",
+      "label": "merge",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1763"
+    },
+    {
+      "id": "commit",
+      "from": "check",
+      "to": "branch",
+      "kind": "write",
+      "label": "commit",
+      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1472"
+    }
+  ],
+  "data": {
+    "plan": [
+      { "id": "organize", "stage": "Organize", "found": "3 loose files at the root" },
+      { "id": "decompose", "stage": "Decompose", "found": "1 file over 1,500 lines" },
+      { "id": "deepen", "stage": "Deepen", "found": "shallow modules" }
+    ],
+    "files": [
+      { "id": "exportOrders", "name": "exportOrders.ts", "lines": 240, "of": "loose" },
+      { "id": "invoice", "name": "invoice.ts", "lines": 2140, "ends": 970, "of": "godfile" },
+      { "id": "migrate", "name": "migrate.ts", "lines": 120, "of": "loose" },
+      { "id": "client", "name": "client.ts", "lines": 460, "ends": 520, "of": "deep" },
+      { "id": "retry", "name": "retry.ts", "lines": 41, "of": "thin" },
+      { "id": "send", "name": "send.ts", "lines": 28, "of": "thin" },
+      { "id": "sign", "name": "sign.ts", "lines": 34, "of": "thin" }
+    ],
+    "pieces": [
+      { "id": "pdfRender", "name": "pdfRender.ts", "lines": 570, "at": "undone", "lands": false },
+      { "id": "taxRules", "name": "taxRules.ts", "lines": 610, "at": "split", "lands": true },
+      { "id": "dunning", "name": "dunning.ts", "lines": 560, "at": "split", "lands": true }
+    ],
+    "hubs": [
+      { "id": "hubRoot", "names": "scripts/ · src/ · tests/", "at": "hubs", "of": "hubs" },
+      { "id": "hubSrc", "names": "billing/ · gateway/", "at": "hubs", "of": "hubs" }
+    ],
+    "checks": [
+      { "id": "smoke", "name": "type check", "runs": "tsc --noEmit", "of": "check" },
+      { "id": "tests", "name": "tests", "runs": "npm test", "of": "check" },
+      { "id": "gate", "name": "structure", "runs": "verify-structure.mjs", "of": "check" },
+      { "id": "lint", "name": "lint", "runs": "eslint", "of": "check" }
+    ],
+    "failures": [
+      { "id": "new", "test": "invoice.layout.test.ts", "says": "new", "counts": true, "at": "undone" },
+      { "id": "old", "test": "legacy.io.test.ts", "says": "already failing", "counts": false, "at": "undone" }
+    ],
+    "commits": [
+      { "id": "c1", "says": "reorg(auto): pass 1 round 1", "at": "hubs", "of": "branch" },
+      { "id": "c2", "says": "refactor(invoice): extract tax rules", "at": "split", "of": "branch" },
+      { "id": "c3", "says": "refactor(invoice): extract dunning", "at": "split", "of": "branch" },
+      { "id": "c4", "says": "refactor(arch): one gateway client", "at": "deepen", "of": "branch" }
+    ],
+    "limits": [
+      { "id": "discover", "value": 1500 },
+      { "id": "target", "value": 1000 },
+      { "id": "repairs", "value": 3 }
+    ]
+  },
+  "beats": [
+    {
+      "id": "plan",
+      "title": "The plan, first",
+      "plain": "A read-only scan finds what has drifted and the run plan is shown to you. Nothing moves until you say yes.",
+      "technical": "repo-scan.mjs --large-min 1500 reports 3 loose root files and invoice.ts at 2,140 lines; the engine returns an error unless called with approved: true.",
+      "focus": ["plan", "loose", "godfile", "thin"],
+      "flows": ["scan"],
+      "ms": 3200
+    },
+    {
+      "id": "tidy",
+      "title": "Tidy the tree",
+      "plain": "Stage one moves the loose files into folders. Each move keeps the file's history, and the imports that pointed at it are rewritten.",
+      "technical": "ORGANIZE: organize-apply.js runs git mv per planned move on optimize-codebase/auto, applies the plan's reference fixes, then re-greps for the ones it missed.",
+      "focus": ["loose"],
+      "flows": ["tidy"],
+      "ms": 3200
+    },
+    {
+      "id": "hubs",
+      "title": "Write the hubs",
+      "plain": "The root and src/ each get an AGENTS.md hub: one line per folder, saying what it holds. The round passes its checks and is committed.",
+      "technical": "A hub goes in the root and every non-leaf code directory; leaves get none. Verify runs tsc, npm test and verify-structure.mjs --strict, then the round commits.",
+      "focus": ["hubs", "check", "branch"],
+      "flows": ["hub", "gate", "commit"],
+      "ms": 3600
+    },
+    {
+      "id": "undone",
+      "title": "Red is put back",
+      "plain": "Stage two carves a piece out of the long file. A test that passed before now fails, three repairs do not fix it, so the piece goes back.",
+      "technical": "DECOMPOSE takes files over 1,500 lines. Only failures absent from the per-round oracle count; after MAX_REPAIRS (3) the member is reset to the round's base commit.",
+      "focus": ["godfile", "pieces", "check"],
+      "flows": ["carve", "validate", "back"],
+      "ms": 4800
+    },
+    {
+      "id": "split",
+      "title": "Split the long file",
+      "plain": "The next two pieces pass every check and are committed. One 2,140-line file is now three, each under 1,000 lines.",
+      "technical": "Each extraction leaves re-exports in invoice.ts so old imports resolve, passes tsc, the targeted tests and eslint, and commits. At 970 lines the file is under targetLines.",
+      "focus": ["godfile", "pieces", "branch"],
+      "flows": ["carve", "validate", "commit"],
+      "ms": 4200
+    },
+    {
+      "id": "deepen",
+      "title": "Deepen",
+      "plain": "Stage three folds three thin pass-through modules into the client they wrap: one deeper module to learn where there were four.",
+      "technical": "DEEPEN anchors on files over 400 lines and applies the deletion test to the modules around them; call sites move to client.ts, validated and committed like any round.",
+      "focus": ["thin", "deep", "check", "branch"],
+      "flows": ["fold", "commit"],
+      "ms": 3800
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1800
+    }
+  ],
+  "hero": {
+    "beat": "split",
+    "at": 0.5
+  }
+}

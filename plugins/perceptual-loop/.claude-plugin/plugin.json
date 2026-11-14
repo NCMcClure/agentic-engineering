@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "perceptual-loop",
   "displayName": "Perceptual Loop",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.",
   "author": {
     "name": "Nicholas McClure",

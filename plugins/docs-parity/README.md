@@ -45,8 +45,8 @@ same findings reach the agent once a session; after that only your line repeats.
 script in CI fails the pull request.
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/three-buckets.dark.gif">
-  <img alt="How a code change drags its docs along. Docs ride in the same change as the code: a surface whose code moved without its pages or shots is caught before the turn ends." src="assets/figures/three-buckets.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/docs-move-with-code.dark.gif">
+  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="assets/figures/docs-move-with-code.gif" width="720">
 </picture>
 
 **A README for people.** A README in a repo agents build fills up with prompts, rule restatements and

@@ -7,6 +7,35 @@ loop code already has: a reproducible unit (a *shot*), numbers that gate regress
 with its own vision after every change, a second look from a critic who does not know what was meant, and one
 page where you answer the taste questions in a sitting.
 
+A model can look at a picture but cannot measure it, sees a clip one still at a time, and has no ears. So the
+plugin measures, and draws what it measured as a picture the model can read: where a render differs from its
+reference, which frame of a clip stutters, when in a sound something starts that should not.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/toward-a-reference.dark.gif">
+  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="assets/figures/toward-a-reference.gif" width="720">
+</picture>
+
+**A still against its reference.** `compare` gives the numbers and a map of where the two differ. The agent
+boxes the marked place, `sheet crop` enlarges it from both, and that box gets numbers of its own: here the
+whole frame scores 0.98 and hides a fault the box alone scores 0.75.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/motion-between-frames.dark.gif">
+  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="assets/figures/motion-between-frames.gif" width="720">
+</picture>
+
+**Motion.** `sweep` tracks a clip across time and flags the frame whose step stands out, `video burst` lays
+out the frames round it, and `flow` draws which way things moved between them, and how far.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/sound-you-can-see.dark.gif">
+  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="assets/figures/sound-you-can-see.gif" width="720">
+</picture>
+
+**Sound.** `audio spectrogram` draws a sound with time across and pitch up, and `audio onsets` times when its
+sounds start: a click shows as a tall line, and is named by its time.
+
 ## How it works
 
 A project keeps its state in `.agents/perceptual/`: a config naming the reference (another renderer, a design

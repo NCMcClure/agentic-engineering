@@ -8,15 +8,15 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 |---|---|---|---|
 | [agent-works](#agent-works) | 1.0.3 | 15 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 18 | planning |
-| [codebase-optimizer](#codebase-optimizer) | 1.0.2 | 3 | refactoring |
+| [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 6 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.2 | 2 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
-| [perceptual-loop](#perceptual-loop) | 1.0.3 | 9 | evaluation |
-| [docs-parity](#docs-parity) | 1.0.2 | 6 | documentation |
+| [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
+| [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
 | [system-map](#system-map) | 0.2.0 | 4 | documentation |
 
 ## agent-works
@@ -74,7 +74,7 @@ Version 5.0.3. [README](../plugins/but-first-planning/README.md), [changelog](..
 
 Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.
 
-Version 1.0.2. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
+Version 1.0.3. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -164,7 +164,7 @@ Version 1.0.2. [README](../plugins/plugin-workbench/README.md), [changelog](../p
 
 An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.
 
-Version 1.0.3. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
+Version 1.0.4. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -182,7 +182,7 @@ Version 1.0.3. [README](../plugins/perceptual-loop/README.md), [changelog](../pl
 
 User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.
 
-Version 1.0.2. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
+Version 1.0.3. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|

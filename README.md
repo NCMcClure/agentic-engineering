@@ -119,11 +119,11 @@ ever pushed. It writes the hubs and checks that each one names its children.
 [Read more →](plugins/codebase-optimizer/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/figures/red-list-subtraction.dark.gif">
-  <img alt="How a round keeps only changes that broke nothing new. A test the repo already failed never blocks a change, and a change that breaks a new one never lands." src="plugins/codebase-optimizer/assets/figures/red-list-subtraction.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/figures/drifted-to-organized.dark.gif">
+  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="plugins/codebase-optimizer/assets/figures/drifted-to-organized.gif" width="720">
 </picture>
 
-<sub>A round keeps only the changes that broke nothing new.</sub>
+<sub>One small repo, stage by stage: the plan first, the tree tidied, a red change put back, the long file split.</sub>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/screens/report.dark.png">
@@ -251,11 +251,25 @@ meant to be. It measures looks and does not coordinate agents: locks, leases
 and machine load are agent-works' job. [Read more →](plugins/perceptual-loop/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/score-beside-its-band.dark.gif">
-  <img alt="A gate that compares a picture with itself. The gate asks whether anything moved that you did not mean to move, not how close you are to the reference." src="plugins/perceptual-loop/assets/figures/score-beside-its-band.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/toward-a-reference.dark.gif">
+  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="plugins/perceptual-loop/assets/figures/toward-a-reference.gif" width="720">
 </picture>
 
-<sub>The gate asks whether anything moved that you did not mean to move.</sub>
+<sub>A still against its reference: where they differ, drawn as a map, and the marked place enlarged and scored by itself.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/motion-between-frames.dark.gif">
+  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="plugins/perceptual-loop/assets/figures/motion-between-frames.gif" width="720">
+</picture>
+
+<sub>Motion: the frame whose step stands out, the frames round it, and which way things moved between them.</sub>
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/sound-you-can-see.dark.gif">
+  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="plugins/perceptual-loop/assets/figures/sound-you-can-see.gif" width="720">
+</picture>
+
+<sub>Sound: a click the agent cannot hear, standing as a tall line in the picture and named by its time.</sub>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/screens/review.dark.png">
@@ -277,11 +291,11 @@ README. A README check keeps the front page written for people.
 [Read more →](plugins/docs-parity/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/docs-parity/assets/figures/three-buckets.dark.gif">
-  <img alt="How a code change drags its docs along. Docs ride in the same change as the code: a surface whose code moved without its pages or shots is caught before the turn ends." src="plugins/docs-parity/assets/figures/three-buckets.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/docs-parity/assets/figures/docs-move-with-code.dark.gif">
+  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="plugins/docs-parity/assets/figures/docs-move-with-code.gif" width="720">
 </picture>
 
-<sub>A surface whose code moved without its pages or shots is caught before the turn ends.</sub>
+<sub>The code changes, so the page is rewritten and the screenshot retaken, in the same change.</sub>
 
 ### system-map
 

@@ -1,0 +1,199 @@
+{
+  "schema": 1,
+  "title": "A sound an agent can see",
+  "mechanism": "pl draws a sound as a spectrogram and times when its sounds start, so a click shows as a tall line and is named by its time.",
+  "lens": "transformation",
+  "claim": "An agent with no ears can still see what is wrong with a sound, and when, then check its own fix.",
+  "implication": "Whether it sounds good is still yours to hear: the agent queues the listening, with the picture beside it.",
+  "entities": [
+    {
+      "id": "sound",
+      "label": "chime.wav",
+      "kind": "sound",
+      "note": "the agent made it, unheard",
+      "source": "plugins/perceptual-loop/scripts/lib/wav.mjs:98"
+    },
+    {
+      "id": "picture",
+      "label": "Spectrogram",
+      "kind": "picture",
+      "note": "time across, pitch up",
+      "source": "plugins/perceptual-loop/scripts/commands/audio.mjs:419"
+    },
+    {
+      "id": "click",
+      "label": "Click",
+      "kind": "fault",
+      "note": "every pitch at once, at 0.38 s",
+      "parent": "picture",
+      "source": "plugins/perceptual-loop/skills/check-audio/SKILL.md:51"
+    },
+    {
+      "id": "numbers",
+      "label": "Numbers",
+      "kind": "readout",
+      "note": "loudness, clipping, onsets",
+      "source": "plugins/perceptual-loop/scripts/commands/audio.mjs:251"
+    },
+    {
+      "id": "edit",
+      "label": "Next edit",
+      "kind": "action",
+      "note": "crossfade 10 ms at 0.38 s",
+      "born": "fix",
+      "source": "plugins/perceptual-loop/hooks/critical.json:6"
+    }
+  ],
+  "flows": [
+    {
+      "id": "draw",
+      "from": "sound",
+      "to": "picture",
+      "kind": "write",
+      "label": "audio spectrogram",
+      "source": "plugins/perceptual-loop/scripts/commands/audio.mjs:447"
+    },
+    {
+      "id": "measure",
+      "from": "sound",
+      "to": "numbers",
+      "kind": "query",
+      "label": "audio onsets",
+      "source": "plugins/perceptual-loop/scripts/commands/audio.mjs:254"
+    },
+    {
+      "id": "locate",
+      "from": "numbers",
+      "to": "edit",
+      "kind": "event",
+      "label": "extra 0.3803",
+      "source": "plugins/perceptual-loop/scripts/commands/audio.mjs:269"
+    },
+    {
+      "id": "apply",
+      "from": "edit",
+      "to": "sound",
+      "kind": "write",
+      "label": "crossfade",
+      "source": "plugins/perceptual-loop/hooks/critical.json:6"
+    }
+  ],
+  "data": {
+    "levels": [
+      [-80, -80, -80, -80, -80, -80, -80, -69, -75, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -80, -67, -72, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -78, -64, -69, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -75, -61, -66, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -72, -58, -63, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -69, -54, -60, -80, -80, -20, -12, -12, -14, -17, -19, -21, -23, -25, -35, -80, -80, -80],
+      [-80, -20, -12, -12, -14, -16, -19, -21, -24, -28, -56, -78, -77, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -77, -76, -80, -80, -80, -61, -46, -52, -80, -80, -14, -6, -7, -9, -11, -13, -15, -17, -20, -29, -80, -80, -80],
+      [-80, -14, -6, -6, -8, -10, -12, -15, -18, -22, -50, -53, -52, -67, -72, -74, -77, -79, -80, -80, -80, -80, -80, -80],
+      [-80, -52, -52, -63, -67, -69, -46, -32, -37, -80, -80, -8, 0, -1, -3, -5, -7, -9, -12, -14, -23, -80, -80, -80],
+      [-80, -8, -1, -1, -3, -5, -8, -10, -14, -17, -45, -53, -53, -73, -76, -78, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -35, -35, -56, -59, -61, -45, -31, -36, -73, -76, -78, -77, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -64, -63, -80, -80, -80, -54, -40, -46, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -72, -71, -80, -80, -80, -58, -44, -50, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -77, -76, -80, -80, -80, -60, -46, -52, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -61, -48, -54, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -80, -79, -80, -80, -80, -62, -48, -55, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80],
+      [-80, -79, -79, -80, -80, -80, -62, -49, -55, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80, -80]
+    ],
+    "repaired": [
+      [-80, -80, -80, -80, -80, -80, -19, -80, -12, -53, -8, -48, -74, -80, -80, -80, -80, -80],
+      [-80, -80, -80, -80, -80, -80, -21, -80, -15, -41, -10, -34, -62, -72, -75, -79, -78, -78],
+      [-80, -80, -80, -80, -80, -80, -24, -80, -18, -46, -14, -40, -67, -78, -80, -80, -80, -80]
+    ],
+    "wave": [0, 0, 0, 0, 0.338, 0.323, 0.285, 0.251, 0.222, 0.196, 0.173, 0.152, 0.135, 0.119, 0.105, 0.092, 0.071, 0.062, 0.05, 0.011, 0, 0, 0, 0, 0.34, 0.322, 0.285, 0.251, 0.222, 0.195, 0.173, 0.152, 0.135, 0.118, 0.105, 0.092, 0.082, 0.072, 0.064, 0.054, 0.017, 0, 0, 0, 0, 0, 0, 0]
+  },
+  "beats": [
+    {
+      "id": "made",
+      "title": "A sound, unheard",
+      "plain": "The agent has written chime.wav. It has no ears, so it cannot tell whether the sound is right.",
+      "technical": "readSound() reads a WAV directly and nothing is played. chime.wav: 48000 Hz, 1 channel, 1.200 s.",
+      "focus": [
+        "sound"
+      ],
+      "flows": [],
+      "ms": 2400
+    },
+    {
+      "id": "draw",
+      "title": "Drawn as a picture",
+      "plain": "pl draws the sound as a picture: time runs across, pitch runs up, and a heavier mark is a louder sound.",
+      "technical": "pl audio spectrogram chime.wav: 85 ms frames, log frequency from 30 Hz to 20 kHz, level in dB under the loudest bin.",
+      "focus": [
+        "picture"
+      ],
+      "flows": [
+        "draw"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "see",
+      "title": "Something is wrong",
+      "plain": "Two notes show as level lines. Between them stands a tall line no note made: a click, at 0.38 s.",
+      "technical": "A click is energy at every frequency at one instant. --json gives the plot's box and secondsPerPixel, to crop to it.",
+      "focus": [
+        "click"
+      ],
+      "flows": [],
+      "ms": 3200
+    },
+    {
+      "id": "measure",
+      "title": "The numbers name it",
+      "plain": "The numbers agree. Loudness and clipping are fine, but three sounds start where two should: one extra, at 0.38 s.",
+      "technical": "pl audio onsets chime.wav --expect-times 0.1,0.6 --max-extra 0 prints extra 0.3803 and exits 1; probe and silence pass.",
+      "focus": [
+        "numbers"
+      ],
+      "flows": [
+        "measure"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "fix",
+      "title": "What to change, and where",
+      "plain": "So the agent knows what to change and where: it smooths the join at 0.38 s.",
+      "technical": "The tool only measures. The edit is the agent's: a 10 ms crossfade over the join at 0.38 s.",
+      "focus": [
+        "edit"
+      ],
+      "flows": [
+        "locate",
+        "apply"
+      ],
+      "ms": 3000
+    },
+    {
+      "id": "clean",
+      "title": "Checked again",
+      "plain": "It checks again. The tall line is gone, two sounds start where two should, and the check passes.",
+      "technical": "The same commands on the new file: 2 onsets, extra none, exit 0. Loudness has not moved from -20.4 LUFS.",
+      "focus": [
+        "picture",
+        "numbers"
+      ],
+      "flows": [
+        "draw",
+        "measure"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1500
+    }
+  ],
+  "hero": {
+    "beat": "measure",
+    "at": 0.5
+  }
+}

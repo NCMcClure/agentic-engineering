@@ -1,0 +1,315 @@
+{
+  "schema": 1,
+  "title": "Closing in on a reference picture",
+  "mechanism": "pl compares a render with its reference pixel by pixel and draws where they differ, so the agent enlarges the worst place and fixes only that.",
+  "lens": "field",
+  "claim": "A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next.",
+  "implication": "The numbers point, and a look at the enlarged box decides what is wrong. Each pass leaves a smaller place to look.",
+  "entities": [
+    {
+      "id": "reference",
+      "label": "Reference",
+      "kind": "picture",
+      "note": "the picture to match",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:72"
+    },
+    {
+      "id": "render",
+      "label": "Agent's render",
+      "kind": "picture",
+      "note": "the candidate, one shot",
+      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:98"
+    },
+    {
+      "id": "heat",
+      "label": "Where they differ",
+      "kind": "map",
+      "note": "colour difference, place by place",
+      "source": "plugins/perceptual-loop/scripts/lib/sheets.mjs:156"
+    },
+    {
+      "id": "crop",
+      "label": "The box, enlarged",
+      "kind": "picture",
+      "note": "the same box of both pictures",
+      "born": "crop",
+      "source": "plugins/perceptual-loop/scripts/commands/sheet.mjs:97"
+    },
+    {
+      "id": "whole",
+      "label": "Whole frame",
+      "kind": "readout",
+      "note": "three numbers for the frame",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:102"
+    },
+    {
+      "id": "inside",
+      "label": "Inside the box",
+      "kind": "readout",
+      "note": "the same three, for the box alone",
+      "born": "numbers",
+      "source": "plugins/perceptual-loop/scripts/lib/metrics.mjs:254"
+    }
+  ],
+  "flows": [
+    {
+      "id": "match",
+      "from": "reference",
+      "to": "heat",
+      "kind": "read",
+      "label": "reference.png",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:72"
+    },
+    {
+      "id": "compare",
+      "from": "render",
+      "to": "heat",
+      "kind": "event",
+      "label": "candidate.png",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:82"
+    },
+    {
+      "id": "zoom",
+      "from": "heat",
+      "to": "crop",
+      "kind": "query",
+      "label": "--box",
+      "source": "plugins/perceptual-loop/scripts/commands/sheet.mjs:105"
+    },
+    {
+      "id": "score",
+      "from": "heat",
+      "to": "whole",
+      "kind": "event",
+      "label": "mean",
+      "source": "plugins/perceptual-loop/scripts/lib/metrics.mjs:183"
+    },
+    {
+      "id": "region",
+      "from": "crop",
+      "to": "inside",
+      "kind": "event",
+      "label": "the box alone",
+      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:95"
+    },
+    {
+      "id": "fix",
+      "from": "crop",
+      "to": "render",
+      "kind": "write",
+      "label": "fix",
+      "source": "plugins/perceptual-loop/skills/iterate-shots/SKILL.md:23"
+    }
+  ],
+  "data": {
+    "heat-first": [
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 16, 28.4, 6.7, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.1, 24.4, 39, 25.8, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10.5, 18.7, 20.9, 11.4, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3, 12.4, 1.9, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+    ],
+    "heat-second": [
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.3, 3.5, 2.5, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.1, 0.9, 0, 2.6, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5.2, 2.7, 0.7, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ],
+      [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
+    ],
+    "suns": [
+      {
+        "id": "reference",
+        "x": 0.74,
+        "y": 0.3,
+        "r": 0.11
+      },
+      {
+        "id": "first",
+        "x": 0.7,
+        "y": 0.37,
+        "r": 0.075
+      },
+      {
+        "id": "second",
+        "x": 0.737,
+        "y": 0.306,
+        "r": 0.11
+      }
+    ],
+    "box": [ 0.62, 0.12, 0.86, 0.48 ],
+    "numbers": [
+      {
+        "id": "frame-ssim",
+        "of": "whole",
+        "name": "ssim",
+        "what": "structure",
+        "same": 1,
+        "digits": 4,
+        "first": 0.9784,
+        "second": 0.9914
+      },
+      {
+        "id": "frame-de",
+        "of": "whole",
+        "name": "ΔE",
+        "what": "colour",
+        "same": 0,
+        "digits": 2,
+        "first": 1,
+        "second": 0.09
+      },
+      {
+        "id": "frame-edge",
+        "of": "whole",
+        "name": "edge F1",
+        "what": "outlines",
+        "same": 1,
+        "digits": 3,
+        "first": 0.884,
+        "second": 1
+      },
+      {
+        "id": "box-ssim",
+        "of": "inside",
+        "name": "ssim",
+        "what": "structure",
+        "same": 1,
+        "digits": 4,
+        "first": 0.7517,
+        "second": 0.901
+      },
+      {
+        "id": "box-de",
+        "of": "inside",
+        "name": "ΔE",
+        "what": "colour",
+        "same": 0,
+        "digits": 2,
+        "first": 11.57,
+        "second": 1.08
+      },
+      {
+        "id": "box-edge",
+        "of": "inside",
+        "name": "edge F1",
+        "what": "outlines",
+        "same": 1,
+        "digits": 3,
+        "first": 0.084,
+        "second": 1
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "render",
+      "title": "A render, and a reference",
+      "plain": "An agent has rendered a picture. Beside the reference it looks about right, but a look cannot say how close, or where it is off.",
+      "technical": "A shot folder holds reference.png and candidate.png. pl.mjs iterate cabin runs the project's render command for the candidate.",
+      "focus": [
+        "render",
+        "reference"
+      ],
+      "flows": [],
+      "ms": 2800
+    },
+    {
+      "id": "map",
+      "title": "Where they differ",
+      "plain": "pl compares the two pixel by pixel and draws the answer as a picture: blank where they agree, marked where they do not.",
+      "technical": "analyse() fits exposure and white balance, then maps CIEDE2000 per pixel; the sheet draws it on a fixed scale, 0 to 20+. A cell here is that map's mean.",
+      "focus": [
+        "heat"
+      ],
+      "flows": [
+        "match",
+        "compare"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "crop",
+      "title": "Look closer, there",
+      "plain": "The agent boxes the marked place and asks for that box of both pictures, enlarged. Now the fault is plain: too small, too low.",
+      "technical": "pl.mjs sheet crop cabin --box 0.62,0.12,0.86,0.48 --zoom 3 cuts the box from every source with square pixels. The agent picks the box from the map.",
+      "focus": [
+        "crop"
+      ],
+      "flows": [
+        "zoom"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "numbers",
+      "title": "How far, in numbers",
+      "plain": "Numbers say how far. Over the whole frame the two score 0.98 alike, which hides the fault; inside the box alone, 0.75.",
+      "technical": "metrics.candidate.json: frame.ssim 0.9784, deltaENorm 1.00, edgeF1 0.884. With the box in shot.json regions: region.sun.ssim 0.7517, deltaENorm 11.57.",
+      "focus": [
+        "whole",
+        "inside"
+      ],
+      "flows": [
+        "score",
+        "region"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "fix",
+      "title": "Fix only that",
+      "plain": "So the agent changes that one thing in the scene and renders the same shot again.",
+      "technical": "Change one thing, then run: pl.mjs iterate cabin renders the shot again and keeps the old picture as before.candidate.png.",
+      "focus": [
+        "render"
+      ],
+      "flows": [
+        "fix"
+      ],
+      "ms": 3000
+    },
+    {
+      "id": "again",
+      "title": "Measure again",
+      "plain": "The mark has almost gone and the box's score has moved from 0.75 to 0.90. What is still marked is the next, smaller place to look.",
+      "technical": "pl.mjs iterate cabin and the same sheet crop, again: frame.ssim 0.9914, deltaENorm 0.09, edgeF1 1.000; region.sun.ssim 0.9010, deltaENorm 1.08.",
+      "focus": [
+        "heat",
+        "whole",
+        "inside"
+      ],
+      "flows": [
+        "match",
+        "compare",
+        "score",
+        "region"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "numbers",
+    "at": 0.5
+  }
+}
