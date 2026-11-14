@@ -1,13 +1,13 @@
 {
   "claudeCodeVersion": "2.1.314",
-  "date": "2026-11-13",
+  "date": "2026-11-14",
   "model": "haiku",
-  "pluginsTree": "d43fd0e5cbc04dcf0d4c10e9a6bde0ee4f0336e2",
-  "costUsd": 0.2071,
+  "pluginsTree": "e2d22d579e9e4e2c8057b22f2aca7f0c9dbb46bb",
+  "costUsd": 0.2058,
   "expectedFailures": {},
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 33802,
+      "firstRequestTokens": 33329,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 607,
@@ -150,7 +150,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21790,
+          "firstRequestTokens": 21792,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -169,7 +169,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23966,
+          "firstRequestTokens": 23968,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -188,7 +188,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5251,
+          "firstRequestTokens": 5253,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -196,7 +196,7 @@
       }
     },
     "outside": {
-      "firstRequestTokens": 33801,
+      "firstRequestTokens": 33806,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 607,
@@ -339,7 +339,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21790,
+          "firstRequestTokens": 21794,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -358,7 +358,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23965,
+          "firstRequestTokens": 23972,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -377,7 +377,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5250,
+          "firstRequestTokens": 5257,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -385,7 +385,7 @@
       }
     },
     "adopted": {
-      "firstRequestTokens": 35691,
+      "firstRequestTokens": 35695,
       "start": {
         "agent-works": 1770,
         "agentic-teamwork": 1168,
@@ -540,7 +540,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21791,
+          "firstRequestTokens": 21792,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -559,7 +559,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 25602,
+          "firstRequestTokens": 25607,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907,
@@ -581,7 +581,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5618,
+          "firstRequestTokens": 5623,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -741,7 +741,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21794,
+          "firstRequestTokens": 21797,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -760,7 +760,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 24947,
+          "firstRequestTokens": 24948,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 680,
@@ -782,7 +782,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5287,
+          "firstRequestTokens": 5288,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -790,7 +790,7 @@
       }
     },
     "standard": {
-      "firstRequestTokens": 35036,
+      "firstRequestTokens": 35516,
       "start": {
         "agent-works": 1566,
         "agentic-teamwork": 1037,
@@ -945,7 +945,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21790,
+          "firstRequestTokens": 21793,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -964,7 +964,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 25534,
+          "firstRequestTokens": 25542,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 907,
@@ -986,7 +986,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5550,
+          "firstRequestTokens": 5558,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -994,7 +994,7 @@
       }
     },
     "portable": {
-      "firstRequestTokens": 34859,
+      "firstRequestTokens": 34863,
       "start": {
         "agent-works": 1029,
         "agentic-teamwork": 663,
@@ -1146,7 +1146,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21790,
+          "firstRequestTokens": 21794,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1165,7 +1165,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 24817,
+          "firstRequestTokens": 24823,
           "focus": {
             "agent-works": 687,
             "agent-works or agentic-teamwork or but-first-planning or code-diet or docs-parity or marvelous-miro or perceptual-loop": 603,
@@ -1187,7 +1187,7 @@
           }
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5262,
+          "firstRequestTokens": 5268,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -1195,7 +1195,7 @@
       }
     },
     "unplugged": {
-      "firstRequestTokens": 33164,
+      "firstRequestTokens": 33639,
       "start": {
         "agent-works": 708,
         "agentic-teamwork": 479,
@@ -1335,7 +1335,7 @@
       },
       "subagents": {
         "Explore": {
-          "firstRequestTokens": 21795,
+          "firstRequestTokens": 21794,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1354,7 +1354,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 23984,
+          "firstRequestTokens": 23981,
           "focus": {
             "agent-works": 687,
             "agentic-teamwork": 479,
@@ -1373,7 +1373,7 @@
           "subagentStart": {}
         },
         "perceptual-loop:vision-critic": {
-          "firstRequestTokens": 5269,
+          "firstRequestTokens": 5266,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
