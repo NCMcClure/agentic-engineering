@@ -14,6 +14,11 @@ spills out of its card. So what reaches the board is linted like code.
 
 ## How the map works
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/map-true-to-code.dark.gif">
+  <img alt="How a system map stays true to the code. The diagram is drawn from lines in the code, so a call it does not show fails a check instead of waiting to mislead someone." src="assets/figures/map-true-to-code.gif" width="720">
+</picture>
+
 **The code declares its own shape.** Each module says what it is and whom it
 calls in comment lines:
 

@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "system-map",
   "displayName": "System Map",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
   "author": {
     "name": "Nicholas McClure",

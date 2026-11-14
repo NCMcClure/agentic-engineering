@@ -313,11 +313,11 @@ goes through the Miro MCP you connect.
 [Read more →](plugins/system-map/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/system-map/assets/figures/repo-and-board.dark.gif">
-  <img alt="How a Miro frame goes round from code to board and back. Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew." src="plugins/system-map/assets/figures/repo-and-board.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/system-map/assets/figures/map-true-to-code.dark.gif">
+  <img alt="How a system map stays true to the code. The diagram is drawn from lines in the code, so a call it does not show fails a check instead of waiting to mislead someone." src="plugins/system-map/assets/figures/map-true-to-code.gif" width="720">
 </picture>
 
-<sub>Words come from code, positions from the board, and one lint reads both.</sub>
+<sub>A comment line draws a box or an arrow. An import nobody declared fails the check until the map is brought level.</sub>
 
 Every plugin, version and skill on one page: [docs/plugins.md](docs/plugins.md).
 

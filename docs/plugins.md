@@ -17,7 +17,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
-| [system-map](#system-map) | 0.2.0 | 4 | documentation |
+| [system-map](#system-map) | 0.2.1 | 4 | documentation |
 
 ## agent-works
 
@@ -197,7 +197,7 @@ Version 1.0.3. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 
 An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
-Version 0.2.0. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
+Version 0.2.1. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
