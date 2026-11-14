@@ -24,7 +24,7 @@ verifier (`.agents/plan/spec/scripts/verify-spec-tree.mjs`) enforces the mechani
 │       ├── index.md
 │       └── 0001-slug.md
 ├── prototypes/              # reserved: HTML design prototypes + signed-off captures (see UI-SPEC.md; posture-dependent)
-├── assets/                  # gruvbox.css, mermaid-init.js (site chrome, not docs)
+├── assets/                  # house.css, mermaid-init.js (site chrome, not docs)
 └── scripts/                 # verify-spec-tree.mjs (excluded from the site)
 ```
 

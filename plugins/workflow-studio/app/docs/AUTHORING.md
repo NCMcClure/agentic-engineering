@@ -27,9 +27,9 @@ The TypeScript contract is `src/types.ts`; the catalog is
 
 ## The model (what changed from a plain flow diagram)
 
-- **Pins, not whole-node edges.** Every node has typed pins. White **exec** pins
+- **Pins, not whole-node edges.** Every node has typed pins. Ink **exec** pins
   carry execution flow (a node can have several named exec outs — Sequence's
-  `Then 0/1`, Branch's `True/False`, For Each's `Loop Body/Completed`). Colored
+  `Then 0/1`, Branch's `True/False`, For Each's `Loop Body/Completed`). Typed
   **data** pins carry typed values wired pin→pin. An edge connects a
   `(node, pin)` source to a `(node, pin)` target and has a `role` of `exec` or
   `data`.
@@ -201,11 +201,13 @@ the exact graph. Re-importing that fence reproduces the graph exactly
   sidecar, or you re-author by hand). `parallel`/`pipeline` want thunks, so a
   struct/data array on a `tasks` pin is a faithful stand-in, not real `() => …`.
   Nested loops use innermost `break`/`continue` only.
-- **Theme is an Unreal-Engine-Blueprint dark theme** (no light mode), wired via
-  CSS variables in `src/theme.css`: dark dot-grid canvas, dark nodes with a
-  colored title bar, bezier wires. Exec pins are white right-pointing triangles;
-  data pins are circles colored by value type; a pin fills with its wire color
-  when connected. Don't add per-component color overrides.
+- **Theme is the marketplace house style**, light or dark from the system
+  setting, wired via CSS variables in `src/theme.css`: a quiet dot-grid canvas,
+  nodes as panels with a sunk header and a 2px edge in their category's hue,
+  bezier wires. Exec pins are ink right-pointing triangles; data pins are rings
+  in their value type's color (a hue for five types, an ink tone for the rest);
+  a pin fills when connected. Orange marks only the selection, the primary
+  action and diagnostics. Don't add per-component color overrides.
 - **Keep graphs legible while fully wired.** Capture the real loops and branches
   (they're the interesting parts). Full wiring adds helper nodes (Get-variable,
   `getField`) — that's expected and good; keep the graph scannable with comment

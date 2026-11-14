@@ -332,6 +332,7 @@ function cmdCompare(opts) {
 const ROWS = 380, SCALE = 2, LINE_H = CELL_H * SCALE + 6;
 const LEFT = 12 + textWidth("20k Hz", SCALE), RIGHT = 14, TOP = LINE_H + 4, BOTTOM = 2 * LINE_H + 6;
 const MAGMA = [[0, 0, 4], [40, 11, 84], [101, 21, 110], [159, 42, 99], [212, 72, 66], [245, 125, 21], [250, 193, 39], [252, 255, 164]];
+// The level ramp is a measuring scale, and the pitch dots are the one colour the ramp never takes: both stay as they are.
 const TRACK = [90, 255, 235];
 const FREQ_TICKS = [20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000];
 const TIME_STEPS = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 30, 60, 120, 300, 600, Infinity];

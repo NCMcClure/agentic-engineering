@@ -102,6 +102,12 @@ test("labels: GitHub takes the triage label for the type, GitLab the epic and ty
   assert.equal(milestoneTitle(SPRINT), "02-01 event-store");
 });
 
+test("epic label colours: the five house hues, then three ink tones, eight `#rrggbb` values a forge takes", () => {
+  assert.deepEqual(EPIC_COLORS, ["#2563eb", "#15803d", "#7c3aed", "#a16207", "#be185d", "#171716", "#5c5c58", "#8e8e89"]);
+  for (const c of EPIC_COLORS) assert.match(c, /^#[0-9a-f]{6}$/);
+  assert.equal(new Set(EPIC_COLORS).size, 8);
+});
+
 test("GitHub: a ticket is opened with its triage label, which is made first and only once a run", () => {
   const gh = fake(
     {}, // label create

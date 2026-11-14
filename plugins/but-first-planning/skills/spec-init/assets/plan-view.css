@@ -1,72 +1,124 @@
 /*
- * Plan page rendering (paired with plan-view.js).
+ * Plan page rendering (paired with plan-view.js), in the house style.
  *
- * Same token strategy as spec-comments.css: borrow the mkdocs-shadcn theme's
- * design tokens (--radius, the shadcn color variables) with gruvbox-ish literal
- * fallbacks, so the board reads as part of the theme in both light and dark.
- * Where color-mix() is used, a plain rgba declaration precedes it, the
- * two-declaration fallback pattern, so nothing goes blank on older browsers.
+ * Monochrome: a card is the panel face with a hairline, and a status reads as
+ * ink weight and a word. The orange accent is kept for what needs looking at
+ * now: an issue in progress, an issue that is blocked, a human gate, a
+ * warning from the plan tree. A rolled-up status on a sprint or an epic stays
+ * ink, so one running issue does not turn its whole branch orange. An epic
+ * is a kind, so it carries a hue, as a dot, in the slot tracker.mjs gives its
+ * label (`data-hue`, set by plan-view.js).
+ *
+ * Every colour is a token. Each one reads the house token from house.css,
+ * then the mkdocs-shadcn variable for the same job, then the house light
+ * value, so the page still reads if a project swaps the theme file.
  */
 
 :root {
-  --pv-radius: var(--radius, 0.625rem);
-  --pv-radius-sm: calc(var(--radius, 0.625rem) - 4px);
-  --pv-border: var(--border, #d5c4a1);
-  --pv-muted: var(--muted-foreground, #7c6f64);
-  --pv-done: #689d6a; /* gruvbox aqua, the theme has no success token */
-  --pv-progress: var(--primary, #d65d0e);
-  --pv-blocked: var(--destructive, #cc241d);
+  --pv-radius: 8px; /* a panel inside a card */
+  --pv-radius-lg: 14px; /* an outer card */
+  --pv-radius-sm: 6px; /* a chip */
+  --pv-panel: var(--house-panel, var(--card, #ffffff));
+  --pv-sunk: var(--house-sunk, var(--muted, #ebebe8));
+  --pv-ink: var(--house-ink, var(--foreground, #171716));
+  --pv-muted: var(--house-ink-2, var(--muted-foreground, #5c5c58));
+  --pv-faint: var(--house-ink-3, var(--muted-foreground, #8e8e89)); /* meta only */
+  --pv-line: var(--house-line, var(--foreground, #1c1c1b));
+  --pv-line-2: var(--house-line-2, var(--input, #b4b4ae));
+  --pv-border: var(--house-rule, var(--border, #dcdcd7));
+  --pv-done: var(--pv-ink); /* done is ink and a tick, not a colour */
+  --pv-progress: var(--house-accent, var(--primary, #ff5a1f));
+  --pv-blocked: var(--house-accent, var(--primary, #ff5a1f));
+  --pv-accent-ink: var(--house-accent-ink, var(--primary, #c2410c));
+  --pv-accent-soft: var(--house-accent-soft, var(--muted, #ffe9df));
+  --pv-on-accent: var(--house-on-accent, var(--primary-foreground, #171716));
+  --pv-mono: var(--house-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  /* Epic kinds: five hues, then three ink tones. Same order as EPIC_COLORS in tracker.mjs. */
+  --pv-hue-0: var(--house-hue-blue, #2563eb);
+  --pv-hue-1: var(--house-hue-green, #15803d);
+  --pv-hue-2: var(--house-hue-violet, #7c3aed);
+  --pv-hue-3: var(--house-hue-yellow, #a16207);
+  --pv-hue-4: var(--house-hue-pink, #be185d);
+  --pv-hue-5: var(--pv-ink);
+  --pv-hue-6: var(--pv-muted);
+  --pv-hue-7: var(--pv-faint);
+}
+
+/* --- labels: small mono capitals -------------------------------------------- */
+
+.pv-badge,
+.pv-type,
+.pv-gate,
+.pv-issues th,
+#plan-view .pv-next h3,
+#plan-view .pv-warnings h3 {
+  font-family: var(--pv-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  line-height: 1.6;
 }
 
 /* --- badges ---------------------------------------------------------------- */
 
 .pv-badge {
   display: inline-block;
-  padding: 0.1em 0.55em;
-  border-radius: 999px;
-  font-size: 0.78em;
-  font-weight: 600;
-  line-height: 1.5;
+  padding: 0.1em 0.6em;
+  border-radius: var(--pv-radius-sm);
   white-space: nowrap;
-  border: 1px solid var(--pv-border);
+  border: 1px solid var(--pv-line-2);
   color: var(--pv-muted);
-}
-.pv-badge--done {
-  color: var(--pv-done);
-  border-color: var(--pv-done);
-  background: rgba(104, 157, 106, 0.12);
-}
-.pv-badge--in-progress {
-  color: var(--pv-progress);
-  border-color: var(--pv-progress);
-  background: rgba(214, 93, 14, 0.1);
-  background: color-mix(in oklab, var(--pv-progress) 12%, transparent);
-}
-.pv-badge--blocked {
-  color: var(--pv-blocked);
-  border-color: var(--pv-blocked);
-  background: rgba(204, 36, 29, 0.1);
-  background: color-mix(in oklab, var(--pv-blocked) 12%, transparent);
 }
 .pv-badge--not-started {
   /* base .pv-badge look, kept as a class so JS can style every status uniformly */
   color: var(--pv-muted);
+}
+.pv-badge--done {
+  color: var(--pv-done);
+  border-color: var(--pv-line-2);
+}
+.pv-badge--done::before {
+  content: "\2713\00a0";
+}
+/* Rolled up (the plan, an epic, a sprint): ink, heavier while work is in it. */
+.pv-badge--in-progress {
+  color: var(--pv-ink);
+  border-color: var(--pv-line);
+  font-weight: 700;
+}
+.pv-badge--blocked {
+  color: var(--pv-accent-ink);
+  border-color: var(--pv-blocked);
+  font-weight: 700;
+}
+/* On an issue, where the work is: in progress is the selected look (an
+   accent hairline on the accent tint, ink text), blocked is the accent itself. */
+.pv-issues .pv-badge--in-progress {
+  color: var(--pv-ink);
+  border: 1.5px solid var(--pv-progress);
+  background: var(--pv-accent-soft);
+}
+.pv-issues .pv-badge--blocked {
+  color: var(--pv-on-accent);
+  border-color: var(--pv-blocked);
+  background: var(--pv-blocked);
 }
 
 .pv-type {
   display: inline-block;
   padding: 0.05em 0.5em;
   border-radius: var(--pv-radius-sm);
-  font-size: 0.72em;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  border: 1px solid var(--pv-border);
+  border: 1px solid var(--pv-line-2);
   color: var(--pv-muted);
+  white-space: nowrap;
 }
+/* A human gate is an outline that matters. */
 .pv-type--hitl,
 .pv-type--review {
-  color: var(--pv-progress);
-  border-color: var(--pv-progress);
+  color: var(--pv-ink);
+  border-color: var(--pv-line);
+  font-weight: 700;
 }
 
 /* --- summary strip ---------------------------------------------------------- */
@@ -81,112 +133,156 @@
 .pv-summary .pv-counts {
   color: var(--pv-muted);
   font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
 }
 .pv-tracker-note {
   color: var(--pv-muted);
   font-size: 0.85em;
-  font-style: italic;
 }
 
 .pv-progressbar {
   flex: 1 1 160px;
   min-width: 120px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(124, 111, 100, 0.2);
+  height: 6px;
+  border-radius: 3px;
+  background: var(--pv-sunk);
+  border: 1px solid var(--pv-line-2);
+  box-sizing: content-box;
   overflow: hidden;
 }
 .pv-progressbar > span {
   display: block;
   height: 100%;
-  border-radius: 999px;
   background: var(--pv-done);
-  transition: width 0.4s ease;
+  transition: width 0.15s ease;
 }
 
 /* --- "next up" callout ------------------------------------------------------ */
 
 .pv-next {
   border: 1px solid var(--pv-border);
-  border-left: 3px solid var(--pv-progress);
-  border-radius: var(--pv-radius);
-  padding: 0.75em 1em;
+  border-radius: var(--pv-radius-lg);
+  background: var(--pv-panel);
+  padding: 0.85em 1.1em;
   margin: 1em 0 1.5em;
 }
-.pv-next h3 {
-  margin: 0 0 0.4em;
-  font-size: 1em;
+#plan-view .pv-next h3,
+#plan-view .pv-warnings h3 {
+  margin: 0 0 0.5em;
+  color: var(--pv-muted);
 }
 .pv-next ul {
   margin: 0;
-  padding-left: 1.2em;
+  padding-left: 0;
+  list-style: none;
 }
 .pv-next li {
-  margin: 0.25em 0;
+  margin: 0.35em 0;
 }
 .pv-next .pv-gate {
   display: inline-block;
   margin-left: 0.4em;
   padding: 0.05em 0.5em;
-  border-radius: 999px;
-  font-size: 0.72em;
-  font-weight: 700;
-  color: var(--pv-blocked);
+  border-radius: var(--pv-radius-sm);
+  color: var(--pv-accent-ink);
   border: 1px solid var(--pv-blocked);
 }
-.pv-next code {
-  font-size: 0.82em;
+#plan-view .pv-next code {
+  padding: 0;
+  background: none;
+  font-family: var(--pv-mono);
+  font-size: 0.8em;
   color: var(--pv-muted);
+  overflow-wrap: anywhere;
 }
 
 /* --- tree ------------------------------------------------------------------- */
 
-details.pv-epic,
-details.pv-sprint {
+#plan-view details.pv-epic,
+#plan-view details.pv-sprint {
   border: 1px solid var(--pv-border);
-  border-radius: var(--pv-radius);
   margin: 0.6em 0;
   padding: 0;
+  font-size: inherit;
 }
-details.pv-sprint {
+#plan-view details.pv-epic {
+  border-radius: var(--pv-radius-lg);
+  background: var(--pv-panel);
+  padding-bottom: 0.15em;
+}
+/* A sprint is a panel inside the epic's card: same face, a quiet hairline. */
+#plan-view details.pv-sprint {
+  border-radius: var(--pv-radius);
+  border-color: var(--pv-line-2);
   margin: 0.5em 0.75em;
 }
-details.pv-epic > summary,
-details.pv-sprint > summary {
+#plan-view details.pv-epic > summary,
+#plan-view details.pv-sprint > summary {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.6em;
-  padding: 0.55em 0.9em;
+  padding: 0.6em 0.9em;
   cursor: pointer;
   list-style: none;
   font-weight: 600;
+  color: var(--pv-ink);
+  text-decoration: none;
 }
 details.pv-epic > summary::-webkit-details-marker,
 details.pv-sprint > summary::-webkit-details-marker {
   display: none;
 }
-details.pv-epic > summary::before,
-details.pv-sprint > summary::before {
+#plan-view details.pv-epic > summary::before,
+#plan-view details.pv-sprint > summary::before {
   content: "▸";
   color: var(--pv-muted);
   transition: transform 0.15s ease;
 }
-details[open].pv-epic > summary::before,
-details[open].pv-sprint > summary::before {
+#plan-view details[open].pv-epic > summary::before,
+#plan-view details[open].pv-sprint > summary::before {
   transform: rotate(90deg);
 }
+/* The page's own marker is the one on the left; the theme's is not needed. */
+#plan-view details.pv-epic > summary::after,
+#plan-view details.pv-sprint > summary::after {
+  content: none;
+}
 .pv-node-id {
-  font-family: var(--font-mono, monospace);
+  font-family: var(--pv-mono);
   font-size: 0.85em;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   color: var(--pv-muted);
 }
 .pv-chip {
+  margin-left: auto;
   font-size: 0.78em;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
   color: var(--pv-muted);
 }
 
-/* stored status disagrees with the computed rollup */
+/* The epic's kind: a dot in its hue, before its number. */
+details.pv-epic > summary > .pv-node-id::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 0.55em;
+  border-radius: 50%;
+  background: var(--pv-hue, var(--pv-line-2));
+}
+details.pv-epic[data-hue="0"] { --pv-hue: var(--pv-hue-0); }
+details.pv-epic[data-hue="1"] { --pv-hue: var(--pv-hue-1); }
+details.pv-epic[data-hue="2"] { --pv-hue: var(--pv-hue-2); }
+details.pv-epic[data-hue="3"] { --pv-hue: var(--pv-hue-3); }
+details.pv-epic[data-hue="4"] { --pv-hue: var(--pv-hue-4); }
+details.pv-epic[data-hue="5"] { --pv-hue: var(--pv-hue-5); }
+details.pv-epic[data-hue="6"] { --pv-hue: var(--pv-hue-6); }
+details.pv-epic[data-hue="7"] { --pv-hue: var(--pv-hue-7); }
+
+/* stored status disagrees with the computed rollup: needs a person */
 .pv-drift {
   width: 8px;
   height: 8px;
@@ -199,50 +295,72 @@ details[open].pv-sprint > summary::before {
 
 .pv-issues-wrap {
   overflow-x: auto; /* long titles scroll instead of clipping the trailing columns */
-  margin: 0.25em 0.9em 0.75em;
+  margin: 0 0.6em 0.5em;
+  border-top: 1px solid var(--pv-border);
 }
-.pv-issues {
+#plan-view .pv-issues {
   border-collapse: collapse;
   width: 100%;
   min-width: 560px;
+  margin: 0;
   font-size: 0.88em;
 }
 .pv-issues th,
 .pv-issues td {
   white-space: normal; /* the shadcn theme nowraps table cells; titles must wrap */
 }
-.pv-issues td:nth-child(6),
 .pv-issues td:nth-child(7) {
   white-space: nowrap;
 }
-.pv-issues th,
-.pv-issues td {
+/* The title takes the slack, so it wraps last. */
+.pv-issues th:nth-child(3),
+.pv-issues td:nth-child(3) {
+  width: 99%;
+}
+.pv-issues th {
+  white-space: nowrap;
+}
+#plan-view .pv-issues th,
+#plan-view .pv-issues td {
   text-align: left;
-  padding: 0.35em 0.6em;
+  padding: 0.45em 0.6em;
   border-bottom: 1px solid var(--pv-border);
   vertical-align: top;
 }
-.pv-issues th {
+#plan-view .pv-issues th {
+  height: auto;
+  vertical-align: bottom;
   color: var(--pv-muted);
-  font-weight: 600;
-  font-size: 0.85em;
 }
-.pv-issues tr:last-child td {
+#plan-view .pv-issues td {
+  color: var(--pv-ink);
+}
+/* Numbers that are compared sit in the mono face. */
+#plan-view .pv-issues td:is(.pv-node-id, :nth-child(5), :nth-child(7)) {
+  font-family: var(--pv-mono);
+  font-variant-numeric: tabular-nums;
+}
+#plan-view .pv-issues td:is(.pv-node-id, :nth-child(7)) {
+  color: var(--pv-muted);
+}
+#plan-view .pv-issues tr:last-child td {
   border-bottom: none;
 }
 .pv-blocker {
   display: inline-block;
-  margin-right: 0.3em;
+  margin: 0 0.3em 0.2em 0;
+  white-space: nowrap;
   padding: 0 0.4em;
   border-radius: var(--pv-radius-sm);
-  font-family: var(--font-mono, monospace);
+  font-family: var(--pv-mono);
   font-size: 0.85em;
-  border: 1px solid var(--pv-border);
-  color: var(--pv-muted);
+  border: 1px solid var(--pv-line-2);
+  color: var(--pv-ink);
 }
+/* a blocker that is done no longer blocks: stale, so it fades */
 .pv-blocker--done {
-  color: var(--pv-done);
-  border-color: var(--pv-done);
+  color: var(--pv-faint);
+  border-color: var(--pv-border);
   text-decoration: line-through;
 }
 
@@ -250,15 +368,16 @@ details[open].pv-sprint > summary::before {
 
 .pv-warnings {
   margin-top: 1.5em;
-  padding: 0.75em 1em;
-  border: 1px solid var(--pv-blocked);
-  border-radius: var(--pv-radius);
+  padding: 0.85em 1.1em;
+  border: 1.5px solid var(--pv-blocked);
+  border-radius: var(--pv-radius-lg);
+  background: var(--pv-accent-soft);
+  color: var(--pv-ink);
   font-size: 0.88em;
 }
-.pv-warnings h3 {
-  margin: 0 0 0.4em;
-  font-size: 1em;
-  color: var(--pv-blocked);
+#plan-view .pv-warnings h3 {
+  color: var(--pv-ink);
+  font-weight: 700;
 }
 .pv-warnings ul {
   margin: 0;
@@ -272,9 +391,14 @@ details[open].pv-sprint > summary::before {
 }
 .pv-offline-note {
   color: var(--pv-muted);
-  font-style: italic;
 }
 .pv-empty {
   color: var(--pv-muted);
-  font-style: italic;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pv-progressbar > span,
+  #plan-view details > summary::before {
+    transition: none;
+  }
 }

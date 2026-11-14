@@ -49,7 +49,7 @@ test("a script that differs is kept until --refresh, and the site's own files ar
   scaffold(root);
   fs.appendFileSync(at(root, "plan/plan-status.mjs"), "\n// edited\n");
   fs.rmSync(at(root, "plan/tracker.mjs"));
-  write(root, `${WORKSPACE}/spec/assets/gruvbox.css`, "/* the project's own theme */\n");
+  write(root, `${WORKSPACE}/spec/assets/house.css`, "/* the project's own theme */\n");
   assert.deepEqual(staleScripts(root).sort(), ["plan/plan-status.mjs", "plan/tracker.mjs"]);
 
   const plain = scaffold(root);
@@ -59,7 +59,18 @@ test("a script that differs is kept until --refresh, and the site's own files ar
   const refreshed = scaffold(root, { refresh: true });
   assert.deepEqual(refreshed, { wrote: [], refreshed: ["plan/plan-status.mjs"], kept: [] });
   assert.deepEqual(staleScripts(root), []);
-  assert.equal(fs.readFileSync(at(root, "spec/assets/gruvbox.css"), "utf8"), "/* the project's own theme */\n");
+  assert.equal(fs.readFileSync(at(root, "spec/assets/house.css"), "utf8"), "/* the project's own theme */\n");
+});
+
+test("a workspace scaffolded when the theme file was gruvbox.css keeps it and is not given a second theme", (t) => {
+  const root = tempDir(t, "bfp-legacy-theme-");
+  scaffold(root);
+  // What an older plugin version left: the theme under its old name, which that workspace's mkdocs.yml loads.
+  fs.renameSync(at(root, SITE["house.css"]), at(root, "spec/assets/gruvbox.css"));
+  fs.writeFileSync(at(root, "spec/assets/gruvbox.css"), "/* the old palette */\n");
+  assert.deepEqual(scaffold(root, { refresh: true }), { wrote: [], refreshed: [], kept: [] });
+  assert.equal(fs.existsSync(at(root, SITE["house.css"])), false);
+  assert.equal(fs.readFileSync(at(root, "spec/assets/gruvbox.css"), "utf8"), "/* the old palette */\n");
 });
 
 test("a checkout that turned line endings into CRLF has not made a script stale", (t) => {

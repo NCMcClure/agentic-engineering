@@ -21,8 +21,8 @@ npm run dev      # Vite dev server, usually http://localhost:5173/
 
 ## What it does
 
-- **Pin-based graph.** White **exec** pins carry execution flow (Sequence's
-  `Then 0/1`, Branch's `True/False`, For Each's `Loop Body/Completed`); colored
+- **Pin-based graph.** Ink **exec** pins carry execution flow (Sequence's
+  `Then 0/1`, Branch's `True/False`, For Each's `Loop Body/Completed`); typed
   **data** pins carry typed values wired pin→pin. Connections are type-checked.
 - **Node catalog.** Agent-workflow primitives (agent, parallel, pipeline, verify,
   synthesize, gate, log, schema) + control flow (sequence, branch, do-once,
@@ -76,7 +76,7 @@ src/
   VariablesPanel.tsx the left "My Blueprint" panel
   value/             recursive ValueEditor + SchemaBuilder + valueToJs emitter
   nodes/             BaseNode (pin rendering), Pin, CommentNode
-  theme.css          the UE-dark theme (CSS variables)
+  theme.css          the house-style theme, light and dark (CSS variables)
 docs/
   AUTHORING.md       how to author a diagram (the wiring philosophy)
   primitive-vocabulary.md   the node catalog reference

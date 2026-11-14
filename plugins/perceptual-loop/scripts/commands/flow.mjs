@@ -9,7 +9,7 @@ import { denseFlow, FLOW } from "../lib/flow.mjs";
 import { median, percentile, regionsFromBoxes } from "../lib/metrics.mjs";
 import { drawArrow, drawLine } from "../lib/plot.mjs";
 import { writeJson } from "../lib/project.mjs";
-import { canvas, fillRect, paste } from "../lib/raster.mjs";
+import { BG, canvas, fillRect, HUE, paste } from "../lib/raster.mjs";
 import { fitSize, frameCaption, lumaPlane, openSequence } from "../lib/sequence.mjs";
 import { gridSheet } from "../lib/sheets.mjs";
 import { CLIP_FLAGS, clipInput, outputDir, parseRegions, writeSheet } from "./video.mjs";
@@ -135,6 +135,7 @@ function hsv(h, s, v) {
   return [Math.round((r + m) * 255), Math.round((g + m) * 255), Math.round((b + m) * 255)];
 }
 
+// The wheel, this grey and the still dots are the measurement, not the sheet's look: hue is a direction here.
 const UNKNOWN = [118, 118, 118]; // grey has no hue, so it is never a direction on the wheel
 
 /** The key of the colour picture: hue is the direction, at the place on the disc the motion points to. */
@@ -142,7 +143,7 @@ function wheel(d = 72) {
   const out = canvas(d, d, [0, 0, 0]);
   for (let y = 0; y < d; y++) for (let x = 0; x < d; x++) {
     const px = (2 * x) / (d - 1) - 1, py = (2 * y) / (d - 1) - 1, r = Math.hypot(px, py);
-    out.data.set(r > 1 ? [22, 22, 24] : hsv(deg(px, py), 1, r), (y * d + x) * 3);
+    out.data.set(r > 1 ? BG : hsv(deg(px, py), 1, r), (y * d + x) * 3);
   }
   return out;
 }
@@ -162,7 +163,7 @@ function arrows({ before, flow, scale }, top, minConfidence) {
     if (!(flow.confidence[i] >= minConfidence)) { drawLine(out, x * k - 2, y * k - 2, x * k + 2, y * k + 2, UNKNOWN); drawLine(out, x * k - 2, y * k + 2, x * k + 2, y * k - 2, UNKNOWN); continue; }
     const dx = flow.u[i] * scale * gain, dy = flow.v[i] * scale * gain;
     if (Math.hypot(dx, dy) < 0.08 * step) fillRect(out, x * k - 1, y * k - 1, 3, 3, [90, 90, 95]);
-    else drawArrow(out, x * k, y * k, Math.round((x + dx) * k), Math.round((y + dy) * k), [255, 220, 60], Math.max(1, k));
+    else drawArrow(out, x * k, y * k, Math.round((x + dx) * k), Math.round((y + dy) * k), HUE.yellow, Math.max(1, k));
   }
   return out;
 }
@@ -189,7 +190,7 @@ function flowSheet(kept, refKept, { name, refName, minConfidence, maxWidth }) {
   const items = kept.flatMap((p, i) => [
     { img: arrows(p, top, minConfidence), label: `motion into ${frameCaption(p.frame)}, on the frame before` },
     { img: colours(p, top, minConfidence), label: "hue direction (disc), brightness speed, grey unknown" },
-    ...(refKept ? [refKept[i] ? { img: arrows(refKept[i], top, minConfidence), label: `reference ${frameCaption(refKept[i].frame)}`, colour: [140, 220, 255] }
+    ...(refKept ? [refKept[i] ? { img: arrows(refKept[i], top, minConfidence), label: `reference ${frameCaption(refKept[i].frame)}`, colour: HUE.blue }
       : { img: canvas(8, 8) }] : []),
   ]);
   const header = `flow  ${name}${refName ? `  vs ${refName}` : ""}  longest arrow ${top.toFixed(2)} px a frame  0 deg right, 90 deg down`;

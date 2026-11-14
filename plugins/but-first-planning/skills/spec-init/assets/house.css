@@ -1,0 +1,441 @@
+/*
+ * The spec site's theme: the marketplace house style over mkdocs-shadcn.
+ * Monochrome, one orange accent that means "look here now", hairlines, no
+ * shadows or gradients, system fonts, small mono capitals for labels.
+ *
+ * Three parts:
+ *   1. The house tokens (--house-*), light on :root and dark on .dark, which
+ *      is the class the theme's toggle and prefers-color-scheme both set.
+ *      These are the only colours in the site; plan-view.css,
+ *      spec-comments.css and mermaid-init.js draw from the same set.
+ *   2. The shadcn variables, each given a house token.
+ *   3. The few places the theme's own rules need more than a variable:
+ *      type, admonitions, code, tables, the sidebar, buttons, focus.
+ *
+ * This file was gruvbox.css before 5.0.2. A workspace scaffolded earlier
+ * keeps that file and its own mkdocs.yml, and is not touched.
+ */
+
+/* --- 1. house tokens -------------------------------------------------------- */
+
+:root {
+  --house-page: #f5f5f3;
+  --house-panel: #ffffff;
+  --house-sunk: #ebebe8;
+  --house-deeper: #dededa;
+  --house-ink: #171716;
+  --house-ink-2: #5c5c58;
+  --house-ink-3: #8e8e89; /* meta only, never body text */
+  --house-line: #1c1c1b;
+  --house-line-2: #b4b4ae;
+  --house-rule: #dcdcd7;
+  --house-accent: #ff5a1f;
+  --house-accent-ink: #c2410c;
+  --house-accent-soft: #ffe9df;
+  --house-on-accent: #171716; /* text on an accent fill, in both themes */
+  /* Hues tell kinds apart (epics, chart series) and nothing else. */
+  --house-hue-blue: #2563eb;
+  --house-hue-green: #15803d;
+  --house-hue-violet: #7c3aed;
+  --house-hue-yellow: #a16207;
+  --house-hue-pink: #be185d;
+
+  --house-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --house-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.dark {
+  --house-page: #0e0e0f;
+  --house-panel: #1e1e20;
+  --house-sunk: #161617;
+  --house-deeper: #111112;
+  --house-ink: #f1f1ee;
+  --house-ink-2: #a3a39d;
+  --house-ink-3: #74746f;
+  --house-line: #e9e9e5;
+  --house-line-2: #47474a;
+  --house-rule: #262628;
+  --house-accent: #ff6b2c;
+  --house-accent-ink: #ff8a57;
+  --house-accent-soft: #3a1c10;
+  --house-hue-blue: #6ea0ff;
+  --house-hue-green: #4ade80;
+  --house-hue-violet: #a78bfa;
+  --house-hue-yellow: #facc15;
+  --house-hue-pink: #f472b6;
+}
+
+/* --- 2. the theme's variables ---------------------------------------------- */
+/* Declared once: each follows its house token into the dark theme. */
+
+:root,
+.dark {
+  /* Faces */
+  --background: var(--house-page);
+  --foreground: var(--house-ink);
+  --card: var(--house-panel);
+  --card-foreground: var(--house-ink);
+  --popover: var(--house-panel);
+  --popover-foreground: var(--house-ink);
+  --surface: var(--house-sunk);
+  --surface-foreground: var(--house-ink);
+  --secondary: var(--house-sunk);
+  --secondary-foreground: var(--house-ink);
+  --muted: var(--house-sunk);
+  --muted-foreground: var(--house-ink-2);
+  /* shadcn's "accent" is its hover face, not the theme accent */
+  --accent: var(--house-sunk);
+  --accent-foreground: var(--house-ink);
+
+  /* Sidebar */
+  --sidebar: var(--house-page);
+  --sidebar-foreground: var(--house-ink);
+  --sidebar-forground: var(--house-ink); /* the theme's own spelling */
+  --sidebar-primary: var(--house-accent);
+  --sidebar-primary-foreground: var(--house-on-accent);
+  --sidebar-accent: var(--house-sunk);
+  --sidebar-accent-foreground: var(--house-ink);
+  --sidebar-border: var(--house-rule);
+  --sidebar-ring: var(--house-accent);
+
+  /* The accent: a primary action, a focus ring */
+  --primary: var(--house-accent);
+  --primary-foreground: var(--house-on-accent);
+  --ring: var(--house-accent);
+  --theme-accent: var(--house-accent);
+
+  /* Hairlines */
+  --border: var(--house-rule);
+  --input: var(--house-line-2);
+
+  /* A failure is the accent; a warning is ink on the accent tint */
+  --destructive: var(--house-accent);
+  --destructive-foreground: var(--house-on-accent);
+  --warning: var(--house-accent-soft);
+  --warning-foreground: var(--house-ink);
+
+  --selection: var(--house-accent-soft);
+  --selection-foreground: var(--house-ink);
+
+  /* Code sits on the sunk face */
+  --code: var(--house-sunk);
+  --code-foreground: var(--house-ink);
+  --code-highlight: var(--house-deeper);
+  --code-number: var(--house-ink-3);
+
+  /* Chart series are kinds */
+  --chart-1: var(--house-hue-blue);
+  --chart-2: var(--house-hue-green);
+  --chart-3: var(--house-hue-violet);
+  --chart-4: var(--house-hue-yellow);
+  --chart-5: var(--house-hue-pink);
+
+  /* 8px on a panel; the theme derives 6px and 4px from it */
+  --radius: 8px;
+  --font-sans: var(--house-sans);
+  --font-mono: var(--house-mono);
+}
+
+/* --- 3. where a variable is not enough -------------------------------------- */
+/* The theme writes its own rules as `article .admonition.warning` and the
+   like, so each rule here starts at :root to outrank them. */
+
+:root body {
+  font-family: var(--house-sans);
+}
+
+::selection {
+  background-color: var(--house-accent-soft);
+  color: var(--house-ink);
+}
+
+/* Depth is a hairline and a face tone: no shadow, gradient or blur anywhere. */
+:root [class*="shadow"] {
+  box-shadow: none !important;
+}
+:root [data-slot="sidebar"] .blur-xs {
+  display: none;
+}
+:root [data-slot="sidebar"] > .w-px {
+  background-image: none;
+  background-color: var(--house-rule);
+}
+:root header.sticky {
+  border-bottom: 1px solid var(--house-rule);
+}
+:root dialog#search-dialog,
+:root [data-slot="popover-content"] {
+  border: 1px solid var(--house-line-2);
+  background-color: var(--house-panel);
+}
+
+/* Focus: one ring, everywhere, never removed. */
+:root :is(a, button, input, textarea, select, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--house-accent) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+/* The search field fills its dialog edge to edge, where a ring outside it
+   would be clipped: the ring goes round the row that holds it. */
+:root [data-slot="command-input"]:focus-visible {
+  outline: none !important;
+}
+:root [data-slot="command-input-wrapper"]:focus-within {
+  outline: 2px solid var(--house-accent);
+  outline-offset: -2px;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Type: headings are the sans at 600, close to the body size. */
+:root article #page-header h1 {
+  font-size: 26px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  word-break: normal; /* the theme breaks a title mid-word on a narrow screen */
+  overflow-wrap: break-word;
+}
+:root #summary {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--house-ink-2);
+  max-width: 62ch;
+}
+:root article .typography h2 {
+  margin-top: 2.5rem;
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+:root article .typography > h2:first-child,
+:root article .typography > div:first-child > h2 {
+  margin-top: 0;
+}
+:root article .typography h3 {
+  margin-top: 1.75rem;
+  font-size: 15px;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+/* Below h3 a heading is a label: small mono capitals. */
+:root article .typography :is(h4, h5, h6) {
+  margin-top: 1.5rem;
+  font-family: var(--house-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--house-ink-2);
+}
+:root article .typography :is(h2, h3) > code {
+  font-size: 0.92em;
+  line-height: inherit;
+}
+:root article p:not(:first-child),
+:root article .typography > div:not(:first-child) {
+  margin-top: 1rem;
+}
+:root article .typography h2 + p {
+  margin-top: 0.6rem !important;
+}
+/* The page's own h1 is hidden by the theme (the header shows the title). */
+:root article .typography > h1:first-child + p {
+  margin-top: 0;
+}
+
+/* Links carry the accent as text. */
+:root article a:not(.button):not(.headerlink) {
+  color: var(--house-accent-ink);
+  text-decoration-thickness: 1px;
+}
+
+/* Labels: the sidebar's group names, "On This Page", table heads. */
+:root [data-slot="sidebar-group-label"],
+:root #toc p,
+:root article table:not(.codehilitetable) thead tr th {
+  font-family: var(--house-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--house-ink-2);
+}
+
+/* The sidebar: the page you are on is the selected thing. */
+:root [data-slot="sidebar-menu-button"] {
+  border-radius: 6px;
+}
+:root [data-slot="sidebar-menu-button"][data-active="true"] {
+  border: 1.5px solid var(--house-accent);
+  background-color: var(--house-accent-soft);
+  color: var(--house-ink);
+}
+/* A page with no headings has nothing on it: no orphan "On This Page". */
+:root #toc:not(:has(a)) {
+  display: none;
+}
+:root #toc a[data-active="true"] {
+  color: var(--house-ink);
+  font-weight: 600;
+}
+
+/* Buttons: a quiet hairline, no fill; hover is the sunk face. */
+:root :is(button, a.button, input[type="button"]).secondary,
+:root #bottom-navigation a.button.secondary {
+  border: 1px solid var(--house-line-2);
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--house-ink);
+}
+:root :is(button, a.button, input[type="button"]).secondary:hover,
+:root #bottom-navigation a.button.secondary:hover {
+  background-color: var(--house-sunk);
+}
+:root :is(button, a.button).ghost {
+  border-radius: 6px;
+}
+:root :is(button, a.button).ghost:hover {
+  background-color: var(--house-sunk);
+}
+/* The search box is an input: the panel face and a quiet hairline. */
+:root button.search.secondary {
+  background-color: var(--house-panel);
+  color: var(--house-ink-2);
+}
+:root button.search.secondary:hover {
+  background-color: var(--house-panel);
+  border-color: var(--house-ink-2);
+}
+
+/* Code: the sunk face, a panel radius, monochrome tokens. */
+:root article pre,
+:root article .codehilite {
+  border-radius: 8px;
+  background: var(--house-sunk);
+  color: var(--house-ink);
+}
+:root article code:not(pre code) {
+  border: 0;
+  border-radius: 4px;
+  background-color: var(--house-sunk);
+  color: var(--house-ink);
+}
+:root .codehilite .hll {
+  background-color: var(--house-deeper);
+}
+:root .codehilite .err {
+  border: 0;
+}
+:root .codehilite :is(.c, .ch, .cm, .cpf, .c1, .cs) {
+  color: var(--house-ink-2);
+}
+:root .codehilite :is(.k, .kc, .kd, .kn, .kr, .nc, .ne, .nn, .nt, .ow, .gh, .gu, .gp) {
+  font-weight: 600;
+}
+:root .codehilite :is(.s, .sa, .sb, .sc, .dl, .sd, .s2, .sh, .sx, .sr, .s1, .ss) {
+  font-style: normal;
+  color: var(--house-ink-2);
+}
+
+/* Tables: hairline rows, mono capital heads. */
+:root article table:not(.codehilitetable) thead tr th {
+  text-align: left;
+}
+:root article table:not(.codehilitetable) thead tr {
+  border-bottom-color: var(--house-line-2);
+}
+:root article table:not(.codehilitetable) tbody tr {
+  border-color: var(--house-rule);
+}
+:root article table:not(.codehilitetable) tr:hover {
+  background-color: transparent; /* a row is not a control */
+}
+
+:root article blockquote {
+  border-left-color: var(--house-line-2);
+  color: var(--house-ink-2);
+}
+:root article hr {
+  border-color: var(--house-rule);
+}
+
+/* Admonitions: a hairline box on the panel face with a small mono capital
+   title. The kind is the left edge: a quiet tone for a note, a hue for a
+   tip, the strong line for a warning, the accent for a failure. */
+:root article .admonition {
+  margin-inline: 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--house-rule);
+  border-left: 2px solid var(--house-line-2);
+  border-radius: 8px;
+  background-color: var(--house-panel);
+  color: var(--house-ink);
+}
+:root article .admonition > :is(p.admonition-title, summary) {
+  display: block;
+  margin: 0 0 0.25rem !important;
+  font-family: var(--house-mono);
+  font-size: 10.5px;
+  line-height: 1.6;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--house-ink-2);
+}
+:root article .admonition > p:not(.admonition-title) {
+  display: block;
+  margin: 0.35rem 0 0 !important;
+  line-height: 1.55;
+}
+:root article .admonition > p.admonition-title + p {
+  margin-top: 0 !important;
+}
+:root article .admonition code:not(pre code) {
+  border: 0;
+  background-color: var(--house-sunk);
+}
+:root article .admonition :is(pre, .codehilite) {
+  background: var(--house-sunk);
+}
+:root article .admonition:is(.tip, .hint, .success, .check, .done, .example, .question, .help, .faq) {
+  border-left-color: var(--house-hue-blue);
+}
+:root article .admonition:is(.warning, .caution, .attention, .important) {
+  border-left-color: var(--house-line);
+}
+:root article .admonition:is(.warning, .caution, .attention, .important) > :is(p.admonition-title, summary) {
+  color: var(--house-ink);
+  font-weight: 700;
+}
+:root article .admonition:is(.danger, .error, .failure, .fail, .missing, .bug) {
+  border-left-color: var(--house-accent);
+}
+:root article .admonition:is(.danger, .error, .failure, .fail, .missing, .bug) > :is(p.admonition-title, summary) {
+  color: var(--house-accent-ink);
+}
+
+/* Diagrams sit on the page, centred; mermaid-init.js draws them in these tokens. */
+:root article .mermaid {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+:root footer .text-muted-foreground {
+  color: var(--house-ink-2);
+}
+
+/* Motion is functional only, and stops when the reader asks. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0s !important;
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}

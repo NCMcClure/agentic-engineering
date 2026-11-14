@@ -7,10 +7,10 @@ import { NodeResizer, type NodeProps } from '@xyflow/react';
  *  Memoized alongside BaseNode so unrelated updates skip re-rendering frames. */
 export const CommentNode = memo(function CommentNode({ data, selected }: NodeProps) {
   const d = data as { label?: string; color?: string; body?: string };
-  const style = { '--accent': `var(--type-${d.color ?? 'gray'}, var(--gray))` } as CSSProperties;
+  const style = { '--accent': `var(--type-${d.color ?? 'gray'}, var(--type-any))` } as CSSProperties;
   return (
     <div className={`wf-comment${selected ? ' is-selected' : ''}`} style={style}>
-      <NodeResizer minWidth={140} minHeight={90} isVisible={!!selected} color="var(--accent)" />
+      <NodeResizer minWidth={140} minHeight={90} isVisible={!!selected} color="var(--sel)" />
       <div className="wf-comment__label">{d.label ?? 'Comment'}</div>
       {d.body ? <div className="wf-comment__body">{d.body}</div> : null}
     </div>

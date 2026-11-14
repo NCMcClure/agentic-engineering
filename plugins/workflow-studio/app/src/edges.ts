@@ -1,5 +1,5 @@
 // Pin-based edges. An edge endpoint is a (node, pin) pair: React Flow carries it
-// as sourceHandle / targetHandle = the pin id. Exec wires are white; data wires
+// as sourceHandle / targetHandle = the pin id. Exec wires are ink; data wires
 // are colored by the source pin's data type. This module owns the DiagramEdge ⇄
 // React Flow mapping and connection validation.
 
@@ -41,7 +41,7 @@ export function canConnect(c: Connection | Edge, nodes: DiagramNode[]): boolean 
   return true;
 }
 
-/** The CSS class that colors an edge: white exec wire, or a data wire tinted by
+/** The CSS class that colors an edge: ink exec wire, or a data wire tinted by
  *  its value type. */
 export function edgeClass(role: PinRole, dataType?: DataType): string {
   return role === 'exec' ? 'edge-exec' : `edge-data edge-type-${typeColorKey(dataType ?? 'any')}`;

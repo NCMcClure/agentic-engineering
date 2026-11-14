@@ -50,7 +50,7 @@ hand-placed nodes survive a regeneration. `data` drives variadic pins:
   "id": "e3",
   "source": { "node": "find", "pin": "results" },  // an OUT pin
   "target": { "node": "verify", "pin": "work" },    // an IN pin
-  "role": "data",            // "exec" (white wire) | "data" (typed color)
+  "role": "data",            // "exec" (ink wire) | "data" (typed color)
   "label": "optional"
 }
 ```

@@ -11,7 +11,7 @@
  *
  * Self-contained IIFE, same shape as spec-comments.js. No build step, no deps.
  * Renders via createElement/textContent only, issue titles are user content.
- * Theming comes from plan-view.css (shadcn variables with fallbacks).
+ * Theming comes from plan-view.css (the house tokens, with fallbacks).
  */
 (() => {
   "use strict";
@@ -182,6 +182,9 @@
 
     for (const e of data.epics) {
       const epic = el("details", "pv-epic");
+      // The epic's kind, as a slot of eight: the one tracker.mjs gives its label (EPIC_COLORS).
+      const n = Number(e.id);
+      if (Number.isInteger(n)) epic.dataset.hue = String((((n - 1) % 8) + 8) % 8);
       if (e.status === "in-progress") epic.open = true;
       const sprintsDone = e.sprints.filter((s) => s.status === "done").length;
       epic.appendChild(nodeSummary(e, e.id + " ", sprintsDone, e.sprints.length, "sprints"));

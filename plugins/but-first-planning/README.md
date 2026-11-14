@@ -26,6 +26,14 @@ seams) before any code exists. `spec-edit` is how anything changes later: it
 follows spec anchors into the plan and the published tickets, so a decision
 never changes in one place only.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/spec-site.dark.png">
+  <img alt="A page of a spec site: the categories in a sidebar, a short page with a five-step diagram whose one marked step is orange, and a boxed warning under it." src="assets/screens/spec-site.light.png" width="880">
+</picture>
+
+The spec site is monochrome on purpose: the one orange thing in a diagram is
+the step its author marked, and a warning is a box with a heavier edge.
+
 **Plan.** `plan-decompose` cuts the spec into an epic, sprint, issue tree of
 tracer-bullet vertical slices, each with acceptance criteria, a testing
 checkpoint, and links back to the spec sections it realises. `plan-publish`
@@ -99,6 +107,14 @@ are behind and gives the one command that refreshes them
   labels, and `status::in-progress` / `status::blocked` follow the plan.
 - **Local markdown**: nothing is published, and the spec site's Plan page is
   the board.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/plan-view.dark.png">
+  <img alt="The Plan page: a progress bar, the next unblocked issue, and an epic opened to a sprint whose five issues are done, in progress, blocked and not started." src="assets/screens/plan-view.light.png" width="880">
+</picture>
+
+The Plan page reads the tree on every refresh: a status is ink and a word,
+and only the issue being worked on and the one that is blocked are orange.
 
 Both forges go through the `gh` and `glab` you are already signed in to. No
 token is read and no host is assumed.

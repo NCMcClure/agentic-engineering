@@ -26,7 +26,11 @@ with error handling and imports.
 
 ## Mermaid diagrams
 
-Mermaid renders on the site automatically (themed to match the gruvbox palette).
+Mermaid renders on the site automatically, themed to match it in light and
+dark: monochrome nodes, quiet edges. Never put a colour in a diagram (no
+`classDef` with a fill, no `style`, no `linkStyle`); the one mark you have is
+`:::accent` on a node (or `class A,B accent`), which draws it in the site's
+orange. Use it for the one thing the reader should look at, not for a kind.
 Fence it as `mermaid`. Reach for the diagram type that fits the relationship, don't make every diagram a flowchart.
 
 **Flowchart**: control flow, decisions, pipelines:

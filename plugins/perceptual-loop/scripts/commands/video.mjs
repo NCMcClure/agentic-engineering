@@ -8,7 +8,7 @@ import { emit, parseArgs, PlError } from "../lib/args.mjs";
 import { probe, selectFilter, writePngAt, writePngFrames } from "../lib/ffmpeg.mjs";
 import { boxSsimPsnr, PSNR_CAP } from "../lib/metrics.mjs";
 import { findRoot, loadConfig, readJson, runsDir, shotPath, writeJson } from "../lib/project.mjs";
-import { FG } from "../lib/raster.mjs";
+import { ACCENT_INK, FG, HUE } from "../lib/raster.mjs";
 import { clipOf, collect, fitSize, frameCaption, lumaPlane, openSequence } from "../lib/sequence.mjs";
 import { cellWidth, gridSheet, IMAGE_SUFFIXES, MAX_WIDTH, saveSheet } from "../lib/sheets.mjs";
 import { parseBox } from "./sheet.mjs";
@@ -196,7 +196,7 @@ async function cmdBurst(opts) {
   const frames = await collect(seq, { at, dims: tileDims(seq, cols, opts.maxWidth) });
   if (!frames.length) throw new PlError(`burst: the clip has no frame from ${at[0]} to ${at.at(-1)}`);
   const header = `${clip.name}  around frame ${centre}${seq.fps ? ` (${(centre / seq.fps).toFixed(2)} s)` : ""}, left to right`;
-  const items = frames.map((f) => ({ img: f.img, label: frameCaption(f) + (f.index === centre ? " <" : ""), colour: f.index === centre ? [255, 210, 90] : FG }));
+  const items = frames.map((f) => ({ img: f.img, label: frameCaption(f) + (f.index === centre ? " <" : ""), colour: f.index === centre ? ACCENT_INK : FG }));
   const file = writeSheet(gridSheet(items, { cols, header, maxWidth: opts.maxWidth, grow: true }), path.join(outputDir(opts, clip), `burst.${clip.stem}.png`), opts);
   return [{ sheet: file, centre, frames: frames.map((f) => f.index) }, `burst around frame ${centre} (${frames.length} frames, left to right): ${file}`, 0];
 }
@@ -317,7 +317,7 @@ async function cmdCompare(opts) {
   const shown = worst.length ? [...worst].sort((p, q) => p.row.index - q.row.index) : [first];
   const tiles = shown.flatMap(({ row, a, b }) => [
     { img: a.img, label: `A ${frameCaption(a)}  ssim ${row.ssim.toFixed(3)}  psnr ${row.psnr.toFixed(1)}` }, { img: b.img, label: `B ${frameCaption(b)}` },
-    { img: diffImage(a.img, b.img), label: "|A-B| x4", colour: [255, 210, 90] },
+    { img: diffImage(a.img, b.img), label: "|A-B| x4", colour: HUE.yellow },
   ]);
   const head = worst.length ? `worst ${worst.length} of ${rows.length} frames` : `all ${rows.length} frames identical`;
   const sheet = gridSheet(tiles, { cols: 3, header: `${head}  A = ${ca.name}  B = ${cb.name}`, grow: true,

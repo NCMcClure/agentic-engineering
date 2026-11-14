@@ -5,17 +5,26 @@
 
 import { randomInt } from "node:crypto";
 
+// The palette is the marketplace's house style, its light column (a board is a light
+// canvas), written out as hex because Miro takes nothing else. Neutrals carry a frame and
+// a color only tells one kind of thing from another:
+//   gray    the default: the white panel face with a quiet outline
+//   teal    the heavier neutral, the sunk face with an ink outline (the house has no
+//           teal, so it differs from gray by tone, and reads in greyscale)
+//   blue, green, purple, yellow   the house hues as outlines (purple is its violet), each
+//           over its own pale tint, the hue at 12% on white
+//   orange  the accent, over its tint: the one thing on a frame to look at, never a kind
 export const PAL = {
-  blue: { bg: "#d0ebff", stroke: "#1971c2" },
-  green: { bg: "#d3f9d8", stroke: "#2f9e44" },
-  purple: { bg: "#e5dbff", stroke: "#7048e8" },
-  yellow: { bg: "#fff3bf", stroke: "#f08c00" },
-  gray: { bg: "#f1f3f5", stroke: "#868e96" },
-  teal: { bg: "#e3fafc", stroke: "#0c8599" },
-  orange: { bg: "#ffe8cc", stroke: "#e8590c" },
+  blue: { bg: "#e5ecfd", stroke: "#2563eb" },
+  green: { bg: "#e3f0e8", stroke: "#15803d" },
+  purple: { bg: "#efe7fd", stroke: "#7c3aed" },
+  yellow: { bg: "#f4ece1", stroke: "#a16207" },
+  gray: { bg: "#ffffff", stroke: "#8e8e89" },
+  teal: { bg: "#ebebe8", stroke: "#1c1c1b" },
+  orange: { bg: "#ffe9df", stroke: "#ff5a1f" },
 };
-export const INK = "#1e1e1e";
-export const MUTED = "#495057";
+export const INK = "#171716"; // the house's ink: titles
+export const MUTED = "#5c5c58"; // its second ink: body lines, connectors, captions
 
 // Helvetica advance widths (per 1000 em), close enough to size boxes.
 const HW = {

@@ -78,7 +78,8 @@ Windows), and write `<tmpdir>/spec-architecture-review-<timestamp>.html`. Open i
 
 The report uses **Tailwind via CDN** for layout and **Mermaid via CDN** for
 graph-shaped diagrams, mixed with hand-built SVG/CSS for the more editorial
-before/after visuals. Each candidate is a card: **Files** (which spec files),
+before/after visuals. Its look is the skeleton's: the house style, in light
+and dark, with no colour typed by hand. Each candidate is a card: **Files** (which spec files),
 **Problem** (the friction, one sentence), **Solution** (what the design becomes,
 one sentence), **Wins** (in terms of locality and leverage), a **before/after
 diagram** as the centrepiece, and a **recommendation badge** (`Strong` /

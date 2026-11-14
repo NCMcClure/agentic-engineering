@@ -1,5 +1,6 @@
 # Changelog
 
+- **1.0.2**: The studio takes the marketplace's house style and follows the system's light or dark setting (it was dark only). Nodes are panels with a sunk header and a 2px edge in their category's hue; exec wires are ink, data wires a hairline in their type's hue or an ink tone; orange marks only the selection, Save and diagnostics. A diagnostic shows its severity as a word instead of an emoji. The README shows the canvas: `assets/screens/canvas`, in light and dark. Graphs, compiled output and the launcher are unchanged.
 - **1.0.1**: The README shows how a graph on disk becomes a workflow Claude Code runs: `assets/figures/two-folders`, a looping GIF in light and dark. Nothing the plugin runs changed.
 - **1.0.0**: The launcher is Node, not bash: `scripts/launch-studio.mjs` replaces `launch-studio.sh`, with the same three arguments, the same messages, and the same install home and stamp, so an existing install is reused as it is. It starts the app the same way on macOS, Linux and Windows, passes a stop signal on to the dev server, and gives a studio that holds the lock but does not answer five seconds before treating the lock as stale. The app itself is unchanged.
 - **0.5.0**: Architecture + polish release. Canvas logic decomposed into deep,

@@ -999,7 +999,7 @@ function Canvas({
             <div className="diag-panel__list">
               {diagnostics.map((d, i) => (
                 <button key={i} className={`diag-item diag-item--${d.severity}`} onClick={() => focusDiagnostic(d)}>
-                  <span className="diag-item__sev">{d.severity === 'error' ? '⛔' : '⚠'}</span>
+                  <span className="diag-item__sev">{d.severity}</span>
                   <span className="diag-item__msg">{d.message}</span>
                 </button>
               ))}

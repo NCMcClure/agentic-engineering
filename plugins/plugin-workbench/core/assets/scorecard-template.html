@@ -8,169 +8,330 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Plugin evaluation: {{PLUGIN_NAME}}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script type="module">
       import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-      mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose" });
+      // The map's colours are the page's tokens, set in the stylesheet below, so it follows the theme.
+      mermaid.initialize({
+        startOnLoad: true, theme: "neutral", securityLevel: "loose",
+        themeVariables: { fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace", fontSize: "12px" },
+        flowchart: { curve: "step", nodeSpacing: 28, rankSpacing: 56, padding: 12 },
+      });
     </script>
     <style>
-      .pip { width: 0.65rem; height: 0.65rem; border-radius: 9999px; display: inline-block; }
+      /* The marketplace house style: neutrals carry the page, one orange accent
+         means "look here", a hue only tells kinds apart. Every colour below is
+         one of these tokens. */
+      :root {
+        --page: #f5f5f3; --panel: #ffffff; --sunk: #ebebe8;
+        --ink: #171716; --ink-2: #5c5c58; --ink-3: #8e8e89;
+        --line: #1c1c1b; --line-2: #b4b4ae; --rule: #dcdcd7;
+        --accent: #ff5a1f; --accent-ink: #c2410c; --accent-soft: #ffe9df; --on-accent: #171716;
+        --hue-blue: #2563eb; --hue-green: #15803d; --hue-violet: #7c3aed; --hue-yellow: #a16207; --hue-pink: #be185d;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #0e0e0f; --panel: #1e1e20; --sunk: #161617;
+          --ink: #f1f1ee; --ink-2: #a3a39d; --ink-3: #74746f;
+          --line: #e9e9e5; --line-2: #47474a; --rule: #262628;
+          --accent: #ff6b2c; --accent-ink: #ff8a57; --accent-soft: #3a1c10;
+          --hue-blue: #6ea0ff; --hue-green: #4ade80; --hue-violet: #a78bfa; --hue-yellow: #facc15; --hue-pink: #f472b6;
+          color-scheme: dark;
+        }
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+      main { max-width: 1024px; margin: 0 auto; padding: 48px 24px; display: grid; gap: 40px; }
+      h1, h2, h3, p, ol, ul, blockquote { margin: 0; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      code, .mono { font-family: var(--mono); }
+
+      /* Small mono capitals: section markers, chips, tags. */
+      .eyebrow, .chip { font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; }
+      .eyebrow { color: var(--ink-2); }
+      .chip { display: inline-block; padding: 2px 7px; border-radius: 6px; white-space: nowrap; vertical-align: 1px; }
+      .n { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+      .quiet { color: var(--ink-2); }
+      .card { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 20px; }
+
+      /* Verdict banner: the grade is ink; only a verdict that needs action takes the accent. */
+      .banner { display: flex; flex-wrap: wrap; align-items: center; gap: 28px; }
+      .banner .words { display: grid; gap: 6px; justify-items: start; }
+      .gauge .track { stroke: var(--rule); }
+      .gauge .score { fill: var(--ink); font: 600 30px var(--mono); font-variant-numeric: tabular-nums; }
+      .gauge .of { fill: var(--ink-2); font: 500 10.5px var(--mono); letter-spacing: 0.09em; }
+      h1 { font-size: 26px; line-height: 1.2; font-weight: 600; }
+      h1 .ver { font: 400 14px var(--mono); color: var(--ink-2); margin-left: 4px; }
+      .source { font-size: 13px; color: var(--ink-2); }
+      .verdict { font: 600 11px/1.4 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; padding: 4px 10px; border-radius: 6px; margin-top: 4px; }
+      .v-adopt { border: 1.5px solid var(--line); }
+      .v-adopt::before { content: "\2713\00a0"; }
+      .v-fixes { background: var(--accent-soft); border: 1px solid var(--line-2); }
+      .v-rework, .v-avoid { background: var(--accent); color: var(--on-accent); }
+      .gate { background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 8px; padding: 14px 18px; }
+      .gate .eyebrow { color: var(--ink); font-weight: 600; }
+      .gate p + p { margin-top: 4px; }
+
+      /* Dimensions */
+      .dimensions { display: grid; gap: 20px; margin-top: 14px; }
+      @media (min-width: 768px) { .dimensions { grid-template-columns: 1fr 1fr; } }
+      .dim { display: grid; gap: 12px; align-content: start; }
+      .dim-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+      h3 { font-size: 15px; font-weight: 600; }
+      .dim-score { font: 600 24px/1 var(--mono); font-variant-numeric: tabular-nums; }
+      .bar { height: 6px; border-radius: 2px; background: var(--rule); overflow: hidden; }
+      .bar > div { height: 100%; }
+      .dim .weight { font: 11px/1.4 var(--mono); color: var(--ink-2); }
+      .dim-na { background: none; border: 1px dashed var(--line-2); }
+      .dim-na h3 { color: var(--ink-2); }
+      .dim-na .eyebrow { color: var(--ink-3); }
+      .dim-na p { font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+      .check { border-top: 1px solid var(--rule); vertical-align: top; }
+      .check td { padding: 7px 0; }
+      .check .id { padding-right: 10px; font: 11px/1.9 var(--mono); color: var(--ink-2); white-space: nowrap; }
+      .check .what { padding-right: 10px; }
+      .check .evidence { margin-top: 2px; font: 11.5px/1.5 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+      .check .pips { white-space: nowrap; text-align: right; line-height: 1.9; }
+      .k-judgment { border: 1px solid var(--line-2); color: var(--ink-2); margin-left: 4px; }
+      .k-mechanical { background: var(--sunk); border: 1px solid var(--sunk); color: var(--ink-2); margin-left: 4px; }
+      .pip { width: 8px; height: 8px; border-radius: 50%; display: inline-block; border: 1px solid var(--line-2); margin-right: 3px; }
+      .pip.on { background: var(--ink); border-color: var(--ink); }
+
+      /* Context footprint: sources are kinds, so they take the hues, small. */
+      .footprint { display: grid; gap: 16px; }
+      .row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+      .total { font: 600 20px/1 var(--mono); font-variant-numeric: tabular-nums; }
+      #passive-bar { display: flex; gap: 2px; height: 8px; }
+      #passive-bar > div { height: 100%; border-radius: 2px; min-width: 2px; }
+      #passive-legend { display: flex; flex-wrap: wrap; gap: 4px 20px; font: 11px/1.6 var(--mono); color: var(--ink-2); }
+      #passive-legend .pip { border-color: transparent; margin-right: 6px; }
+      .seg-1 { background: var(--hue-blue); } .seg-2 { background: var(--hue-green); } .seg-3 { background: var(--hue-violet); }
+      .seg-4 { background: var(--hue-yellow); } .seg-5 { background: var(--hue-pink); }
+      .seg-6 { background: var(--ink-2); } .seg-7 { background: var(--ink-3); }
+      #cap-meters { display: grid; gap: 8px; }
+      .cap { display: flex; align-items: center; gap: 12px; font: 11.5px/1.4 var(--mono); color: var(--ink-2); }
+      .cap .path { width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .cap .bar { flex: 1; height: 4px; }
+      .cap .count { width: 120px; text-align: right; font-variant-numeric: tabular-nums; }
+      .cap-ok, .cap-near { background: var(--ink); }
+      .cap-over { background: var(--accent); }
+      .cap:has(.cap-near) .bar { background: var(--accent-soft); }
+      .cap:has(.cap-near) .count { color: var(--ink); font-weight: 600; }
+      .cap:has(.cap-over) .count { color: var(--accent-ink); font-weight: 600; }
+      .foot { font-size: 12px; color: var(--ink-2); }
+
+      /* Component map: Mermaid lays it out, these rules colour it, in both themes. */
+      .mermaid { margin: 14px 0 0; font: 12px/1.6 var(--mono); color: var(--ink-2); white-space: pre-wrap; }
+      .mermaid svg { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+      .mermaid .node :is(rect, polygon, circle, ellipse, path) { fill: var(--panel) !important; stroke: var(--line-2) !important; stroke-width: 1px !important; rx: 6px; ry: 6px; }
+      .mermaid .nodeLabel, .mermaid .nodeLabel p, .mermaid .edgeLabel, .mermaid .edgeLabel p { color: var(--ink) !important; background: none !important; }
+      .mermaid .flowchart-link { stroke: var(--ink-3) !important; stroke-width: 1px !important; }
+      .mermaid marker path { fill: var(--ink-3) !important; stroke: var(--ink-3) !important; }
+      .mermaid .cluster rect { fill: var(--sunk) !important; stroke: var(--rule) !important; }
+      .mermaid .node.script :is(rect, polygon, circle, ellipse, path) { stroke: var(--hue-green) !important; fill: color-mix(in srgb, var(--hue-green) 12%, var(--panel)) !important; }
+      .mermaid .node.hook :is(rect, polygon, circle, ellipse, path) { stroke: var(--hue-blue) !important; fill: color-mix(in srgb, var(--hue-blue) 12%, var(--panel)) !important; }
+      .mermaid .node.orphan :is(rect, polygon, circle, ellipse, path) { stroke: var(--accent) !important; stroke-width: 1.5px !important; fill: var(--accent-soft) !important; }
+      .map-key { display: flex; flex-wrap: wrap; gap: 4px 18px; margin-top: 12px; font-size: 12px; color: var(--ink-2); }
+      .key { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--line-2); margin-right: 6px; vertical-align: -1px; }
+      .key-script { border-color: var(--hue-green); background: color-mix(in srgb, var(--hue-green) 12%, var(--panel)); }
+      .key-hook { border-color: var(--hue-blue); background: color-mix(in srgb, var(--hue-blue) 12%, var(--panel)); }
+      .key-orphan { border: 1.5px solid var(--accent); background: var(--accent-soft); }
+
+      /* Findings */
+      .findings { display: grid; gap: 14px; }
+      #finding-cards { display: grid; gap: 10px; }
+      .finding { padding: 14px 16px; display: grid; gap: 5px; }
+      .finding .title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+      .finding h3 { font-size: 14px; }
+      .finding .title .mono { font-size: 11px; }
+      .finding .file, .finding blockquote { font: 11.5px/1.5 var(--mono); color: var(--ink-2); overflow-wrap: anywhere; }
+      .finding blockquote { border-left: 1px solid var(--line-2); padding-left: 10px; }
+      .sev-critical { background: var(--accent); color: var(--on-accent); font-weight: 600; }
+      .sev-major { background: var(--accent-soft); color: var(--ink); font-weight: 600; }
+      .sev-minor { border: 1px solid var(--line-2); color: var(--ink-2); }
       details > summary { cursor: pointer; }
+      .refuted { font-size: 13.5px; color: var(--ink-2); }
+      .refuted ul { margin-top: 8px; padding-left: 20px; display: grid; gap: 4px; }
+      .refuted b { font-weight: 600; color: var(--ink); }
+
+      /* Top fixes: the frame that matters most gets the strong hairline; the
+         fix that buys back the most points, the first, carries the accent. */
+      .fixes { border: 1.5px solid var(--line); }
+      #fix-list { margin-top: 14px; padding-left: 22px; display: grid; gap: 12px; }
+      #fix-list li::marker { font: 500 12px var(--mono); color: var(--ink-2); }
+      .fix-title { font-weight: 600; }
+      .pts { margin-left: 8px; background: var(--sunk); color: var(--ink); font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: 0; font-size: 11px; }
+      #fix-list li:first-child .pts { background: var(--accent-soft); color: var(--accent-ink); }
+      .fix-detail { font-size: 13.5px; color: var(--ink-2); }
+      footer { font-size: 12px; color: var(--ink-2); }
     </style>
   </head>
-  <body class="bg-stone-50 text-slate-900 font-sans">
-    <main class="max-w-5xl mx-auto px-6 py-12 space-y-12">
+  <body>
+    <main>
 
       <!-- ── Verdict banner ─────────────────────────────────────────── -->
-      <header class="flex flex-wrap items-center gap-8">
-        <svg width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="composite score">
-          <circle cx="66" cy="66" r="54" fill="none" stroke="#e7e5e4" stroke-width="12" />
-          <circle cx="66" cy="66" r="54" fill="none" stroke="{{GAUGE_COLOR}}" stroke-width="12"
-                  stroke-linecap="round" stroke-dasharray="{{COMPOSITE_DASH}} 339.292"
+      <header class="banner">
+        <svg class="gauge" width="132" height="132" viewBox="0 0 132 132" role="img" aria-label="composite score">
+          <circle class="track" cx="66" cy="66" r="54" fill="none" stroke-width="6" />
+          <circle cx="66" cy="66" r="54" fill="none" stroke="{{GAUGE_COLOR}}" stroke-width="6"
+                  stroke-dasharray="{{COMPOSITE_DASH}} 339.292"
                   transform="rotate(-90 66 66)" />
-          <text x="66" y="62" text-anchor="middle" class="font-serif" font-size="28" font-weight="700">{{COMPOSITE}}</text>
-          <text x="66" y="82" text-anchor="middle" font-size="10" fill="#78716c">/ 100</text>
+          <text class="score" x="66" y="70" text-anchor="middle">{{COMPOSITE}}</text>
+          <text class="of" x="66" y="90" text-anchor="middle">/ 100</text>
         </svg>
-        <div class="space-y-2">
-          <p class="text-xs uppercase tracking-wider text-stone-500">plugin evaluation · {{DATE}}</p>
-          <h1 class="text-3xl font-serif font-bold">{{PLUGIN_NAME}} <span class="text-stone-400 font-sans text-xl font-normal">v{{PLUGIN_VERSION}}</span></h1>
-          <p class="text-sm text-stone-500">{{SOURCE_LINE}}</p>
-          <span class="inline-block rounded-full px-4 py-1 text-sm font-semibold {{VERDICT_BADGE_CLASSES}}">{{VERDICT}}</span>
+        <!-- GAUGE_COLOR: var(--ink), whatever the verdict: the grade is plain, the verdict chip carries the state.
+             VERDICT_BADGE_CLASSES: adopt=v-adopt · adopt-with-fixes=v-fixes · rework=v-rework · avoid=v-avoid -->
+        <div class="words">
+          <p class="eyebrow">plugin evaluation · {{DATE}}</p>
+          <h1>{{PLUGIN_NAME}} <span class="ver">v{{PLUGIN_VERSION}}</span></h1>
+          <p class="source">{{SOURCE_LINE}}</p>
+          <span class="verdict {{VERDICT_BADGE_CLASSES}}">{{VERDICT}}</span>
         </div>
       </header>
 
-      <div data-optional="gate-callout" class="rounded-lg border-l-4 border-red-600 bg-red-50 px-5 py-4">
-        <p class="text-xs uppercase tracking-wider text-red-700 font-semibold">verdict capped</p>
-        <p class="text-sm text-red-900 mt-1">{{GATE_REASON}} <span class="text-red-600">(uncapped: {{VERDICT_UNCAPPED}})</span></p>
+      <div data-optional="gate-callout" class="gate">
+        <p class="eyebrow">verdict capped</p>
+        <p>{{GATE_REASON}} <span class="quiet">(uncapped: {{VERDICT_UNCAPPED}})</span></p>
       </div>
 
       <!-- ── Dimensions ─────────────────────────────────────────────── -->
       <section>
-        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">dimensions</h2>
-        <div id="dimension-cards" class="grid gap-6 md:grid-cols-2"></div>
+        <h2 class="eyebrow">dimensions</h2>
+        <div id="dimension-cards" class="dimensions"></div>
         <template id="tpl-dimension-card" data-fill-into="dimension-cards">
-          <article class="rounded-xl border border-stone-200 bg-white p-5 space-y-4">
-            <div class="flex items-baseline justify-between">
-              <h3 class="font-semibold">{{DIM_LABEL}}</h3>
-              <p class="text-2xl font-serif font-bold">{{DIM_SCORE}}</p>
+          <article class="card dim">
+            <div class="dim-head">
+              <h3>{{DIM_LABEL}}</h3>
+              <p class="dim-score">{{DIM_SCORE}}</p>
             </div>
-            <div class="h-2 rounded-full bg-stone-100 overflow-hidden">
-              <div class="h-full rounded-full" style="width: {{DIM_SCORE}}%; background: {{DIM_BAR_COLOR}};"></div>
+            <div class="bar">
+              <div style="width: {{DIM_SCORE}}%; background: {{DIM_BAR_COLOR}};"></div>
             </div>
-            <p class="text-xs text-stone-500">weight {{DIM_WEIGHT}}{{DIM_NORM_NOTE}}</p>
-            <table class="w-full text-sm">
+            <p class="weight">weight {{DIM_WEIGHT}}{{DIM_NORM_NOTE}}</p>
+            <table>
               <tbody id="checks-{{DIM_ID}}">{{CHECK_ROWS}}</tbody>
             </table>
           </article>
+          <!-- DIM_BAR_COLOR: var(--ink); the lowest-scoring dimension, and only that one, takes var(--accent) -->
         </template>
         <template id="tpl-dimension-card-na" data-fill-into="dimension-cards">
-          <article class="rounded-xl border border-dashed border-stone-300 bg-stone-100/60 p-5 opacity-70">
-            <div class="flex items-baseline justify-between">
-              <h3 class="font-semibold text-stone-500">{{DIM_LABEL}}</h3>
-              <span class="text-xs uppercase tracking-wider text-stone-400">n/a, excluded from composite</span>
+          <article class="card dim-na">
+            <div class="dim-head">
+              <h3>{{DIM_LABEL}}</h3>
+              <span class="eyebrow">n/a, excluded from composite</span>
             </div>
-            <p class="text-xs text-stone-400 mt-2">{{DIM_NA_REASON}}</p>
+            <p>{{DIM_NA_REASON}}</p>
           </article>
         </template>
         <template id="tpl-check-row">
-          <tr class="border-t border-stone-100 align-top">
-            <td class="py-1.5 pr-2 font-mono text-xs text-stone-500 whitespace-nowrap">{{CHECK_ID}}</td>
-            <td class="py-1.5 pr-2">
-              <p>{{CHECK_LABEL}} <span class="ml-1 rounded px-1.5 py-0.5 text-[10px] uppercase tracking-wider {{KIND_CLASSES}}">{{CHECK_KIND}}</span></p>
-              <p class="font-mono text-xs text-stone-400 mt-0.5">{{CHECK_EVIDENCE}}</p>
+          <tr class="check">
+            <td class="id">{{CHECK_ID}}</td>
+            <td class="what">
+              <p>{{CHECK_LABEL}} <span class="chip {{KIND_CLASSES}}">{{CHECK_KIND}}</span></p>
+              <p class="evidence">{{CHECK_EVIDENCE}}</p>
             </td>
-            <td class="py-1.5 whitespace-nowrap text-right">{{PIPS}}</td>
+            <td class="pips">{{PIPS}}</td>
           </tr>
-          <!-- {{PIPS}} = four pips, filled = round(grade):
-               <span class="pip bg-slate-800 mr-0.5"></span> filled
-               <span class="pip bg-stone-200 mr-0.5"></span> empty -->
+          <!-- KIND_CLASSES: judgment=k-judgment · mechanical=k-mechanical
+               {{PIPS}} = four pips, filled = round(grade):
+               <span class="pip on"></span> filled
+               <span class="pip"></span> empty -->
         </template>
       </section>
 
       <!-- ── Context footprint ──────────────────────────────────────── -->
-      <section class="rounded-xl border border-stone-200 bg-white p-6 space-y-5">
-        <div class="flex items-baseline justify-between">
-          <h2 class="text-xs uppercase tracking-wider text-stone-500">context footprint · always-on</h2>
-          <p class="text-sm"><span class="font-serif text-xl font-bold">~{{PASSIVE_TOKENS}}</span> <span class="text-stone-500">est. tokens/turn</span></p>
+      <section class="card footprint">
+        <div class="row">
+          <h2 class="eyebrow">context footprint · always-on</h2>
+          <p><span class="total">~{{PASSIVE_TOKENS}}</span> <span class="quiet">est. tokens/turn</span></p>
         </div>
-        <div class="flex h-6 w-full rounded overflow-hidden border border-stone-200" id="passive-bar"></div>
+        <div id="passive-bar"></div>
         <template id="tpl-passive-segment" data-fill-into="passive-bar">
-          <div class="h-full {{SEG_COLOR}}" style="width: {{SEG_PCT}}%" title="{{SEG_SOURCE}} · ~{{SEG_TOKENS}} tok"></div>
-          <!-- rotate SEG_COLOR through: bg-indigo-400, bg-indigo-300, bg-sky-300, bg-teal-300, bg-stone-300 -->
+          <div class="{{SEG_COLOR}}" style="width: {{SEG_PCT}}%" title="{{SEG_SOURCE}} · ~{{SEG_TOKENS}} tok"></div>
+          <!-- rotate SEG_COLOR through: seg-1, seg-2, seg-3, seg-4, seg-5 (the hues), then seg-6, seg-7 (ink tones) -->
         </template>
-        <div id="passive-legend" class="flex flex-wrap gap-x-5 gap-y-1 text-xs text-stone-500"></div>
+        <div id="passive-legend"></div>
         <template id="tpl-passive-legend-item" data-fill-into="passive-legend">
-          <span><span class="pip {{SEG_COLOR}} mr-1"></span>{{SEG_SOURCE}} · ~{{SEG_TOKENS}}</span>
+          <span><span class="pip {{SEG_COLOR}}"></span>{{SEG_SOURCE}} · ~{{SEG_TOKENS}}</span>
         </template>
-        <div id="cap-meters" class="space-y-2"></div>
+        <div id="cap-meters"></div>
         <template id="tpl-cap-meter" data-fill-into="cap-meters">
-          <div class="flex items-center gap-3 text-xs">
-            <span class="font-mono w-64 truncate text-stone-500">{{SKILL_PATH}}</span>
-            <div class="flex-1 h-1.5 rounded bg-stone-100 overflow-hidden">
-              <div class="h-full {{CAP_COLOR}}" style="width: {{CAP_PCT}}%"></div>
+          <div class="cap">
+            <span class="path">{{SKILL_PATH}}</span>
+            <div class="bar">
+              <div class="{{CAP_COLOR}}" style="width: {{CAP_PCT}}%"></div>
             </div>
-            <span class="text-stone-400 w-28 text-right">{{CAP_CHARS}} / 1536 chars</span>
+            <span class="count">{{CAP_CHARS}} / 1536 chars</span>
           </div>
-          <!-- CAP_COLOR: bg-emerald-400 under 75%, bg-amber-400 75-100%, bg-red-500 over -->
+          <!-- CAP_COLOR: cap-ok under 75%, cap-near 75-100%, cap-over over -->
         </template>
-        <p class="text-xs text-stone-400">chars÷4 estimate; <code>claude plugin details {{PLUGIN_NAME}}</code> is ground truth when installed. On-invoke bodies: {{ON_INVOKE_SUMMARY}}.</p>
+        <p class="foot">chars÷4 estimate; <code>claude plugin details {{PLUGIN_NAME}}</code> is ground truth when installed. On-invoke bodies: {{ON_INVOKE_SUMMARY}}.</p>
       </section>
 
       <!-- ── Component map ──────────────────────────────────────────── -->
-      <section class="rounded-xl border border-stone-200 bg-white p-6">
-        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">component map</h2>
+      <section class="card">
+        <h2 class="eyebrow">component map</h2>
         <pre class="mermaid">
 flowchart LR
 {{MERMAID_COMPONENT_LINES}}
-  classDef orphan stroke:#dc2626,stroke-width:2px,color:#dc2626;
-  classDef script fill:#f0fdf4,stroke:#16a34a;
-  classDef hook fill:#eff6ff,stroke:#2563eb;
+  classDef orphan stroke-width:1.5px;
+  classDef script stroke-width:1px;
+  classDef hook stroke-width:1px;
 {{MERMAID_CLASS_ASSIGNMENTS}}
         </pre>
-        <p class="text-xs text-stone-400 mt-2">skills → the scripts/references/assets they invoke · hooks → the skills they enforce · red = orphaned</p>
+        <p class="map-key">
+          <span>skills → the scripts/references/assets they invoke · hooks → the skills they enforce</span>
+          <span><span class="key key-script"></span>script</span>
+          <span><span class="key key-hook"></span>hook</span>
+          <span><span class="key key-orphan"></span>orphaned</span>
+        </p>
       </section>
 
       <!-- ── Findings ───────────────────────────────────────────────── -->
-      <section class="space-y-4" data-optional="findings">
-        <h2 class="text-xs uppercase tracking-wider text-stone-500">findings</h2>
-        <div id="finding-cards" class="space-y-3"></div>
+      <section class="findings" data-optional="findings">
+        <h2 class="eyebrow">findings</h2>
+        <div id="finding-cards"></div>
         <template id="tpl-finding-card" data-fill-into="finding-cards">
-          <article class="rounded-lg border border-stone-200 bg-white p-4 space-y-1.5">
-            <div class="flex items-center gap-2">
-              <span class="rounded px-2 py-0.5 text-[10px] uppercase tracking-wider font-semibold {{SEV_CLASSES}}">{{SEVERITY}}</span>
-              <span class="font-mono text-xs text-stone-400">{{FINDING_CHECK}}</span>
-              <h3 class="font-medium">{{FINDING_TITLE}}</h3>
+          <article class="card finding">
+            <div class="title">
+              <span class="chip {{SEV_CLASSES}}">{{SEVERITY}}</span>
+              <span class="mono quiet">{{FINDING_CHECK}}</span>
+              <h3>{{FINDING_TITLE}}</h3>
             </div>
-            <p class="font-mono text-xs text-stone-500">{{FINDING_FILE}}</p>
-            <blockquote class="font-mono text-xs text-stone-400 border-l-2 border-stone-200 pl-2">{{FINDING_QUOTE}}</blockquote>
-            <p class="text-sm">{{FINDING_RECOMMENDATION}}</p>
+            <p class="file">{{FINDING_FILE}}</p>
+            <blockquote>{{FINDING_QUOTE}}</blockquote>
+            <p>{{FINDING_RECOMMENDATION}}</p>
           </article>
-          <!-- SEV_CLASSES: critical=bg-red-100 text-red-700 · major=bg-orange-100 text-orange-700 · minor=bg-stone-100 text-stone-600 -->
+          <!-- SEV_CLASSES: critical=sev-critical · major=sev-major · minor=sev-minor -->
         </template>
-        <details data-optional="refuted" class="text-sm text-stone-500">
-          <summary class="text-xs uppercase tracking-wider">refuted by verification ({{REFUTED_COUNT}})</summary>
-          <ul id="refuted-list" class="mt-2 space-y-1 list-disc pl-5"></ul>
+        <details data-optional="refuted" class="refuted">
+          <summary class="eyebrow">refuted by verification ({{REFUTED_COUNT}})</summary>
+          <ul id="refuted-list"></ul>
         </details>
         <template id="tpl-refuted-item" data-fill-into="refuted-list">
-          <li><span class="font-medium">{{REFUTED_TITLE}}</span>: {{REFUTED_REASON}}</li>
+          <li><b>{{REFUTED_TITLE}}</b>: {{REFUTED_REASON}}</li>
         </template>
       </section>
 
       <!-- ── Top fixes ──────────────────────────────────────────────── -->
-      <section class="rounded-xl border-2 border-slate-800 bg-white p-6" data-optional="fixes">
-        <h2 class="text-xs uppercase tracking-wider text-stone-500 mb-4">top fixes · points recoverable</h2>
-        <ol id="fix-list" class="space-y-3 list-decimal pl-5"></ol>
+      <section class="card fixes" data-optional="fixes">
+        <h2 class="eyebrow">top fixes · points recoverable</h2>
+        <ol id="fix-list"></ol>
         <template id="tpl-fix-item" data-fill-into="fix-list">
           <li>
-            <p class="font-medium">{{FIX_TITLE}} <span class="ml-2 rounded bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">+{{FIX_POINTS}} pts{{FIX_TIER_NOTE}}</span></p>
-            <p class="text-sm text-stone-500">{{FIX_DETAIL}}</p>
+            <p class="fix-title">{{FIX_TITLE}} <span class="chip pts">+{{FIX_POINTS}} pts{{FIX_TIER_NOTE}}</span></p>
+            <p class="fix-detail">{{FIX_DETAIL}}</p>
           </li>
           <!-- FIX_POINTS = composite delta from regrading the check to 4: score.json's fix_deltas carries it, never estimate; FIX_TIER_NOTE = " → reaches adopt" when the delta crosses a tier floor, else empty -->
         </template>
       </section>
 
-      <footer class="text-xs text-stone-400">
+      <footer>
         generated by plugin-workbench · scores from plugin-scan.mjs --score · token figures are estimates
       </footer>
     </main>

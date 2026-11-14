@@ -49,6 +49,17 @@ config that does not parse, a status file past three times its budget), so an ol
 instead of a wall. `aw doctor --baseline` records today's numbers; later runs print what moved.
 `aw doctor --machine` checks the machine instead: Node 22, git, and the forge's command line.
 
+`aw doctor --html report.html` also writes the report as one page that fetches nothing, for reading a long one
+outside the terminal:
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/doctor.dark.png">
+  <img alt="The aw doctor report for this repository as a page: a title, the counts by severity, and the first hub findings in a table of level, code, path and message." src="assets/screens/doctor.light.png" width="880">
+</picture>
+
+That is this repository's own report: warnings and nothing critical, so nothing on the page is orange. A
+critical finding is the only row that takes the accent.
+
 ### The kanban board
 
 Tasks and their status have one place: cards on the project's board, Markdown files in the main checkout that

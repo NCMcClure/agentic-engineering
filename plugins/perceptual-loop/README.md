@@ -49,6 +49,14 @@ finding. Your questions go on one self-contained review page, and `review apply`
 ruling files later sessions read. `lint` checks a report for verdicts read off a number and claims with no
 evidence.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/review.dark.png">
+  <img alt="The review page with one look question: three stills of the same figure side by side, the measured numbers, the agent's verdict, and the options, with the chosen one marked in orange." src="assets/screens/review.light.png" width="880">
+</picture>
+
+The review page `pl.mjs review build` wrote for two questions about this repo's own figures: each picture
+sits whole on a neutral face, and the only orange is the answer you gave and the export.
+
 Everything is Node 22, standard library only: the PNG codec, the JPEG encoder, the WAV reader, the metrics,
 the optical flow and the DSP are written here. `ffmpeg` is the one external tool, and only for pictures that
 are not PNG, video files, and sounds that are not WAV. The numbers match the Python scripts this plugin

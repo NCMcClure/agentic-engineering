@@ -5,79 +5,113 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>__TITLE__</title>
 <style>
+/* The house style (picture-this): neutrals carry the page, one orange accent marks what a person
+   chose and the one action, hairlines and face tones stand in for shadows. The names are this
+   page's own: --line is the house's rule, --edge its strong line, --muted its second ink,
+   --accent-ink the text on an accent fill, --accent-text the accent as text, --soft the accent's
+   tint, --stage the sunk face a picture sits on. Every colour in a rule below is one of these. */
 :root {
-  --bg: #f4f4f1; --card: #ffffff; --ink: #1b1c1e; --muted: #5f636a; --line: #d9d9d3; --accent: #2457b3; --accent-ink: #ffffff;
-  --soft: #ebf0f8; --done: #1f7a48; --stage: #808080; --radius: 10px;
+  color-scheme: light dark;
+  --bg: #f5f5f3; --card: #ffffff; --stage: #ebebe8; --ink: #171716; --muted: #5c5c58;
+  --edge: #1c1c1b; --line-2: #b4b4ae; --line: #dcdcd7;
+  --accent: #ff5a1f; --accent-ink: #171716; --accent-text: #c2410c; --soft: #ffe9df; --done: #171716;
+  --radius: 14px;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #141518; --card: #1d1f24; --ink: #e8e8ea; --muted: #9ba0a8; --line: #343740; --accent: #82b1ff; --accent-ink: #0f1218;
-          --soft: #252a35; --done: #66c690; }
+  :root { --bg: #0e0e0f; --card: #1e1e20; --stage: #161617; --ink: #f1f1ee; --muted: #a3a39d;
+          --edge: #e9e9e5; --line-2: #47474a; --line: #262628;
+          --accent: #ff6b2c; --accent-text: #ff8a57; --soft: #3a1c10; --done: #f1f1ee; }
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-html { scroll-padding-top: 72px; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+html { scroll-padding-top: 68px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
 button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
 .top { max-width: 1200px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-.top h1 { font-size: 17px; margin: 0; font-weight: 650; }
-.progress { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 14px; }
-.track { flex: 1; height: 6px; border-radius: 3px; background: var(--line); overflow: hidden; }
-.fill { height: 100%; width: 0; background: var(--done); transition: width .2s; }
-.btn { border: 1px solid var(--line); background: var(--card); border-radius: 7px; padding: 6px 12px; cursor: pointer; }
-.btn:hover, .btn:focus-visible { border-color: var(--accent); }
+.top h1 { font-size: 15px; margin: 0; font-weight: 600; }
+.progress { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 12px; color: var(--muted); font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+.track { flex: 1; height: 4px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--done); transition: width .15s; }
+.btn { border: 1px solid var(--line-2); background: none; border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.btn:hover { background: var(--stage); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
-.btn.on { background: var(--soft); border-color: var(--accent); }
-main { max-width: 1200px; margin: 0 auto; padding: 18px 16px 8px; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px 20px; margin: 0 0 18px; }
-.card.active { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 28%, transparent); }
+.btn.primary:hover { background: var(--accent); border-color: var(--edge); }
+/* the view in use: a heavier ink hairline, so the accent stays with the person's answers */
+.btn.on { background: var(--stage); border: 1.5px solid var(--edge); padding: 4.5px 11.5px; }
+main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin: 0 0 16px; }
+.card.active { border: 1.5px solid var(--edge); padding: 19.5px 21.5px; }
 .head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
-.head h2 { font-size: 20px; margin: 0; flex: 1; min-width: 200px; }
-.num { color: var(--muted); font-variant-numeric: tabular-nums; }
-.chip { font-size: 12px; padding: 2px 8px; border-radius: 99px; border: 1px solid var(--line); color: var(--muted); white-space: nowrap; }
-.chip.done { color: var(--done); border-color: var(--done); }
-.context { color: var(--muted); white-space: pre-wrap; margin: 8px 0 0; }
-.modes { display: flex; gap: 6px; margin: 14px 0 8px; flex-wrap: wrap; align-items: center; font-size: 14px; }
-.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 10px; margin-top: 14px; }
+.head h2 { font-size: 17px; line-height: 1.35; font-weight: 600; margin: 0; flex: 1; min-width: 200px; }
+.num { color: var(--muted); font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+/* an id is spelled as it was queued; only the state is a label in capitals */
+.chip { font: 500 11px/1.5 var(--mono); padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
+.chip.state { font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; }
+.chip.done { color: var(--ink); border-color: var(--edge); }
+.context { color: var(--muted); white-space: pre-wrap; margin: 8px 0 0; max-width: 96ch; }
+.modes { display: flex; gap: 6px; margin: 16px 0 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.modes .lab, figcaption { font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.modes .lab { margin-right: 4px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; margin-top: 16px; align-items: start; }
 .modes + .shots { margin-top: 0; }
 .shots.one { grid-template-columns: 1fr; }
-figure { margin: 0; background: var(--stage); border-radius: 8px; overflow: hidden; position: relative; }
+/* A picture sits whole on the sunk face, inside a hairline: its name is beside it, never over it,
+   and nothing rounds its corners or lies behind it but a neutral. */
+figure { margin: 0; background: var(--stage); border: 1px solid var(--line); border-radius: 8px; padding: 0 8px 8px; }
+figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 7px 2px 6px; }
 figure img { display: block; width: 100%; height: auto; cursor: zoom-in; }
-figcaption, .tag { position: absolute; left: 8px; top: 8px; font-size: 12px; padding: 2px 8px; border-radius: 5px; background: rgba(0,0,0,.65); color: #fff; pointer-events: none; }
-.tag.right { left: auto; right: 8px; }
-.missing { padding: 28px 12px; color: #f1f1f1; font-size: 13px; text-align: center; word-break: break-all; }
-.cmp { position: relative; background: var(--stage); border-radius: 8px; overflow: hidden; user-select: none; }
-.cmp img { display: block; width: 100%; height: auto; }
+.missing { padding: 28px 12px; color: var(--muted); font: 12px var(--mono); text-align: center; word-break: break-all; }
+.cmp { position: relative; user-select: none; }
+.cmp:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmp img { cursor: inherit; }
 .cmp img.over { position: absolute; inset: 0; height: 100%; }
-.cmp .rule { position: absolute; top: 0; bottom: 0; width: 2px; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.5); pointer-events: none; }
+/* the cut: an ink hairline between two of the panel face, so it shows on a light and on a dark picture */
+.cmp .rule { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--edge); border: solid var(--card); border-width: 0 1px; pointer-events: none; }
 .cmp input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
-.question { font-size: 18px; font-weight: 600; margin: 16px 0 10px; }
-table.evidence { border-collapse: collapse; margin: 0 0 12px; font-size: 14px; }
-table.evidence th { text-align: left; font-weight: 500; color: var(--muted); padding: 3px 16px 3px 0; vertical-align: top; }
-table.evidence td { padding: 3px 0; font-variant-numeric: tabular-nums; }
-.verdicts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; color: var(--muted); margin: 0 0 12px; }
-.verdicts b { color: var(--ink); font-weight: 600; }
+.question { font-size: 16px; line-height: 1.4; font-weight: 600; margin: 18px 0 10px; }
+table.evidence { border-collapse: collapse; margin: 0 0 12px; }
+/* a metric keeps its own spelling (dE, EV, px), so its name is mono and not capitals */
+table.evidence th { text-align: left; font: 400 12px/1.5 var(--mono); color: var(--muted); padding: 3px 20px 3px 0; vertical-align: top; }
+table.evidence td { padding: 3px 0; font: 12.5px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+.verdicts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.verdicts b { color: var(--ink); font: 500 12px var(--mono); }
+/* a verdict that leaves work to do is the finding a person should see first */
+.verdicts b.todo { color: var(--accent-text); }
 fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
 legend { position: absolute; left: -9999px; }
-label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
-label.opt:hover { border-color: var(--accent); }
-label.opt.picked { border-color: var(--accent); background: var(--soft); }
-label.opt input { margin-top: 5px; accent-color: var(--accent); }
-kbd { font: 12px ui-monospace, SFMono-Regular, Consolas, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; color: var(--muted); }
-.mark { font-size: 12px; color: var(--accent); margin-left: 6px; white-space: nowrap; }
-textarea { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; resize: vertical; }
+label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--line-2); border-radius: 8px; cursor: pointer; }
+label.opt:hover { background: var(--stage); }
+label.opt.picked { border: 1.5px solid var(--accent); padding: 8.5px 11.5px; background: var(--soft); }
+label.opt input { margin: 4px 0 0; accent-color: var(--accent); }
+/* the ring goes round the whole option where the browser can say which one holds the focus */
+@supports selector(:has(a)) {
+  label.opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.opt input:focus-visible { outline: none; }
+}
+kbd { font: 11px/1.5 var(--mono); border: 1px solid var(--line-2); border-radius: 4px; padding: 0 5px; color: var(--muted); }
+.mark { font: 500 10.5px var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-left: 10px; white-space: nowrap; }
+textarea { width: 100%; background: var(--card); border: 1px solid var(--line-2); border-radius: 6px; padding: 8px 10px; resize: vertical; }
+textarea::placeholder { color: var(--muted); }
 textarea.note { min-height: 62px; margin-top: 10px; }
-.row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 13px; color: var(--muted); gap: 12px; }
-.link { background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; }
-#out { max-width: 1200px; margin: 0 auto 18px; padding: 0 16px; }
+.row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12.5px; color: var(--muted); gap: 12px; }
+.link { background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.link:hover { color: var(--ink); }
+code { font: 12.5px var(--mono); background: var(--stage); border-radius: 4px; padding: 1px 5px; }
+#out { max-width: 1200px; margin: 0 auto 16px; padding: 0 16px; }
 #out .card { margin: 0; }
-#out textarea { min-height: 220px; font: 13px/1.45 ui-monospace, SFMono-Regular, Consolas, monospace; }
-footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 13px; }
-#zoom { position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,.92); overflow: auto; cursor: zoom-out; display: grid; place-items: center; }
+#out textarea { min-height: 220px; font: 12.5px/1.45 var(--mono); background: var(--stage); border-color: var(--line); }
+footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
+/* a picture opened large stands on the page colour, the same neutral it was judged on */
+#zoom { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow: auto; cursor: zoom-out; display: grid; place-items: center; }
 #zoom img { max-width: 100%; height: auto; image-rendering: auto; }
 #zoom.full { display: block; }
 #zoom.full img { max-width: none; image-rendering: pixelated; }
 .empty { text-align: center; color: var(--muted); padding: 60px 0; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 </style>
 </head>
 <body>
@@ -118,6 +152,7 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
   };
   const cards = [];
   let active = 0;
+  const glide = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
 
   const zoom = document.getElementById('zoom');
   const openZoom = src => { zoom.firstElementChild.src = src; zoom.classList.remove('full'); zoom.hidden = false; };
@@ -125,7 +160,7 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
   zoom.addEventListener('click', e => { if (e.target === zoom.firstElementChild && !zoom.classList.contains('full')) zoom.classList.add('full'); else zoom.hidden = true; });
 
   const figure = im => im.src
-    ? el('figure', {}, el('img', { src: im.src, alt: im.label, loading: 'lazy', onclick: () => openZoom(im.src) }), el('figcaption', {}, im.label))
+    ? el('figure', {}, el('figcaption', {}, im.label), el('img', { src: im.src, alt: im.label, loading: 'lazy', onclick: () => openZoom(im.src) }))
     : el('figure', {}, el('div', { class: 'missing' }, 'missing: ' + im.label + ' (' + im.path + ')'));
 
   function pictures(item) {
@@ -141,21 +176,21 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     const over = el('img', { class: 'over', src: a.src, alt: a.label });
     const rule = el('div', { class: 'rule' });
     const range = el('input', { type: 'range', min: 0, max: 100, value: 50, 'aria-label': 'Where ' + a.label + ' gives way to ' + b.label });
-    const place = () => { over.style.clipPath = 'inset(0 ' + (100 - range.value) + '% 0 0)'; rule.style.left = 'calc(' + range.value + '% - 1px)'; };
+    const place = () => { over.style.clipPath = 'inset(0 ' + (100 - range.value) + '% 0 0)'; rule.style.left = 'calc(' + range.value + '% - 1.5px)'; };
     range.addEventListener('input', place); place();
-    const slider = el('div', { class: 'cmp' }, el('img', { src: b.src, alt: b.label }), over, rule, el('span', { class: 'tag' }, a.label), el('span', { class: 'tag right' }, b.label), range);
+    const slider = el('figure', {}, el('figcaption', {}, el('span', {}, a.label), el('span', {}, b.label)), el('div', { class: 'cmp' }, el('img', { src: b.src, alt: b.label }), over, rule, range));
     // blink: one picture at a time in one place, so the eye sees what moves
     let showB = false;
     const blinkImg = el('img', { src: a.src, alt: a.label });
-    const blinkTag = el('span', { class: 'tag' }, a.label);
+    const blinkTag = el('span', {}, a.label);
     const flip = () => { showB = !showB; const im = showB ? b : a; blinkImg.src = im.src; blinkImg.alt = im.label; blinkTag.textContent = im.label; };
-    const blink = el('div', { class: 'cmp', onclick: flip, title: 'Click, or press b, to switch' }, blinkImg, blinkTag);
-    blink.style.cursor = 'pointer';
+    const blink = el('figure', {}, el('figcaption', {}, blinkTag), el('div', { class: 'cmp', onclick: flip, title: 'Click, or press b, to switch' }, blinkImg));
+    blink.lastElementChild.style.cursor = 'pointer';
     const views = { side: grid, slider: el('div', { class: 'shots one' }, slider), blink: el('div', { class: 'shots one' }, blink) };
     for (const v of ['slider', 'blink']) for (const o of others) views[v].append(figure(o));
     const buttons = {};
     const show = mode => { for (const [k, v] of Object.entries(views)) { v.hidden = k !== mode; buttons[k].classList.toggle('on', k === mode); } box.dataset.mode = mode; };
-    const modes = el('div', { class: 'modes' }, 'Compare:');
+    const modes = el('div', { class: 'modes' }, el('span', { class: 'lab' }, 'Compare'));
     for (const [k, text] of [['side', 'Side by side'], ['slider', 'Slider'], ['blink', 'Blink']]) modes.append(buttons[k] = el('button', { class: 'btn', type: 'button', onclick: () => show(k) }, text));
     box.append(modes, views.side, views.slider, views.blink);
     box.blink = () => { if (box.dataset.mode !== 'blink') show('blink'); else flip(); };
@@ -165,14 +200,14 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
 
   function card(item, index) {
     const a = answer(item.id);
-    const status = el('span', { class: 'chip' });
+    const status = el('span', { class: 'chip state' });
     const node = el('article', { class: 'card', id: 'item-' + index, tabindex: -1, 'data-id': item.id });
     node.append(el('div', { class: 'head' }, el('span', { class: 'num' }, (index + 1) + ' / ' + items.length), el('h2', {}, item.title || item.id), el('span', { class: 'chip' }, item.id), status));
     if (item.context) node.append(el('p', { class: 'context' }, item.context));
     const pics = pictures(item);
     node.append(pics, el('div', { class: 'question' }, item.question || ''));
     if ((item.evidence || []).length) node.append(el('table', { class: 'evidence' }, el('tbody', {}, ...item.evidence.map(e => el('tr', {}, el('th', { scope: 'row' }, e.label), el('td', {}, String(e.value)))))));
-    if ((item.verdicts || []).length) node.append(el('div', { class: 'verdicts' }, ...item.verdicts.map(v => el('span', {}, v.by ? v.by + ': ' : '', el('b', {}, v.verdict || ''), v.note ? ', ' + v.note : ''))));
+    if ((item.verdicts || []).length) node.append(el('div', { class: 'verdicts' }, ...item.verdicts.map(v => el('span', {}, v.by ? v.by + ': ' : '', el('b', { class: /^(wrong|less-plausible)$/.test(v.verdict || '') ? 'todo' : false }, v.verdict || ''), v.note ? ', ' + v.note : ''))));
     const labels = [];
     const refresh = () => {
       for (const [id, label, input] of labels) { input.checked = a.option === id; label.classList.toggle('picked', a.option === id); }
@@ -212,7 +247,7 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     if (!cards.length) return;
     active = Math.max(0, Math.min(cards.length - 1, i));
     cards.forEach((c, k) => c.classList.toggle('active', k === active));
-    if (scroll) cards[active].scrollIntoView({ block: 'start', behavior: 'smooth' });
+    if (scroll) cards[active].scrollIntoView({ block: 'start', behavior: glide() });
   }
 
   function exportDecisions() {
@@ -226,7 +261,7 @@ footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--m
     document.getElementById('summary').textContent = out.items.length + ' of ' + items.length + ' questions answered';
     const section = document.getElementById('out');
     section.hidden = false;
-    section.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    section.scrollIntoView({ block: 'start', behavior: glide() });
     try {
       const url = URL.createObjectURL(new Blob([text + '\n'], { type: 'application/json' }));
       const link = el('a', { href: url, download: 'decisions.json' });

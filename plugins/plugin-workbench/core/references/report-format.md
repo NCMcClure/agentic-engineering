@@ -20,8 +20,11 @@ points here):
   from the final file.
 - `data-optional="…"` elements are deleted whole when not applicable (no
   gate cap, no findings, no refuted list, no fixes).
-- Color maps live in comments beside each template block (verdict tiers,
-  severity badges, cap meters, segment rotation). Follow them exactly.
+- Color maps live in comments beside each template block (the gauge,
+  verdict tiers, the dimension bar, kind tags, severity badges, cap meters,
+  segment rotation). Each names a class or a token the template's stylesheet
+  defines. Follow them exactly, and never write a color of your own: no
+  green for good, no red for bad.
 - `{{COMPOSITE_DASH}}` = score.json's `composite_dash`, verbatim. The
   script pre-computes it; never do the arithmetic yourself.
 - Pips: four per check row, `round(grade)` filled.

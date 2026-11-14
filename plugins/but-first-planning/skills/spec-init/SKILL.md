@@ -189,7 +189,7 @@ spec verifier rejects the glossary.
 │   ├── prototypes/            # ONLY when the UI posture is greenfield-product (or the user opts in)
 │   │   ├── index.md           # from stubs/prototypes-index.md
 │   │   └── prototype-skeleton.html  # from assets/prototype-skeleton.html (verbatim)
-│   ├── assets/                # scaffold.mjs: gruvbox.css, mermaid-init.js, spec-comments.*, plan-view.*
+│   ├── assets/                # scaffold.mjs: house.css, mermaid-init.js, spec-comments.*, plan-view.*
 │   └── scripts/
 │       ├── verify-spec-tree.mjs   # scaffold.mjs
 │       └── comments-server.py     # scaffold.mjs
@@ -201,6 +201,11 @@ spec verifier rejects the glossary.
     ├── provider.mjs          # scaffold.mjs (the layer over `gh` and `glab`)
     └── verify-plan-tree.mjs  # scaffold.mjs
 ```
+
+`house.css` is the site's theme: the marketplace house style over
+mkdocs-shadcn (monochrome, one orange accent, hairlines, system fonts), in
+light and dark. `mermaid-init.js` draws diagrams in the same tokens. Both are
+the project's to restyle once copied.
 
 `spec-comments.css` and `spec-comments.js` power inline commenting on the spec
 site (highlight text, leave a note; the notes auto-save to

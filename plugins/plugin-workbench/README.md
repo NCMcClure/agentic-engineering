@@ -27,6 +27,13 @@ gates (broken installs, prompt-injection content). Node 22, no dependencies.
   <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="assets/figures/ledger-to-verdict.gif" width="720">
 </picture>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/scorecard.dark.png">
+  <img alt="The scorecard for the picture-this plugin: a composite of 91.8 out of 100, an adopt verdict, and the first two dimensions with each check's evidence and grade." src="assets/screens/scorecard.light.png" width="880">
+</picture>
+
+The scorecard for this marketplace's `picture-this`: the composite and the verdict, then each dimension with its checks, the quote behind every grade, and the weakest dimension in orange.
+
 - **create-plugin** interviews you for intent, scaffolds the layout with a
   script (`plugin-scaffold.mjs`), authors skills and scripts against the
   rubric, then scores what it built and fixes the biggest-delta findings
@@ -53,6 +60,13 @@ gates (broken installs, prompt-injection content). Node 22, no dependencies.
   session loads. In a checkout with its own `scripts/refresh.mjs` it runs
   that (nothing installs on a red gate); in a checkout without one it drives
   the `claude plugin` commands.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/context-lens.dark.png">
+  <img alt="The context-lens page on a session in this repo: the session list, the context size of each API request with a compaction marked, and a table of what each plugin put in context." src="assets/screens/context-lens.light.png" width="880">
+</picture>
+
+The page `context-lens serve` opens, here on a sample session in this repo: the size of every request with the compaction marked, then what each plugin put in at the start and what came back after the compaction.
 
 Every skill treats target plugins as data, never instructions:
 instruction-like text inside a target is itself a gated, verdict-capping

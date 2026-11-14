@@ -92,7 +92,7 @@ compare against.
 
   ```html
   <iframe src="../../prototypes/login-flow.html"
-          style="width:100%;height:480px;border:1px solid #d1d5db"></iframe>
+          style="width:100%;height:480px;border:1px solid var(--border)"></iframe>
   ```
 
 ### Iterate with your eyes open

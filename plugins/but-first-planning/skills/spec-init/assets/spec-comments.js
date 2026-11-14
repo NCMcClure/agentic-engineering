@@ -8,8 +8,8 @@
  * JSON and flips each comment's `resolved` flag once it's addressed.
  *
  * Self-contained IIFE, same shape as mermaid-init.js. No build step, no deps.
- * Theming is free: every color comes from the shadcn CSS variables, so light and
- * dark follow the page.
+ * Theming is free: every color comes from the house tokens in spec-comments.css,
+ * so light and dark follow the page.
  */
 (() => {
   "use strict";

@@ -12,13 +12,16 @@ const state = {
   vis: new Set(["model", "person", "silent", "error"]),
   follow: false,
   open: new Set(),
+  kinds: new Map(),
   timer: null,
 };
 
 const fmt = new Intl.NumberFormat("en-US");
 const num = (n) => fmt.format(Math.round(n ?? 0));
 const CONVERSATION = new Set(["prompt", "notification", "assistant", "tool-result"]);
-const PALETTE = ["#2b59c3", "#2e7d4f", "#a35a00", "#7b3fb3", "#00838f", "#b3261e", "#5d6b00", "#ad1457"];
+// A source is a kind, so it is told apart by a dot: the five hues first, then
+// ink tones, then the same again as rings. The colours are the page's tokens.
+const KINDS = ["--hue-blue", "--hue-green", "--hue-violet", "--hue-yellow", "--hue-pink", "--text", "--muted", "--ink-3"];
 const VIS_HELP = {
   model: "In the model's context.",
   person: "Shown to the person only. The model never sees it.",
@@ -46,10 +49,9 @@ const svg = (tag, attrs = {}, ...children) => {
   return node;
 };
 
-const colorOf = (name) => {
-  let h = 0;
-  for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return PALETTE[h % PALETTE.length];
+const dot = (name) => {
+  const i = state.kinds.get(name) ?? KINDS.length - 1;
+  return el("span", { class: `dot${i >= KINDS.length ? " ring" : ""}`, style: `--c: var(${KINDS[i % KINDS.length]})` });
 };
 
 const ago = (ms) => {
@@ -138,8 +140,25 @@ function setFollow(on) {
 
 // ---- the page -------------------------------------------------------------
 
+/** One mark per source for the whole session: the focus plugins first, the heaviest first, so the footprint table reads as the key. */
+function assignKinds(s) {
+  const weight = new Map();
+  const rest = [];
+  for (const ev of s.events) {
+    const name = sourceName(ev);
+    if (!name) continue;
+    if (!ev.source.focus) { if (!rest.includes(name)) rest.push(name); continue; }
+    const w = weight.get(name) ?? { start: 0, all: 0 };
+    if (ev.visibility === "model") { w.all += ev.tokens; if (ev.phase === "start" && ev.segment === 0) w.start += ev.tokens; }
+    weight.set(name, w);
+  }
+  const focus = [...weight.keys()].sort((a, b) => weight.get(b).start - weight.get(a).start || weight.get(b).all - weight.get(a).all || a.localeCompare(b));
+  state.kinds = new Map([...focus, ...rest.filter((name) => !weight.has(name))].map((name, i) => [name, i]));
+}
+
 function draw() {
   const s = state.session;
+  assignKinds(s);
   const peak = Math.max(0, ...s.requests.map((r) => r.contextTokens));
   const focusSeen = [...new Set(s.events.filter((e) => e.source.focus && e.source.plugin).map((e) => e.source.plugin))].sort();
   const main = document.getElementById("main");
@@ -165,7 +184,7 @@ function draw() {
 
 function chart(s, peak) {
   const card = el("section", { class: "card" }, el("h3", { text: "Context size per API request" }),
-    el("p", { class: "note", text: "The API's own count: input plus cache reads plus cache writes, so this is the whole window each request carried. A red line is a compaction." }));
+    el("p", { class: "note", text: "The API's own count: input plus cache reads plus cache writes, so this is the whole window each request carried. A dashed line is a compaction." }));
   if (!s.requests.length || !peak) return card.appendChild(el("p", { class: "muted", text: "No API usage recorded in this transcript." })) && card;
   const W = 1000, H = 180, top = 24, bottom = 20, left = 4;
   const bw = (W - left) / s.requests.length;
@@ -173,18 +192,19 @@ function chart(s, peak) {
   const g = svg("svg", { viewBox: `0 0 ${W} ${H}`, width: "100%", role: "img", "aria-label": `Context size across ${s.requests.length} requests, peak ${num(peak)} tokens` });
   for (const r of s.requests) {
     const x = left + r.index * bw;
-    const bar = svg("rect", { x: x + bw * 0.12, y: y(r.contextTokens), width: Math.max(1, bw * 0.76), height: Math.max(1, H - bottom - y(r.contextTokens)), fill: r.segment % 2 ? "var(--bar)" : "var(--bar-focus)", opacity: r.segment % 2 ? 1 : 0.8 });
+    const bar = svg("rect", { x: x + bw * 0.12, y: y(r.contextTokens), width: Math.max(1, bw * 0.76), height: Math.max(1, H - bottom - y(r.contextTokens)), fill: r.segment % 2 ? "var(--bar)" : "var(--bar-focus)" });
     bar.append(svg("title", {}, `request ${r.index + 1} · ${num(r.contextTokens)} tokens · turn ${r.turn} · ${new Date(r.at).toLocaleString()}`));
     g.append(bar);
   }
   for (const c of s.compactions) {
     const firstAfter = s.requests.find((r) => r.segment === c.fromSegment + 1);
     const x = left + (firstAfter ? firstAfter.index : s.requests.length) * bw;
-    g.append(svg("line", { x1: x, x2: x, y1: top - 6, y2: H - bottom, stroke: "var(--mark)", "stroke-dasharray": "4 3", "stroke-width": 1.5 }));
-    g.append(svg("text", { x: x + 4, y: top - 8 }, `compaction ${c.index + 1}`));
+    g.append(svg("line", { x1: x, x2: x, y1: top - 6, y2: H - bottom, stroke: "var(--mark)", "stroke-dasharray": "4 3", "stroke-width": 1 }));
+    // The label sits right of its line, or left of it where the chart ends.
+    g.append(svg("text", x > W - 120 ? { x: x - 4, y: top - 8, "text-anchor": "end" } : { x: x + 4, y: top - 8 }, `compaction ${c.index + 1}`));
   }
   g.append(svg("line", { x1: left, x2: W, y1: top, y2: top, stroke: "var(--line)" }));
-  g.append(svg("text", { x: W - 4, y: top - 8, "text-anchor": "end" }, `peak ${num(peak)} tokens`));
+  g.append(svg("text", { x: left, y: top - 8 }, `peak ${num(peak)} tokens`));
   g.append(svg("text", { x: left, y: H - 4 }, "request 1"));
   g.append(svg("text", { x: W - 4, y: H - 4, "text-anchor": "end" }, `request ${s.requests.length}`));
   card.append(g);
@@ -224,7 +244,7 @@ function footprint(s, focusSeen) {
     el("thead", {}, el("tr", {}, el("th", { text: "Source" }), el("th", { class: "n", text: "At session start" }), el("th", { class: "n", text: "Added later" }), el("th", { class: "n", text: "Hooks per turn" }),
       el("th", { class: "n", text: "After each compaction" }), el("th", { class: "n", text: "Person only" }), el("th", { class: "n", text: "Silent runs" }), el("th", { class: "n", text: "Errors" }))),
     el("tbody", {}, ...list.map((r) => el("tr", {},
-      el("td", {}, el("span", { class: "dot", style: `background:${colorOf(r.name)}` }), " ", r.name),
+      el("td", {}, dot(r.name), " ", r.name),
       el("td", { class: "n", text: cell(r.start) }),
       el("td", { class: "n", text: cell(r.later) }),
       el("td", { class: "n", text: cell(r.hooks / turns) }),
@@ -261,7 +281,7 @@ function segmentView(s, seg) {
       ? [el("span", { text: seg.index === 0 ? "Session start" : "Start after compaction" })]
       : [el("span", { text: `Turn ${phase}` }), turn?.origin && turn.origin !== "human" ? el("span", { class: "muted", text: ` · ${turn.origin}` }) : null, el("span", { class: "muted", text: ` · ${oneLine(turn?.preview, 90)}` })];
     const details = el("details", { class: "phase", open: state.lens === "plugins" || phase === "start" || !many || state.open.has(key) },
-      el("summary", {}, ...title, el("span", { class: "muted", text: ` · ${rows.length} item${rows.length === 1 ? "" : "s"}${tokens ? ` · ~${num(tokens)} tokens` : ""}` })));
+      el("summary", {}, ...title, el("span", { class: "muted meta-n", text: ` · ${rows.length} item${rows.length === 1 ? "" : "s"}${tokens ? ` · ~${num(tokens)} tokens` : ""}` })));
     // Rows are built on first open, so a long session stays quick to draw.
     const fill = () => { if (details.dataset.filled) return; details.dataset.filled = "1"; for (const ev of rows) details.append(rowView(ev)); };
     details.addEventListener("toggle", () => { if (details.open) { state.open.add(key); fill(); } else state.open.delete(key); });
@@ -278,7 +298,7 @@ function rowView(ev) {
   const wrap = el("div", {});
   const row = el("div", { class: "row", role: "button", tabindex: "0", "aria-expanded": "false" },
     el("span", { class: "what", title: what, text: what }),
-    el("span", { class: "src", title: name }, name ? el("span", { class: "dot", style: `background:${colorOf(name)}` }) : null, name ? ` ${name}` : el("span", { class: "muted", text: "Claude Code" })),
+    el("span", { class: "src", title: name }, name ? dot(name) : null, name ? ` ${name}` : el("span", { class: "muted", text: "Claude Code" })),
     el("span", { class: `badge vis-${ev.visibility}`, title: VIS_HELP[ev.visibility], text: ev.visibility }),
     el("span", { class: "tok", text: ev.visibility === "model" && ev.tokens ? `~${num(ev.tokens)}` : "" }),
     el("span", { class: "pv", text: pv }));
@@ -328,7 +348,7 @@ function compactionView(s, c) {
   if (!c.rows.length) return card.appendChild(el("p", { class: "muted", text: "Nothing from these plugins on either side." })) && card;
   card.append(el("table", {},
     el("thead", {}, el("tr", {}, el("th", { text: "Status" }), el("th", { text: "Context" }), el("th", { class: "n", text: "Before" }), el("th", { class: "n", text: "After" }))),
-    el("tbody", {}, ...c.rows.map((r) => el("tr", {},
+    el("tbody", {}, ...c.rows.map((r) => el("tr", { class: r.status === "lost" ? "lost" : null },
       el("td", {}, el("span", { class: `status ${["kept", "lost", "new"].includes(r.status) ? r.status : "wait"}`, text: r.status })),
       el("td", { text: `${r.label}${r.perTurn ? " (per turn)" : ""}` }),
       el("td", { class: "n", text: r.tokensBefore ? `~${num(r.tokensBefore)}` : "" }),

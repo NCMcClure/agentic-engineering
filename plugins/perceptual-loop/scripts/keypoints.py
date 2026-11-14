@@ -168,7 +168,7 @@ def list_frames(d: Path) -> list[Path]:
 # A clip is a folder of frames, a video file (through the ffmpeg executable), or a shot's clip.
 
 VID_EXT = (".mp4", ".webm", ".mov", ".mkv", ".avi")
-BG, FG, DIM = (22, 22, 24), (235, 235, 235), (150, 150, 155)
+BG, FG, DIM = (22, 22, 23), (241, 241, 238), (163, 163, 157)  # the house style's dark column, as in lib/raster.mjs
 
 
 def common_parent(every_help: str | None = None) -> argparse.ArgumentParser:
@@ -545,7 +545,7 @@ def draw_skeleton(dr, pose, size, colour, min_vis: float, width: int = 3) -> Non
             dr.ellipse([x - rad, y - rad, x + rad, y + rad], fill=colour, outline=(0, 0, 0))
 
 
-REF_COL, CAND_COL = (70, 220, 255), (255, 150, 40)
+REF_COL, CAND_COL = (110, 160, 255), (255, 107, 44)  # the reference in the blue hue, the candidate being judged in the accent
 
 
 def pair_tiles(cand_doc, ref_doc, caption: str, tw: int, min_vis: float) -> list:

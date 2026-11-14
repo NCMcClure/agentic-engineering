@@ -18,7 +18,7 @@ import { encodeJpeg } from "./jpeg.mjs";
 import { analyse } from "./metrics.mjs";
 import { encodePng } from "./png.mjs";
 import { PlError } from "./args.mjs";
-import { canvas, composite, cropBox, DIM, FG, GAP, pad, scaled, stack, thicken } from "./raster.mjs";
+import { canvas, composite, cropBox, DIM, FG, GAP, HUE, pad, scaled, stack, thicken } from "./raster.mjs";
 
 export const MAX_WIDTH = 1568;
 export const DE_MAX = 20; // the heat map's fixed scale: dE2000 of 20 and above is the top colour
@@ -49,7 +49,8 @@ const room = (maxWidth) => maxWidth - 2 * GAP;
 
 // ---- the heat map ---------------------------------------------------------------------------
 
-// black, indigo, magenta, orange, pale yellow: dark where nothing differs, so the eye goes to the light
+// black, indigo, magenta, orange, pale yellow: dark where nothing differs, so the eye goes to the light.
+// A measuring scale and not a part of the sheet's own look: it stays as it is, so a sheet drawn last year still compares.
 const STOPS = [[0, [0, 0, 0]], [0.12, [30, 20, 110]], [0.35, [160, 30, 130]], [0.65, [245, 110, 30]], [1, [255, 250, 190]]];
 const HEAT = (() => {
   const lut = new Uint8Array(256 * 3);
@@ -91,7 +92,7 @@ export function heatLegend(width) {
   return stack([ramp, ticks], false, { gap: 0 });
 }
 
-/** White where both pictures have an edge, magenta where only the reference has it, green where only the candidate does. */
+/** Grey where both pictures have an edge, so what agrees stays quiet; pink where only the reference has it, green where only the candidate does. */
 export function edgeOverlay(ref, maps, thickness) {
   const { width, height } = ref, out = canvas(width, height);
   for (let i = 0; i < width * height; i++) {
@@ -103,9 +104,9 @@ export function edgeOverlay(ref, maps, thickness) {
   const refOnly = fat(maps.refEdge.map((v, i) => v & (1 - maps.refHit[i])));
   const candOnly = fat(maps.candEdge.map((v, i) => v & (1 - maps.candHit[i])));
   for (let i = 0; i < width * height; i++) {
-    if (candOnly[i]) out.data.set([0, 230, 60], i * 3);
-    else if (refOnly[i]) out.data.set([255, 0, 255], i * 3);
-    else if (both[i]) out.data.set([255, 255, 255], i * 3);
+    if (candOnly[i]) out.data.set(HUE.green, i * 3);
+    else if (refOnly[i]) out.data.set(HUE.pink, i * 3);
+    else if (both[i]) out.data.set(DIM, i * 3);
   }
   return out;
 }
@@ -157,7 +158,7 @@ export function shotSheet({ reference, before = null, after, names = {}, title =
   const grid = stack([stack(top, true), stack(lower, true), legend], false, { gap: GAP });
   const ev = an.frame.exposureEV;
   const footer = [
-    `edges: white both, magenta ${n.reference} only, green ${n.after} only (within ${edgeTolerance} px)`,
+    `edges: grey both, pink ${n.reference} only, green ${n.after} only (within ${edgeTolerance} px)`,
     `dE2000 on a fixed scale of 0 to ${DE_MAX}+.${prev ? ` ${n.before} -> ${n.after}: what this run changed, as rendered.` : ""} dE norm: after removing ${ev >= 0 ? "+" : ""}${ev.toFixed(2)} EV and the white balance.`,
   ];
   return framed(grid, [title, headline(frame ?? an.frame)].filter(Boolean).join(" | "), footer);

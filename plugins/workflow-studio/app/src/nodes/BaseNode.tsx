@@ -44,7 +44,7 @@ export const BaseNode = memo(function BaseNode({ data, selected }: NodeProps) {
         <div className="wf-node__label">{node.label}</div>
         {diagnostic ? (
           <span className={`wf-node__diag wf-node__diag--${diagnostic}`} title="See compile diagnostics">
-            {diagnostic === 'error' ? '⛔' : '⚠'}
+            !
           </span>
         ) : null}
         {node.note ? <div className="wf-node__subtitle">{node.note}</div> : null}

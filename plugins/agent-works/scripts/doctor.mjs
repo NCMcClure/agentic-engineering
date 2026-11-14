@@ -527,12 +527,42 @@ export function htmlReport(doc, found) {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>agent-works doctor: ${e(doc.project)}</title>
 <style>
-:root { color-scheme: light dark; }
-body { font: 14px/1.5 system-ui, sans-serif; margin: 2rem auto; max-width: 70rem; padding: 0 1rem; }
-h1 { font-size: 1.3rem; } h2 { font-size: 1rem; margin-top: 1.6rem; } small { opacity: .6; font-weight: normal; }
-table { border-collapse: collapse; width: 100%; } td { padding: .2rem .5rem; vertical-align: top; border-top: 1px solid #8884; }
-code { font: 12px ui-monospace, monospace; }
-tr.critical td:first-child { color: #c0392b; font-weight: 600; } tr.warning td:first-child { color: #b9770e; } tr.info td:first-child { opacity: .6; }
+:root {
+  color-scheme: light dark;
+  --page: #f5f5f3; --panel: #ffffff; --ink: #171716; --ink-2: #5c5c58; --ink-3: #8e8e89;
+  --line-2: #b4b4ae; --rule: #dcdcd7; --accent: #ff5a1f; --accent-ink: #c2410c; --accent-soft: #ffe9df;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0e0e0f; --panel: #1e1e20; --ink: #f1f1ee; --ink-2: #a3a39d; --ink-3: #74746f;
+    --line-2: #47474a; --rule: #262628; --accent: #ff6b2c; --accent-ink: #ff8a57; --accent-soft: #3a1c10;
+  }
+}
+body { font: 14px/1.5 var(--sans); color: var(--ink); background: var(--page); margin: 0 auto; max-width: 70rem; padding: 2.5rem 1.5rem 4rem; -webkit-font-smoothing: antialiased; }
+h1 { font-size: 24px; font-weight: 600; margin: 0 0 .5rem; }
+h1 + p { font: 12px/1.6 var(--mono); color: var(--ink-2); margin: 0; }
+h2 { font-size: 16px; font-weight: 600; margin: 2rem 0 .6rem; }
+small { font: 500 11px var(--mono); font-variant-numeric: tabular-nums; color: var(--ink-2); border: 1px solid var(--line-2); border-radius: 6px; padding: 1px 6px; margin-left: 4px; vertical-align: 2px; }
+table { border-collapse: separate; border-spacing: 0; width: 100%; background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; overflow: hidden; }
+td { padding: 7px 12px; vertical-align: baseline; border-top: 1px solid var(--rule); overflow-wrap: break-word; }
+tr:first-child td { border-top: 0; }
+td:nth-child(1) { width: 5.5rem; font: 500 10.5px var(--mono); letter-spacing: .09em; text-transform: uppercase; white-space: nowrap; border-left: 2px solid transparent; }
+td:nth-child(2) { width: 11.5rem; white-space: nowrap; } td:nth-child(3) { width: 36%; color: var(--ink-2); }
+code { font: 12px var(--mono); }
+/* Severity without traffic lights: critical carries the accent, a warning is heavier ink, the rest is quiet. */
+tr.critical, tr.critical td { background: var(--accent-soft); }
+tr.critical td:first-child { color: var(--accent-ink); font-weight: 700; border-left-color: var(--accent); }
+tr.warning td:first-child { font-weight: 700; }
+tr.info td:first-child { color: var(--ink-3); }
+ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+li { font: 12px var(--mono); font-variant-numeric: tabular-nums; background: var(--panel); border: 1px solid var(--line-2); border-radius: 6px; padding: 3px 8px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 720px) {
+  tr { display: block; border-top: 1px solid var(--rule); padding: 6px 0; } tr:first-child { border-top: 0; }
+  td { display: block; width: auto !important; border-top: 0; padding: 1px 12px; } td:nth-child(1) { border-left: 0; }
+}
 </style></head><body>
 <h1>agent-works doctor: ${e(doc.project)}</h1>
 <p>${e(doc.at)} · ${c.critical} critical · ${c.warning} warning · ${c.info} info · ${accepted.length} accepted · config: ${e(doc.config || "none (defaults)")}</p>

@@ -5,9 +5,16 @@
 import { maxFilter } from "./filters.mjs";
 import { resize } from "./image.mjs";
 
-export const BG = [22, 22, 24];
-export const FG = [236, 236, 236];
-export const DIM = [150, 150, 155];
+// A sheet's colours are the house style's dark column: a sheet is one picture with no theme of
+// its own, and on the dark ground a light and a dark picture both stand apart from it.
+export const BG = [22, 22, 23]; // the sunk face: the ground, the label bars, the border
+export const FG = [241, 241, 238]; // ink: labels, a plot's line
+export const DIM = [163, 163, 157]; // the second ink: headers, footers, ticks
+export const QUIET = [71, 71, 74]; // the quiet line: a plot's box
+export const ACCENT = [255, 107, 44]; // the one thing to look at: a flagged frame
+export const ACCENT_INK = [255, 138, 87]; // the accent as text
+// Hues tell kinds apart and nothing else: the reference from the candidate, one kind of edge from another.
+export const HUE = { blue: [110, 160, 255], green: [74, 222, 128], yellow: [250, 204, 21], pink: [244, 114, 182] };
 export const GAP = 6;
 
 /** A width x height RGB8 picture filled with one colour. */

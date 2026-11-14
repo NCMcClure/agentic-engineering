@@ -29,8 +29,14 @@ import { api, commentOnIssue, createIssue, detect, ensureLabel, graphql, updateI
 export const STATUS_LABEL = { "in-progress": "status::in-progress", blocked: "status::blocked" };
 /** Plan status to the option of a GitHub Project's built-in Status field. */
 export const BOARD_STATUS = { "not-started": "Todo", "in-progress": "In Progress", blocked: "Todo", done: "Done" };
-/** One hue per epic label, cycled. */
-export const EPIC_COLORS = ["#6699cc", "#b16286", "#689d6a", "#d79921", "#d65d0e", "#458588", "#cc241d", "#8ec07c"];
+/**
+ * One colour per epic label, cycled. An epic is a kind, so the first five are
+ * the house hues (blue, green, violet, yellow, pink) and the next three are
+ * ink tones: past five kinds the label's name tells them apart, not a new
+ * colour. None is the orange accent, which means "look here now". The plan
+ * page gives each epic the same slot (`data-hue` in plan-view.js).
+ */
+export const EPIC_COLORS = ["#2563eb", "#15803d", "#7c3aed", "#a16207", "#be185d", "#171716", "#5c5c58", "#8e8e89"];
 
 const filled = (v) => Boolean(v) && !v.includes("{{") && v !== "<unset>" && v !== "-";
 const field = (text, name, shape = "[^`\\s]+") => {

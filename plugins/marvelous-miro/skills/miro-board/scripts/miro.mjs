@@ -10,7 +10,10 @@ import { createHash } from "node:crypto";
 const xa = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const xt = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const r = (n) => Math.round(n);
-const fill = (c) => (!c || c === "transparent" ? "#ffffff" : c);
+// The house style's page and panel: a frame is the page, and a box with no fill of its own
+// is a panel on it (Miro has no transparent fill that still hides what is behind).
+const PAGE = "#f5f5f3", PANEL = "#ffffff";
+const fill = (c) => (!c || c === "transparent" ? PANEL : c);
 const contains = (o, i, pad = 2) => i.x >= o.x - pad && i.y >= o.y - pad && i.x + i.width <= o.x + o.width + pad && i.y + i.height <= o.y + o.height + pad;
 const area = (e) => e.width * e.height;
 const keyOf = (prefix, id) => `${prefix}-${id}`.replace(/[^\w-]/g, "_");
@@ -170,6 +173,6 @@ export function frameSvg({ key, title, frame, items, ids = {}, only }) {
   const f = idOf(key);
   const body = items.filter((it) => !only || only.has(it.key)).map((it) => serialize(it, idOf));
   const head = `<g id="${f.local}"${f.miro ? ` data-miro-id="${f.miro}"` : ""} transform="translate(${frame.x},${frame.y})" data-frame="${xa(title)}">`;
-  const rect = `<rect data-type="frame" x="0" y="0" width="${frame.width}" height="${frame.height}" fill="#ffffff" data-title="${xa(title)}" />`;
+  const rect = `<rect data-type="frame" x="0" y="0" width="${frame.width}" height="${frame.height}" fill="${PAGE}" data-title="${xa(title)}" />`;
   return { svg: `<svg xmlns="http://www.w3.org/2000/svg">\n${head}\n${rect}\n${body.join("\n")}\n</g>\n</svg>\n`, count: body.length };
 }

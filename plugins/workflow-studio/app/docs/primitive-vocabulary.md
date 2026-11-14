@@ -10,10 +10,10 @@ script is *doing* at that point.
 
 Every node has **pins**, split by role:
 
-- **exec** (white): execution flow. A node has one `exec-in` and one or more
+- **exec** (ink): execution flow. A node has one `exec-in` and one or more
   named exec outs. Multiple exec outs are how a node branches: Branch →
   `True`/`False`, For Each → `Loop Body`/`Completed`, Sequence → `Then 0…N`.
-- **data** (colored by type): typed values wired pin→pin. Types: `string`,
+- **data** (marked by type): typed values wired pin→pin. Types: `string`,
   `number`, `bool`, `object`, `array`, `agent-result`, `schema`, `any`.
 
 An edge connects a `(node, pin)` **source** (an `out` pin) to a `(node, pin)`
@@ -94,9 +94,11 @@ diagram's `groups` array (see `diagram-schema.md`).
 
 ## Pins & wires (rendering)
 
-Exec pins are white right-pointing triangles (flow direction); data pins are
-circles colored by value type. A pin fills with its color when wired, hollow when
-not. Exec wires are white; data wires take the source pin's type color.
+Exec pins are ink right-pointing triangles (flow direction); data pins are
+rings in their value type's color: a hue for `string`, `number`, `object`,
+`array` and `schema`, an ink tone for the rest (a struct pin is square). A pin
+fills when wired, hollow when not. Exec wires are ink; data wires are a hairline
+in the source pin's type color, dashed for `bool` and structs.
 
 ## Choosing well
 

@@ -4,6 +4,15 @@ An Unreal-Blueprint-style visual editor for Claude Code dynamic workflows:
 drag nodes, wire pins, and compile the graph losslessly to
 `.claude/workflows/*.js`. No blueprint compiler errors, though. Mostly.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/canvas.dark.png">
+  <img alt="The Workflow Studio canvas with the sample workflow open. A branch, a synthesize step, a parallel step, a gate and a verify step are wired with exec and data wires. The verify node is selected, and the details panel on the right shows its kind, label, note, parameters and data inputs." src="assets/screens/canvas.light.png" width="880">
+</picture>
+
+The sample workflow's review loop: declared variables on the left, the selected
+node's fields on the right, and a hue on each node and wire that says what kind
+it is.
+
 ## How it works
 
 The plugin bundles the studio, a Vite app, under `app/`. `/workflow-studio`

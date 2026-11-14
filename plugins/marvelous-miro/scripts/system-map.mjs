@@ -472,7 +472,10 @@ export function publishBlocker(cfg) {
 
 // ---- the generator ------------------------------------------------------------------
 
-const COLOR = { people: "yellow", surface: "teal", service: "blue", adapter: "purple", runtime: "gray", external: "orange" };
+// A layer's color tells it from the others and means nothing more. What is outside the repo
+// is the neutral card with a dashed outline: orange is the palette's accent, kept for the
+// one thing a frame's author wants looked at, and a map has no such thing.
+const COLOR = { people: "yellow", surface: "teal", service: "blue", adapter: "purple", runtime: "gray", external: "gray" };
 const MIN_W = 240, MAX_LINE = 420, MIN_H = 100, GAP_X = 120, GAP_Y = 160, X0 = 60, Y0 = 140;
 // A bus's junction is a dot in a taller gap: clear of the mid-gap lane where the connectors
 // drawn straight between the two rows bend, and with every leg into and out of it longer
@@ -669,7 +672,7 @@ export function generate(kit, mapFile) {
 
   for (const r of orders) for (const c of r) {
     const { x, y, w, h } = at.get(c.n.id);
-    s.card(sceneId(c.n.id), x, y, w, h, { color: COLOR[c.n.layer], title: c.n.title, body: c.lines });
+    s.card(sceneId(c.n.id), x, y, w, h, { color: COLOR[c.n.layer], dashed: c.n.layer === "external", title: c.n.title, body: c.lines });
   }
   for (const b of buses.filter((x) => drawn.has(x.id))) {
     const { x, y } = at.get(b.id);

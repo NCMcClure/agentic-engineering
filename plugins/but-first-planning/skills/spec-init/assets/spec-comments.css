@@ -1,64 +1,63 @@
 /*
- * Inline commenting UI for the spec site (paired with spec-comments.js).
+ * Inline commenting UI for the spec site (paired with spec-comments.js), in
+ * the house style.
  *
- * Styled to sit inside the mkdocs-shadcn theme: it borrows the theme's own design
- * tokens, `--radius`, the shadcn color variables, the Tailwind `shadow-lg` stack,
- * and its button/input shapes, so the rail, cards, popover, and buttons read as
- * part of the theme in both light and dark. Every token has a gruvbox-ish fallback
- * so it still looks right if the theme's variables aren't present.
+ * Quiet until used: commented text carries a dashed ink underline and no
+ * fill, the header button is a plain ghost button, and the rail is a hairline
+ * sheet with no shadow. The orange accent appears where the reader is acting:
+ * the thread they just opened (the mark and its card), the Add comment
+ * button over a selection, and Save.
+ *
+ * Every colour is a token. Each one reads the house token from house.css,
+ * then the mkdocs-shadcn variable for the same job, then the house light
+ * value, so the UI still reads if a project swaps the theme file.
  */
 
 :root {
-  /* Match the theme's radius scale (shadcn: --radius = 0.625rem, md = -2px, sm = -4px). */
-  --sc-radius: var(--radius, 0.625rem);
-  --sc-radius-md: calc(var(--radius, 0.625rem) - 2px);
-  --sc-radius-sm: calc(var(--radius, 0.625rem) - 4px);
-  /* Tailwind shadow-lg / shadow-md, as used by the theme's dialogs. */
-  --sc-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
-  --sc-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --sc-radius: 8px; /* a card, the editor */
+  --sc-radius-md: 6px; /* a button, an input */
+  --sc-radius-sm: 6px; /* a chip */
   --sc-rail-width: 340px;
-  /* subtle tint for text with an open comment; applied only where color-mix works */
-  --sc-highlight: color-mix(in oklab, var(--primary, #d65d0e) 16%, transparent);
+  --sc-page: var(--house-page, var(--background, #f5f5f3));
+  --sc-panel: var(--house-panel, var(--card, #ffffff));
+  --sc-sunk: var(--house-sunk, var(--muted, #ebebe8));
+  --sc-deeper: var(--house-deeper, var(--muted, #dededa)); /* a pressed face */
+  --sc-ink: var(--house-ink, var(--foreground, #171716));
+  --sc-ink-2: var(--house-ink-2, var(--muted-foreground, #5c5c58));
+  --sc-ink-3: var(--house-ink-3, var(--muted-foreground, #8e8e89)); /* meta only */
+  --sc-line-2: var(--house-line-2, var(--input, #b4b4ae));
+  --sc-rule: var(--house-rule, var(--border, #dcdcd7));
+  --sc-accent: var(--house-accent, var(--primary, #ff5a1f));
+  --sc-accent-ink: var(--house-accent-ink, var(--primary, #c2410c));
+  --sc-on-accent: var(--house-on-accent, var(--primary-foreground, #171716));
+  /* the fill behind text whose thread is open */
+  --sc-highlight: var(--house-accent-soft, var(--muted, #ffe9df));
+  --sc-mono: var(--house-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
 }
 
 /* --- highlights in the prose ---------------------------------------------- */
-/* Only UNRESOLVED comments are highlighted (the JS doesn't wrap resolved ones,
-   so a resolved comment leaves the prose completely unmarked).
+/* Only UNRESOLVED comments are marked (the JS doesn't wrap resolved ones, so a
+   resolved comment leaves the prose completely unmarked).
 
-   The SOLID accent underline is the reliable marker, it never depends on
-   color-mix, so it shows even on browsers (older Safari) that don't support
-   color-mix()/oklab. The tinted background is a progressive enhancement: a plain
-   rgba fallback first, then the theme-accurate color-mix where supported. This is
-   the two-declaration fallback pattern, an unsupported color-mix value is
-   invalid and the browser keeps the preceding rgba, so the mark is never blank. */
+   At rest the mark is an underline only, dashed, in secondary ink: enough to
+   say "there is a note here" without colouring the page. Hovering it, or
+   opening its thread from the rail (the JS adds .flash for a moment), gives
+   it the selected look: the accent tint and a solid accent underline. */
 
 mark.spec-comment-highlight {
   /* !important so a theme's own `mark {…}` reset can't blank it out */
-  background-color: rgba(203, 143, 40, 0.16) !important; /* fallback tint (theme-neutral warm) */
-  background-color: var(--sc-highlight) !important; /* theme-accurate tint where color-mix works */
+  background-color: transparent !important;
   color: inherit !important;
-  border-bottom: 2px solid var(--primary, #d65d0e) !important; /* solid, always visible */
+  border-bottom: 1.5px dashed var(--sc-ink-2) !important;
   border-radius: 2px;
   cursor: pointer;
   padding: 0 1px;
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
-mark.spec-comment-highlight:hover {
-  background-color: rgba(203, 143, 40, 0.3);
-  background-color: color-mix(in oklab, var(--primary, #d65d0e) 28%, transparent);
-}
+mark.spec-comment-highlight:hover,
 mark.spec-comment-highlight.flash {
-  animation: sc-flash 0.9s ease;
-}
-
-@keyframes sc-flash {
-  0%,
-  100% {
-    background-color: var(--sc-highlight);
-  }
-  40% {
-    background-color: var(--primary, #d65d0e);
-  }
+  background-color: var(--sc-highlight) !important;
+  border-bottom: 1.5px solid var(--sc-accent) !important;
 }
 
 /* --- root / shared -------------------------------------------------------- */
@@ -72,15 +71,15 @@ mark.spec-comment-highlight.flash {
   font-family: inherit;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--foreground, #3c3836);
+  color: var(--sc-ink);
   pointer-events: none;
 }
 .spec-comments-root > * {
   pointer-events: auto;
 }
 
-/* Open/close toggle, integrated into the site header's actions group so it reads
-   as a native header action (shadcn ghost button: h-8, radius-md, hover bg-accent). */
+/* Open/close toggle, integrated into the site header's actions group so it
+   reads as a header action: no fill, ink text, the sunk face on hover. */
 .sc-header-btn {
   display: inline-flex;
   align-items: center;
@@ -89,50 +88,61 @@ mark.spec-comment-highlight.flash {
   padding: 0 10px;
   margin: 0;
   background: transparent;
-  color: var(--foreground, #3c3836);
-  border: none;
+  color: var(--sc-ink);
+  border: 1.5px solid transparent;
   border-radius: var(--sc-radius-md);
   font: inherit;
   font-size: 14px;
   font-weight: 500;
   line-height: 1;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
 }
 .sc-header-btn:hover {
-  background: var(--accent, #ebdbb2);
-  color: var(--accent-foreground, #3c3836);
+  background: var(--sc-sunk);
+}
+/* While the rail is open the button is pressed: the deeper face, no accent. */
+body:has(.spec-comments-root:not(.collapsed)) .sc-header-btn {
+  background: var(--sc-deeper);
+  border-color: var(--sc-line-2);
 }
 .sc-header-btn svg {
   display: block;
-  opacity: 0.85;
 }
 .sc-header-btn:focus-visible,
 .sc-btn:focus-visible,
 .sc-add-btn:focus-visible,
 .sc-fab:focus-visible,
-.sc-rail-close:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px var(--background, #fbf1c7), 0 0 0 4px var(--ring, #d65d0e);
+.sc-rail-close:focus-visible,
+.sc-link:focus-visible,
+.sc-textarea:focus-visible,
+.sc-resolve input:focus-visible,
+.sc-show-resolved input:focus-visible {
+  outline: 2px solid var(--sc-accent);
+  outline-offset: 2px;
 }
 
-/* Count of open (unresolved) comments, shadcn badge (rounded-full, primary). */
+/* Count of open (unresolved) comments: a small mono chip, ink on the sunk face. */
 .sc-badge {
   display: inline-flex;
   min-width: 18px;
   height: 18px;
   padding: 0 5px;
-  border-radius: 999px;
-  background: var(--primary, #d65d0e);
-  color: var(--primary-foreground, #fbf1c7);
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--sc-radius-sm);
+  border: 1px solid var(--sc-line-2);
+  background: var(--sc-sunk);
+  color: var(--sc-ink);
+  font-family: var(--sc-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   align-items: center;
   justify-content: center;
 }
 
-/* Floating fallback: only used if no site header is detected. */
+/* Floating fallback: only used if no site header is detected. A floating
+   thing is the panel face with a quiet hairline, not a shadow. */
 .sc-fab {
   position: fixed;
   bottom: 16px;
@@ -141,19 +151,17 @@ mark.spec-comment-highlight.flash {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--primary, #d65d0e);
-  color: var(--primary-foreground, #fbf1c7);
-  border: none;
-  border-radius: 999px;
-  padding: 9px 16px;
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
+  border-radius: var(--sc-radius-md);
+  padding: 9px 14px;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  box-shadow: var(--sc-shadow-lg);
 }
-.sc-fab .sc-badge {
-  background: var(--primary-foreground, #fbf1c7);
-  color: var(--primary, #d65d0e);
+.sc-fab:hover {
+  background: var(--sc-sunk);
 }
 
 /* On a cramped header, keep the icon + count and drop the word. */
@@ -163,7 +171,7 @@ mark.spec-comment-highlight.flash {
   }
 }
 
-/* --- rail (a shadcn "sheet": bg-background, border-l, shadow-lg) ----------- */
+/* --- rail: a sheet on the page face, edged with a hairline ----------------- */
 
 .sc-rail {
   width: var(--sc-rail-width);
@@ -171,12 +179,11 @@ mark.spec-comment-highlight.flash {
      visible and usable while the panel is open */
   margin-top: var(--sc-rail-top, 0px);
   height: calc(100% - var(--sc-rail-top, 0px));
-  background: var(--background, #fbf1c7);
-  border-left: 1px solid var(--border, #bdae93);
-  box-shadow: var(--sc-shadow-lg);
+  background: var(--sc-page);
+  border-left: 1px solid var(--sc-line-2);
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s ease;
+  transition: transform 0.15s ease;
 }
 .spec-comments-root.collapsed .sc-rail {
   transform: translateX(100%);
@@ -186,13 +193,17 @@ mark.spec-comment-highlight.flash {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--border, #bdae93);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sc-rule);
 }
 .sc-rail-title {
-  font-weight: 600;
-  font-size: 15px;
   margin-right: auto;
+  font-family: var(--sc-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sc-ink);
 }
 .sc-rail-close {
   display: inline-flex;
@@ -203,36 +214,38 @@ mark.spec-comment-highlight.flash {
   background: none;
   border: none;
   border-radius: var(--sc-radius-sm);
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   font-size: 20px;
   line-height: 1;
   cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 .sc-rail-close:hover {
-  background: var(--accent, #ebdbb2);
-  color: var(--foreground, #3c3836);
+  background: var(--sc-sunk);
+  color: var(--sc-ink);
 }
 .sc-show-resolved {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   font-size: 12px;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   cursor: pointer;
   user-select: none;
 }
 
 .sc-rail-status {
   padding: 0 16px;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   font-size: 12px;
 }
 .sc-rail-status:not(:empty) {
   padding: 8px 16px;
 }
+/* a warning is ink in a heavier weight */
 .sc-rail-status.offline {
-  color: var(--warning, #b57614);
+  color: var(--sc-ink);
+  font-weight: 600;
 }
 
 .sc-rail-list {
@@ -245,39 +258,47 @@ mark.spec-comment-highlight.flash {
 }
 
 .sc-empty {
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   text-align: center;
   padding: 28px 16px;
   font-size: 13px;
 }
 
-/* --- comment cards (shadcn card: bg-card, border, radius-lg) --------------- */
+/* --- comment cards: the panel face and a hairline --------------------------- */
 
 .sc-card {
-  background: var(--card, #f9f5d7);
-  border: 1px solid var(--border, #bdae93);
+  background: var(--sc-panel);
+  border: 1px solid var(--sc-rule);
   border-radius: var(--sc-radius);
-  box-shadow: var(--sc-shadow-md);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: box-shadow 0.15s ease, opacity 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
 }
+/* the thread just opened from the prose: the selected look */
 .sc-card.flash {
-  box-shadow: 0 0 0 2px var(--ring, #d65d0e), var(--sc-shadow-md);
+  border: 1.5px solid var(--sc-accent);
+  background: var(--sc-highlight);
+  padding: 11.5px; /* the half pixel the heavier border takes */
 }
-.sc-card.resolved {
-  opacity: 0.55;
+/* resolved dims by colour, not opacity, so nothing behind shows through:
+   the note itself stays readable, what frames it fades */
+.sc-card.resolved .sc-card-body {
+  color: var(--sc-ink-2);
+}
+.sc-card.resolved .sc-card-quote {
+  color: var(--sc-ink-3);
 }
 .sc-card.orphaned {
   border-style: dashed;
+  border-color: var(--sc-line-2);
 }
 
 .sc-card-quote {
-  border-left: 2px solid var(--primary, #d65d0e);
+  border-left: 2px solid var(--sc-line-2);
   padding-left: 10px;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   font-size: 13px;
   cursor: pointer;
   display: -webkit-box;
@@ -285,8 +306,11 @@ mark.spec-comment-highlight.flash {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+.sc-card.flash .sc-card-quote {
+  border-left-color: var(--sc-accent);
+}
 .sc-card.resolved .sc-card-quote {
-  border-left-color: var(--border, #bdae93);
+  border-left-color: var(--sc-rule);
 }
 .sc-card-body {
   font-size: 14px;
@@ -298,13 +322,17 @@ mark.spec-comment-highlight.flash {
   display: flex;
   gap: 6px;
 }
+/* a warning: ink on the accent tint */
 .sc-orphan-tag {
-  font-size: 11px;
+  font-family: var(--sc-mono);
+  font-size: 10.5px;
   font-weight: 500;
-  color: var(--warning, #b57614);
-  border: 1px solid var(--warning, #b57614);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sc-ink);
+  background: var(--sc-highlight);
   border-radius: var(--sc-radius-sm);
-  padding: 1px 6px;
+  padding: 2px 6px;
 }
 
 .sc-card-actions {
@@ -312,7 +340,7 @@ mark.spec-comment-highlight.flash {
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  border-top: 1px solid var(--border, #bdae93);
+  border-top: 1px solid var(--sc-rule);
   padding-top: 10px;
 }
 .sc-resolve {
@@ -321,19 +349,20 @@ mark.spec-comment-highlight.flash {
   gap: 5px;
   margin-right: auto;
   font-size: 12px;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   cursor: pointer;
   user-select: none;
 }
+/* ticked is done, and done is ink */
 .sc-resolve input,
 .sc-show-resolved input {
-  accent-color: var(--primary, #d65d0e);
+  accent-color: var(--sc-ink);
   cursor: pointer;
 }
 .sc-link {
   background: none;
   border: none;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   cursor: pointer;
   padding: 0;
   font: inherit;
@@ -341,14 +370,14 @@ mark.spec-comment-highlight.flash {
   transition: color 0.15s ease;
 }
 .sc-link:hover {
-  color: var(--foreground, #3c3836);
+  color: var(--sc-ink);
   text-decoration: underline;
 }
 .sc-link.sc-danger:hover {
-  color: var(--destructive, #9d0006);
+  color: var(--sc-accent-ink);
 }
 
-/* --- selection "Add comment" button (shadcn primary, small) --------------- */
+/* --- selection "Add comment" button: the primary action of the moment ------ */
 
 .sc-add-btn {
   position: absolute;
@@ -356,37 +385,35 @@ mark.spec-comment-highlight.flash {
   display: inline-flex;
   align-items: center;
   height: 32px;
-  background: var(--primary, #d65d0e);
-  color: var(--primary-foreground, #fbf1c7);
+  background: var(--sc-accent);
+  color: var(--sc-on-accent);
   border: none;
   border-radius: var(--sc-radius-md);
   padding: 0 12px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: var(--sc-shadow-md);
 }
 
-/* --- editor popover (matches the theme's search dialog) ------------------- */
+/* --- editor popover: a floating panel with a quiet hairline ----------------- */
 
 .sc-editor {
   position: absolute;
   z-index: 9100;
   width: 320px;
-  background: var(--popover, var(--card, #f9f5d7));
-  color: var(--popover-foreground, #3c3836);
-  border: 1px solid var(--border, #bdae93);
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
   border-radius: var(--sc-radius);
-  box-shadow: var(--sc-shadow-lg);
   padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 .sc-editor-quote {
-  border-left: 2px solid var(--primary, #d65d0e);
+  border-left: 2px solid var(--sc-accent);
   padding-left: 10px;
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
   font-size: 12px;
   max-height: 4.5em;
   overflow: hidden;
@@ -396,24 +423,21 @@ mark.spec-comment-highlight.flash {
   min-height: 76px;
   resize: vertical;
   box-sizing: border-box;
-  background: transparent;
-  color: var(--foreground, #3c3836);
-  border: 1px solid var(--input, #bdae93);
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
   border-radius: var(--sc-radius-md);
   padding: 8px 12px;
   font-family: inherit;
   font-size: 14px;
   line-height: 1.5;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .sc-textarea::placeholder {
-  color: var(--muted-foreground, #7c6f64);
+  color: var(--sc-ink-2);
 }
 .sc-textarea:focus {
-  outline: none;
-  border-color: var(--ring, #d65d0e);
-  box-shadow: 0 0 0 3px rgba(214, 93, 14, 0.25);
-  box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring, #d65d0e) 35%, transparent);
+  outline: 2px solid var(--sc-accent);
+  outline-offset: 2px;
 }
 
 .sc-editor-actions {
@@ -422,36 +446,47 @@ mark.spec-comment-highlight.flash {
   gap: 8px;
 }
 
-/* shadcn buttons: h-9, radius-md, text-sm, font-medium. */
+/* Buttons: a quiet hairline and no fill; the primary one is the accent. */
 .sc-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 36px;
-  padding: 0 16px;
+  height: 32px;
+  padding: 0 14px;
   background: transparent;
-  color: var(--foreground, #3c3836);
-  border: 1px solid var(--border, #bdae93);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
   border-radius: var(--sc-radius-md);
   font: inherit;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 .sc-btn:hover {
-  background: var(--accent, #ebdbb2);
-  color: var(--accent-foreground, #3c3836);
+  background: var(--sc-sunk);
 }
-.sc-btn-primary {
-  background: var(--primary, #d65d0e);
-  color: var(--primary-foreground, #fbf1c7);
-  border-color: transparent;
+.sc-btn-primary,
+.sc-btn-primary:hover {
+  background: var(--sc-accent);
+  color: var(--sc-on-accent);
+  border-color: var(--sc-accent);
+  font-weight: 600;
 }
 .sc-btn-primary:hover {
-  background: var(--primary, #d65d0e);
-  color: var(--primary-foreground, #fbf1c7);
-  opacity: 0.9;
+  border-color: var(--sc-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  mark.spec-comment-highlight,
+  .sc-header-btn,
+  .sc-rail,
+  .sc-rail-close,
+  .sc-card,
+  .sc-link,
+  .sc-btn {
+    transition: none;
+  }
 }
 
 /* --- narrow screens: rail becomes a full-height slide-over ---------------- */

@@ -3,66 +3,89 @@
     return;
   }
 
-  const gruvboxLight = {
-    darkMode: false,
-    background: "#fbf1c7",
-    primaryColor: "#ebdbb2",
-    primaryTextColor: "#3c3836",
-    primaryBorderColor: "#bdae93",
-    secondaryColor: "#d5c4a1",
-    secondaryTextColor: "#3c3836",
-    secondaryBorderColor: "#928374",
-    tertiaryColor: "#f9f5d7",
-    tertiaryTextColor: "#3c3836",
-    tertiaryBorderColor: "#bdae93",
-    lineColor: "#7c6f64",
-    textColor: "#3c3836",
-    mainBkg: "#ebdbb2",
-    noteBkgColor: "#fbf1c7",
-    noteTextColor: "#3c3836",
-    noteBorderColor: "#bdae93",
-    errorBkgColor: "#9d0006",
-    errorTextColor: "#fbf1c7",
-    nodeBorder: "#d65d0e",
-    clusterBkg: "#f9f5d7",
-    clusterBorder: "#bdae93",
-    edgeLabelBackground: "#fbf1c7",
-    titleColor: "#d65d0e",
-    activationBkgColor: "#d3869b",
-    activationBorderColor: "#8f3f71",
-    altBackground: "#d5c4a1",
-    fontFamily: '"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace',
+  // The house tokens, by job. Mermaid computes with colours, so it needs the
+  // values and cannot read CSS variables: these mirror --house-* in house.css.
+  const TOKENS = {
+    light: {
+      page: "#f5f5f3", panel: "#ffffff", sunk: "#ebebe8",
+      ink: "#171716", ink2: "#5c5c58", line: "#1c1c1b", line2: "#b4b4ae",
+      accent: "#ff5a1f", accentSoft: "#ffe9df", onAccent: "#171716",
+    },
+    dark: {
+      page: "#0e0e0f", panel: "#1e1e20", sunk: "#161617",
+      ink: "#f1f1ee", ink2: "#a3a39d", line: "#e9e9e5", line2: "#47474a",
+      accent: "#ff6b2c", accentSoft: "#3a1c10", onAccent: "#171716",
+    },
+  };
+  const SANS = 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+  const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace";
+
+  // Monochrome: a node is the panel face with a line stroke and ink text, an
+  // edge is quiet, a group is the sunk face. Nothing is orange unless the
+  // diagram's author marks it (see themeCSS below).
+  const themeVariables = (dark) => {
+    const t = dark ? TOKENS.dark : TOKENS.light;
+    return {
+      darkMode: dark,
+      background: t.page,
+      fontFamily: SANS,
+      fontSize: "13px",
+      textColor: t.ink,
+      titleColor: t.ink,
+      lineColor: t.ink2,
+      primaryColor: t.panel,
+      primaryTextColor: t.ink,
+      primaryBorderColor: t.line,
+      secondaryColor: t.sunk,
+      secondaryTextColor: t.ink,
+      secondaryBorderColor: t.line2,
+      tertiaryColor: t.sunk,
+      tertiaryTextColor: t.ink,
+      tertiaryBorderColor: t.line2,
+      mainBkg: t.panel,
+      nodeBorder: t.line,
+      nodeTextColor: t.ink,
+      clusterBkg: t.sunk,
+      clusterBorder: t.line2,
+      edgeLabelBackground: t.page,
+      noteBkgColor: t.sunk,
+      noteTextColor: t.ink,
+      noteBorderColor: t.line2,
+      actorBkg: t.panel,
+      actorBorder: t.line,
+      actorTextColor: t.ink,
+      actorLineColor: t.line2,
+      signalColor: t.ink2,
+      signalTextColor: t.ink,
+      labelBoxBkgColor: t.sunk,
+      labelBoxBorderColor: t.line2,
+      labelTextColor: t.ink,
+      loopTextColor: t.ink2,
+      activationBkgColor: t.sunk,
+      activationBorderColor: t.line2,
+      sequenceNumberColor: t.page,
+      altBackground: t.sunk,
+      errorBkgColor: t.accent,
+      errorTextColor: t.onAccent,
+    };
   };
 
-  const gruvboxDark = {
-    darkMode: true,
-    background: "#282828",
-    primaryColor: "#3c3836",
-    primaryTextColor: "#ebdbb2",
-    primaryBorderColor: "#665c54",
-    secondaryColor: "#504945",
-    secondaryTextColor: "#ebdbb2",
-    secondaryBorderColor: "#928374",
-    tertiaryColor: "#1d2021",
-    tertiaryTextColor: "#ebdbb2",
-    tertiaryBorderColor: "#665c54",
-    lineColor: "#a89984",
-    textColor: "#ebdbb2",
-    mainBkg: "#3c3836",
-    noteBkgColor: "#504945",
-    noteTextColor: "#ebdbb2",
-    noteBorderColor: "#665c54",
-    errorBkgColor: "#fb4934",
-    errorTextColor: "#282828",
-    nodeBorder: "#fe8019",
-    clusterBkg: "#32302f",
-    clusterBorder: "#504945",
-    edgeLabelBackground: "#282828",
-    titleColor: "#fe8019",
-    activationBkgColor: "#d3869b",
-    activationBorderColor: "#b16286",
-    altBackground: "#504945",
-    fontFamily: '"Geist Mono", ui-monospace, "SF Mono", Menlo, monospace',
+  // Hairlines, a small radius, and the one mark an author has: `:::accent` on
+  // a node (or `class A,B accent`) gives it the selected look, an accent
+  // hairline on the accent tint. Use it for the one thing to look at.
+  const themeCSS = (dark) => {
+    const t = dark ? TOKENS.dark : TOKENS.light;
+    return `
+      .node rect, .node polygon, .node circle, .node ellipse, .node path { stroke-width: 1px; }
+      .node rect.basic { rx: 6px; ry: 6px; }
+      .flowchart-link, .transition, .relation, .messageLine0, .messageLine1 { stroke-width: 1px; }
+      .cluster rect { rx: 8px; ry: 8px; stroke-width: 1px; }
+      .cluster-label, .edgeLabel { font-family: ${MONO}; font-size: 11px; }
+      .edgeLabel, .edgeLabel p, .labelBkg { color: ${t.ink2}; fill: ${t.ink2}; background-color: ${t.page}; }
+      .node.accent rect, .node.accent polygon, .node.accent circle, .node.accent ellipse, .node.accent path {
+        fill: ${t.accentSoft}; stroke: ${t.accent}; stroke-width: 1.5px;
+      }
+    `;
   };
 
   const sources = new WeakMap();
@@ -82,7 +105,15 @@
       startOnLoad: false,
       securityLevel: "strict",
       theme: "base",
-      themeVariables: isDark() ? gruvboxDark : gruvboxLight,
+      themeVariables: themeVariables(isDark()),
+      themeCSS: themeCSS(isDark()),
+      // A little tighter than Mermaid's defaults, so a diagram of five or six
+      // nodes fits the column at its own size instead of being scaled down.
+      // Set here, not in CSS: Mermaid measures text before it draws it, and a
+      // sequence diagram takes its fonts from these two.
+      fontFamily: SANS,
+      fontSize: 13,
+      flowchart: { padding: 10, nodeSpacing: 36, rankSpacing: 40 },
     });
   };
 

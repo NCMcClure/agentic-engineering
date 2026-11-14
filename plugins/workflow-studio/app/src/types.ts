@@ -7,7 +7,7 @@ export const SCHEMA_VERSION = 3 as const;
 
 // ── Pins ────────────────────────────────────────────────────────────────
 
-/** A white execution wire vs a colored typed-data wire. */
+/** An ink execution wire vs a typed-data wire in its type's color. */
 export type PinRole = 'exec' | 'data';
 export type PinDirection = 'in' | 'out';
 
@@ -191,7 +191,7 @@ export interface DiagramEdge {
   id: string;
   source: PinRef;
   target: PinRef;
-  /** 'exec' (white wire) or 'data' (typed color) — matches both pins' role */
+  /** 'exec' (ink wire) or 'data' (typed color) — matches both pins' role */
   role: PinRole;
   /** optional edge label */
   label?: string;

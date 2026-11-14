@@ -1,86 +1,126 @@
-/* ── Unreal-Engine-Blueprint theme ───────────────────────────────────────
-   Dark only, tuned to look like a UE Blueprint graph: near-black dot grid,
-   dark nodes with a colored title bar, white exec triangles, typed data wires.
-   One palette — no light variant. */
+/* ── The house style ──────────────────────────────────────────────────────
+   Monochrome first: page, panel and sunk faces, ink, hairlines. One orange
+   accent (--sel) for the selected thing, the primary action and a diagnostic.
+   Five hues tell node categories and pin types apart, small: a 2px edge on a
+   node's header, a pin's ring, a wire's hairline. No gradients, no shadows.
+   Light by default, dark under prefers-color-scheme.
+
+   Names are this app's own. --sel is the house accent. --accent-<kind> is the
+   hue the catalog names for a node kind, and --accent is that hue on one node. */
 
 :root {
-  /* chrome */
-  --bg: #1a1a1a;        /* app shell */
-  --bg-soft: #222222;   /* inputs */
-  --bg-elev: #262626;   /* toolbar, panels, palette */
-  --graph-bg: #1b1b1b;  /* canvas */
-  --grid: #2c2c2c;      /* dot grid */
-  --border: #3a3a3a;    /* chrome dividers */
-  --line: #333333;
+  color-scheme: light dark;
 
-  /* text */
-  --fg: #e8e8e8;
-  --fg-dim: #aeaeae;
-  --fg-faint: #6e6e6e;
+  /* faces */
+  --bg: #f5f5f3;        /* page: app shell, canvas */
+  --bg-elev: #ffffff;   /* panel: toolbar, panels, nodes, inputs */
+  --bg-soft: #ebebe8;   /* sunk: node headers, hover, wells */
+  --bg-deep: #dededa;   /* deeper: a pressed face */
+  --graph-bg: var(--bg);
+  --grid: var(--border);
+
+  /* ink */
+  --fg: #171716;
+  --fg-dim: #5c5c58;
+  --fg-faint: #8e8e89;  /* meta only */
+
+  /* hairlines */
+  --line: #1c1c1b;      /* strong: an outline that matters */
+  --line-2: #b4b4ae;    /* quiet: inputs, buttons, floating panels */
+  --border: #dcdcd7;    /* rule: dividers, card borders */
+
+  /* the accent: selection, the primary action, a diagnostic */
+  --sel: #ff5a1f;
+  --sel-ink: #c2410c;   /* the accent as text */
+  --sel-soft: #ffe9df;  /* the accent as a fill */
+  --on-sel: #171716;    /* text on an accent fill, in both themes */
+
+  /* hues: for telling kinds apart and nothing else */
+  --blue: #2563eb;
+  --green: #15803d;
+  --purple: #7c3aed;
+  --yellow: #a16207;
+  --pink: #be185d;
 
   /* node surfaces */
-  --node-bg: #2c2c2c;
-  --node-edge: #0e0e0e;
-  --node-head-fg: #ffffff;
-  --sel: #f0a83a;       /* warm UE selection highlight */
+  --node-bg: var(--bg-elev);
+  --node-edge: var(--line-2);
+  --node-head-fg: var(--fg);
 
-  /* button accents */
-  --gray: #8a8a8a;
-  --blue: #4a90e2;
-  --red: #d65745;
-  --green: #5aa45a;
-  --yellow: #d6a13a;
-  --orange: #e0902f;
-  --aqua: #3fb0a0;
-  --purple: #a06fce;
-
-  /* exec = white wire; data wires are colored by value type (UE-ish) */
-  --exec-wire: #f2f2f2;
+  /* exec wires are ink. Data wires take their value type: a hue for five of
+     them, an ink tone for the rest (bool and struct wires are also dashed, and
+     a struct pin is square). */
+  --exec-wire: var(--fg);
   --type-exec: var(--exec-wire);
-  --type-string: #df7ddb;
-  --type-number: #7fc77f;
-  --type-bool: #d6584a;
-  --type-object: #4a90e2;
-  --type-array: #b07fe0;
-  --type-agent-result: #3fb6a6;
-  --type-schema: #e0b14a;
-  --type-any: #9aa0a6;
+  --type-string: var(--pink);
+  --type-number: var(--green);
+  --type-object: var(--blue);
+  --type-array: var(--purple);
+  --type-schema: var(--yellow);
+  --type-bool: var(--fg);
+  --type-agent-result: var(--fg-dim);
+  --type-struct: var(--fg-dim);
+  --type-any: var(--fg-faint);
   --type-gray: var(--type-any);
-  --type-struct: #c9905a; /* all structs share one accent (UE-ish) */
 
-  /* node title-bar accents (UE colors flow control gray, events red, etc.) */
-  --accent-start: #b5453a;
-  --accent-end: #b5453a;
-  --accent-agent: #2f7d8f;
-  --accent-parallel: #2f8f8f;
-  --accent-pipeline: #b8862b;
-  --accent-verify: #b5453a;
-  --accent-synthesize: #4a8a4a;
-  --accent-gate: #b8862b;
-  --accent-schema: #7a6f55;
-  --accent-log: #4a4a4a;
-  --accent-sequence: #4d5a66;
-  --accent-branch: #51606e;
-  --accent-doonce: #4d5a66;
-  --accent-loop: #5a6b7a;
-  --accent-multigate: #6a5a7a;
-  --accent-switch: #5a6470;
-  --accent-async: #3a6ea5;
-  --accent-reroute: #6e6e6e;
-  --accent-function: #2f6f9f;
-  --accent-input: #4a8a4a;
-  --accent-output: #b5453a;
+  /* node kinds, by category: workflow steps blue, flow control violet, async
+     yellow, variables green, utilities an ink tone. A literal takes the hue of
+     its type. */
+  --accent-start: var(--blue);
+  --accent-end: var(--blue);
+  --accent-agent: var(--blue);
+  --accent-parallel: var(--blue);
+  --accent-pipeline: var(--blue);
+  --accent-verify: var(--blue);
+  --accent-synthesize: var(--blue);
+  --accent-gate: var(--blue);
+  --accent-schema: var(--blue);
+  --accent-log: var(--blue);
+  --accent-sequence: var(--purple);
+  --accent-branch: var(--purple);
+  --accent-doonce: var(--purple);
+  --accent-loop: var(--purple);
+  --accent-multigate: var(--purple);
+  --accent-switch: var(--purple);
+  --accent-async: var(--yellow);
   --accent-litString: var(--type-string);
   --accent-litNumber: var(--type-number);
   --accent-litBool: var(--type-bool);
   --accent-litArray: var(--type-array);
   --accent-litObject: var(--type-object);
-  --accent-getvar: #5a7a8a;
-  --accent-setvar: #7a6a4a;
-  --accent-getfield: #4a7a6a;
+  --accent-getvar: var(--green);
+  --accent-setvar: var(--green);
+  --accent-reroute: var(--fg-faint);
+  --accent-getfield: var(--fg-faint);
+  --accent-function: var(--fg-faint);
+  --accent-input: var(--fg-faint);
+  --accent-output: var(--fg-faint);
 
-  --font: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e0f;
+    --bg-elev: #1e1e20;
+    --bg-soft: #161617;
+    --bg-deep: #111112;
+    --fg: #f1f1ee;
+    --fg-dim: #a3a39d;
+    --fg-faint: #74746f;
+    --line: #e9e9e5;
+    --line-2: #47474a;
+    --border: #262628;
+    --sel: #ff6b2c;
+    --sel-ink: #ff8a57;
+    --sel-soft: #3a1c10;
+    --blue: #6ea0ff;
+    --green: #4ade80;
+    --purple: #a78bfa;
+    --yellow: #facc15;
+    --pink: #f472b6;
+  }
 }
 
 /* ── layout ───────────────────────────────────────────────────────────── */
@@ -93,6 +133,8 @@ body,
 }
 body {
   font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
   background: var(--bg);
   color: var(--fg);
   -webkit-font-smoothing: antialiased;
@@ -107,14 +149,48 @@ body {
   flex: 1 1 auto;
   min-height: 0;
 }
+
+/* Every control shows where the keyboard is. */
+:focus-visible {
+  outline: 2px solid var(--sel);
+  outline-offset: 2px;
+}
+
+/* React Flow reads its own look from these. */
 .react-flow {
   background: var(--graph-bg);
+  --xy-background-color: var(--graph-bg);
+  --xy-edge-stroke: var(--type-any);
+  --xy-edge-stroke-selected: var(--sel);
+  --xy-connectionline-stroke: var(--fg-dim);
+  --xy-connectionline-stroke-width: 1.5;
+  --xy-attribution-background-color: var(--graph-bg);
+  --xy-minimap-background-color: var(--bg-elev);
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--bg-soft) 72%, transparent);
+  --xy-minimap-node-background-color: var(--line-2);
+  --xy-minimap-node-stroke-color: transparent;
+  --xy-controls-button-background-color: var(--bg-elev);
+  --xy-controls-button-background-color-hover: var(--bg-soft);
+  --xy-controls-button-color: var(--fg-dim);
+  --xy-controls-button-color-hover: var(--fg);
+  --xy-controls-button-border-color: var(--border);
+  --xy-controls-box-shadow: none;
+  --xy-node-boxshadow-hover: none;    /* our `input`/`output` kinds share a */
+  --xy-node-boxshadow-selected: none; /* class name with React Flow's own   */
+  --xy-selection-background-color: color-mix(in srgb, var(--sel) 10%, transparent);
+  --xy-selection-border: 1px solid var(--sel);
+  --xy-resize-background-color: var(--sel);
+  --xy-edge-label-background-color: var(--graph-bg);
+  --xy-edge-label-color: var(--fg-dim);
+}
+.react-flow__attribution a {
+  color: var(--fg-faint);
 }
 
 /* React Flow ships default styling for its reserved node types (input/output/
    default/group). Our `input`/`output` kinds collide with those names, so the
-   white default wrapper would render behind our dark nodes — neutralize it and
-   let BaseNode own the look. */
+   default wrapper would render behind our nodes: neutralize it and let BaseNode
+   own the look. */
 .react-flow__node-input,
 .react-flow__node-output,
 .react-flow__node-default,
@@ -128,8 +204,14 @@ body {
   color: inherit;
   text-align: left;
 }
+/* A node the keyboard is on: React Flow removes the ring, so put it back. */
+.react-flow__node.selectable:focus-visible {
+  outline: 2px solid var(--sel);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
 
-/* ── nodes: title bar over a dark body ────────────────────────────────── */
+/* ── nodes: a panel with a hairline, its header the sunk face ─────────── */
 
 .wf-node {
   position: relative;
@@ -139,42 +221,51 @@ body {
   background: var(--node-bg);
   color: var(--fg);
   border: 1px solid var(--node-edge);
-  border-radius: 7px;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
   font-size: 13px;
   line-height: 1.25;
   overflow: visible;
 }
+/* Selected: a 1.5px accent hairline (the margin keeps the box where it was)
+   and the accent-soft header. */
 .wf-node.is-selected {
-  border-color: var(--sel);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sel) 55%, transparent), 0 3px 12px rgba(0, 0, 0, 0.5);
+  border: 1.5px solid var(--sel);
+  margin: -0.5px;
+}
+.wf-node.is-selected .wf-node__head {
+  background: var(--sel-soft);
 }
 .wf-node__head {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 5px 12px 6px;
-  border-radius: 6px 6px 0 0;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 82%, #ffffff 18%), var(--accent));
-  border-bottom: 1px solid rgba(0, 0, 0, 0.35);
+  gap: 2px;
+  padding: 4px 12px 6px;
+  border-radius: 7px 7px 0 0;
+  background: var(--bg-soft);
+  border-top: 2px solid var(--accent, var(--fg-faint)); /* the node's kind */
+  border-bottom: 1px solid var(--border);
 }
 .wf-node__tag {
   font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.06em;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--fg-dim);
 }
 .wf-node__label {
-  font-weight: 700;
-  font-size: 13px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--node-head-fg);
   overflow-wrap: anywhere;
 }
 .wf-node__subtitle {
   font-size: 10.5px;
   font-family: var(--mono);
-  color: rgba(255, 255, 255, 0.78);
+  color: var(--fg-dim);
   overflow-wrap: anywhere;
 }
 .wf-node__pins {
@@ -204,32 +295,33 @@ body {
   white-space: nowrap;
 }
 
-/* ── pins: exec triangles, data circles; fill when connected ──────────── */
+/* ── pins: exec triangles, data rings; filled when connected ──────────── */
 
 .react-flow__handle.wf-pin {
   border: none;
   border-radius: 0;
 }
-/* exec: a right-pointing triangle (flow direction), dim until wired */
+/* exec: a right-pointing triangle (flow direction), quiet until wired */
 .wf-pin--exec {
   --pin-color: var(--exec-wire);
   width: 11px;
   height: 12px;
-  background: var(--fg-faint);
+  background: var(--line-2);
   clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 .wf-pin--exec.is-connected {
   background: var(--pin-color);
 }
-/* data: a circle outlined in its type color, filled when wired */
-.wf-pin--data {
+/* data: a ring in its type's colour on the panel face, filled when wired */
+.react-flow__handle.wf-pin--data {
   width: 11px;
   height: 11px;
+  box-sizing: border-box;
   border-radius: 50%;
-  background: var(--graph-bg);
-  border: 2px solid var(--pin-color, var(--type-any));
+  background: var(--node-bg);
+  border: 1.5px solid var(--pin-color, var(--type-any));
 }
-.wf-pin--data.is-connected {
+.react-flow__handle.wf-pin--data.is-connected {
   background: var(--pin-color, var(--type-any));
 }
 .wf-pin--string { --pin-color: var(--type-string); }
@@ -241,29 +333,37 @@ body {
 .wf-pin--schema { --pin-color: var(--type-schema); }
 .wf-pin--any { --pin-color: var(--type-any); }
 .wf-pin--struct { --pin-color: var(--type-struct); }
+/* a struct shares an ink tone with an agent result, so its pin is square */
+.react-flow__handle.wf-pin--struct {
+  border-radius: 2px;
+}
 
-/* ── edges: exec white spine, data wires take their value color ───────── */
+/* ── edges: an ink exec spine, data wires a hairline in their type ────── */
 
 .react-flow__edge-path {
   stroke: var(--type-any);
-  stroke-width: 1.5;
+  stroke-width: 1.25;
 }
 .react-flow__edge.edge-exec .react-flow__edge-path {
   stroke: var(--exec-wire);
-  stroke-width: 2.5;
+  stroke-width: 2;
 }
 .react-flow__edge.edge-data .react-flow__edge-path {
-  stroke-width: 2;
+  stroke-width: 1.25;
 }
 .react-flow__edge.edge-type-string .react-flow__edge-path { stroke: var(--type-string); }
 .react-flow__edge.edge-type-number .react-flow__edge-path { stroke: var(--type-number); }
-.react-flow__edge.edge-type-bool .react-flow__edge-path { stroke: var(--type-bool); }
+.react-flow__edge.edge-type-bool .react-flow__edge-path { stroke: var(--type-bool); stroke-dasharray: 2 3; }
 .react-flow__edge.edge-type-object .react-flow__edge-path { stroke: var(--type-object); }
 .react-flow__edge.edge-type-array .react-flow__edge-path { stroke: var(--type-array); }
 .react-flow__edge.edge-type-agent-result .react-flow__edge-path { stroke: var(--type-agent-result); }
 .react-flow__edge.edge-type-schema .react-flow__edge-path { stroke: var(--type-schema); }
 .react-flow__edge.edge-type-any .react-flow__edge-path { stroke: var(--type-any); }
-.react-flow__edge.edge-type-struct .react-flow__edge-path { stroke: var(--type-struct); }
+.react-flow__edge.edge-type-struct .react-flow__edge-path { stroke: var(--type-struct); stroke-dasharray: 6 3; }
+/* a selected wire carries the accent, whatever its type */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--sel);
+}
 .react-flow__edge-text {
   fill: var(--fg-dim);
   font-size: 10px;
@@ -273,38 +373,52 @@ body {
   fill: var(--graph-bg);
 }
 
-/* ── comment frame ────────────────────────────────────────────────────── */
+/* ── comment frame: a sunk region under the nodes it groups ───────────── */
 
 .wf-comment {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
-  border: 1px solid color-mix(in srgb, var(--accent, var(--gray)) 55%, transparent);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--accent, var(--gray)) 10%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-soft);
 }
 .wf-comment.is-selected {
-  border-color: var(--sel);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sel) 40%, transparent);
+  border: 1.5px solid var(--sel);
 }
 .wf-comment__label {
-  padding: 6px 12px 2px;
-  font-weight: 700;
-  font-size: 12px;
-  color: var(--fg);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+/* the frame's colour, kept to a dot */
+.wf-comment__label::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent, var(--type-any));
 }
 .wf-comment__body {
-  padding: 0 12px 6px;
+  padding: 0 14px 6px;
   font-size: 11px;
   color: var(--fg-dim);
   white-space: pre-wrap;
 }
 
-/* ── controls / minimap / background ──────────────────────────────────── */
+/* ── controls / minimap ───────────────────────────────────────────────── */
 
 .react-flow__controls {
   box-shadow: none;
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-2);
   border-radius: 8px;
   overflow: hidden;
 }
@@ -317,10 +431,14 @@ body {
 .react-flow__controls-button:hover {
   background: var(--bg-soft);
 }
+.react-flow__controls-button:focus-visible {
+  outline-offset: -2px;
+}
 .react-flow__minimap {
   background: var(--bg-elev);
-  border: 1px solid var(--border);
+  border: 1px solid var(--line-2);
   border-radius: 8px;
+  overflow: hidden;
 }
 
 /* ── toolbar ──────────────────────────────────────────────────────────── */
@@ -335,51 +453,63 @@ body {
   border-bottom: 1px solid var(--border);
 }
 .toolbar__title {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 14px;
   margin-right: 6px;
 }
 .toolbar__spacer {
   flex: 1;
 }
+/* Every button but the primary one: a quiet hairline, no fill. */
 .btn {
   font: inherit;
   font-size: 12.5px;
+  line-height: 1.4;
   padding: 5px 11px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
   color: var(--fg);
   cursor: pointer;
   transition: background 120ms ease, border-color 120ms ease;
 }
 .btn:hover {
-  border-color: var(--gray);
-  background: var(--bg);
+  background: var(--bg-soft);
 }
+.btn:active {
+  background: var(--bg-deep);
+}
+/* The primary action: the accent fill, dark ink on it. */
 .btn--accent {
-  border-color: var(--blue);
-  color: var(--blue);
+  border-color: var(--sel);
+  background: var(--sel);
+  color: var(--on-sel);
+  font-weight: 600;
 }
-.btn--danger {
-  border-color: var(--red);
-  color: var(--red);
+.btn--accent:hover,
+.btn--accent:active {
+  background: var(--sel);
+  border-color: var(--line);
 }
 .btn:disabled {
-  opacity: 0.45;
+  border-color: var(--border);
+  background: transparent;
+  color: var(--fg-faint);
+  font-weight: inherit;
   cursor: not-allowed;
 }
 .select {
   font: inherit;
   font-size: 12.5px;
+  line-height: 1.4;
   padding: 5px 8px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
   color: var(--fg);
 }
 
-/* ── side panel (inspector) ───────────────────────────────────────────── */
+/* ── side panels (variables on the left, details on the right) ────────── */
 
 .panel {
   position: absolute;
@@ -389,8 +519,8 @@ body {
   max-height: calc(100% - 28px);
   overflow-y: auto;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
   padding: 14px;
   z-index: 5;
   display: flex;
@@ -401,32 +531,70 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 11px;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   font-family: var(--mono);
   color: var(--fg-dim);
+}
+.panel__head > :first-child {
+  color: var(--fg);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
 }
 .panel label {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  font-size: 11px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--fg-dim);
 }
 .panel input,
 .panel select,
 .panel textarea {
   font: inherit;
+  font-family: var(--font);
   font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
   padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
   color: var(--fg);
+}
+.panel input:disabled,
+.panel select:disabled,
+.panel textarea:disabled {
+  border-color: var(--border);
+  background: var(--bg-soft);
+  color: var(--fg-faint);
 }
 .panel textarea {
   resize: vertical;
   min-height: 48px;
   font-family: var(--mono);
+}
+/* The panel's own Save repeats the toolbar's, so it stays a plain button:
+   one primary action per view. */
+.panel .btn--accent {
+  border-color: var(--line-2);
+  background: transparent;
+  color: var(--fg);
+  font-weight: inherit;
+}
+.panel .btn--accent:hover {
+  background: var(--bg-soft);
+  border-color: var(--line-2);
 }
 .panel--left {
   left: 14px;
@@ -436,16 +604,17 @@ body {
 .vp-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .vp-section__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  margin-bottom: 4px;
 }
 .vp-empty {
-  font-size: 11px;
-  color: var(--fg-faint);
+  font-size: 11.5px;
+  color: var(--fg-dim);
   padding: 2px 0 4px;
 }
 .vp-item {
@@ -456,52 +625,61 @@ body {
   width: 100%;
   text-align: left;
   padding: 5px 8px;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   border-radius: 6px;
-  background: var(--bg-soft);
+  background: transparent;
   color: var(--fg);
   cursor: pointer;
   font: inherit;
 }
+.vp-item:hover {
+  background: var(--bg-soft);
+}
 .vp-item.is-active {
-  border-color: var(--blue);
+  border-color: var(--sel);
+  background: var(--sel-soft);
 }
 .vp-dot {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 .vp-name {
-  font-size: 12.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .vp-type {
   font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   font-family: var(--mono);
-  color: var(--fg-faint);
+  color: var(--fg-dim);
 }
 .param-row {
   display: flex;
   flex-direction: column;
   gap: 4px;
   padding: 4px 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 
 .panel__section {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding-top: 8px;
-  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
 }
 .panel__section-title {
-  font-size: 10px;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--fg-faint);
+  color: var(--fg-dim);
   font-family: var(--mono);
 }
 .pinrow-edit {
@@ -518,20 +696,21 @@ body {
   font: inherit;
   font-size: 12px;
   line-height: 1;
-  width: 22px;
+  min-width: 22px;
   height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  background: var(--bg-soft);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: transparent;
   color: var(--fg);
   cursor: pointer;
 }
 .icon-btn:hover {
-  background: var(--bg);
-  border-color: var(--gray);
+  background: var(--bg-soft);
 }
 .stepper {
   display: inline-flex;
@@ -541,6 +720,7 @@ body {
 .stepper__value {
   font-family: var(--mono);
   font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
   min-width: 18px;
   text-align: center;
 }
@@ -551,9 +731,9 @@ body {
   font: inherit;
   font-size: 12px;
   padding: 4px 7px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
   color: var(--fg);
   width: 100%;
   box-sizing: border-box;
@@ -564,6 +744,10 @@ body {
   gap: 6px;
   font-size: 12px;
 }
+.ve-bool input,
+.sb-req input {
+  accent-color: var(--fg); /* a ticked box is a fact, not a call for attention */
+}
 .ve-array,
 .ve-object,
 .ve-struct,
@@ -572,7 +756,7 @@ body {
   flex-direction: column;
   gap: 5px;
   padding-left: 8px;
-  border-left: 1px solid var(--line);
+  border-left: 1px solid var(--border);
 }
 .ve-array__head,
 .sb-node__head {
@@ -583,7 +767,10 @@ body {
 .ve-label,
 .sb-label {
   font-size: 10px;
-  color: var(--fg-faint);
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
   font-family: var(--mono);
 }
 .ve-row {
@@ -597,6 +784,7 @@ body {
 }
 .ve-row__idx {
   font-size: 10px;
+  font-variant-numeric: tabular-nums;
   color: var(--fg-faint);
   font-family: var(--mono);
 }
@@ -616,7 +804,7 @@ body {
 }
 .ve-note {
   font-size: 11px;
-  color: var(--fg-faint);
+  color: var(--fg-dim);
 }
 .sb-field {
   display: flex;
@@ -634,9 +822,9 @@ body {
   font: inherit;
   font-size: 11.5px;
   padding: 3px 6px;
-  border-radius: 5px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
   color: var(--fg);
   min-width: 0;
 }
@@ -650,7 +838,7 @@ body {
 }
 .sb-child {
   padding-left: 8px;
-  border-left: 1px solid var(--line);
+  border-left: 1px solid var(--border);
 }
 
 /* ── right-click palette (context node finder) ───────────────────────────── */
@@ -668,10 +856,9 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.55);
 }
 .palette__search {
   font: inherit;
@@ -679,9 +866,12 @@ body {
   padding: 9px 12px;
   border: none;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-soft);
+  background: var(--bg-elev);
   color: var(--fg);
-  outline: none;
+}
+.palette__search:focus-visible {
+  outline-offset: -2px; /* the palette clips, so the ring sits inside */
+  border-radius: 7px 7px 0 0;
 }
 .palette__list {
   overflow-y: auto;
@@ -700,7 +890,10 @@ body {
   font: inherit;
 }
 .palette__item.is-active {
-  background: color-mix(in srgb, var(--blue) 22%, transparent);
+  background: var(--sel-soft);
+}
+.palette__item:focus-visible {
+  outline-offset: -2px;
 }
 .palette__kind {
   font-weight: 600;
@@ -708,14 +901,17 @@ body {
 }
 .palette__cat {
   justify-self: end;
+  align-self: center;
   font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   font-family: var(--mono);
-  color: var(--fg-faint);
-  text-transform: lowercase;
+  color: var(--fg-dim);
 }
 .palette__blurb {
   grid-column: 1 / -1;
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--fg-dim);
 }
 .palette__empty {
@@ -748,12 +944,10 @@ body {
   padding: 9px 13px;
   border-radius: 8px;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--green);
+  border: 1px solid var(--line-2);
   color: var(--fg);
   font-size: 12px;
   font-family: var(--mono);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
   overflow-wrap: anywhere;
 }
 
@@ -767,11 +961,11 @@ body {
   z-index: 2;
   pointer-events: none;
   padding: 12px 18px;
-  border-radius: 10px;
-  border: 1px dashed var(--border);
+  border-radius: 8px;
+  border: 1px dashed var(--line-2);
   color: var(--fg-dim);
   font-size: 13px;
-  background: color-mix(in srgb, var(--bg-elev) 70%, transparent);
+  background: var(--bg);
 }
 
 .launcher__name-input {
@@ -779,7 +973,7 @@ body {
   font-size: 13px;
 }
 
-/* ── compile diagnostics ─────────────────────────────────────────────────── */
+/* ── compile diagnostics: they need a person, so they carry the accent ──── */
 
 .diag-panel {
   position: absolute;
@@ -793,16 +987,21 @@ body {
   flex-direction: column;
   border-radius: 8px;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
 }
 .diag-panel__head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 7px 11px;
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--fg-dim);
+  background: var(--bg-soft);
   border-bottom: 1px solid var(--border);
 }
 .diag-panel__list {
@@ -820,53 +1019,93 @@ body {
   border-radius: 6px;
   background: none;
   color: var(--fg);
+  font: inherit;
   font-size: 12px;
   cursor: pointer;
 }
 .diag-item:hover {
   background: var(--bg-soft);
 }
+.diag-item:focus-visible {
+  outline-offset: -2px;
+}
+/* the severity, as a word: a warning in heavy ink, an error in the accent */
+.diag-item__sev {
+  flex: none;
+  min-width: 52px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
 .diag-item--error .diag-item__sev {
-  color: var(--red);
+  color: var(--sel-ink);
 }
 .diag-item__msg {
   overflow-wrap: anywhere;
 }
 
+/* a node with a diagnostic: a mark on its corner */
 .wf-node__diag {
   position: absolute;
-  top: -9px;
-  right: -9px;
-  font-size: 13px;
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+  top: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--sel);
+  background: var(--sel-soft);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+.wf-node__diag--error {
+  background: var(--sel);
+  color: var(--on-sel);
 }
 
 .field-error {
   display: block;
   margin-top: 3px;
+  font-family: var(--font);
   font-size: 11px;
-  color: var(--red);
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--sel-ink);
 }
 
 /* ── save status chip + disk-conflict bar ────────────────────────────────── */
 
 .save-status {
-  font-size: 11.5px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   font-family: var(--mono);
   color: var(--fg-dim);
   white-space: nowrap;
   padding: 4px 8px;
-  border-radius: 7px;
+  border-radius: 6px;
   border: 1px solid transparent;
   background: none;
 }
 .save-status--dirty {
   color: var(--fg);
+  font-weight: 700;
 }
 .save-status--error {
   cursor: pointer;
-  color: var(--red);
-  border-color: var(--red);
+  color: var(--sel-ink);
+  border: 1.5px solid var(--sel);
 }
 
 .conflict-bar {
@@ -881,9 +1120,7 @@ body {
   padding: 9px 13px;
   border-radius: 8px;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--red);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+  border: 1.5px solid var(--sel);
 }
 .conflict-bar__msg {
   font-size: 12.5px;
@@ -895,14 +1132,22 @@ body {
 .input {
   font: inherit;
   font-size: 12.5px;
+  line-height: 1.4;
   padding: 5px 8px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
   color: var(--fg);
 }
+.input::placeholder,
+.panel input::placeholder,
+.palette__search::placeholder {
+  color: var(--fg-faint);
+}
 .input:disabled {
-  opacity: 0.45;
+  border-color: var(--border);
+  background: var(--bg-soft);
+  color: var(--fg-faint);
   cursor: not-allowed;
 }
 
@@ -914,7 +1159,11 @@ body {
   gap: 6px;
 }
 .export-field__label {
-  font-size: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--fg-dim);
   white-space: nowrap;
 }
@@ -936,18 +1185,19 @@ body {
   gap: 6px;
   font: inherit;
   font-size: 13px;
+  line-height: 1.4;
   padding: 5px 10px;
-  border-radius: 7px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
   color: var(--fg);
   cursor: pointer;
 }
 .switcher__btn:hover {
-  border-color: var(--gray);
+  background: var(--bg-soft);
 }
 .switcher__project {
-  font-weight: 700;
+  font-weight: 600;
 }
 .switcher__sep {
   color: var(--fg-faint);
@@ -956,7 +1206,7 @@ body {
   color: var(--fg-dim);
 }
 .switcher__caret {
-  color: var(--fg-faint);
+  color: var(--fg-dim);
   font-size: 10px;
 }
 .switcher__menu {
@@ -967,17 +1217,18 @@ body {
   max-height: 60vh;
   overflow-y: auto;
   background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 9px;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.55);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
   padding: 5px;
   z-index: 20;
 }
 .switcher__menu-label {
-  font-size: 11px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--fg-faint);
+  letter-spacing: 0.09em;
+  color: var(--fg-dim);
   padding: 6px 9px 3px;
 }
 .switcher__menu-item {
@@ -996,14 +1247,19 @@ body {
 .switcher__menu-item:hover {
   background: var(--bg-soft);
 }
-.switcher__menu-item--active {
-  color: var(--blue);
+.switcher__menu-item:focus-visible {
+  outline-offset: -2px;
+}
+/* the workflow that is open */
+.switcher__menu-item--active,
+.switcher__menu-item--active:hover {
+  background: var(--sel-soft);
   font-weight: 600;
 }
 .switcher__menu-item--back {
   color: var(--fg-dim);
   border-bottom: 1px solid var(--border);
-  border-radius: 0;
+  border-radius: 6px 6px 0 0;
   margin-bottom: 4px;
 }
 
@@ -1015,7 +1271,8 @@ body {
   justify-content: center;
   height: 100vh;
   color: var(--fg-dim);
-  font-size: 14px;
+  font-family: var(--mono);
+  font-size: 12px;
 }
 .launcher {
   display: flex;
@@ -1025,22 +1282,23 @@ body {
   color: var(--fg);
 }
 .launcher__header {
-  padding: 20px 28px;
+  padding: 18px 28px;
   border-bottom: 1px solid var(--border);
   background: var(--bg-elev);
 }
 .launcher__brand {
   margin: 0;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 .launcher__error {
   margin: 12px 28px 0;
   padding: 10px 14px;
-  border: 1px solid var(--red);
+  border: 1.5px solid var(--sel);
   border-radius: 8px;
-  color: var(--red);
+  background: var(--bg-elev);
+  color: var(--sel-ink);
   font-size: 13px;
   font-family: var(--mono);
   display: flex;
@@ -1066,13 +1324,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid var(--border);
 }
 .launcher__col-head h2 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 600;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--fg-dim);
 }
 .launcher__list {
@@ -1081,10 +1342,13 @@ body {
   padding: 10px;
   overflow-y: auto;
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 .launcher__empty {
   padding: 16px 12px;
-  color: var(--fg-faint);
+  color: var(--fg-dim);
   font-size: 13px;
 }
 .launcher__item {
@@ -1094,15 +1358,19 @@ body {
   gap: 10px;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid transparent;
+  border: 1.5px solid transparent;
   cursor: pointer;
 }
 .launcher__item:hover {
   background: var(--bg-soft);
 }
-.launcher__item--active {
-  background: var(--bg-soft);
-  border-color: var(--blue);
+.launcher__item:focus-visible {
+  outline-offset: -2px;
+}
+.launcher__item--active,
+.launcher__item--active:hover {
+  background: var(--sel-soft);
+  border-color: var(--sel);
 }
 .launcher__item-main {
   display: flex;
@@ -1111,12 +1379,12 @@ body {
   min-width: 0;
 }
 .launcher__item-name {
-  font-size: 13.5px;
+  font-size: 14px;
   font-weight: 600;
 }
 .launcher__item-sub {
   font-size: 11.5px;
-  color: var(--fg-faint);
+  color: var(--fg-dim);
   font-family: var(--mono);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1134,16 +1402,23 @@ body {
   width: 26px;
   height: 26px;
   border-radius: 6px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border: 1px solid var(--line-2);
+  background: transparent;
   color: var(--fg-dim);
   cursor: pointer;
 }
 .launcher__icon-btn:hover {
-  border-color: var(--gray);
+  background: var(--bg-elev);
   color: var(--fg);
 }
-.launcher__icon-btn--danger:hover {
-  border-color: var(--red);
-  color: var(--red);
+
+/* ── motion: a hover may ease; nothing else moves, and that stops too ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
 }

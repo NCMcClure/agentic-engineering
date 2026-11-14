@@ -7,12 +7,21 @@ A generator is a module whose default export is `generate(kit, ...args)`; it ret
 | Name | What it is |
 | --- | --- |
 | `createScene()` | a new scene; every drawing call below is a method on it |
-| `PAL` | colors by name (`blue`, `green`, `purple`, `yellow`, `gray`, `teal`, `orange`), each `{ bg, stroke }` |
-| `INK`, `MUTED` | the text and connector colors |
+| `PAL` | colors by name (`blue`, `green`, `purple`, `yellow`, `gray`, `teal`, `orange`), each `{ bg, stroke }`; see Color below |
+| `INK`, `MUTED` | the title color, and the color of body lines, connectors and captions |
 | `TS`, `BS`, `PAD` | card title size (19), body size (14), card inner padding (16) |
 | `tw(str, size)` | the width of a line of text, for sizing boxes |
 | `wrap(str, width, size)` | greedy word wrap to a width, returns lines |
 | `systemMap(mapFile)` | the whole scene of a committed system map (`diagrams/system-map.json`), laid out to the lint's rules; a system map's generator returns it and draws nothing itself |
+
+## Color
+
+The palette is the marketplace's house style: neutrals carry a frame, and a color has one job.
+
+- `gray` is the default card: a white panel with a quiet outline. `teal` is the heavier neutral, a grey face with an ink outline, for the cards that should read first without a color.
+- `blue`, `green`, `purple`, and `yellow` tell kinds apart (a layer, an owner, a stage) and mean nothing else. Use as few as the frame has kinds; past four, tell the rest apart with `gray`, `teal`, a `dashed` outline, or the card's `sub` line.
+- `orange` is the accent: the one card or connector the frame is about. One per frame, two at most, or it marks nothing.
+- No color means good or bad. A state goes in words on the card (`sub`, `pill`, a body line), so the frame reads the same in greyscale.
 
 ## A scene's methods
 

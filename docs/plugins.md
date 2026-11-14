@@ -6,24 +6,24 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agent-works](#agent-works) | 1.0.1 | 15 | orchestration |
-| [but-first-planning](#but-first-planning) | 5.0.1 | 18 | planning |
-| [codebase-optimizer](#codebase-optimizer) | 1.0.1 | 3 | refactoring |
+| [agent-works](#agent-works) | 1.0.2 | 15 | orchestration |
+| [but-first-planning](#but-first-planning) | 5.0.2 | 18 | planning |
+| [codebase-optimizer](#codebase-optimizer) | 1.0.2 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.1 | 6 | collaboration |
-| [workflow-studio](#workflow-studio) | 1.0.1 | 2 | workflow |
+| [workflow-studio](#workflow-studio) | 1.0.2 | 2 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.2 | 5 | code-quality |
-| [plugin-workbench](#plugin-workbench) | 1.0.1 | 5 | authoring |
-| [perceptual-loop](#perceptual-loop) | 1.0.1 | 9 | evaluation |
+| [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
+| [perceptual-loop](#perceptual-loop) | 1.0.2 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.1 | 6 | documentation |
-| [marvelous-miro](#marvelous-miro) | 0.1.1 | 4 | documentation |
+| [marvelous-miro](#marvelous-miro) | 0.1.2 | 4 | documentation |
 
 ## agent-works
 
 Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.
 
-Version 1.0.1. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -47,7 +47,7 @@ Version 1.0.1. [README](../plugins/agent-works/README.md), [changelog](../plugin
 
 Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.
 
-Version 5.0.1. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
+Version 5.0.2. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -74,7 +74,7 @@ Version 5.0.1. [README](../plugins/but-first-planning/README.md), [changelog](..
 
 Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.
 
-Version 1.0.1. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -101,7 +101,7 @@ Version 1.0.1. [README](../plugins/agentic-teamwork/README.md), [changelog](../p
 
 Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.
 
-Version 1.0.1. [README](../plugins/workflow-studio/README.md), [changelog](../plugins/workflow-studio/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/workflow-studio/README.md), [changelog](../plugins/workflow-studio/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -150,7 +150,7 @@ Version 1.0.2. [README](../plugins/code-diet/README.md), [changelog](../plugins/
 
 A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.
 
-Version 1.0.1. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -164,7 +164,7 @@ Version 1.0.1. [README](../plugins/plugin-workbench/README.md), [changelog](../p
 
 An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.
 
-Version 1.0.1. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -197,7 +197,7 @@ Version 1.0.1. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 
 Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
-Version 0.1.1. [README](../plugins/marvelous-miro/README.md), [changelog](../plugins/marvelous-miro/CHANGELOG.md).
+Version 0.1.2. [README](../plugins/marvelous-miro/README.md), [changelog](../plugins/marvelous-miro/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|

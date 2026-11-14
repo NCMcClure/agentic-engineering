@@ -123,7 +123,7 @@ One per shot and candidate, written by `compare` (and `iterate`) into the run's 
 
 ## Sheets
 
-Every sheet fits `--max-width` (1568 px by default, the largest a vision model reads without shrinking it first), labels its panels in a built-in bitmap font, and draws colour difference (dE2000) on one fixed scale, 0 to 20 and above, so two sheets made apart compare by eye. A box is `x0,y0,x1,y1` in 0..1 of each picture's frame; a zoom enlarges with nearest-neighbour so pixels stay square. `iterate` draws one sheet per shot and candidate: reference, before, after, then what the run changed, where the edges differ (white both, magenta the reference only, green the candidate only), and the colour difference after the exposure and white-balance fit.
+Every sheet fits `--max-width` (1568 px by default, the largest a vision model reads without shrinking it first), labels its panels in a built-in bitmap font, and draws colour difference (dE2000) on one fixed scale, 0 to 20 and above, so two sheets made apart compare by eye. A box is `x0,y0,x1,y1` in 0..1 of each picture's frame; a zoom enlarges with nearest-neighbour so pixels stay square. `iterate` draws one sheet per shot and candidate: reference, before, after, then what the run changed, where the edges differ (grey both, pink the reference only, green the candidate only), and the colour difference after the exposure and white-balance fit.
 
 ## Clips
 

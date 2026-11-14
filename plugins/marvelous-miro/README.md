@@ -35,6 +35,14 @@ board and lists its frames. Each frame comes from a generator, a small module
 that receives a drawing kit and returns a scene of cards, text, and arrows;
 the system map's generator is one line.
 
+<picture>
+  <img alt="A frame of four cards on a pale page: three stages in a row joined by captioned arrows, two outlined in blue and the middle one in yellow, and a white card under the middle stage." src="assets/screens/frame.png" width="880">
+</picture>
+
+The example frame a new project starts with, drawn from the build's SVG with
+the routes and captions the lint predicts for Miro: neutrals carry the frame,
+and a color only tells one kind of card from another.
+
 1. **Build.** Each scene becomes Miro SVG, and the build writes nothing while
    the legibility lint finds overflowing text, collisions, crossed or diagonal
    connectors, captions longer than their run, or cards across a border. Each

@@ -39,7 +39,9 @@ export const SCRIPTS = {
   "drift-status.mjs": "progress/drift-status.mjs",
 };
 /** The spec site's own CSS and JS. */
-export const SITE = Object.fromEntries(["gruvbox.css", "mermaid-init.js", "spec-comments.css", "spec-comments.js", "plan-view.css", "plan-view.js"].map((n) => [n, `spec/assets/${n}`]));
+export const SITE = Object.fromEntries(["house.css", "mermaid-init.js", "spec-comments.css", "spec-comments.js", "plan-view.css", "plan-view.js"].map((n) => [n, `spec/assets/${n}`]));
+/** A site file's name in workspaces scaffolded before 5.0.2. One that has it loads it from its own mkdocs.yml, so it is not given the new one. */
+export const FORMER = { "house.css": "spec/assets/gruvbox.css" };
 /** Directories that start empty and must exist. */
 export const EMPTY_DIRS = ["progress/completed", "progress/notes", "progress/drift"];
 
@@ -60,6 +62,7 @@ export function scaffold(root, { refresh = false } = {}) {
     const target = path.join(root, WORKSPACE, rel);
     const bytes = asset(name);
     const present = fs.existsSync(target);
+    if (!present && FORMER[name] && fs.existsSync(path.join(root, WORKSPACE, FORMER[name]))) continue;
     if (present && (same(target, bytes) || !refresh || !(name in SCRIPTS))) {
       if (name in SCRIPTS && !same(target, bytes)) out.kept.push(rel);
       continue;

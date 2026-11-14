@@ -78,6 +78,16 @@ repository without your yes.
 | `codebase-organizer` | The file tree alone: plan, your approval, moves and reference rewrites, hubs, verification. Also "just add hubs to my repo". |
 | `improve-codebase-architecture` | The seams alone: a visual report of deepening candidates, then a design conversation about the one you pick. |
 
+The report is one HTML page, written to the temp directory and opened for you. Each candidate is a card: the
+files, a before and after diagram, the problem and the fix in a sentence each.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/report.dark.png">
+  <img alt="An architecture review page for this repository's scripts folder. The first candidate card shows two scripts that both read the gate files, one of them a second time in orange, beside the same scripts calling one deep module." src="assets/screens/report.light.png" width="880">
+</picture>
+
+This one reviews the marketplace's own `scripts/` folder; the orange wire is the leak the first candidate removes.
+
 The result of a sweep is per-round commits on a branch and a rollup to review
 before you run the tests and merge. Re-running is safe: finished work is
 skipped.

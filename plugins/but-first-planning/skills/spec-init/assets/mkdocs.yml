@@ -11,13 +11,16 @@ theme:
   show_title: true
   show_stargazers: false
   topbar_sections: false
-  accent: "oklch(70.4% 0.181 41.3)"
+  # The house accent. assets/house.css holds the rest of the palette, light
+  # and dark, and gives the accent its dark value.
+  accent: "#ff5a1f"
+  # Monochrome code in both themes: weight and slant, no token colours.
   pygments_style:
-    light: gruvbox-light
-    dark: gruvbox-dark
+    light: bw
+    dark: bw
 
 extra_css:
-  - assets/gruvbox.css
+  - assets/house.css
   - assets/spec-comments.css
   - assets/plan-view.css
 
