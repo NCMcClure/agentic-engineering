@@ -49,7 +49,7 @@ import os from "node:os";
 import path from "node:path";
 
 export const MARKETPLACE = "agentic-engineering";
-export const ORDER = ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "marvelous-miro"];
+export const ORDER = ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "system-map"];
 // Agents that must not get the lines: read-only searchers and planners that
 // never act on them, host helpers, and an unanchored judge that must never
 // see what the builder meant.

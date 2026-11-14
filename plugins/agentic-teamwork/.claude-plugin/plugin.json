@@ -1,6 +1,6 @@
 {
   "name": "agentic-teamwork",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.",
   "author": {
     "name": "Nicholas McClure",

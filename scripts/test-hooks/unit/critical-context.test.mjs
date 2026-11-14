@@ -147,19 +147,19 @@ test("enabled: a worktree session reads the main checkout's local settings", (t)
 });
 
 test("asker: the first enabled plugin in ORDER", () => {
-  assert.deepEqual(ORDER, ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "marvelous-miro"]);
+  assert.deepEqual(ORDER, ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "system-map"]);
   const all = new Set(ORDER);
   assert.equal(isAsker("agentic-teamwork", all), true);
   assert.equal(isAsker("agent-works", all), false);
   assert.equal(isAsker("code-diet", new Set(["code-diet", "perceptual-loop"])), true);
   assert.equal(isAsker("perceptual-loop", new Set(["code-diet", "perceptual-loop"])), false);
-  assert.equal(isAsker("marvelous-miro", new Set(["marvelous-miro"])), true);
+  assert.equal(isAsker("system-map", new Set(["system-map"])), true);
   assert.equal(isAsker("docs-parity", new Set()), false, "nothing enabled, nobody asks");
 });
 
 test("the shared first line is printed once, by the asker, across every plugin's hook", (t) => {
   const dir = repo(t, "manifest");
-  for (const [enabled, asker] of [[ORDER, "agentic-teamwork"], [["agent-works", "docs-parity", "perceptual-loop"], "agent-works"], [["perceptual-loop", "marvelous-miro"], "perceptual-loop"]]) {
+  for (const [enabled, asker] of [[ORDER, "agentic-teamwork"], [["agent-works", "docs-parity", "perceptual-loop"], "agent-works"], [["perceptual-loop", "system-map"], "perceptual-loop"]]) {
     const config = settings(t, enabled);
     const seen = enabled.filter((p) => hook(t, p, dir, { config }).lines.includes(SHARED_LINE));
     assert.deepEqual(seen, [asker], `enabled ${enabled.join(",")}`);
@@ -274,7 +274,7 @@ test("no question where the answer is known: the manifest, a marker, or any reco
 
 test("exactly one plugin asks: the first enabled in ORDER", (t) => {
   const dir = repo(t, "plain");
-  for (const [enabled, asker] of [[ORDER, "agentic-teamwork"], [["code-diet", "docs-parity", "perceptual-loop"], "code-diet"], [["marvelous-miro"], "marvelous-miro"]]) {
+  for (const [enabled, asker] of [[ORDER, "agentic-teamwork"], [["code-diet", "docs-parity", "perceptual-loop"], "code-diet"], [["system-map"], "system-map"]]) {
     const config = settings(t, enabled);
     assert.deepEqual(enabled.filter((p) => QUESTION.test(hook(t, p, dir, { config }).context)), [asker], `enabled ${enabled.join(",")}`);
   }

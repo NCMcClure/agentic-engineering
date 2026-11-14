@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "but-first-planning",
   "displayName": "But First, Planning",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "description": "Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.",
   "author": {
     "name": "Nicholas McClure",

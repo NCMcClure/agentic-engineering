@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "code-diet",
   "displayName": "Code Diet",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.",
   "author": {
     "name": "Nicholas McClure",

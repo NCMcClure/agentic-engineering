@@ -26,9 +26,6 @@ A plugin installs as `<name>@agentic-engineering`.
 - `docs-parity/` - user docs that move in the same change as the code, one
   checker for missing, stale and broken pages, and a README check. Descend to
   change the writer contract, the capture harness, or a checker.
-- `marvelous-miro/` - the system map (annotations, checker, whole-repo sweep)
-  and the Miro board loop (generators, lint, live check, pull). Descend to
-  change what the map checks or how a board is built.
 - `perceptual-loop/` - checks for work judged by eye or ear: reproducible
   shots, metrics, sheets, a blind critic, and a review queue for the person.
   Descend to change what a number means or how the gate decides.
@@ -40,6 +37,10 @@ A plugin installs as `<name>@agentic-engineering`.
 - `plugin-workbench/` - make, score and fix plugins against one rubric, and
   read what a session's context was made of. Descend to change what a grade
   means or what the lens reports.
+- `system-map/` - a system map extracted from `@system` annotations, committed
+  as a file and checked against the import graph, with a whole-repo sweep; and
+  the Miro board loop that draws it (generators, lint, live check, pull).
+  Descend to change what the map checks or how a board is built.
 - `workflow-studio/` - a node-canvas editor for Claude Code workflows, plus a
   hand-authoring skill. Descend to change the app (`app/`) or the skill.
 - `write-like-me/` - a calibrated voice profile, AI-tell auditing, and hooks

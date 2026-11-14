@@ -283,22 +283,24 @@ README. A README check keeps the front page written for people.
 
 <sub>A surface whose code moved without its pages or shots is caught before the turn ends.</sub>
 
-### marvelous-miro
+### system-map
 
-An architecture diagram is true on the day it is drawn, and a diagram an agent
-puts on a board is rarely one a person can read. marvelous-miro extracts the
-system map from `@system` comment lines in the code, commits it as a diffable
-file, and checks it against the real import graph, so a module or a call
-nobody declared fails the check instead of quietly dating the picture.
-Generators then draw the map, or any other frame, on a Miro board through a
-lint that refuses overlaps and crossed connectors, a live check of what Miro
-actually drew, and a pull that keeps layout changes made on the board. It
-holds no credentials: publishing goes through the Miro MCP you connect.
-[Read more →](plugins/marvelous-miro/README.md)
+An architecture diagram is true on the day it is drawn. system-map moves it
+into the code: each module declares what it is and whom it calls in `@system`
+comment lines, the map is extracted from them into a diffable file committed
+beside the code, and a checker holds it to the real import graph, so a module
+or a call nobody declared fails the check instead of quietly dating the
+picture. A whole-repo sweep reads every module's lines against its code for
+what a checker cannot judge. Miro is where the map is drawn: generators put
+it, or any other frame, on a board through a lint that refuses overlaps and
+crossed connectors, a live check of what Miro actually drew, and a pull that
+keeps layout changes made on the board. It holds no credentials: publishing
+goes through the Miro MCP you connect.
+[Read more →](plugins/system-map/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/marvelous-miro/assets/figures/repo-and-board.dark.gif">
-  <img alt="How a Miro frame goes round from code to board and back. Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew." src="plugins/marvelous-miro/assets/figures/repo-and-board.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/system-map/assets/figures/repo-and-board.dark.gif">
+  <img alt="How a Miro frame goes round from code to board and back. Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew." src="plugins/system-map/assets/figures/repo-and-board.gif" width="720">
 </picture>
 
 <sub>Words come from code, positions from the board, and one lint reads both.</sub>

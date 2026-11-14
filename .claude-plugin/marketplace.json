@@ -75,9 +75,9 @@
       "category": "documentation"
     },
     {
-      "name": "marvelous-miro",
-      "source": "./plugins/marvelous-miro",
-      "description": "Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
+      "name": "system-map",
+      "source": "./plugins/system-map",
+      "description": "An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
       "category": "documentation"
     }
   ]

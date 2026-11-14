@@ -6,24 +6,24 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agent-works](#agent-works) | 1.0.2 | 15 | orchestration |
-| [but-first-planning](#but-first-planning) | 5.0.2 | 18 | planning |
+| [agent-works](#agent-works) | 1.0.3 | 15 | orchestration |
+| [but-first-planning](#but-first-planning) | 5.0.3 | 18 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.2 | 3 | refactoring |
-| [agentic-teamwork](#agentic-teamwork) | 1.0.1 | 6 | collaboration |
+| [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 6 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.2 | 2 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
-| [code-diet](#code-diet) | 1.0.2 | 5 | code-quality |
+| [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
-| [perceptual-loop](#perceptual-loop) | 1.0.2 | 9 | evaluation |
-| [docs-parity](#docs-parity) | 1.0.1 | 6 | documentation |
-| [marvelous-miro](#marvelous-miro) | 0.1.2 | 4 | documentation |
+| [perceptual-loop](#perceptual-loop) | 1.0.3 | 9 | evaluation |
+| [docs-parity](#docs-parity) | 1.0.2 | 6 | documentation |
+| [system-map](#system-map) | 0.2.0 | 4 | documentation |
 
 ## agent-works
 
 Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.
 
-Version 1.0.2. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
+Version 1.0.3. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -47,7 +47,7 @@ Version 1.0.2. [README](../plugins/agent-works/README.md), [changelog](../plugin
 
 Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.
 
-Version 5.0.2. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
+Version 5.0.3. [README](../plugins/but-first-planning/README.md), [changelog](../plugins/but-first-planning/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -86,7 +86,7 @@ Version 1.0.2. [README](../plugins/codebase-optimizer/README.md), [changelog](..
 
 Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.
 
-Version 1.0.1. [README](../plugins/agentic-teamwork/README.md), [changelog](../plugins/agentic-teamwork/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/agentic-teamwork/README.md), [changelog](../plugins/agentic-teamwork/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -136,7 +136,7 @@ Version 1.0.1. [README](../plugins/write-like-me/README.md), [changelog](../plug
 
 Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.
 
-Version 1.0.2. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
+Version 1.0.3. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -164,7 +164,7 @@ Version 1.0.2. [README](../plugins/plugin-workbench/README.md), [changelog](../p
 
 An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.
 
-Version 1.0.2. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
+Version 1.0.3. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -182,7 +182,7 @@ Version 1.0.2. [README](../plugins/perceptual-loop/README.md), [changelog](../pl
 
 User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.
 
-Version 1.0.1. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
+Version 1.0.2. [README](../plugins/docs-parity/README.md), [changelog](../plugins/docs-parity/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
@@ -193,15 +193,15 @@ Version 1.0.1. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 | `/docs-parity:docs-sync` | by the agent, or by hand | Bring the user docs level with a code change before it is committed: map the diff to the pages and screenshots it affects, rewrite those pages, retake the affected capture groups, run the checker, and write the Docs: line. Use after (or while) changing a user-visible surface, when the Stop hook or CI reports PARITY_MISSING or SHOT_STALE, or when the user says "update the docs for this", "sync the docs", or "retake the screenshots". |
 | `/docs-parity:readme` | by the agent, or by hand | Rewrite a README so it tells a person what the project is, why to use it, and how, in at most 800 words and standard-readme's section order, and move everything else to its proper home (CONTRIBUTING.md, docs/, AGENTS.md, CHANGELOG.md). Use when readme-check.mjs, the Stop hook, or CI reports a readme-* finding or warning, when a README is over the limit, and when writing or reviewing a README. |
 
-## marvelous-miro
+## system-map
 
-Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
+An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
-Version 0.1.2. [README](../plugins/marvelous-miro/README.md), [changelog](../plugins/marvelous-miro/CHANGELOG.md).
+Version 0.2.0. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|
-| `/marvelous-miro:browser-setup` | by hand | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the marvelous-miro session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
-| `/marvelous-miro:diagrams-init [board name or URL]` | by hand | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
-| `/marvelous-miro:diagrams-sync` | by the agent, or by hand | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
-| `/marvelous-miro:miro-board` | by the agent, or by hand | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |
+| `/system-map:browser-setup` | by hand | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
+| `/system-map:diagrams-init [board name or URL]` | by hand | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
+| `/system-map:diagrams-sync` | by the agent, or by hand | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
+| `/system-map:miro-board` | by the agent, or by hand | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |
