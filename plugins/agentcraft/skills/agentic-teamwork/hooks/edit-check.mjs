@@ -13,7 +13,7 @@
 // and a repo in mode none all say nothing. Fail open, always exit 0.
 import fs from "node:fs";
 import path from "node:path";
-import { readPayload, repoRoot } from "./critical-context.mjs";
+import { readPayload, repoRoot } from "../../../hooks/critical-context.mjs";
 import { anyOf, globTest, loadConfig, modeFor } from "./lib/config.mjs";
 import { bashFor, runShell } from "./lib/gate.mjs";
 

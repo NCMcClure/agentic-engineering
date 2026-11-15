@@ -35,10 +35,10 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { readPayload, repoRoot } from "./critical-context.mjs";
+import { readPayload, repoRoot } from "../../../hooks/critical-context.mjs";
 import { ENV_EXAMPLE, MANIFEST, SECRET_PATTERNS, anyOf, loadConfig, modeFor } from "./lib/config.mjs";
 import { TEST_COMMAND, lanesIn, recordTestRun, runTests } from "./lib/gate.mjs";
-import { assignments, baseName, commandWords, gitCommand, splitCommand, textOf, trackCwd, unwrap } from "./shell-words.mjs";
+import { assignments, baseName, commandWords, gitCommand, splitCommand, textOf, trackCwd, unwrap } from "../../../lib/shell-words.mjs";
 
 const MAX_BUFFER = 64 * 1024 * 1024;
 const MAX_LISTED = 20;

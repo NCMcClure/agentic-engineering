@@ -14,7 +14,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { modeOf, readPayload } from "./critical-context.mjs";
+import { modeOf, readPayload } from "../../../hooks/critical-context.mjs";
 
 // The state folder, and the folder the first layout kept it in: a repo not moved yet is still guarded.
 const CONFIGS = [path.join(".agents", "perceptual", "config.json"), path.join(".perceptual-loop", "config.json")];

@@ -6,8 +6,8 @@
 //             in its text; allowed large runs are appended to runs/budget.log
 //   baseline  `pl.mjs baseline update` needs --source and a selection
 //
-// The command is read through hooks/shell-words.mjs, the way a shell reads it:
-// a quoted string, a here-document and a here-string never pass for a command,
+// The command is read through the plugin's lib/shell-words.mjs, the way a
+// shell reads it: a quoted string, a here-document and a here-string never pass for a command,
 // and the line inside `bash -c "..."` or `powershell -Command "..."` is read as
 // the commands it runs. A command behind the agent-works lock wrapper
 // (`aw lock run <resource> ... -- <command>`, `aw lease ... -- <command>`,
@@ -20,7 +20,7 @@
 // or in $(...) is not seen.
 import fs from "node:fs";
 import path from "node:path";
-import { assignments, baseName, commandWords, expand, psAssignment, splitCommand, textOf, unwrap } from "../../hooks/shell-words.mjs";
+import { assignments, baseName, commandWords, expand, psAssignment, splitCommand, textOf, unwrap } from "../../../../lib/shell-words.mjs";
 import { allShots, loadConfig, loadGroups, matchGlobs, runsDir } from "./project.mjs";
 
 /** Commands that only read or move about: their arguments may quote anything. */

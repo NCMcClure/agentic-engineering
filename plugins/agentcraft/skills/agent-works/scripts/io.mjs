@@ -31,7 +31,7 @@ import {
 } from "../lib/common.mjs";
 import { DEFAULTS, OLD_BOARD, boardDir as configuredDir, configPath, loadConfig } from "../lib/config.mjs";
 import { PLAN_PATHS, SHADOW_FILE, isPlanSource, planCards, shadowEmpty, shadowFile } from "../lib/plan.mjs";
-import * as forge from "../lib/provider.mjs";
+import * as forge from "../../../lib/provider.mjs";
 import {
   GITHUB_PROJECT_QUERY, cardFromIssue, decide, epicOfIssue, githubHad, githubIssue, githubIssuesQuery, githubLabels, githubParent, githubProject,
   gitlabBoard, gitlabFields, gitlabIssue, isEpicUrl, isLocalOnly, issueOfForge, linked, milestoneTitle, parentKeys, planOf, pulled, remoteHash,

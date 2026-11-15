@@ -14,7 +14,7 @@
 // Reads files only. Nothing here throws: an unreadable file is an absent one.
 import fs from "node:fs";
 import path from "node:path";
-import { MANIFEST, modeOf } from "../critical-context.mjs";
+import { MANIFEST, modeOf } from "../../../../hooks/critical-context.mjs";
 
 export { MANIFEST };
 /** Where the plugin's first layout kept its settings. */

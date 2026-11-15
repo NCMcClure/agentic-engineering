@@ -25,7 +25,7 @@ import os from "node:os";
 import path from "node:path";
 import { CONFIG, changedFiles, run } from "../scripts/docs-check.mjs";
 import { checkRepo, optedIn } from "../scripts/readme-check.mjs";
-import { repoRoot } from "./critical-context.mjs";
+import { repoRoot } from "../../../hooks/critical-context.mjs";
 
 const SHOWN = 4;
 const SCRIPTS = path.join(import.meta.dirname, "..", "scripts");

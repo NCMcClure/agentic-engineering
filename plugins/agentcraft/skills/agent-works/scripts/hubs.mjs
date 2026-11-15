@@ -19,7 +19,7 @@ import path from "node:path";
 import { Finding, emit, fail, ioOf, lineCount, parseArgs, posix, readText, realPath, repoRoot, report, runMain, splitLines } from "../lib/common.mjs";
 import { budget, defaults, loadConfig } from "../lib/config.mjs";
 import { stateOf } from "./twins.mjs";
-import { checkHubs } from "./verify-hubs.mjs";
+import { checkHubs } from "../../../lib/verify-hubs.mjs";
 
 const USAGE = `usage: aw hubs [path] [--json] [--exclude PREFIX …]
 

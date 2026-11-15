@@ -42,7 +42,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { parseArgs } from "node:util";
-import { detect, FORGES } from "./lib/provider.mjs";
+import { detect, FORGES } from "../../../lib/provider.mjs";
 import { mergeFencedBlock, render, renderText, sha256, walk, writeOwned } from "./render.mjs";
 
 const PLUGIN = path.join(import.meta.dirname, "..");

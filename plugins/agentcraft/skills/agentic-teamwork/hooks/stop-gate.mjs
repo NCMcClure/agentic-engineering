@@ -25,7 +25,7 @@
 // Fail open, always exit 0.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
-import { repoRoot } from "./critical-context.mjs";
+import { repoRoot } from "../../../hooks/critical-context.mjs";
 import { MANIFEST, SOURCE_FILE, anyOf, loadConfig, modeFor, notWired } from "./lib/config.mjs";
 import { readRecord, runTests, writeRecord } from "./lib/gate.mjs";
 

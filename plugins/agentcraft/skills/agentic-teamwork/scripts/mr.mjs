@@ -56,7 +56,7 @@ import { parseArgs } from "node:util";
 import {
   FORGES, approveChange, authStatus, checkCli, commentOnChange, createChange, currentBranch, detect, listChanges,
   mergeChange, retryChecks, updateChange, viewChange,
-} from "./lib/provider.mjs";
+} from "../../../lib/provider.mjs";
 
 const METHODS = ["merge", "squash", "rebase"];
 const OPTIONS = {

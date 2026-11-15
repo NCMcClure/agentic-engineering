@@ -4,7 +4,7 @@
 // second command. A string is split into words the way a shell would split
 // them, quotes respected, and nothing else of a shell is honoured; a project
 // that wants a shell says which one, as an argv array (["bash", "-c", "..."]).
-import { shellWords } from "../../hooks/shell-words.mjs";
+import { shellWords } from "../../../../lib/shell-words.mjs";
 import { PlError } from "./args.mjs";
 import { NAME_RX } from "./project.mjs";
 

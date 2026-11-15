@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// SessionStart and SubagentStart: this plugin's critical lines, through the
-// kernel (critical-context.mjs), with two things of its own in front.
+// This area's part of the session briefing: the plugin's briefing command
+// (hooks/briefing.mjs at the plugin's root) loads it, runs `migrate` first and
+// `briefing` after, in the main session only. The area's critical lines are
+// data, critical.json beside this file, and the lines command prints them.
 //
 // A migration, main session only. A repo set up by the plugin's first layout
 // keeps its rules in .claude/teamwork.json, a rules file under .claude/rules,
@@ -8,7 +10,7 @@
 // layout: the settings become the `teamwork` block of .agents/manifest.json
 // with everything the old file enforced spelled out, so nothing loosens; the
 // old files are parked under .agents/retired/agentic-teamwork/, never deleted;
-// the mirror is replaced by the Node one. Only the kernel's `move` and `write`
+// the mirror is replaced by the Node one. Only the `move` and `write` it is handed
 // touch the repo, and neither overwrites, so a second run changes nothing.
 //
 // A briefing, main session only, in a repo on the team conventions (about a
@@ -24,8 +26,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { FORGES, cliPath, detect } from "../scripts/lib/provider.mjs";
-import { run } from "./critical-context.mjs";
+import { FORGES, cliPath, detect } from "../../../lib/provider.mjs";
 import { FIRST_LAYOUT, MANIFEST, blockFromFirstLayout, firstLayout, loadConfig, notWired } from "./lib/config.mjs";
 
 const RETIRED = ".agents/retired/agentic-teamwork";
@@ -146,7 +147,7 @@ function briefing(payload, state) {
   const config = loadConfig(root);
   const lines = [];
   if (!config.manifest) {
-    lines.push(`This repo is not on the team conventions yet: no ${MANIFEST}. Before writing code, ask the person to run /agentic-teamwork:bootstrap, which works locally and pushes nothing.`);
+    lines.push(`This repo is not on the team conventions yet: no ${MANIFEST}. Before writing code, ask the person whether to put it on them: on their yes that is /agentcraft:agentic-teamwork bootstrap, which works locally and pushes nothing.`);
   } else {
     const git = (...args) => execFileSync("git", ["-C", root, ...args], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
     let branch = "";
@@ -172,7 +173,7 @@ function briefing(payload, state) {
     const why = ownedRuleCopies(root, config.manifest).length
       ? "This repo still carries rule files the plugin now delivers at session start, so they load twice"
       : (lanes ? "" : "This repo's manifest names no lanes yet");
-    if (why) lines.push(`${why}: ask the person to run /agentic-teamwork:init-project --upgrade on a branch, then commit what it changes.`);
+    if (why) lines.push(`${why}: ask the person whether to upgrade it: on their yes that is /agentcraft:agentic-teamwork init-project with --upgrade, on a branch, then commit what it changes.`);
     const mirror = mirrorLine(root, git);
     if (mirror) lines.push(mirror);
     if (config.unmoved) lines.push(`The git rules are still read from ${FIRST_LAYOUT}: add the contents of ${BLOCK_FILE} to ${MANIFEST} as its \`teamwork\` key.`);
@@ -182,4 +183,4 @@ function briefing(payload, state) {
   return lines.join(" ");
 }
 
-await run(briefing, { migrate });
+export { briefing, migrate };

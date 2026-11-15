@@ -9,7 +9,7 @@
 // owns. Silent where the repo has not opted in to the plugins (mode none).
 // Fail open, always exit 0.
 import { triggerless } from "../scripts/debt.mjs";
-import { modeOf, readPayload, repoRoot } from "./critical-context.mjs";
+import { modeOf, readPayload, repoRoot } from "../../../hooks/critical-context.mjs";
 
 /** Everything this tool call wrote: a Write's content, an Edit's new string, each of a MultiEdit's. */
 function newText(input = {}) {

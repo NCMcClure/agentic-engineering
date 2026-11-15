@@ -29,7 +29,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { CONFIG, changedFiles, run } from "../scripts/system-map.mjs";
-import { repoRoot } from "./critical-context.mjs";
+import { repoRoot } from "../../../hooks/critical-context.mjs";
 
 const SHOWN = 4;
 const SCRIPT = path.join(import.meta.dirname, "..", "scripts", "system-map.mjs");

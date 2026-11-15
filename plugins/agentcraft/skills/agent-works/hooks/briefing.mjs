@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// SessionStart (startup, resume, clear, compact) and SubagentStart: this
-// plugin's critical lines, through the kernel (critical-context.mjs), with two
-// things of its own in front. A subagent gets the lines marked for every agent
-// and neither of the two.
+// This area's part of the session briefing: the plugin's briefing command
+// (hooks/briefing.mjs at the plugin's root) loads it, runs `migrate` first and
+// `briefing` after, in the main session only. The area's critical lines are
+// data, critical.json beside this file, and the lines command prints them.
 //
 // A migration, main session only, in a repo that carries
 // .agents/agent-works.json. The plugin's defaults changed with 1.0, so what a
@@ -11,7 +11,7 @@
 //   - the guard refused a resource's command run outside its lock, and by
 //     default now only warns (`guard.locks`);
 //   - a board folder with committed files is a shared, tracked board.
-// The kernel's `write` never overwrites, so the keys the config lacks go into
+// The `write` it is handed never overwrites, so the keys the config lacks go into
 // a new file, .agents/retired/agent-works/config-additions.json, and the model
 // is told to merge them. A board still in .agents/board moves to the folder
 // the config names. A second run finds nothing to do and says nothing.
@@ -32,13 +32,12 @@
 // when there is something for them to read. No network. Fail open, exit 0.
 import fs from "node:fs";
 import path from "node:path";
-import { run } from "./critical-context.mjs";
 
 const CONFIG = ".agents/agent-works.json";
 const RETIRED = ".agents/retired/agent-works";
 const ADDITIONS = `${RETIRED}/config-additions.json`;
 const AW = path.join(import.meta.dirname, "..", "scripts", "aw.mjs");
-const POINTER = "The board is the record: /agent-works:orchestrate resumes it.";
+const POINTER = "The board is the record: /agentcraft:agent-works orchestrate resumes it.";
 // The longest each part of the briefing may be, so the whole stays a few lines.
 const BOARD_CHARS = 240;
 const TITLE_CHARS = 50;
@@ -155,7 +154,7 @@ async function boardLine(cwd) {
   const { doneCriteria } = await import("../lib/cards.mjs");
   const criteria = doneCriteria(mine.body).split("\n").map((l) => l.replace(/^\s*[-*]\s+(\[.\]\s+)?/, "").trim()).filter(Boolean).join("; ");
   return `You are working card ${mine.id} "${clip(String(mine.title), TITLE_CHARS)}".${criteria ? ` Done when: ${clip(criteria, CRITERIA_CHARS)}.` : ""} `
-    + `Its brief: node "${AW}" board brief ${mine.id}. Cadence: /agent-works:work-card; end your final message with the CARD line.`;
+    + `Its brief: node "${AW}" board brief ${mine.id}. Cadence: /agentcraft:agent-works work-card; end your final message with the CARD line.`;
 }
 
 /** A cheap look for a board folder, so a repo without one never loads the board's modules. */
@@ -174,4 +173,4 @@ async function briefing(payload, state) {
   return lines.filter(Boolean).join(" ");
 }
 
-await run(briefing, { migrate });
+export { briefing, migrate };

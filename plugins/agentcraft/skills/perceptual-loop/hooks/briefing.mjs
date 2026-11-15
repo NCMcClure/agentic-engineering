@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// SessionStart (startup, resume, clear, compact) and SubagentStart: this
-// plugin's critical lines from critical.json, through the kernel
-// (critical-context.mjs), with two things of its own in front. The blind
-// critic never gets any of it: the kernel's deny list names its agent type.
+// This area's part of the session briefing: the plugin's briefing command
+// (hooks/briefing.mjs at the plugin's root) loads it, runs `migrate` first and
+// `briefing` after, in the main session only. The area's critical lines are
+// data, critical.json beside this file, and the lines command prints them.
 //
 // A migration, main session only. The plugin's first layout kept a project's
 // state in .perceptual-loop/ at the root; it now lives in .agents/perceptual/.
@@ -11,7 +11,7 @@
 // the config.json only this plugin wrote. Nothing inside it is rewritten: a
 // config that names the old folder is reported key by key for the model to
 // edit, and the CLI keeps reading that spelling from the new folder meanwhile.
-// Only the kernel's `move` touches the repo, and it never overwrites.
+// Only the `move` it is handed touches the repo, and it never overwrites.
 //
 // A briefing, main session only, in a repo that has the state folder (a few
 // dozen tokens): how many shots and which groups there are, so the model uses
@@ -23,7 +23,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { OLD_DIR_NAME, allShots, loadConfig, oldPathKeys } from "../scripts/lib/project.mjs";
 import { shellOnly } from "../scripts/lib/render.mjs";
-import { run } from "./critical-context.mjs";
 
 const NEW_DIR = ".agents/perceptual";
 const CONFIG = `${NEW_DIR}/config.json`;
@@ -95,10 +94,10 @@ function briefing(payload, state) {
   let shots = 0;
   try { shots = allShots(root, loadConfig(root)).length; } catch { /* a config that does not parse: the count is not worth a failure */ }
   const groups = Object.keys(readJson(path.join(root, dir, "groups.json")) ?? {});
-  lines.push(`This repo has a perceptual harness in ${dir}/: ${shots} shot(s)${groups.length ? `, groups ${groups.slice(0, 6).join(", ")}` : ""}. Iterate on it with /perceptual-loop:iterate-shots instead of rendering by hand.`);
+  lines.push(`This repo has a perceptual harness in ${dir}/: ${shots} shot(s)${groups.length ? `, groups ${groups.slice(0, 6).join(", ")}` : ""}. Iterate on it with /agentcraft:perceptual-loop iterate-shots instead of rendering by hand.`);
   if (unmoved) lines.push(`Its state is still in ${OLD_DIR_NAME}/ and is read from there: move that folder to ${NEW_DIR}/, merging by hand what is already there.`);
   else if (!justMoved) lines.push(...configEdits(readJson(path.join(root, CONFIG)), CONFIG));
   return lines.join(" ");
 }
 
-await run(briefing, { migrate });
+export { briefing, migrate };

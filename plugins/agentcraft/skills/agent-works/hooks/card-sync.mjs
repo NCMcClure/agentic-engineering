@@ -21,7 +21,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { afterTool, cardsOf, ledgerOf, observe, record, stopAsk } from "../lib/sync.mjs";
-import { modeOf, readPayload, repoRoot } from "./critical-context.mjs";
+import { modeOf, readPayload, repoRoot } from "../../../hooks/critical-context.mjs";
 
 const CLI = `node "${path.join(import.meta.dirname, "..", "scripts", "aw.mjs")}" board`;
 const KINDS = { PostToolUse: "tool", Stop: "stop", SubagentStop: "subagent" };

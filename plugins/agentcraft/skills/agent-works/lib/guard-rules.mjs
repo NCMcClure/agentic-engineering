@@ -41,7 +41,7 @@
 import { fnmatch } from "./common.mjs";
 import {
   LEADERS, assignments, baseName, expand, gitCommand, psAssignment, shellWords, splitLead, textOf, unwrap,
-} from "../hooks/shell-words.mjs";
+} from "../../../lib/shell-words.mjs";
 
 export const EDIT_TOOLS = Object.freeze(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
 export const SHELL_TOOLS = Object.freeze(["Bash", "PowerShell"]);

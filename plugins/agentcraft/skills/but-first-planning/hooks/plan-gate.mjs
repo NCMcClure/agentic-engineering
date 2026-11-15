@@ -21,7 +21,7 @@
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { readPayload, repoRoot } from "./critical-context.mjs";
+import { readPayload, repoRoot } from "../../../hooks/critical-context.mjs";
 
 export const CONFIG = ".agents/plan/config.json";
 export const GATE_KEY = "taskGate";

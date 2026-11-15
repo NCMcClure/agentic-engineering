@@ -16,7 +16,7 @@
 // line for the person.
 import path from "node:path";
 import { emit, ioOf, parseArgs, repoRoot, runMain } from "../lib/common.mjs";
-import { FORGES, checkCli, cliPath, detect } from "../lib/provider.mjs";
+import { FORGES, checkCli, cliPath, detect } from "../../../lib/provider.mjs";
 
 const USAGE = `usage: aw doctor --machine [--json]
        node machine-doctor.mjs [--json] [--root DIR]

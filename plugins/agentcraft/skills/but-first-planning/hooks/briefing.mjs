@@ -1,6 +1,8 @@
 #!/usr/bin/env node
-// SessionStart and SubagentStart: this plugin's critical lines, through the
-// kernel (critical-context.mjs), with two things of its own in front.
+// This area's part of the session briefing: the plugin's briefing command
+// (hooks/briefing.mjs at the plugin's root) loads it, runs `migrate` first and
+// `briefing` after, in the main session only. The area's critical lines are
+// data, critical.json beside this file, and the lines command prints them.
 //
 // A migration, main session only. A workspace this plugin scaffolded before
 // 5.0 differs from today's in three ways, and each is moved without asking:
@@ -15,7 +17,7 @@
 //                          ships it as a hook that is off by default
 //
 // An old layout is recognised only by a script this plugin copied there. Only
-// the kernel's `move` and `write` touch the repo, and neither overwrites, so a
+// the `move` and `write` it is handed touch the repo, and neither overwrites, so a
 // second run changes nothing. Files that name the old commands (checkpoint
 // rows, a .gitignore line, the settings entry) are the repo's own: they are
 // listed for the session to edit, never rewritten here.
@@ -28,7 +30,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import { SCRIPTS, WORKSPACE, asset, staleScripts } from "../routes/spec-init/scaffold.mjs";
-import { run } from "./critical-context.mjs";
 import { CONFIG, GATE_KEY } from "./plan-gate.mjs";
 
 const OLD_WORKSPACE = ".plan";
@@ -134,4 +135,4 @@ function briefing(payload, state) {
   return `The plan scripts in ${WORKSPACE}/ are not this plugin's current copies (${stale.join(", ")}). Before publishing or changing a status, refresh them and commit the result: node "${SCAFFOLD}" --refresh`;
 }
 
-await run(briefing, { migrate });
+export { briefing, migrate };
