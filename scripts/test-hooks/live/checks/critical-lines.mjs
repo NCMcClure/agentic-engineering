@@ -7,7 +7,7 @@
 // wording: a block is found by its "Critical, from <plugin>:" header.
 import fs from "node:fs";
 import path from "node:path";
-import { SHARED_LINE } from "../../../shared/critical-context.mjs";
+import { SHARED_LINE } from "../../../../plugins/agentcraft/hooks/critical-context.mjs";
 import { MODES } from "../../fixtures.mjs";
 
 const PLUGINS = path.resolve(import.meta.dirname, "..", "..", "..", "..", "plugins");

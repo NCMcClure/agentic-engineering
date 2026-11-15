@@ -1,0 +1,24 @@
+{
+  "script": "briefing.mjs",
+  "event": "SessionStart",
+  "fixture": "adopted",
+  "own": true,
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "startup",
+    "session_id": "ac-session",
+    "cwd": "{{REPO}}"
+  },
+  "env": {
+    "CLAUDE_CONFIG_DIR": "{{REPO}}/.no-settings"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput",
+        "systemMessage"
+      ]
+    }
+  }
+}

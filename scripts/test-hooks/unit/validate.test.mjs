@@ -192,111 +192,148 @@ test("a Node hook with no guard, a quiet one at session start, or no status mess
   assert.match(result.stdout, /^FAIL: .*the Stop command is not a guard followed by node/m);
 });
 
-// Shared files: one copy is edited, in scripts/shared/, and a plugin's copy
-// is that file byte for byte.
-const KERNEL = fs.readFileSync(path.join(REPO, "scripts/shared/critical-context.mjs"), "utf8");
-const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: `${JSON.stringify({ shared: list })}\n` });
-
-test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
-  const dir = tree(t, { write: { ...shares("write-like-me", ["hooks/critical-context.mjs"]), "plugins/agentcraft/skills/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
-  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/agentcraft/skills/workflow-studio.json"), `${JSON.stringify({ shared })}\n`);
-  data(["hooks/critical-context.mjs", "lib/no-such-file.mjs"]);
-  const result = validate(dir);
+test("one SessionStart command tells the person Node is missing: a second loud one, or a loud one on another event, fails", (t) => {
+  const files = { "plugins/tidy/hooks/second.mjs": "process.exitCode = 0;\n" };
+  let result = validate(tree(t, { ...hooks({ hooks: { SessionStart: [command("start.mjs"), command("second.mjs")] } }), write: { ...hooks({}).write, ...files, "plugins/tidy/hooks/hooks.json": `${JSON.stringify({ hooks: { SessionStart: [command("start.mjs"), command("second.mjs")] } })}\n` } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/write-like-me\/hooks\/critical-context\.mjs is missing: node scripts\/sync-shared\.mjs --write/m);
-  assert.match(result.stdout, /^FAIL: plugins\/workflow-studio\/hooks\/critical-context\.mjs has drifted from scripts\/shared\/critical-context\.mjs/m);
-  assert.match(result.stdout, /^FAIL: plugins\/workflow-studio\/lib\/no-such-file\.mjs is listed as shared, but scripts\/shared\/no-such-file\.mjs does not exist/m);
+  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the SessionStart command for hooks\/second\.mjs repeats the guard that tells the person Node is missing; hooks\/start\.mjs says it, and the rest stay quiet/m);
 
-  const check = runNode("scripts/sync-shared.mjs", ["--root", dir]);
-  assert.equal(check.status, 1);
-  assert.match(check.stdout, /^missing: plugins\/write-like-me\/hooks\/critical-context\.mjs/m);
-  assert.match(check.stdout, /^drifted: plugins\/workflow-studio\/hooks\/critical-context\.mjs/m);
-  assert.equal(fs.existsSync(path.join(dir, "plugins/agentcraft/skills/write-like-me/hooks/critical-context.mjs")), false, "a check writes nothing");
-
-  data(["hooks/critical-context.mjs"]);
-  assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir, "--write"]).status, 0);
-  for (const plugin of ["write-like-me", "workflow-studio"]) assert.equal(fs.readFileSync(path.join(dir, "plugins", plugin, "hooks/critical-context.mjs"), "utf8"), KERNEL, plugin);
-  assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir]).status, 0);
-  execFileSync("git", ["-C", dir, "add", "-A"]);
-  const after = validate(dir);
-  assert.equal(after.status, 0, after.stdout);
-  assert.match(after.stdout, /^ok: \d+ shared copy\/copies match scripts\/shared, /m);
+  result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs")], Stop: [command("start.mjs")] } })));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the Stop command for hooks\/start\.mjs uses the guard that tells the person Node is missing; only a SessionStart command does/m);
 });
 
-test("a shared file with no suite of its own fails", (t) => {
-  const result = validate(tree(t, { write: { "scripts/shared/untested.mjs": "export const nothing = null;\n" } }));
+// Shared files: what several areas use sits once, in the one plugin's lib/,
+// with a suite of its own name. The folders that held a copy per plugin are gone.
+const LIB = `plugins/${ONE}/lib`;
+const AREA = (name, rel) => `plugins/${ONE}/skills/${name}/${rel}`;
+
+test("a shared file with no suite of its own fails, and so do the folders that held a copy for each plugin", (t) => {
+  const clean = gate(tree(t));
+  assert.match(clean.stdout, new RegExp(`^ok: \\d+ shared file\\(s\\) in ${LIB}/, each with a suite$`, "m"));
+
+  const result = gate(tree(t, { write: {
+    [`${LIB}/untested.mjs`]: "export const nothing = null;\n",
+    "scripts/shared/provider.mjs": "export const copy = true;\n",
+    "scripts/plugins/code-diet.json": "{ \"shared\": [] }\n",
+  } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: scripts\/shared\/untested\.mjs has no scripts\/test-hooks\/unit\/untested\.test\.mjs/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${LIB}/untested\\.mjs has no scripts/test-hooks/unit/untested\\.test\\.mjs`, "m"));
+  assert.match(result.stdout, /^FAIL: scripts\/shared\/ is still here: one plugin holds one copy of what its areas share/m);
+  assert.match(result.stdout, /^FAIL: scripts\/plugins\/ is still here/m);
 });
 
-test("a shared path that leaves the plugin fails", (t) => {
-  const result = validate(tree(t, { write: shares("write-like-me", ["../docs-parity/hooks/critical-context.mjs"]) }));
+test("the copy a route puts in a user's repo is held equal to the one in lib/", (t) => {
+  const copy = AREA("but-first-planning", "routes/spec-init/assets/provider.mjs");
+  assert.match(gate(tree(t)).stdout, /^ok: duplicated files hash-equal \(1 copy\/copies present\)$/m);
+  const result = gate(tree(t, { text: { [copy]: (s) => `${s}// edited here\n` } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: scripts\/plugins\/write-like-me\.json: "\.\.\/docs-parity\/hooks\/critical-context\.mjs" is not a path inside the plugin/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${copy} has drifted from ${LIB}/provider\\.mjs`, "m"));
 });
 
-// Critical lines: a plugin that ships them ships the kernel beside them, runs
-// it at session start and in subagents, and stays under its cap.
+// The session hooks: one helper, each area's lines as data under its cap, and
+// a hook map that runs the lines once per event and the briefing once.
+const HELPER = `plugins/${ONE}/hooks/critical-context.mjs`;
+const MAP = `plugins/${ONE}/hooks/hooks.json`;
 const line = (text, extra = {}) => ({ for: "all", mode: "any", text, ...extra });
-function speaks(plugin, data, { cap = 500, shared = ["hooks/critical-context.mjs"], events = ["SessionStart", "SubagentStart"] } = {}) {
-  const run = (event) => command("session-start.mjs", { plugin, loud: event === "SessionStart" });
-  return {
-    json: {
-      [`scripts/plugins/${plugin}.json`]: (m) => ({ ...m, shared, critical: { cap } }),
-      [`plugins/${plugin}/hooks/hooks.json`]: (m) => ({ ...m, hooks: { ...m.hooks, SessionStart: undefined, SubagentStart: undefined, ...Object.fromEntries(events.map((e) => [e, [run(e)]])) } }),
-    },
-    write: {
-      [`plugins/${plugin}/hooks/critical.json`]: `${JSON.stringify({ plugin, ...data }, null, 2)}\n`,
-      [`plugins/${plugin}/hooks/critical-context.mjs`]: KERNEL,
-      [`plugins/${plugin}/hooks/session-start.mjs`]: 'import { run } from "./critical-context.mjs";\n\nawait run();\n',
-    },
-  };
-}
+const lines = (name, data) => ({ [AREA(name, "hooks/critical.json")]: `${JSON.stringify({ area: name, ...data }, null, 2)}\n` });
+const where = (name) => `FAIL: plugins/${ONE}/skills/${name}/hooks/critical\\.json: `;
 
-test("a plugin's critical lines pass within its cap and are counted against the total", (t) => {
-  const result = validate(tree(t, speaks("docs-parity", { lines: [line("Docs change with the code.")], chains: [line("Shots go through the loop.", { partner: "perceptual-loop", for: "main" })] })));
-  assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^ok: \d+ shared copy\/copies match scripts\/shared, /m);
-  assert.match(result.stdout, /^ok: critical lines within budget \(\d+ of 7500 characters across \d+ plugin\(s\)\)$/m);
+test("the areas' critical lines pass within their caps, and the gate prints the total and each command's worst case", (t) => {
+  const result = gate(tree(t));
+  const [, total, areas, linesWorst, briefingWorst] = /^ok: critical lines within budget \((\d+) of 7500 characters across (\d+) area\(s\)\); the lines command prints at most (\d+) and the briefing (\d+), of 10000$/m.exec(result.stdout) ?? [];
+  assert.equal(areas, "7", result.stdout);
+  assert.ok(Number(total) <= 7500 && Number(linesWorst) <= 10000 && Number(briefingWorst) <= 10000);
+  assert.equal(Number(linesWorst), Number(total) + 1000, "the lines, the question, and the JSON they go out in");
+  assert.match(result.stdout, /^ok: \d+ plugin-qualified DENYLIST entr(y|ies): each an agent its plugin ships$/m);
 });
 
-test("critical lines over the plugin's cap, or with a bad audience, mode or partner, fail", (t) => {
-  const data = { lines: [line("x".repeat(600)), line("Wrong audience.", { for: "everyone" }), line("Wrong mode.", { mode: "sometimes" })], chains: [line("To itself.", { partner: "docs-parity" }), line("To nobody.", { partner: "no-such-plugin" })] };
-  const result = validate(tree(t, speaks("docs-parity", data)));
+test("lines over an area's cap, or with a bad audience, mode or when, or the wrong area name, fail", (t) => {
+  const data = { area: "docs", lines: [line("x".repeat(600)), line("Wrong audience.", { for: "everyone" }), line("Wrong mode.", { mode: "sometimes" }), line("Wrong gate.", { when: ["docs", 7] })] };
+  const result = gate(tree(t, { write: lines("docs-parity", data) }));
   assert.equal(result.status, 1);
-  const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";
-  assert.match(result.stdout, new RegExp(`^${where}critical and chain lines are \\d+ characters, over the 500 cap`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}"Wrong audience\\." needs for: main or all`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}"Wrong mode\\." needs mode: full, portable, any`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}chain partner "docs-parity" is not another plugin in ORDER`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}chain partner "no-such-plugin" is not another plugin in ORDER`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}critical lines are \\d+ characters, over the 450 cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong audience\\." needs for: main or all`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong mode\\." needs mode: full, portable, any`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong gate\\." needs when: a repo path, or a list of them`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}area is "docs", expected docs-parity`, "m"));
 });
 
-test("critical lines with no kernel copy listed, no cap, the wrong name, or no subagent hook fail", (t) => {
-  const result = validate(tree(t, {
-    ...speaks("docs-parity", { plugin: "docs", lines: [line("Docs change with the code.")] }, { shared: [], events: ["SessionStart"] }),
-    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/agentcraft/skills/docs-parity.json": () => ({}) },
+test("every area is present, so a chains block and a line that names a partner both fail", (t) => {
+  const data = { lines: [line("Shots go through the loop.", { partner: "perceptual-loop" })], chains: [line("Docs change with the code.", { partner: "agent-works" })] };
+  const result = gate(tree(t, { write: lines("docs-parity", data) }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}it carries a chains block; a line that waited on another plugin is a line of its own now, behind its own when`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Shots go through the loop\\." names a partner; every area is present`, "m"));
+});
+
+test("lines past the total, or a command that could print past what a host shows in full, fail", (t) => {
+  const big = Object.assign({}, ...["agent-works", "agentic-teamwork", "perceptual-loop"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
+  let result = gate(tree(t, { write: big }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: critical lines total \d+ characters across the areas, over the 7500 target/m);
+
+  result = gate(tree(t, { write: Object.assign(big, lines("but-first-planning", { lines: [line("x".repeat(1500))] })) }));
+  assert.match(result.stdout, /^FAIL: the lines command can print \d+ characters, over the host's 10000/m);
+
+  result = gate(tree(t, { text: { [HELPER]: (s) => s.replace("export const MIGRATION_CHARS = 4200;", "export const MIGRATION_CHARS = 9000;") } }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: the briefing command can print \d+ characters, over the host's 10000/m);
+});
+
+test("AREAS in the helper and the caps in the gate name the same areas, each with its lines", (t) => {
+  let result = gate(tree(t, { text: { [HELPER]: (s) => s.replace('"perceptual-loop", "system-map"];', '"perceptual-loop", "tidy"];') } }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS does not list system-map, which CRITICAL_CAPS in scripts/validate\\.mjs gives a cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists tidy, which has no cap in CRITICAL_CAPS in scripts/validate\\.mjs`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists tidy, which has no plugins/${ONE}/skills/tidy/hooks/critical\\.json`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("system-map")}system-map is not in AREAS in ${HELPER}, so its lines never print`, "m"));
+
+  result = gate(tree(t, { remove: [AREA("code-diet", "hooks/critical.json")] }));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists code-diet, which has no plugins/${ONE}/skills/code-diet/hooks/critical\\.json`, "m"));
+});
+
+test("a second copy of the helper, an area's own session hook, and a briefing with no allowance or no file fail", (t) => {
+  const result = gate(tree(t, {
+    write: {
+      [AREA("code-diet", "hooks/critical-context.mjs")]: fs.readFileSync(path.join(REPO, HELPER), "utf8"),
+      [AREA("code-diet", "hooks/session-start.mjs")]: "process.exitCode = 0;\n",
+      [AREA("code-diet", "hooks/briefing.mjs")]: "export const briefing = () => \"\";\n",
+    },
+    remove: [AREA("system-map", "hooks/briefing.mjs")],
   }));
   assert.equal(result.status, 1);
-  const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";
-  assert.match(result.stdout, new RegExp(`^${where}scripts\\/plugins\\/docs-parity\\.json does not list hooks\\/critical-context\\.mjs under shared`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}hooks\\.json does not run hooks\\/session-start\\.mjs on SubagentStart`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}plugin is "docs", expected docs-parity`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where}scripts\\/plugins\\/docs-parity\\.json carries no critical\\.cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/critical-context\\.mjs")} is a second copy of the session helper; the one copy is ${HELPER}`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/session-start\\.mjs")}: an area has no session hook of its own`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/briefing\\.mjs")} has no allowance in BRIEFING_CHARS in ${HELPER}, so the briefing command never loads it`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: BRIEFING_CHARS gives system-map an allowance, and plugins/${ONE}/skills/system-map/hooks/briefing\\.mjs is not there`, "m"));
 });
 
-test("critical lines from a plugin the kernel's ORDER does not name fail", (t) => {
-  const tidy = withTidy({
-    "plugins/tidy/hooks/critical.json": `${JSON.stringify({ plugin: "tidy", lines: [line("Sweep first.")] })}\n`,
-    "plugins/tidy/hooks/critical-context.mjs": KERNEL,
-    "plugins/tidy/hooks/session-start.mjs": 'import { run } from "./critical-context.mjs";\n\nawait run();\n',
-    "plugins/tidy/hooks/hooks.json": `${JSON.stringify({ hooks: { SessionStart: [command("session-start.mjs")], SubagentStart: [command("session-start.mjs", { loud: false })] } })}\n`,
-    "scripts/plugins/tidy.json": `${JSON.stringify({ shared: ["hooks/critical-context.mjs"], critical: { cap: 500 } })}\n`,
-  });
-  const result = validate(tree(t, tidy));
+test("a hook map that runs the lines other than once per event, or the briefing other than once at session start, fails", (t) => {
+  const session = (file, loud = false) => ({ type: "command", command: hookCommand(ONE, `hooks/${file}`, { loud }), statusMessage: "Reading" });
+  const group = (matcher, ...list) => ({ ...(matcher ? { matcher } : {}), hooks: list });
+  const STARTS = "startup|resume|clear|compact";
+  const map = (fn) => ({ json: { [MAP]: (m) => ({ ...m, hooks: fn(m.hooks) }) } });
+  const others = (h) => h.SessionStart.filter((g) => !g.hooks.some((x) => /\/hooks\/(session-start|briefing)\.mjs"$/.test(x.command) && !x.command.includes("/skills/")));
+
+  // The lines twice at session start and never in a subagent; the briefing in a subagent and on Stop.
+  let result = gate(tree(t, map((h) => ({
+    ...h,
+    SessionStart: [group(STARTS, session("session-start.mjs", true)), group(STARTS, session("session-start.mjs")), group(STARTS, session("briefing.mjs")), ...others(h)],
+    SubagentStart: [group(null, session("briefing.mjs"))],
+    Stop: [...h.Stop, group(null, session("briefing.mjs"))],
+  }))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/critical\.json: tidy is not in ORDER in scripts\/shared\/critical-context\.mjs/m);
-  assert.equal(result.stdout.match(/^FAIL:/gm).length, 1, result.stdout);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP} runs hooks/session-start\\.mjs 2 time\\(s\\) on SessionStart; it runs once`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP} runs hooks/session-start\\.mjs 0 time\\(s\\) on SubagentStart; it runs once`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP} runs hooks/briefing\\.mjs 1 time\\(s\\) on SubagentStart; it runs never: a subagent gets no briefing`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP} runs hooks/briefing\\.mjs on Stop; it is a session-start command`, "m"));
+
+  // No briefing at all, and the lines only on a fresh start.
+  result = gate(tree(t, map((h) => ({ ...h, SessionStart: [group("startup", session("session-start.mjs", true)), ...others(h)] }))));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP} runs hooks/briefing\\.mjs 0 time\\(s\\) on SessionStart; it runs once`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${MAP}: hooks/session-start\\.mjs runs on SessionStart "startup"; it is "startup\\|resume\\|clear\\|compact", so the context comes back after a compaction and a /clear`, "m"));
 });
 
 // The entry skill is the one a person types. Its area tables are generated,
@@ -438,7 +475,7 @@ const ROUTE_STEPS = [
 ].join("\n");
 const PAGE = [`Run /${STUB}:sweep.`, `Or /${ONE}:brush.`, `Or \`/${ONE}:tidy mop\`.`, `Or /${ONE}:nothing.`, `This works: \`/${ONE}:tidy sweep\`, and so does /${ONE}:tidy.`].join("\n");
 // Built, never written out: an entry here is an address to this file's own gate.
-const GONE = ["code-diet", "nobody"].join(":"), WAS = [STUB, "critic"].join(":");
+const GONE = [ONE, "nobody"].join(":"), WAS = [STUB, "critic"].join(":");
 const alias = (name, to, extra = "user-invocable: false\n") => `---\nname: ${name}\ndescription: Use when a file still prints the old address of ${name}.\n${extra}---\n\nMoved: this is ${to} now.\n`;
 const cleanups = [];
 after(() => { for (const fn of cleanups) fn(); });
@@ -461,7 +498,7 @@ const broken = () => (brokenOnce ??= (() => {
     },
     text: {
       "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${STUB}@agentic-engineering\`.\n`,
-      "scripts/shared/critical-context.mjs": (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
+      "plugins/agentcraft/hooks/critical-context.mjs": (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
       "plugins/agentcraft/skills/agent-works/hooks/kanban/register.mjs": (s) => s.replaceAll("mcp__agent-works__", "mcp__kanban__"),
     },
   }));

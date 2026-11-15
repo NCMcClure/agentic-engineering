@@ -11,11 +11,12 @@ Node 22, no dependencies. Nothing here ships with a plugin.
 
 Runs every `*.test.mjs` under this folder. Free, fast, and what CI runs.
 
-`hooks.test.mjs` spawns each hook through the command its `hooks.json`
+`hooks.test.mjs` spawns each hook through the command the plugin's `hooks.json`
 registers, with one JSON payload on stdin, and checks stdout and the exit code.
-A case is one file, `cases/<plugin>/<hook>.<n>.json`; the format is at the top
-of `hooks.test.mjs`. Every Node hook needs three: a real payload, empty stdin,
-and malformed JSON. On Windows only Node hooks run; a shell or Python hook's
+A case is one file, `cases/<owner>/<hook>.<n>.json`: `cases/agentcraft/` for the
+plugin's own two session commands, `cases/<area>/` for a hook in an area's
+`hooks/` folder. The format is at the top of `hooks.test.mjs`. Every Node hook
+the hook map runs needs three: a real payload, empty stdin, and malformed JSON. On Windows only Node hooks run; a shell or Python hook's
 cases are skipped there.
 
 A case with a `gap` line states the behavior wanted for a known defect. It is
@@ -85,8 +86,10 @@ and for skills a session can call and those only a person can start
 - `hooks.test.mjs`, `cases/` - the hook cases.
 - `unit/` - tests of the repo's own tooling (the validator and the installer,
   each run against a throwaway copy; the generator and the script that moves a
-  plugin into the one plugin, each on a fixture marketplace) and one suite per
-  file in `scripts/shared/`.
+  plugin into the one plugin, each on a fixture marketplace), one suite per
+  file in `plugins/agentcraft/lib/`, and `critical-context.test.mjs` for the
+  session helper and its two commands. `area-session.mjs` runs one area's part
+  of those commands alone, for the suites about a single area.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
   `reach.mjs` what counts as reaching a skill. The transcript reader is

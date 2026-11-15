@@ -1,4 +1,4 @@
-// The session hook's briefing: how an orchestrator gets its round back after a
+// agent-works' part of the session briefing: how an orchestrator gets its round back after a
 // restart or a compaction, how a child learns which card it is working, and
 // what a repo set up for agent work gets at the start of every session (its
 // CLAUDE.md twins healed, the session registered). It runs on every session
@@ -9,7 +9,9 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "session-start.mjs");
+// The area's part alone, run through the plugin's helper (area-session.mjs says why).
+const HOOK = path.join(import.meta.dirname, "area-session.mjs");
+const PART = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "briefing.mjs");
 const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const CONFIG = ".agents/agent-works.json";
 const STAMP = new Date().toISOString();
@@ -38,7 +40,7 @@ function card(kanban, id, title, fields = "", body = "") {
 
 /** Run the hook as a host does, with a home and a store of its own; null for no output. */
 function hook(r, payload, { cwd = r.main, env = {} } = {}) {
-  const out = runNode(HOOK, [], {
+  const out = runNode(HOOK, ["agent-works"], {
     cwd,
     env: { ...process.env, HOME: r.home, USERPROFILE: r.home, CLAUDE_CONFIG_DIR: path.join(r.home, ".claude"), CLAUDE_PLUGIN_DATA: "", AW_HOME: r.store, AW_AGENT: "", CLAUDE_PROJECT_DIR: "", ...env },
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
@@ -72,7 +74,7 @@ test("agent-works session: the main checkout gets the board in one line", (t) =>
   card(r.kanban, "0003", "Live lane", "status: backlog\norder: 2\nkind: gate\nneeds: the person\nref: !12\n");
   const out = hook(r, start(r.main));
   assert.equal(out.hookSpecificOutput.hookEventName, "SessionStart");
-  assert.equal(briefing(out), "Board: 1 in progress (0001 card-0001 !12), 0 in review, 1 ready, 1 gate owed. The board is the record: /agent-works:orchestrate resumes it.");
+  assert.equal(briefing(out), "Board: 1 in progress (0001 card-0001 !12), 0 in review, 1 ready, 1 gate owed. The board is the record: /agentcraft:agent-works orchestrate resumes it.");
 });
 
 test("agent-works session: the board line is the one `aw board status --brief` prints", (t) => {
@@ -89,7 +91,7 @@ test("agent-works session: a worktree whose branch a card names is told which ca
   // A worktree session is handed the main checkout as its project dir; the payload's cwd is what counts.
   const out = hook(r, start(r.worktree), { cwd: r.main, env: { CLAUDE_PROJECT_DIR: r.main } });
   assert.equal(briefing(out), `You are working card 0007 "Claim the push grant". Done when: the grant is in git config; a second claim is refused. `
-    + `Its brief: node "${AW}" board brief 0007. Cadence: /agent-works:work-card; end your final message with the CARD line.`);
+    + `Its brief: node "${AW}" board brief 0007. Cadence: /agentcraft:agent-works work-card; end your final message with the CARD line.`);
 });
 
 test("agent-works session: a card written before `## Done when` is read by its old heading, and one without criteria is still named", (t) => {
@@ -127,7 +129,7 @@ test("agent-works session: a subagent gets the lines for every agent and no brie
   card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
   const text = context(hook(r, { hook_event_name: "SubagentStart", agent_type: "general-purpose", session_id: "s", cwd: r.main }));
   assert.match(text, /^Critical, from agent-works:/);
-  assert.match(text, /\/agent-works:resource-locks/);
+  assert.match(text, /\/agentcraft:agent-works resource-locks/);
   assert.match(text, /Hubs: a directory with an AGENTS\.md/);
   assert.doesNotMatch(text, /Board:|orchestrate/);
   assert.equal(hook(r, { hook_event_name: "SubagentStart", agent_type: "Explore", session_id: "s", cwd: r.main }), null);
@@ -197,24 +199,24 @@ test("agent-works session: the briefing stays a few lines however full the board
   for (let i = 1; i <= 40; i++) card(r.kanban, String(i).padStart(4, "0"), `Card number ${i}`, `status: in-progress\norder: ${i}\nsession: card-session-${i}\nmr: ${1000 + i}\n`);
   const boardLine = briefing(hook(r, start(r.main)));
   assert.match(boardLine, /^Board: 40 in progress \(0001 card-session-1 !1001; .*\.\.\. The board is the record/);
-  assert.ok(boardLine.length <= 302, `${boardLine.length} characters`);
+  assert.ok(boardLine.length <= 313, `${boardLine.length} characters`);
 
   const long = "a criterion that goes on and on ".repeat(20);
   card(r.kanban, "0041", `A title ${"so long ".repeat(20)}`, "status: in-progress\norder: 41\nbranch: feat/child\n", `\n## Done when\n- ${long}\n`);
   // The worst case: a fresh worktree of a card, so the twin was just written too.
   const worst = briefing(hook(r, start(r.worktree), { cwd: r.worktree }));
   assert.match(worst, /^This checkout had no CLAUDE\.md.* You are working card 0041 "A title so long .*\.\.\."\. Done when: a criterion .*\.\.\.\. Its brief: /);
-  assert.ok(worst.length - AW.length <= 500, `${worst.length - AW.length} characters besides the plugin's own path`);
+  assert.ok(worst.length - AW.length <= 511, `${worst.length - AW.length} characters besides the plugin's own path`);
 });
 
 test("agent-works session: the hook reads its own location, never a plugin root variable", () => {
-  assert.doesNotMatch(fs.readFileSync(HOOK, "utf8"), /CLAUDE_PLUGIN_ROOT/);
+  assert.doesNotMatch(fs.readFileSync(PART, "utf8"), /CLAUDE_PLUGIN_ROOT/);
 });
 
 test("agent-works session: alone in a repo nobody answered for, it asks the question and says nothing else", (t) => {
   const r = repoWithWorktree(t, { answer: null });
   card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
   const text = context(hook(r, start(r.main)));
-  assert.match(text, /ask the person once whether to use the agentic-engineering plugins/);
+  assert.match(text, /ask the person once whether to use the agentcraft plugin in this repo/);
   assert.doesNotMatch(text, /Board:|Critical/);
 });

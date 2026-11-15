@@ -5,10 +5,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { FINDINGS, checkHubs, main, parseMarker } from "../../shared/verify-hubs.mjs";
+import { FINDINGS, checkHubs, main, parseMarker } from "../../../plugins/agentcraft/lib/verify-hubs.mjs";
 import { runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const SCRIPT = "scripts/shared/verify-hubs.mjs";
+const SCRIPT = "plugins/agentcraft/lib/verify-hubs.mjs";
 const NO_SYMLINKS = process.platform === "win32" && "a symlink needs a privilege the Windows runner does not have";
 
 /** A repo with one root hub naming `src/` and `docs/`, and a file in each. */

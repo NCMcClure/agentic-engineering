@@ -11,7 +11,9 @@ import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
-const HOOK = path.join(PLUGIN, "hooks", "session-start.mjs");
+// The area's part alone, run through the plugin's helper (area-session.mjs says why).
+const HOOK = path.join(import.meta.dirname, "area-session.mjs");
+const PART = path.join(PLUGIN, "hooks", "briefing.mjs");
 const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 const CONFIG = ".agents/agent-works.json";
 const ADDITIONS = ".agents/retired/agent-works/config-additions.json";
@@ -33,7 +35,7 @@ function repo(t, files = {}, after = {}) {
 
 function hook(r, { cwd = r.dir } = {}) {
   const started = Date.now();
-  const out = runNode(HOOK, [], {
+  const out = runNode(HOOK, ["agent-works"], {
     cwd,
     env: { ...process.env, HOME: r.home, USERPROFILE: r.home, CLAUDE_CONFIG_DIR: path.join(r.home, ".claude"), CLAUDE_PLUGIN_DATA: "", AW_HOME: path.join(r.home, "store"), CLAUDE_PROJECT_DIR: "" },
     input: JSON.stringify({ hook_event_name: "SessionStart", source: "startup", session_id: "s", cwd }),
@@ -196,8 +198,8 @@ test("agent-works migrate: a config `aw setup` writes today is already current",
   assert.equal(read(r, ADDITIONS), null);
 });
 
-test("agent-works migrate: the migration reaches the repo only through the kernel's move and write", () => {
-  const source = fs.readFileSync(HOOK, "utf8");
+test("agent-works migrate: the migration reaches the repo only through the helper's move and write", () => {
+  const source = fs.readFileSync(PART, "utf8");
   const body = source.slice(source.indexOf("async function migrate("), source.indexOf("// ---- briefing"));
   assert.doesNotMatch(body, /\bfs\.(write|rename|rm|unlink|copy|mkdir|append|cp)\w*\(/);
 });

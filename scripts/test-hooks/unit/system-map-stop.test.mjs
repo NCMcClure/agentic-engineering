@@ -83,11 +83,12 @@ const silent = (out, why) => assert.deepEqual([out.status, out.stdout, out.stder
 
 // ---- what is registered -----------------------------------------------------
 
-test("hooks.json runs the Stop hook behind the quiet guard, with time to walk a tree", () => {
+test("the plugin's hook map runs the Stop hook once, behind the quiet guard, with time to walk a tree", () => {
   const command = hookCommand("agentcraft", "skills/system-map/hooks/stop-check.mjs");
-  const groups = HOOKS.Stop.filter((group) => group.hooks.some((hook) => hook.command === command));
-  assert.equal(groups.length, 1, "registered once");
-  const [entry] = groups[0].hooks;
+  const groups = HOOKS.Stop.filter((g) => g.hooks.some((h) => h.command === command));
+  assert.equal(groups.length, 1);
+  const [entry, ...more] = groups[0].hooks;
+  assert.deepEqual(more, []);
   assert.ok(entry.timeout >= 10 && entry.timeout <= 30, `timeout ${entry.timeout}`);
   assert.equal(groups[0].matcher, undefined);
 });

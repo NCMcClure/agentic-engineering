@@ -303,10 +303,12 @@ test("its own failures never block", () => {
 });
 
 test("the hook map runs the guard on Bash and PowerShell for five seconds, behind the quiet Node check", () => {
-  const map = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8"));
-  const [entry] = map.hooks.PreToolUse;
+  const map = JSON.parse(fs.readFileSync(path.join(PLUGIN, "..", "..", "hooks", "hooks.json"), "utf8"));
+  const command = hookCommand("agentcraft", "skills/perceptual-loop/hooks/guard.mjs");
+  const [entry, ...more] = map.hooks.PreToolUse.filter((g) => g.hooks.some((h) => h.command === command));
+  assert.deepEqual(more, [], "registered once");
   assert.equal(entry.matcher, "Bash|PowerShell");
+  assert.equal(entry.hooks.length, 1);
   assert.equal(entry.hooks[0].timeout, 5);
-  assert.equal(entry.hooks[0].command, hookCommand("perceptual-loop", "hooks/guard.mjs"));
   assert.ok(!fs.readFileSync(HOOK, "utf8").includes("PLUGIN_ROOT"), "the script finds its files beside itself");
 });

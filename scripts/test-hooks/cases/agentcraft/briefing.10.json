@@ -1,0 +1,19 @@
+{
+  "script": "briefing.mjs",
+  "event": "SessionStart",
+  "fixture": "unplugged",
+  "project": "standard",
+  "stdin": {
+    "hook_event_name": "SessionStart",
+    "source": "resume",
+    "session_id": "ac-session",
+    "cwd": "{{REPO}}"
+  },
+  "env": {
+    "CLAUDE_CONFIG_DIR": "{{REPO}}/.no-settings"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

@@ -61,7 +61,8 @@ function oldRepo(t, kind = "teamwork-only", { edit = (c) => c, mirror = true, ex
 function start(dir, { event = "SessionStart", extra = {} } = {}) {
   const input = JSON.stringify({ hook_event_name: event, source: "startup", session_id: "migrate", cwd: dir, ...extra });
   const began = Date.now();
-  const result = runNode(path.join(HOOKS, "session-start.mjs"), [], { cwd: dir, env: env(dir), input });
+  // The area's part alone, run through the plugin's helper (area-session.mjs says why).
+  const result = runNode(path.join(import.meta.dirname, "area-session.mjs"), ["agentic-teamwork"], { cwd: dir, env: env(dir), input });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stderr, "");
   const out = result.stdout.trim() ? JSON.parse(result.stdout) : null;
@@ -162,7 +163,7 @@ test("a first-layout test command in its own folder becomes a lane that goes the
   const { context } = start(none.dir);
   assert.deepEqual(json(none.dir, ".agents/manifest.json").lanes, {});
   assert.equal(json(none.dir, ".agents/manifest.json").default_branch, "trunk");
-  assert.match(context, /names no lanes yet: ask the person to run \/agentic-teamwork:init-project --upgrade/);
+  assert.match(context, /names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade/);
 });
 
 test("it runs for the kinds of repo the first layout was used in", (t) => {

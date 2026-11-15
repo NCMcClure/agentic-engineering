@@ -1,7 +1,9 @@
-// docs-parity's two hooks, run the way the host runs them: one payload on
-// stdin, stdout read back. session-start.mjs carries the docs rule into a repo
-// that has .agents/docs-parity.json and moves an older layout; stop-check.mjs
-// tells the agent, once, when a turn leaves the docs behind.
+// docs-parity's hooks, one payload on stdin, stdout read back. At session
+// start the plugin carries the docs rule into a repo that has
+// .agents/docs-parity.json and moves an older layout: the area's part of that
+// runs alone, through the plugin's helper (area-session.mjs says why).
+// stop-check.mjs, run the way the host runs it, tells the agent, once, when a
+// turn leaves the docs behind.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
@@ -10,11 +12,10 @@ import { hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "docs-parity");
-const SESSION = path.join(PLUGIN, "hooks", "session-start.mjs");
+const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const STOP = path.join(PLUGIN, "hooks", "stop-check.mjs");
 const CONFIG = ".agents/docs-parity.json";
 const MARKETPLACE = "agentic-engineering";
-const SHARED = "Nothing is done until it's checked";
 const DOCS_LINE = "User docs move in the same change";
 const line = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8")).lines[0];
 
@@ -37,7 +38,7 @@ function hook(t, script, cwd, payload = {}, { enabled = [], project = cwd } = {}
   const env = { ...process.env, HOME: config, USERPROFILE: config, CLAUDE_CONFIG_DIR: config, CLAUDE_PROJECT_DIR: project, TMPDIR: TMP, TEMP: TMP, TMP };
   delete env.CLAUDE_PLUGIN_DATA;
   const input = typeof payload === "string" ? payload : JSON.stringify({ cwd, ...payload });
-  const r = runNode(script, [], { cwd, input, env });
+  const r = runNode(script, script === SESSION ? ["docs-parity"] : [], { cwd, input, env });
   let out = null;
   try { out = JSON.parse(r.stdout); } catch { /* no output, or not JSON */ }
   return { ...r, out, context: out?.hookSpecificOutput?.additionalContext ?? "" };
@@ -65,40 +66,39 @@ function repo(t, { config = SURFACES, files = {}, answer } = {}) {
 
 test("the rule is one line, for every agent that acts, in any mode, only where the config is", () => {
   const data = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-  assert.deepEqual([data.plugin, data.lines.length, data.chains], ["docs-parity", 1, []]);
+  assert.deepEqual([data.area, data.lines.length, "chains" in data], ["docs-parity", 1, false]);
   assert.deepEqual([line.for, line.mode, line.when], ["all", "any", CONFIG]);
   assert.ok(!line.text.includes("\n"));
 });
 
 test("the line says what the rule asks: same change, the harness, the Docs: line, the skill, the contract", () => {
-  for (const part of ["same change", "capture harness", "never by hand", "`Docs: <pages>`", "`Docs: none, <why>`", "/docs-parity:docs-sync", ".agents/docs-contract.md"]) {
+  for (const part of ["same change", "capture harness", "never by hand", "`Docs: <pages>`", "`Docs: none, <why>`", "/agentcraft:docs-parity docs-sync", ".agents/docs-contract.md"]) {
     assert.ok(line.text.includes(part), part);
   }
 });
 
-test("the line as printed fits the plugin's cap", () => {
-  const { cap } = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "plugins", "docs-parity.json"), "utf8")).critical;
+test("the line as printed fits the area's cap", () => {
+  // The cap is CRITICAL_CAPS in scripts/validate.mjs.
+  const cap = 450;
   const printed = "Critical, from docs-parity:".length + line.text.length + 3;
   assert.ok(printed <= cap, `${printed} characters, cap ${cap}`);
 });
 
 test("the long form ships beside it, under fifty lines", () => {
-  const rule = fs.readFileSync(path.join(PLUGIN, "skills", "docs-parity", "references", "rule.md"), "utf8");
+  const rule = fs.readFileSync(path.join(PLUGIN, "references", "rule.md"), "utf8");
   assert.ok(rule.split("\n").length < 50);
   assert.match(rule, /Docs: none, <why>/);
 });
 
-test("hooks.json registers both hooks behind the guards, the session hook for every way a session starts", () => {
-  const { hooks } = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8"));
-  assert.deepEqual(Object.keys(hooks), ["SessionStart", "SubagentStart", "Stop"]);
-  assert.equal(hooks.SessionStart[0].matcher, "startup|resume|clear|compact");
-  assert.equal(hooks.SessionStart[0].hooks[0].command, hookCommand("docs-parity", "hooks/session-start.mjs", { loud: true }));
-  assert.ok(hooks.SessionStart[0].hooks[0].statusMessage);
-  assert.equal(hooks.SubagentStart[0].hooks[0].command, hookCommand("docs-parity", "hooks/session-start.mjs"));
-  assert.equal(hooks.Stop[0].hooks[0].command, hookCommand("docs-parity", "hooks/stop-check.mjs"));
+test("the plugin's hook map runs the Stop check behind the quiet guard, and the area has no session hook of its own", () => {
+  const { hooks } = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8"));
+  const stop = hookCommand("agentcraft", "skills/docs-parity/hooks/stop-check.mjs");
+  assert.equal(hooks.Stop.flatMap((g) => g.hooks).filter((h) => h.command === stop).length, 1);
+  assert.deepEqual(fs.readdirSync(path.join(PLUGIN, "hooks")).filter((f) => f.endsWith(".mjs") || f.endsWith(".json")).sort(), ["briefing.mjs", "critical.json", "stop-check.mjs"]);
+  assert.doesNotMatch(JSON.stringify(Object.entries(hooks).filter(([event]) => event !== "Stop")), /skills\/docs-parity\//, "the plugin's two session commands speak for it");
 });
 
-// ---- session-start.mjs: who hears the rule --------------------------------------
+// ---- at session start: who hears the rule ---------------------------------------
 
 test("a repo with the config hears the rule at session start, and again after a compaction or a clear", (t) => {
   const { dir } = repo(t);
@@ -125,23 +125,11 @@ test("a read-only agent type hears nothing", (t) => {
 
 test("a repo without the config never hears the docs line, whatever the person answered", (t) => {
   const on = hook(t, SESSION, repo(t, { config: null, answer: "on" }).dir, { hook_event_name: "SessionStart" });
-  assert.ok(on.context.includes(SHARED), "the first enabled plugin still prints the line every plugin shares");
-  assert.ok(!on.context.includes(DOCS_LINE));
+  assert.deepEqual([on.status, on.stdout, on.stderr], [0, "", ""], "an area with no line that applies prints no block");
   const unanswered = hook(t, SESSION, repo(t, { config: null }).dir, { hook_event_name: "SessionStart" });
   assert.ok(!unanswered.context.includes(DOCS_LINE));
   const off = hook(t, SESSION, repo(t, { config: null, answer: "off" }).dir, { hook_event_name: "SessionStart" });
   assert.deepEqual([off.status, off.stdout, off.stderr], [0, "", ""]);
-});
-
-test("behind another enabled plugin, a repo without the config hears nothing from this one at all", (t) => {
-  const { dir } = repo(t, { config: null, answer: "on" });
-  for (const hook_event_name of ["SessionStart", "SubagentStart"]) {
-    const r = hook(t, SESSION, dir, { hook_event_name, agent_type: "general-purpose" }, { enabled: ["code-diet"] });
-    assert.deepEqual([r.status, r.stdout, r.stderr], [0, "", ""], hook_event_name);
-  }
-  const withConfig = hook(t, SESSION, repo(t).dir, { hook_event_name: "SessionStart" }, { enabled: ["code-diet"] });
-  assert.ok(withConfig.context.includes(line.text));
-  assert.ok(!withConfig.context.includes(SHARED));
 });
 
 test("the committed config outranks a personal off", (t) => {
@@ -164,7 +152,7 @@ test("empty and malformed stdin fall back to the project dir and never fail", (t
   }
 });
 
-// ---- session-start.mjs: the briefing and the migration --------------------------
+// ---- at session start: the briefing and the migration ----------------------------
 
 test("a readable config adds no briefing; one that cannot be read says the checks are off", (t) => {
   const fine = hook(t, SESSION, repo(t).dir, { hook_event_name: "SessionStart" });

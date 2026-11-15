@@ -1,8 +1,9 @@
-// system-map's session hook: the two lines it prints from critical.json,
-// each only in a repo that carries what the line is about, and the one-line
-// note for a machine the live check cannot run on. The hook runs as a host
-// runs it, one payload on stdin, with the person's settings in a temp
-// CLAUDE_CONFIG_DIR so a developer's own enabledPlugins never reach a test.
+// system-map at session start: the two lines the plugin prints from the
+// area's critical.json, each only in a repo that carries what the line is
+// about, and the one-line note for a machine the live check cannot run on.
+// The area's part runs alone, through the plugin's helper (area-session.mjs
+// says why), one payload on stdin, with an empty home so nothing of a
+// developer's own reaches a test.
 // The hook cases cover the fixtures that carry no Miro project and no system
 // map; the repos that do are built here.
 import assert from "node:assert/strict";
@@ -10,12 +11,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import { CONFIG_KEY, MARKERS, ORDER, SHARED_LINE } from "../../shared/critical-context.mjs";
+import { AREAS, BRIEFING_CHARS, CONFIG_KEY, MARKERS } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
+const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
+const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
 const [MAP_LINE, BOARD_LINE] = CRITICAL.lines.map((l) => l.text);
 const MIRO_CONFIG = "export default { board: \"https://miro.com/app/board/uXjTEST=/\", views: [] };\n";
 
@@ -32,7 +34,7 @@ const NESTED_PROJECT = { "diagrams/miro.config.mjs": MIRO_CONFIG };
 
 function hook(t, payload, env = {}) {
   const config = tempDir(t, "miro-settings-");
-  const out = runNode(path.join(PLUGIN, "hooks", "session-start.mjs"), [], {
+  const out = runNode(path.join(import.meta.dirname, "area-session.mjs"), ["system-map"], {
     cwd: payload?.cwd ?? config,
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
     env: {
@@ -50,45 +52,41 @@ const NO_CHROME = (t) => ({ SYSTEM_MAP_CHROME: path.join(tempDir(t, "miro-none-"
 
 // ---- what is registered -----------------------------------------------------
 
-test("hooks.json registers the session hook for every session start and every subagent, and the Stop hook beside it", () => {
-  assert.deepEqual(Object.keys(HOOKS).sort(), ["SessionStart", "Stop", "SubagentStart"]);
-  assert.equal(HOOKS.SessionStart.length, 1);
-  const [start] = HOOKS.SessionStart;
-  assert.equal(start.matcher, "startup|resume|clear|compact");
-  assert.equal(start.hooks[0].command, hookCommand("system-map", "hooks/session-start.mjs", { loud: true }));
-  assert.ok(start.hooks[0].statusMessage);
-  assert.equal(HOOKS.SubagentStart[0].hooks[0].command, hookCommand("system-map", "hooks/session-start.mjs"));
+test("the plugin's hook map runs the area's Stop hook, and the area has no session hook of its own", () => {
+  const stop = hookCommand("agentcraft", "skills/system-map/hooks/stop-check.mjs");
+  assert.equal(HOOKS.Stop.flatMap((g) => g.hooks).filter((h) => h.command === stop).length, 1);
+  assert.deepEqual(fs.readdirSync(path.join(PLUGIN, "hooks")).sort(), ["briefing.mjs", "critical.json", "stop-check.mjs"]);
+  assert.doesNotMatch(JSON.stringify(Object.entries(HOOKS).filter(([event]) => event !== "Stop")), /skills\/system-map\//, "the plugin's two session commands speak for it");
 });
 
-test("critical.json is two lines, each gated on what it is about, inside the cap, with no chain yet", () => {
-  assert.equal(CRITICAL.plugin, "system-map");
-  assert.ok(ORDER.includes("system-map"));
-  assert.deepEqual(CRITICAL.chains, []);
+test("critical.json is two lines, each gated on what it is about, inside the cap", () => {
+  assert.equal(CRITICAL.area, "system-map");
+  assert.ok(AREAS.includes("system-map"));
+  assert.equal("chains" in CRITICAL, false);
   assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [
     ["all", "any", ".agents/system-map.json"],
     ["all", "any", ["miro.config.mjs", "diagrams/miro.config.mjs", ".agents/system-map.json"]],
   ]);
-  const cap = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "plugins", "system-map.json"), "utf8")).critical.cap;
-  assert.equal(cap, 800);
+  // The cap is CRITICAL_CAPS in scripts/validate.mjs.
+  const cap = 600;
   const printed = "Critical, from system-map:".length + CRITICAL.lines.reduce((n, l) => n + l.text.length + 3, 0);
   assert.ok(printed <= cap, `the block prints ${printed} characters, over the ${cap} cap`);
 });
 
 test("the lines name what the plugin really offers, and nothing about a workspace or a label", () => {
-  const shipped = fs.readdirSync(path.join(PLUGIN, "skills"));
+  const shipped = fs.readdirSync(path.join(PLUGIN, "routes"));
   for (const text of [BOARD_LINE, MAP_LINE]) {
-    for (const m of text.matchAll(/\/system-map:([a-z-]+)/g)) {
-      assert.ok(shipped.includes(m[1]), `/system-map:${m[1]} is not a skill`);
-      const frontmatter = fs.readFileSync(path.join(PLUGIN, "skills", m[1], "SKILL.md"), "utf8").split("---")[1];
-      assert.doesNotMatch(frontmatter, /disable-model-invocation:\s*true/, `a line sends the model to /system-map:${m[1]}, which only a person can run`);
+    for (const m of text.matchAll(/\/agentcraft:system-map ([a-z-]+)/g)) {
+      assert.ok(shipped.includes(m[1]), `/agentcraft:system-map ${m[1]} is not a route`);
+      assert.notEqual(DOOR.routes[m[1]]?.starts, "person", `a line sends the model to /agentcraft:system-map ${m[1]}, which only a person starts`);
     }
     assert.doesNotMatch(text, /\bspace\b|\bteam\b|workspace|confidential|classif/i);
     assert.doesNotMatch(text, /\.agents\/scripts/, "the checker lives in the plugin, not in the repo");
   }
-  for (const phrase of ["`@system node`", "`@system calls`", "in the same commit", "--write", "`Diagram: none, <why>`", "/system-map:diagrams-sync"]) {
+  for (const phrase of ["`@system node`", "`@system calls`", "in the same commit", "--write", "`Diagram: none, <why>`", "/agentcraft:system-map diagrams-sync"]) {
     assert.ok(MAP_LINE.includes(phrase), `the map line does not say: ${phrase}`);
   }
-  for (const phrase of ["linted before it is published", "checked live after", "pulled back", "/system-map:miro-board"]) {
+  for (const phrase of ["linted before it is published", "checked live after", "pulled back", "/agentcraft:system-map miro-board"]) {
     assert.ok(BOARD_LINE.includes(phrase), `the board line does not say: ${phrase}`);
   }
   assert.ok(fs.existsSync(path.join(PLUGIN, "scripts", "system-map.mjs")));
@@ -102,7 +100,7 @@ test("a repo with a system map is opted in by the map itself and gets both lines
   assert.equal(out.status, 0, out.stderr);
   assert.equal(out.stderr, "");
   assert.equal(out.parsed.hookSpecificOutput.hookEventName, "SessionStart");
-  assert.equal(out.context, `Critical, from system-map:\n- ${SHARED_LINE}\n- ${MAP_LINE}\n- ${BOARD_LINE}`);
+  assert.equal(out.context, `Critical, from system-map:\n- ${MAP_LINE}\n- ${BOARD_LINE}`);
   assert.ok(!out.parsed.systemMessage, "nothing to tell the person");
 });
 
@@ -123,7 +121,7 @@ test("a Miro project kept in diagrams/, where the plugin's own setup puts it, op
 
 test("an opted-in repo with neither a Miro project nor a map gets neither line", (t) => {
   const out = session(t, repo(t, {}, "on"));
-  assert.equal(out.context, `Critical, from system-map:\n- ${SHARED_LINE}`, "alone, the plugin still prints the line every plugin shares");
+  assert.equal(out.context, "", "an area with no line that applies prints no block");
   const beside = repo(t, { ".agents/plan/index.md": "# Plan\n" });
   assert.ok(!session(t, beside).context.includes("Miro"));
 });
@@ -169,8 +167,9 @@ test("in a Miro project on a machine with no Chrome, the session says one line a
     assert.ok(note, out.context);
     assert.equal(note.split("\n").length, 1);
     assert.match(note, /Google Chrome is not installed/);
-    assert.match(note, /Ask the person to run \/system-map:browser-setup/);
-    assert.ok(note.length <= 400, `the note is ${note.length} characters`);
+    assert.match(note, /Ask the person whether to set it up before the live check is needed: on their yes that is \/agentcraft:system-map browser-setup\./);
+    assert.ok(note.length <= BRIEFING_CHARS["system-map"], `the note is ${note.length} characters, over its allowance`);
+    assert.ok(!note.endsWith("…"), "the note was cut");
     assert.ok(out.context.indexOf(note) < out.context.indexOf("Critical, from system-map:"), "the note comes before the lines");
   }
 });
@@ -186,9 +185,9 @@ test("the note is kept to machines that need it and repos that draw boards", (t)
   assert.equal(off.stdout, "", "a repo that opted out hears nothing, whatever the machine lacks");
 });
 
-test("browser-setup, which the note points at, is a skill only a person runs", () => {
-  const text = fs.readFileSync(path.join(PLUGIN, "skills", "browser-setup", "SKILL.md"), "utf8");
-  assert.match(text.split("---")[1], /disable-model-invocation:\s*true/);
+test("browser-setup, which the note points at, is a route only a person starts", () => {
+  assert.ok(fs.existsSync(path.join(PLUGIN, "routes", "browser-setup", "ROUTE.md")));
+  assert.equal(DOOR.routes["browser-setup"].starts, "person");
 });
 
 // ---- what the hook never does -------------------------------------------------
@@ -207,7 +206,7 @@ test("the hook writes nothing in the repo and starts no browser", (t) => {
   const out = session(t, dir, {}, NO_CHROME(t));
   assert.equal(out.status, 0);
   assert.deepEqual(listing(), before);
-  const source = fs.readFileSync(path.join(PLUGIN, "hooks", "session-start.mjs"), "utf8");
+  const source = fs.readFileSync(path.join(PLUGIN, "hooks", "briefing.mjs"), "utf8");
   assert.doesNotMatch(source, /child_process|spawn|fetch\(/);
 });
 

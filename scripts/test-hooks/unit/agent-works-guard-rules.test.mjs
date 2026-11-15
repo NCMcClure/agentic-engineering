@@ -11,7 +11,7 @@ import { REPO } from "./helpers.mjs";
 const load = (rel) => import(pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", rel)).href);
 const rules = await load("lib/guard-rules.mjs");
 const { defaults, merge } = await load("lib/config.mjs");
-const { commandWords, shellWords } = await load("hooks/shell-words.mjs");
+const { commandWords, shellWords } = await load("../../lib/shell-words.mjs");
 
 const cfgWith = (over) => merge(defaults(), over);
 const ENFORCE = { guard: { locks: "deny" } };

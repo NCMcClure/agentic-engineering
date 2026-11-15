@@ -1,21 +1,25 @@
 #!/usr/bin/env node
 // Case-driven hook tests: one JSON file per case.
 //
-// These run a hook the way the host does: through the command its plugin's
+// These run a hook the way the host does: through the command the plugin's
 // hooks.json registers, with one JSON payload on stdin, reading stdout and the
 // exit code. That is the contract a host depends on, and the one a refactor
 // inside the script can break without any unit test noticing. Because the
 // command comes from hooks.json, a case does not care what language the hook
 // is written in.
 //
-// A case is scripts/test-hooks/cases/<plugin>/<hook>.<n>.json:
+// A case is scripts/test-hooks/cases/<owner>/<hook>.<n>.json. The owner is the
+// plugin, for a hook in its own hooks/ (the two session commands), or the area
+// whose hooks/ folder holds the file:
 //
 //   {
-//     "script":  "git-guard.sh",          // the hook file, as its hooks.json command names it
+//     "script":  "git-guard.mjs",         // the hook file's name, in its owner's hooks/ folder
 //     "event":   "PreToolUse",            // the hooks.json event the command is registered under
 //     "fixture": "adopted",               // fixtures.mjs kind the hook runs in (cwd); default "adopted"
 //     "project": "bare",                  // fixtures.mjs kind CLAUDE_PROJECT_DIR points at, when it is
 //                                         // not the cwd: a session working in another work tree
+//     "own":     true,                    // a copy of the fixture no other case sees, for a hook
+//                                         // that changes the repo it runs in (a migration)
 //     "stdin":   { ... } | "<raw string>",// object is stringified; string is literal
 //     "env":     { "NAME": "value" },     // extra environment, optional
 //     "gap":     "what is wrong today",   // a known defect: the case states the behavior wanted, is
@@ -48,8 +52,16 @@ const home = path.join(root, "home");
 fs.mkdirSync(home);
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
+// The one plugin: every hook runs from its hook map, whichever area holds the file.
+const PLUGIN = "agentcraft";
+const PLUGIN_ROOT = path.join(REPO, "plugins", PLUGIN);
+/** A hook file, plugin-relative: the plugin's own, or an area's. */
+const hookPath = (owner, script) => (owner === PLUGIN ? `hooks/${script}` : `skills/${owner}/hooks/${script}`);
+
 const built = new Map();
-const fixture = (kind) => {
+let owned = 0;
+const fixture = (kind, own = false) => {
+  if (own) return makeFixture(path.join(root, `own-${++owned}`), kind);
   if (!built.has(kind)) built.set(kind, makeFixture(root, kind));
   return built.get(kind);
 };
@@ -62,12 +74,13 @@ const files = fs.readdirSync(CASES, { withFileTypes: true })
 
 assert.ok(files.length, `no cases found under ${CASES}`);
 
-const hooksJson = (plugin) => JSON.parse(fs.readFileSync(path.join(REPO, "plugins", plugin, "hooks", "hooks.json"), "utf8")).hooks ?? {};
+const hooksJson = (plugin = PLUGIN) => JSON.parse(fs.readFileSync(path.join(REPO, "plugins", plugin, "hooks", "hooks.json"), "utf8")).hooks ?? {};
 
-/** The hooks.json entry that runs this script on this event. */
-function registered(plugin, event, script) {
-  for (const group of hooksJson(plugin)[event] ?? []) {
-    for (const hook of group.hooks ?? []) if (String(hook.command ?? "").includes(`/${script}`)) return hook;
+/** The hooks.json entry that runs this owner's script on this event. */
+function registered(owner, event, script) {
+  const file = `${"${CLAUDE_PLUGIN_ROOT}"}/${hookPath(owner, script)}`;
+  for (const group of hooksJson()[event] ?? []) {
+    for (const hook of group.hooks ?? []) if ([hook.command, ...(hook.args ?? [])].some((s) => String(s ?? "").includes(`${file}"`) || String(s ?? "").endsWith(file))) return hook;
   }
   return null;
 }
@@ -77,40 +90,43 @@ function registered(plugin, event, script) {
  * shell otherwise. Windows may have no sh, so a Node hook is run there as the
  * command its guard leads to.
  */
-function runHook(plugin, hook, { cwd, env, input }) {
+function runHook(hook, { cwd, env, input }) {
   const options = { cwd, env, input, encoding: "utf8", timeout: 60_000 };
   if (Array.isArray(hook.args)) {
     const expand = (s) => String(s).split("${CLAUDE_PLUGIN_ROOT}").join(env.CLAUDE_PLUGIN_ROOT);
     return spawnSync(expand(hook.command), hook.args.map(expand), options);
   }
-  const node = process.platform === "win32" ? parseHookCommand(hook.command, plugin) : null;
+  const node = process.platform === "win32" ? parseHookCommand(hook.command, PLUGIN) : null;
   if (node) return spawnSync(process.execPath, [path.join(env.CLAUDE_PLUGIN_ROOT, node.script), ...node.args], options);
   return spawnSync("sh", ["-c", hook.command], options);
 }
 
-// Every Node hook a plugin ships must have the three mandatory cases, so a new
-// hook cannot arrive untested.
-const shipped = (plugin) => {
-  const dir = path.join(REPO, "plugins", plugin, "hooks");
-  const commands = fs.readFileSync(path.join(dir, "hooks.json"), "utf8");
-  return fs.readdirSync(dir).filter((f) => f.endsWith(".mjs") && commands.includes(`/hooks/${f}`));
+// Every Node hook the plugin's hook map runs must have the three mandatory
+// cases, so a new hook cannot arrive untested: the plugin's own under
+// cases/<plugin>/, an area's under cases/<area>/.
+const shipped = () => {
+  const scripts = Object.values(hooksJson()).flat().flatMap((group) => group.hooks ?? [])
+    .map((hook) => parseHookCommand(hook.command, PLUGIN)?.script).filter(Boolean);
+  return [...new Set(scripts)].map((script) => {
+    const area = /^skills\/([^/]+)\/hooks\/([^/]+)$/.exec(script);
+    const own = /^hooks\/([^/]+)$/.exec(script);
+    return area ? { owner: area[1], hook: area[2], script } : { owner: PLUGIN, hook: own?.[1] ?? script, script };
+  });
 };
-for (const plugin of new Set(files.map((f) => f.plugin))) {
-  for (const hook of shipped(plugin)) {
-    test(`${plugin}/${hook} has happy path, empty stdin, and malformed JSON cases`, () => {
-      const mine = files.filter((f) => f.plugin === plugin).map((f) => JSON.parse(fs.readFileSync(f.path, "utf8"))).filter((c) => c.script === hook);
-      assert.ok(mine.length >= 3, `${hook} has ${mine.length} case(s), needs at least the three mandatory ones`);
-      assert.ok(mine.some((c) => c.stdin === ""), `${hook} has no empty-stdin case`);
-      assert.ok(mine.some((c) => typeof c.stdin === "string" && c.stdin !== ""), `${hook} has no malformed-JSON case`);
-      assert.ok(mine.some((c) => typeof c.stdin === "object"), `${hook} has no happy-path case`);
-    });
-  }
+for (const { owner, hook, script } of shipped()) {
+  test(`${script} has happy path, empty stdin, and malformed JSON cases`, () => {
+    const mine = files.filter((f) => f.plugin === owner).map((f) => JSON.parse(fs.readFileSync(f.path, "utf8"))).filter((c) => c.script === hook);
+    assert.ok(mine.length >= 3, `${script} has ${mine.length} case(s) under cases/${owner}/, needs at least the three mandatory ones`);
+    assert.ok(mine.some((c) => c.stdin === ""), `${script} has no empty-stdin case`);
+    assert.ok(mine.some((c) => typeof c.stdin === "string" && c.stdin !== ""), `${script} has no malformed-JSON case`);
+    assert.ok(mine.some((c) => typeof c.stdin === "object"), `${script} has no happy-path case`);
+  });
 }
 
 function runCase(plugin, c) {
   const hook = registered(plugin, c.event, c.script);
-  assert.ok(hook, `${plugin}'s hooks.json runs no ${c.script} on ${c.event}`);
-  const cwd = fixture(c.fixture ?? "adopted");
+  assert.ok(hook, `${PLUGIN}'s hooks.json runs no ${hookPath(plugin, c.script)} on ${c.event}`);
+  const cwd = fixture(c.fixture ?? "adopted", c.own === true);
   const project = c.project ? fixture(c.project) : cwd;
   const fill = (s) => s.split("{{REPO}}").join(cwd).split("{{PROJECT}}").join(project);
   // An object is filled value by value before it is serialized, so a Windows
@@ -122,10 +138,10 @@ function runCase(plugin, c) {
     HOME: home,
     USERPROFILE: home,
     CLAUDE_PROJECT_DIR: project,
-    CLAUDE_PLUGIN_ROOT: path.join(REPO, "plugins", plugin),
+    CLAUDE_PLUGIN_ROOT: PLUGIN_ROOT,
     ...Object.fromEntries(Object.entries(c.env ?? {}).map(([k, v]) => [k, fill(String(v))])),
   };
-  const { status, stdout, stderr } = runHook(plugin, hook, { cwd, env, input });
+  const { status, stdout, stderr } = runHook(hook, { cwd, env, input });
   assert.equal(status, c.expect.exit, `exit ${status}, stderr: ${stderr}`);
   if (c.expect.stderrIncludes) assert.ok(stderr.includes(c.expect.stderrIncludes), `stderr was: ${stderr}`);
   if (c.expect.stdoutEmpty) {
@@ -141,7 +157,7 @@ function runCase(plugin, c) {
 for (const { plugin, file, path: casePath } of files) {
   const c = JSON.parse(fs.readFileSync(casePath, "utf8"));
   // A stock Windows has no sh and no python3, so only Node hooks are held to it.
-  const skip = process.platform === "win32" && !parseHookCommand(registered(plugin, c.event, c.script)?.command, plugin) ? "not a Node hook, not run on Windows" : false;
+  const skip = process.platform === "win32" && !parseHookCommand(registered(plugin, c.event, c.script)?.command, PLUGIN) ? "not a Node hook, not run on Windows" : false;
   test(`${plugin}/${file}${c.gap ? ` (known gap: ${c.gap})` : ""}`, { skip }, () => {
     if (!c.gap) return runCase(plugin, c);
     let failed = false;

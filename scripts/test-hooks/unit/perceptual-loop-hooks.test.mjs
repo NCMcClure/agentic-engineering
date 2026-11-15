@@ -1,7 +1,8 @@
-// perceptual-loop's session hook: the move from the first layout
+// perceptual-loop at session start: the move from the first layout
 // (.perceptual-loop/) to .agents/perceptual/ with a note that names every
 // config key left to edit, the briefing that says a harness exists, the
-// critical lines and who gets them, and the hook map that registers it all.
+// critical lines and who gets them, and the plugin's hook map. The area's
+// part runs alone, through the plugin's helper (area-session.mjs says why).
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -10,7 +11,10 @@ import test from "node:test";
 import { hookCommand } from "../../lib.mjs";
 import { PL, PLUGIN, runNode, tempDir, write } from "./perceptual-loop-fixtures.mjs";
 
-const HOOK = path.join(PLUGIN, "hooks", "session-start.mjs");
+const HOOK = path.join(import.meta.dirname, "area-session.mjs");
+const ROOT = path.join(PLUGIN, "..", "..");
+const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
+const PLAN = [".agents/plan", ".plan/plan/plan-status.py", ".plan/plan/verify-plan-tree.py", ".plan/spec/scripts/verify-spec-tree.py"];
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const TASTE = "Defects are yours to fix; taste (how bright, how much, which of two plausible looks) is the owner's to decide.";
 
@@ -43,7 +47,7 @@ function firstLayout(dir, config = OLD_CONFIG) {
 
 /** Run the hook as a host does; returns the context the model reads, the line the person reads, and the raw result. */
 function session(dir, payload = {}) {
-  const r = runNode(HOOK, [], { cwd: dir, env: { CLAUDE_PROJECT_DIR: dir, PL_DIR: "", PERCEPTUAL_LOOP_DIR: "", PL_SHOTS_DIR: "" },
+  const r = runNode(HOOK, ["perceptual-loop"], { cwd: dir, env: { CLAUDE_PROJECT_DIR: dir, PL_DIR: "", PERCEPTUAL_LOOP_DIR: "", PL_SHOTS_DIR: "" },
     input: JSON.stringify({ hook_event_name: "SessionStart", source: "startup", cwd: dir, ...payload }) });
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stderr, "");
@@ -53,34 +57,39 @@ function session(dir, payload = {}) {
 
 // ---- the lines -------------------------------------------------------------------------------
 
-test("critical.json: four lines for every agent in any opted-in repo, a chain to each partner, under the cap", () => {
-  assert.equal(CRITICAL.plugin, "perceptual-loop");
-  assert.equal(CRITICAL.lines.length, 4);
-  assert.deepEqual(CRITICAL.chains.map((c) => c.partner), ["agent-works", "but-first-planning"]);
-  for (const line of CRITICAL.lines) assert.deepEqual([line.for, line.mode, line.when], ["all", "any", undefined]);
+test("critical.json: six lines for every agent in any opted-in repo, none waiting on another plugin, under the cap", () => {
+  assert.equal(CRITICAL.area, "perceptual-loop");
+  assert.equal("chains" in CRITICAL, false);
+  // The line about a ruling with reach stands behind the plan it would be recorded in.
+  assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [...Array.from({ length: 5 }, () => ["all", "any", undefined]), ["all", "any", PLAN]]);
   assert.ok(CRITICAL.lines.some((l) => l.text === TASTE), "the taste line is quoted elsewhere and stays word for word");
-  assert.match(CRITICAL.lines[0].text, /starts with \/perceptual-loop:perceptual-loop and its doctrine/);
-  const size = CRITICAL.lines.reduce((n, l) => n + l.text.length, 0);
-  const cap = JSON.parse(fs.readFileSync(path.join(PLUGIN, "..", "..", "scripts", "plugins", "perceptual-loop.json"), "utf8")).critical.cap;
-  assert.ok(size <= cap, `${size} characters of lines, cap ${cap}`);
-  const skill = fs.readFileSync(path.join(PLUGIN, "skills", "perceptual-loop", "SKILL.md"), "utf8");
+  assert.match(CRITICAL.lines[0].text, /starts with its doctrine, before the first change: \/agentcraft:perceptual-loop\.$/);
+  assert.match(CRITICAL.lines[4].text, /\/agentcraft:agent-works resource-locks\.$/);
+  assert.match(CRITICAL.lines[5].text, /\/agentcraft:but-first-planning spec-edit\.$/);
+  // The cap is CRITICAL_CAPS in scripts/validate.mjs.
+  const printed = "Critical, from perceptual-loop:".length + CRITICAL.lines.reduce((n, l) => n + l.text.length + 3, 0);
+  assert.ok(printed <= 1100, `the block prints ${printed} characters`);
+  const skill = fs.readFileSync(path.join(PLUGIN, "SKILL.md"), "utf8");
   assert.doesNotMatch(skill, /^disable-model-invocation:\s*true/m, "the lines send the model to a skill it can invoke");
 });
 
 test("the lines reach an opted-in session and a working subagent, and never the blind critic", () => {
   const dir = repo("on");
   const main = session(dir);
-  for (const line of CRITICAL.lines) assert.ok(main.context.includes(`- ${line.text}`), line.text);
+  for (const line of CRITICAL.lines) assert.equal(main.context.includes(`- ${line.text}`), !line.when, line.text);
+  const planned = repo("on");
+  write(planned, ".agents/plan/index.md", "# Plan\n");
+  assert.ok(session(planned).context.includes(`- ${CRITICAL.lines[5].text}`), "a repo with a plan hears where a ruling is recorded");
   assert.match(main.context, /^Critical, from perceptual-loop:/m);
   assert.doesNotMatch(main.context, /perceptual harness/, "no state folder, no briefing");
   assert.equal(main.message, "");
   const worker = session(dir, { hook_event_name: "SubagentStart", agent_type: "general-purpose" });
   assert.ok(worker.context.includes(TASTE));
-  for (const agent of ["perceptual-loop:vision-critic", "Explore", "Plan"]) {
+  for (const agent of ["agentcraft:vision-critic", "Explore", "Plan"]) {
     assert.equal(session(dir, { hook_event_name: "SubagentStart", agent_type: agent }).stdout, "", `${agent} is told nothing`);
   }
-  assert.equal(fs.existsSync(path.join(PLUGIN, "agents", "vision-critic.md")), true, "the agent the deny list names is the one the plugin ships");
-  assert.match(fs.readFileSync(path.join(PLUGIN, "agents", "vision-critic.md"), "utf8"), /^name: vision-critic$/m);
+  assert.equal(fs.existsSync(path.join(ROOT, "agents", "vision-critic.md")), true, "the agent the deny list names is the one the plugin ships");
+  assert.match(fs.readFileSync(path.join(ROOT, "agents", "vision-critic.md"), "utf8"), /^name: vision-critic$/m);
 });
 
 test("where the person answered off, the hook says nothing and moves nothing it has no marker for", () => {
@@ -174,34 +183,31 @@ test("a subagent starts no move, and the hook fails open on anything it cannot r
   assert.ok(s.context.includes(TASTE), "the lines still go out");
   assert.match(s.context, /perceptual harness in \.agents\/perceptual\/: 0 shot\(s\)/);
   for (const input of ["", "not json", "[]", "﻿{}"]) {
-    const r = runNode(HOOK, [], { cwd: tempDir("pl-nowhere-"), env: { CLAUDE_PROJECT_DIR: "" }, input });
+    const r = runNode(HOOK, ["perceptual-loop"], { cwd: tempDir("pl-nowhere-"), env: { CLAUDE_PROJECT_DIR: "" }, input });
     assert.deepEqual([r.status, r.stderr], [0, ""], JSON.stringify(input));
   }
 });
 
 // ---- the hook map ----------------------------------------------------------------------------
 
-test("the hook map: the session hook on all four starts and on subagents, the guard on both shells", () => {
-  const map = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
-  assert.deepEqual(Object.keys(map).sort(), ["PreToolUse", "SessionStart", "SubagentStart"]);
-  const [start] = map.SessionStart, [sub] = map.SubagentStart;
-  assert.equal(start.matcher, "startup|resume|clear|compact");
-  assert.equal(start.hooks[0].command, hookCommand("perceptual-loop", "hooks/session-start.mjs", { loud: true }));
-  assert.ok(start.hooks[0].statusMessage);
-  assert.equal(sub.hooks[0].command, hookCommand("perceptual-loop", "hooks/session-start.mjs"));
-  assert.equal(map.PreToolUse[0].matcher, "Bash|PowerShell");
+test("the plugin's hook map runs the guard on both shells, and the area has no session hook of its own", () => {
+  const map = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8")).hooks;
+  const guard = hookCommand("agentcraft", "skills/perceptual-loop/hooks/guard.mjs");
+  assert.deepEqual(map.PreToolUse.filter((g) => g.hooks.some((h) => h.command === guard)).map((g) => g.matcher), ["Bash|PowerShell"]);
+  assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "briefing.mjs")), "its briefing is a part of the plugin's");
+  assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);
+  assert.doesNotMatch(JSON.stringify(Object.entries(map).filter(([event]) => event !== "PreToolUse")), /skills\/perceptual-loop\//, "the plugin's two session commands speak for it");
 });
 
-test("every skill calls the one CLI through the plugin root, and names no script that is gone", () => {
-  const skills = fs.readdirSync(path.join(PLUGIN, "skills")).sort();
-  assert.deepEqual(skills, ["calibrate-gate", "check-audio", "check-motion", "define-success", "iterate-shots", "judge-and-queue", "perceptual-loop", "probe-the-source", "shot-harness"]);
-  for (const name of skills) {
-    const text = fs.readFileSync(path.join(PLUGIN, "skills", name, "SKILL.md"), "utf8");
+test("every route names no script that is gone, and reaches the one CLI through the plugin root by the area's path", () => {
+  const routes = fs.readdirSync(path.join(PLUGIN, "routes")).sort();
+  assert.deepEqual(routes, ["calibrate-gate", "check-audio", "check-motion", "define-success", "iterate-shots", "judge-and-queue", "probe-the-source", "shot-harness"]);
+  for (const name of routes) {
+    const text = fs.readFileSync(path.join(PLUGIN, "routes", name, "ROUTE.md"), "utf8");
     assert.match(text, new RegExp(`^name: ${name}$`, "m"), name);
     assert.doesNotMatch(text, /\b(?:iterate|baseline|compare|calibrate|sheet|sweep|flow|video|audio|init|groups|blind|timing|evidence_lint|review_page)\.py\b|uv run/, `${name} still calls a Python script`);
     assert.doesNotMatch(text, /\.perceptual-loop\//, `${name} names the first layout's folder`);
-    for (const call of text.match(/node "[^"]*pl\.mjs"/g) ?? []) assert.equal(call, 'node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"', name);
+    for (const call of text.match(/node "\$\{CLAUDE_PLUGIN_ROOT\}[^"]*pl\.mjs"/g) ?? []) assert.equal(call, 'node "${CLAUDE_PLUGIN_ROOT}/skills/perceptual-loop/scripts/pl.mjs"', name);
   }
-  const harness = fs.readFileSync(path.join(PLUGIN, "skills", "shot-harness", "SKILL.md"), "utf8");
-  assert.match(harness, /^disable-model-invocation: true$/m, "the set-up skill is the person's to start");
+  assert.equal(DOOR.routes["shot-harness"].starts, "person", "the set-up route is the person's to start");
 });
