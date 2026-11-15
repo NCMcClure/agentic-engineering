@@ -1,4 +1,5 @@
-// Context Lens page. Reads /api/sessions and /api/session and draws the lens.
+// Context Lens page. Reads /api/sessions and /api/session and draws the lens,
+// with the findings diagnose.mjs raised from the session as its first card.
 // Every string from a transcript is set as text, never parsed as HTML: a
 // transcript holds whatever its session read, markup included.
 "use strict";
@@ -177,11 +178,61 @@ function draw() {
         s.badLines ? el("span", { class: "chip warn", text: `${s.badLines} unreadable lines` }) : null,
         el("label", { class: "chip", style: "cursor: pointer" },
           el("input", { type: "checkbox", checked: state.follow, onchange: (e) => setFollow(e.target.checked) }), "Follow live"))),
+    findingsView(s),
     chart(s, peak),
     footprint(s, focusSeen),
     toolbar(),
     ...s.segments.flatMap((seg) => [segmentView(s, seg), compactionView(s, s.compactions.find((c) => c.fromSegment === seg.index))]).filter(Boolean),
   );
+}
+
+/** Opens whatever hides an event (the lens, its visibility, its phase), then scrolls to it with its text open. */
+function jumpTo(s, f) {
+  const ev = f.events.length ? s.events[f.events[0]] : null;
+  if (ev) {
+    if (!inLens(ev)) state.lens = "everything";
+    state.vis.add(ev.visibility);
+    state.open.add(`${ev.segment}:${ev.phase}`);
+    state.open.add(`ev:${ev.id}`);
+    draw();
+  }
+  const target = ev ? document.querySelector(`[data-ev="${ev.id}"]`)
+    : f.compaction !== null && f.compaction !== undefined ? document.getElementById(`compaction-${f.compaction}`)
+    : f.segment !== null && f.segment !== undefined ? document.getElementById(`segment-${f.segment}`) : null;
+  if (!target) return;
+  target.scrollIntoView({ block: "center" });
+  target.classList.add("flash");
+  setTimeout(() => target.classList.remove("flash"), 1600);
+}
+
+/** A finding's sentence with its `code spans` set as code: each piece is a text node, so nothing in it is parsed. */
+const rich = (text) => String(text ?? "").split(/`([^`]+)`/).map((part, i) => (i % 2 ? el("code", { text: part }) : part));
+
+function findingsView(s) {
+  const findings = s.findings ?? [];
+  const count = (level) => findings.filter((f) => f.level === level).length;
+  const card = el("section", { class: "card findings" }, el("h3", { text: "Findings" }));
+  if (!findings.length) {
+    card.append(el("p", { class: "note", text: "None. Nothing in this transcript went over a cap, was lost at a compaction, was refused, or reached only the person. A rule the model was given and did not follow is not something a transcript's structure shows." }));
+    return card;
+  }
+  card.append(el("p", { class: "note", text: `${count("critical")} critical, ${count("warning")} warning${count("warning") === 1 ? "" : "s"}, ${count("info")} note${count("info") === 1 ? "" : "s"}. Each is a fact of the transcript measured against a fixed number, with the change in the plugin that fixes it. A row opens the event it was raised from.` }));
+  for (const f of findings) {
+    const where = [f.owner, f.turn ? `turn ${f.turn}` : f.segment !== null && f.segment !== undefined ? `segment ${f.segment + 1}` : null].filter(Boolean).join(" · ");
+    const reachable = f.events.length || f.compaction !== null || f.segment !== null;
+    const row = el("div", { class: `finding level-${f.level}`, role: reachable ? "button" : null, tabindex: reachable ? "0" : null },
+      el("span", { class: `badge level-${f.level}`, text: f.level === "info" ? "note" : f.level }),
+      el("span", { class: "code", text: f.code }),
+      el("span", { class: "where", text: where }),
+      el("p", { class: "what" }, ...rich(f.what)),
+      el("p", { class: "fix" }, el("b", { text: "Fix: " }), ...rich(f.fix)));
+    if (reachable) {
+      row.addEventListener("click", () => jumpTo(s, f));
+      row.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); jumpTo(s, f); } });
+    }
+    card.append(row);
+  }
+  return card;
 }
 
 function chart(s, peak) {
@@ -268,7 +319,7 @@ function toolbar() {
 function segmentView(s, seg) {
   const events = s.events.filter((e) => e.segment === seg.index && inLens(e) && state.vis.has(e.visibility));
   const started = seg.startedBy === "compact" ? `after compaction ${seg.index} (${seg.trigger ?? "?"})` : seg.startedBy;
-  const box = el("section", { class: "segment" },
+  const box = el("section", { class: "segment", id: `segment-${seg.index}` },
     el("h3", { text: `Segment ${seg.index + 1} · ${started}` }),
     el("div", { class: "sub", text: `first request ${seg.baselineTokens === null ? "not recorded" : `${num(seg.baselineTokens)} tokens (API)`} · ${seg.turns} turn${seg.turns === 1 ? "" : "s"}` }));
   const phases = [...new Set(events.map((e) => e.phase))].sort((a, b) => (a === "start" ? -1 : b === "start" ? 1 : a - b));
@@ -297,7 +348,7 @@ function rowView(ev) {
   const what = ev.kind === "hook" ? ev.hookName ?? ev.event : ev.kind;
   const name = sourceName(ev);
   const pv = ev.kind === "hook" ? oneLine(ev.text || ev.detail || "") : oneLine(`${ev.label}${ev.detail ? ` · ${ev.detail}` : ""}${CONVERSATION.has(ev.kind) ? ` · ${ev.text}` : ""}`);
-  const wrap = el("div", {});
+  const wrap = el("div", { "data-ev": ev.id });
   const row = el("div", { class: "row", role: "button", tabindex: "0", "aria-expanded": "false" },
     el("span", { class: "what", title: what, text: what }),
     el("span", { class: "src", title: name }, name ? dot(name) : null, name ? ` ${name}` : el("span", { class: "muted", text: "Claude Code" })),
@@ -344,7 +395,7 @@ function fullView(ev) {
 
 function compactionView(s, c) {
   if (!c) return null;
-  const card = el("section", { class: "card compaction" },
+  const card = el("section", { class: "card compaction", id: `compaction-${c.index}` },
     el("h3", { text: `Compaction ${c.index + 1} · ${c.trigger ?? "?"} · ${num(c.preTokens)} → ${num(c.postTokens)} tokens` }),
     el("p", { class: "note", text: c.beforeRecorded === false
       ? "This transcript opens at this compaction (it continues an earlier file), so there is no record of what came before it. The rows show what the next segment carried."

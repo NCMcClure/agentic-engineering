@@ -288,10 +288,11 @@ One rubric serves all of it: a new plugin is scaffolded against it, an existing 
 
 ### context-doctor
 
-It reads a session's transcript back: each hook's output and who saw it, the skill listing, the rule files, the size of every request, and what each compaction kept or lost.
+It reads a session's transcript back: each hook's output and who saw it, the skill listing, the rule files, the size of every request, and what each compaction kept or lost. Then it names what went wrong, with the fix for each.
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
+| find out why a session ignored a rule or forgot its instructions | `/agentcraft:context-doctor diagnose` | agent |
 | see what entered an agent's context, and from which area | `/agentcraft:context-doctor lens` | agent |
 
 <!-- end of the generated areas section -->

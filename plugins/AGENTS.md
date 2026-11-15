@@ -63,8 +63,9 @@ Each is `agentcraft/skills/<name>/`.
 - `codebase-optimizer` - reorganize a drifted repo in stages, each validated
   and reverted on red. Descend to change a stage or the recon it reasons from.
 - `context-doctor` - read a session's transcript for what entered the agent's
-  context, from which area, and what a compaction dropped. Descend to change
-  what the lens reports.
+  context, from which area, and what a compaction dropped, and raise what went
+  wrong as findings with fixes. Descend to change what the lens reports, a
+  finding, or a threshold.
 - `docs-parity` - user docs that move in the same change as the code, one
   checker for missing, stale and broken pages, and a README check. Descend to
   change the writer contract, the capture harness, or a checker.

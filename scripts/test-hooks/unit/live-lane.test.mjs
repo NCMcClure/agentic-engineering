@@ -524,9 +524,9 @@ test("the prompt table covers every route the tree refers to five times or more,
     assert.ok(TRIGGERS.some((t) => t.plugin === area && !MOST_REFERENCED.includes(t.skill)), `${area} has no prompt beyond the most-referenced`);
   }
   // The rows the bar is read on: every one but the entry skill's, which the first baseline does not hold.
-  // Two of them are in no baseline from before the lens left plugin-workbench.
+  // Two of them are in no baseline from before the lens left plugin-workbench, and diagnose came after it.
   assert.ok(skills.has("start-here"));
-  assert.equal(TRIGGERS.filter((t) => t.skill !== "start-here").length, 31);
+  assert.equal(TRIGGERS.filter((t) => t.skill !== "start-here").length, 32);
 });
 
 test("the entry skill is reached by its own name in the one plugin, called or read", () => {

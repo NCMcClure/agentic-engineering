@@ -295,8 +295,12 @@
     },
     "context-doctor": {
       "cue": "see what a session's agent was actually given",
-      "how": "It reads a session's transcript back: each hook's output and who saw it, the skill listing, the rule files, the size of every request, and what each compaction kept or lost.",
+      "how": "It reads a session's transcript back: each hook's output and who saw it, the skill listing, the rule files, the size of every request, and what each compaction kept or lost. Then it names what went wrong, with the fix for each.",
       "uses": [
+        {
+          "want": "find out why a session ignored a rule or forgot its instructions",
+          "to": "diagnose"
+        },
         {
           "want": "see what entered an agent's context, and from which area",
           "to": "lens"

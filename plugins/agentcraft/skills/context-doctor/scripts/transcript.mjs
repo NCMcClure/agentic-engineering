@@ -77,7 +77,7 @@ function parseStdout(stdout) {
  * The blocks of critical lines inside one hook's output: a heading that names
  * who they are from, then a bullet per line. One session hook may print a
  * block for each of several areas, so the owner is read from the heading:
- * `{ owner, tokens }` each, in order.
+ * `{ owner, chars, tokens }` each, in order.
  */
 export function criticalBlocks(text) {
   const blocks = [];
@@ -88,7 +88,7 @@ export function criticalBlocks(text) {
     else if (open && line.startsWith("- ")) open.lines.push(line);
     else open = null;
   }
-  return blocks.map((b) => ({ owner: b.owner, tokens: estimateTokens(b.lines.join("\n")) }));
+  return blocks.map((b) => ({ owner: b.owner, chars: b.lines.join("\n").length, tokens: estimateTokens(b.lines.join("\n")) }));
 }
 
 /** A skill's or a route's own instructions, by the file they are read from. */
@@ -396,7 +396,11 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
           push(entry, { kind: "tool-result", label: name, visibility: "model", text: blocksText(r.content), source: { plugin: toolPlugin(sources, name) } });
           // The host answers a call it refused with an error result.
           const row = opened.get(r.tool_use_id);
-          if (row) row.ok = !r.is_error;
+          if (row) {
+            row.ok = !r.is_error;
+            // What the host said in place of the skill, for a call it refused.
+            if (r.is_error && "skill" in row) row.error = preview(blocksText(r.content), 200);
+          }
         }
         continue;
       }

@@ -20,7 +20,9 @@ const shipped = walk(PLUGIN).map((f) => f.split(path.sep).join("/"));
 
 test("plugin-workbench routes: the area ships its four, and the lens is the context-doctor area's", () => {
   assert.deepEqual(ROUTES, ["create-plugin", "evaluate-plugin", "improve-plugin", "refresh-marketplace"]);
-  assert.deepEqual(area("context-doctor").routes.map((r) => r.name), ["lens"]);
+  // What that area ships is its own suite's to pin; here, only that the lens is there and not here.
+  assert.ok(area("context-doctor").route("lens"));
+  assert.equal(AREA.route("lens"), undefined);
 });
 
 routeBasics(test, AREA, { when: /\bUse when\b/, cap: 1024 });

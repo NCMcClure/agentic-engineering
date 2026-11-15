@@ -427,7 +427,9 @@ test("one session hook's output is split into each area's block of critical line
   const session = buildSession(entries, { sources });
   const start = session.events.find((e) => e.kind === "hook" && e.event === "SessionStart");
   assert.deepEqual([start.source.plugin, "area" in start.source], ["agentcraft", false]);
-  assert.deepEqual(start.blocks, [{ owner: "agentic-teamwork", tokens: Math.ceil(teamwork.join("\n").length / 4) }, { owner: "docs-parity", tokens: Math.ceil("Critical, from docs-parity:\n- Docs move with the code.".length / 4) }]);
+  // A block's size is its heading and its lines: exact in characters, an estimate in tokens.
+  const block = (owner, text) => ({ owner, chars: text.length, tokens: Math.ceil(text.length / 4) });
+  assert.deepEqual(start.blocks, [block("agentic-teamwork", teamwork.join("\n")), block("docs-parity", "Critical, from docs-parity:\n- Docs move with the code.")]);
   assert.ok(start.blocks.reduce((n, b) => n + b.tokens, 0) < start.tokens, "the line every area shares is the hook's own");
   const stop = session.events.find((e) => e.event === "Stop");
   assert.deepEqual([stop.source.plugin, stop.source.area, stop.source.focus], ["agentcraft", "agentic-teamwork", true]);
@@ -453,8 +455,8 @@ test("the session records each call on the Skill tool and each read of a skill's
     toolUse("t5", "Read", { file_path: "/srv/plugins/agentcraft/skills/agent-works/SKILL.md" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "calls", ...e }));
   const session = buildSession(entries);
-  // A call the host refused is a call that did not go through.
-  assert.deepEqual(session.skillCalls, [{ skill: old("agentic-teamwork", "bootstrap"), segment: 0, turn: 1, ok: false }, { skill: old("agentic-teamwork", "tdd"), segment: 0, turn: 1, ok: true }]);
+  // A call the host refused is a call that did not go through, kept with what the host said in its place.
+  assert.deepEqual(session.skillCalls, [{ skill: old("agentic-teamwork", "bootstrap"), segment: 0, turn: 1, ok: false, error: "This skill can only be started by the user." }, { skill: old("agentic-teamwork", "tdd"), segment: 0, turn: 1, ok: true }]);
   // A README is not a skill's instructions; a read the transcript holds no result for is neither way.
   assert.deepEqual(session.reads.map((r) => [r.file.split("/").slice(-3).join("/"), r.ok]), [["routes/ship/ROUTE.md", true], ["skills/agent-works/SKILL.md", null]]);
 });

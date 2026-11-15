@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 // Context Lens: what entered an agent's context window, when, and from which
-// plugin, read from the Claude Code session transcripts on this machine.
+// plugin, read from the Claude Code session transcripts on this machine, and
+// what went wrong with it.
 //
 // Usage:
-//   node context-lens.mjs serve  [--port 4646] [--claude-dir <dir>] [--focus agentic-engineering]
-//   node context-lens.mjs report [<transcript.jsonl | session id>] [--all] [--json] [--claude-dir <dir>] [--focus <marketplace>]
-//   node context-lens.mjs list   [--limit 20] [--claude-dir <dir>]
+//   node context-lens.mjs diagnose [<transcript.jsonl | session id>] [--json] [--claude-dir <dir>] [--focus <marketplace>]
+//   node context-lens.mjs report   [<transcript.jsonl | session id>] [--all] [--json] [--claude-dir <dir>] [--focus <marketplace>]
+//   node context-lens.mjs serve    [--port 4646] [--claude-dir <dir>] [--focus agentic-engineering]
+//   node context-lens.mjs list     [--limit 20] [--claude-dir <dir>]
 //
-// `report` with no session reads the newest transcript for the working
-// directory, which is the running session when an agent calls it.
+// `diagnose` and `report` with no session read the newest transcript for the
+// working directory, which is the running session when an agent calls it.
+// `diagnose` prints the findings (diagnose.mjs); `report` prints everything
+// they were raised from.
 //
 // The server binds 127.0.0.1, answers only to a loopback Host header, and
 // serves no file outside <claude-dir>/projects: a transcript holds everything
@@ -16,8 +20,10 @@
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import { diagnose, renderDiagnosis, summary } from "./diagnose.mjs";
 import { defaultClaudeDir, loadSources } from "./sources.mjs";
 import { renderReport } from "./report.mjs";
+import { QUIET_AGENTS } from "./thresholds.mjs";
 import { buildSession, parseJsonl, preview } from "./transcript.mjs";
 
 const ASSETS = path.join(import.meta.dirname, "..", "assets");
@@ -90,9 +96,17 @@ function readSession(file) {
   const hit = cache.get(file);
   if (hit && hit.mtimeMs === stat.mtimeMs) return hit.session;
   const { entries, bad } = parseJsonl(fs.readFileSync(file, "utf8"));
-  const session = { ...buildSession(entries, { sources: currentSources() }), file, mtimeMs: stat.mtimeMs, badLines: bad };
+  // A subagent's transcript has its agent type in the file beside it.
+  const agentType = readJson(file.replace(/\.jsonl$/, ".meta.json"))?.agentType;
+  const session = { ...buildSession(entries, { sources: currentSources() }), file, mtimeMs: stat.mtimeMs, badLines: bad, ...(agentType ? { agentType } : {}) };
   cache.set(file, { mtimeMs: stat.mtimeMs, session });
   return session;
+}
+
+/** The findings for one transcript. Of its subagents, only the ones that should start quiet are read. */
+function findingsFor(session) {
+  const quiet = subagents(path.join(session.file.replace(/\.jsonl$/, ""), "subagents")).filter((sub) => QUIET_AGENTS.includes(sub.agentType));
+  return diagnose(session, { subagents: quiet.map((sub) => ({ agentType: sub.agentType, session: readSession(sub.file) })) });
 }
 
 /** A transcript path from a request, or null when it is anything but a .jsonl under the projects folder. */
@@ -122,7 +136,8 @@ function serve(port) {
         const file = allowed(url.searchParams.get("file"));
         if (!file) return send(res, 403, { error: "not a transcript under the projects folder" });
         if (url.pathname === "/api/stat") return send(res, 200, { mtimeMs: fs.statSync(file).mtimeMs });
-        return send(res, 200, readSession(file));
+        const session = readSession(file);
+        return send(res, 200, { ...session, findings: findingsFor(session) });
       }
       return send(res, 404, { error: "not found" });
     } catch (error) {
@@ -159,7 +174,7 @@ function main() {
     }
     return;
   }
-  if (command === "report") {
+  if (command === "report" || command === "diagnose") {
     const file = resolveTarget(positional[0]);
     if (!file) {
       console.error(`context-lens: no transcript found${positional[0] ? ` for ${positional[0]}` : ` for ${process.cwd()}`} under ${projectsDir}`);
@@ -167,11 +182,18 @@ function main() {
       return;
     }
     const session = readSession(file);
+    if (command === "diagnose") {
+      // Findings are a reading, not a gate: the exit code says only whether there was a transcript to read.
+      const findings = findingsFor(session);
+      if (argv.includes("--json")) console.log(JSON.stringify({ ...summary(session, findings), findings }));
+      else process.stdout.write(`${renderDiagnosis(session, findings)}\n${file}\n`);
+      return;
+    }
     if (argv.includes("--json")) console.log(JSON.stringify(session));
     else process.stdout.write(`${renderReport(session, { all: argv.includes("--all") })}\n${file}\n`);
     return;
   }
-  console.error("usage: context-lens.mjs serve [--port n] | report [session] [--all] [--json] | list [--limit n]");
+  console.error("usage: context-lens.mjs diagnose [session] [--json] | report [session] [--all] [--json] | serve [--port n] | list [--limit n]");
   process.exitCode = 2;
 }
 

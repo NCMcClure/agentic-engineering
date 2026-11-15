@@ -53,6 +53,10 @@ to fire. "Lost" is standing context a request went out without; a per-turn
 hook that has not spoken again is "not since", because it speaks only when its
 trigger recurs.
 
+For the faults with a known cause (a hook over the host's cap, context a
+compaction lost, a call the host refused), `/agentcraft:context-doctor diagnose`
+names each with its fix; the report is everything those are raised from.
+
 Read it for: briefings that never reach the model (`person`), hooks that run
 and say nothing (`silent`), failures (`error`), a skill listing whose
 descriptions were dropped for budget, the rule files a repo carries and
@@ -71,7 +75,8 @@ node "S/context-lens.mjs" serve --port 4646
 Serves `http://127.0.0.1:4646`: the session list (subagents nested under their
 session), the context size per request with compactions marked, each plugin's
 footprint (at start, added later, hooks per turn, after each compaction), and
-the timeline, every row expandable to the exact text. "Follow live" re-reads
+the timeline, every row expandable to the exact text. Its first card is the
+session's findings, and each one opens the event it was raised from. "Follow live" re-reads
 the open session as it grows. The server binds loopback only, answers only to
 a loopback Host header, and serves nothing outside `~/.claude/projects`:
 transcripts hold whatever their sessions saw, so never expose it further.

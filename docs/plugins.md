@@ -8,7 +8,7 @@ Install it with `/plugin install agentcraft@agentic-engineering` after `/plugin 
 
 A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentcraft:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.
 
-Version 1.0.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
+Version 1.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
 
 | Area | Routes | For |
 |---|---|---|
@@ -17,7 +17,7 @@ Version 1.0.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | [but-first-planning](#but-first-planning) | 18 | Use to pin down a vague request by interview, and to take a project from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. |
 | [code-diet](#code-diet) | 5 | Use on any coding task to build at the simplest rung that holds, and to check what already exists before building, hunt over-engineering in a diff, inventory deferred shortcuts, or note what this work built that another project could use. |
 | [codebase-optimizer](#codebase-optimizer) | 3 | Restructures a repository that has already accreted, in stages behind its own tests with revert on red: use for a sprawling file tree, god-files, or shallow, tightly coupled modules. |
-| [context-doctor](#context-doctor) | 1 | Use when a session ignored a rule, lost its instructions after a compaction, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, when, and from where. |
+| [context-doctor](#context-doctor) | 2 | Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, what did not, and the fix. |
 | [docs-parity](#docs-parity) | 5 | Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code. |
 | [perceptual-loop](#perceptual-loop) | 8 | Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound. |
 | [picture-this](#picture-this) | 2 | Use when asked to visualize, diagram, illustrate, or animate how a system, a feature, a mechanism, or an idea works, or when a README needs a picture of a figure that already exists. |
@@ -125,12 +125,13 @@ Restructures a repository that has already accreted, in stages behind its own te
 
 ## context-doctor
 
-Use when a session ignored a rule, lost its instructions after a compaction, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, when, and from where.
+Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, what did not, and the fix.
 
 [README](../plugins/agentcraft/skills/context-doctor/README.md), [changelog](../plugins/agentcraft/skills/context-doctor/CHANGELOG.md).
 
 | An agent's address | Started | When |
 |---|---|---|
+| `/agentcraft:context-doctor diagnose [session id or transcript path] [--json]` | by the agent | Find what went wrong with a session's context and name the fix: a hook over the host's cap, start context a compaction did not bring back, a skill call the host refused, output that reached only the person, text injected twice or on every turn, skills listed by name only, a searcher subagent that was given the build rules. Use when a session ignored a rule, forgot its instructions after a compaction, stopped at a skill, or ran short of room, and after changing a hook, a critical line, or a skill description. |
 | `/agentcraft:context-doctor lens [report\|serve] [session id or transcript path]` | by the agent | Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw. |
 
 ## docs-parity

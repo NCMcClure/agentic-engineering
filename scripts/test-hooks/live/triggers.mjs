@@ -87,7 +87,9 @@ export const TRIGGERS = [
   row("picture-this", "visualize", "Make me a small moving diagram that shows how a request travels through this app, something I could put at the top of the README."),
   // The lens left plugin-workbench for an area of its own, so this row is context-doctor's and that area gets a row for what it kept.
   // Neither is in a baseline recorded before the move: the first holds the lens as a skill of plugin-workbench.
-  row("context-doctor", "lens", "In my last session here the agent seemed to ignore one of our rules. Find out what it was actually given at the start, and where each piece came from."),
+  // The complaint goes to diagnose, the area's default since it had one; the lens keeps the plain ask to be shown everything.
+  row("context-doctor", "diagnose", "In my last session here the agent dropped our commit rules partway through, right after the conversation got compacted. Work out what broke and what I should change."),
+  row("context-doctor", "lens", "I want to look over everything that went into the agent's window during my last session here, hook by hook, with how big each request was."),
   row("plugin-workbench", "create-plugin", "I keep pasting the same three helper scripts into every session. Package them up as something my teammates could install."),
   row("system-map", "diagrams-init", "I would like an architecture diagram for this repo that is built from the code itself and kept on Miro. There is nothing like that here yet, so set it up from scratch.", PERSON),
   // A known miss, 0 of 6 in the baseline: the fixture carries no .agents/system-map.json, and every session searched for a diagram and found none.

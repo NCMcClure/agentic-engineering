@@ -105,6 +105,22 @@
   .status.new { color: var(--new); border-color: var(--line-strong); font-weight: 600; }
   .status.wait { color: var(--wait); padding-left: 0; }
   tr.lost td { color: var(--muted); }
+  /* A finding: its level in small capitals, what happened, then the fix. Only a critical one takes the accent. */
+  .finding { display: grid; grid-template-columns: 76px minmax(0, auto) minmax(0, 1fr); gap: 2px 10px; align-items: baseline; padding: 10px 8px; border-top: 1px solid var(--line); border-left: 2px solid transparent; border-radius: 6px; }
+  .finding[role="button"] { cursor: pointer; }
+  .finding[role="button"]:hover { background: var(--hover); }
+  .finding .code { font: 600 12px/1.5 var(--mono); }
+  .finding .where { color: var(--muted); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .finding p { grid-column: 2 / -1; margin: 0; overflow-wrap: anywhere; }
+  .finding .fix { color: var(--muted); font-size: 13px; }
+  .finding .fix b { color: var(--text); font-weight: 600; }
+  .finding code { font: 12px/1.5 var(--mono); background: var(--hover); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+  .badge.level-critical { color: var(--accent-ink); font-weight: 600; }
+  .badge.level-warning { color: var(--text); font-weight: 600; }
+  .badge.level-info { color: var(--muted); }
+  .finding.level-critical { border-left-color: var(--accent); border-top-left-radius: 0; border-bottom-left-radius: 0; }
+  /* Where a finding's row lands: marked for a moment, then let go. */
+  .flash { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
   .muted { color: var(--muted); }
   .warn { background: var(--accent-soft); border-color: var(--accent-soft); font-weight: 600; }
   /* Narrower than the five columns need: the preview takes its own line. */
@@ -118,6 +134,8 @@
     main { padding: 16px; }
     .row { grid-template-columns: minmax(0, 1fr) auto auto; }
     .row .what { grid-column: 1 / -1; }
+    .finding { grid-template-columns: auto minmax(0, 1fr); }
+    .finding .where, .finding p { grid-column: 1 / -1; }
   }
 </style>
 </head>

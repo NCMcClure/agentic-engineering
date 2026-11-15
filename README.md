@@ -249,7 +249,9 @@ agent cannot tell which of its context came from where, or what came back
 after a compaction. Claude Code records all of it in the session transcript,
 and the lens reads it back: each hook's output and who saw it, which skills
 kept their description in the listing, the size of every request, and what a
-compaction threw away. It used to live in plugin-workbench.
+compaction threw away. Then it names what went wrong, each finding with the
+fix: a hook over the host's cap, context a compaction did not bring back, a
+skill call the host refused. It used to live in plugin-workbench.
 [Read more →](plugins/agentcraft/skills/context-doctor/README.md)
 
 <picture>
