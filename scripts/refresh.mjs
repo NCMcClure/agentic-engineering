@@ -8,7 +8,7 @@
 //
 // Usage: node scripts/refresh.mjs [-- <install.mjs args>]
 // Anything after `--` is passed through, so
-// `node scripts/refresh.mjs -- --plugins agentic-teamwork` refreshes one plugin.
+// `node scripts/refresh.mjs -- --dry-run` validates and prints every write.
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
