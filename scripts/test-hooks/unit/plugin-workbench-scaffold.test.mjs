@@ -124,27 +124,27 @@ test("the script stub is a Node script that runs as written", (t) => {
 });
 
 // The structural gate, on a copy of this checkout with the skeleton added and
-// a catalog entry for it: exactly what adding a new plugin here means.
-// A plugin of this marketplace is an area the entry skill offers a person, so adding one means adding it there too.
-const ENTRY_DATA = "plugins/agentcraft/skills/start-here/start-here.json";
-const offered = (d) => ({
-  groups: d.groups.map((g, i) => (i === d.groups.length - 1 ? { ...g, areas: [...g.areas, NAME] } : g)),
-  areas: { ...d.areas, [NAME]: { cue: "keep a kit fresh", how: "It counts what is stale and says so.", uses: [{ want: "know what in the kit is stale", to: "check-kit" }, { want: "restock a shelf", to: "restock", starts: "person" }] } },
-});
+// a catalog entry for it. The skeleton is a plugin for a marketplace of its
+// author's, and this one ships a single plugin, so the gate refuses it as a
+// second: that refusal is all it has to say. Every rule it holds any plugin
+// directory to (the manifest, the README, the history, a skill's frontmatter,
+// Node only, the paths a file names) finds nothing in the skeleton.
 const added = (dir, extra = {}) => ({
-  json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: NAME, source: `./plugins/${NAME}`, description: SPEC.description, category: "testing" }] }), [ENTRY_DATA]: offered },
+  json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: NAME, source: `./plugins/${NAME}`, description: SPEC.description, category: "testing" }] }) },
   write: { ...Object.fromEntries(files(dir).map((rel) => [`plugins/${NAME}/${rel}`, read(dir, rel)])), ...extra },
 });
 const failures = (stdout) => stdout.split("\n").filter((line) => line.startsWith("FAIL:"));
+const SECOND_PLUGIN = /: a plugin directory is \w+ or the stub of a plugin that became one of its areas|: a stub's plugin\.json carries "dependencies"|: a stub's description says where it moved|: a stub holds its manifest, a README\.md, a CHANGELOG\.md, and nothing else/;
 
-test("the skeleton, added to this marketplace with a catalog entry, passes the structural gate", (t) => {
+test("the skeleton, added to this marketplace with a catalog entry, is refused as a second plugin and for nothing else", (t) => {
   const { dir } = scaffold(t);
-  const result = runNode("scripts/validate.mjs", ["--root", tree(t, added(dir))]);
-  const fails = failures(result.stdout);
-  assert.deepEqual(fails.filter((line) => line.includes(NAME)), [], result.stdout);
-  // Whatever else the tree fails on is not the skeleton's doing; with nothing else failing, the gate is green.
-  assert.equal(result.status, fails.length ? 1 : 0, result.stdout);
-  if (!fails.length) assert.match(result.stdout, /^validate: all green$/m);
+  const tidy = tree(t, added(dir));
+  runNode("scripts/gen-guide.mjs", ["--root", tidy, "--write"]);
+  const result = runNode("scripts/validate.mjs", ["--root", tidy]);
+  const mine = failures(result.stdout).filter((line) => line.includes(NAME));
+  assert.ok(mine.some((line) => SECOND_PLUGIN.test(line)), result.stdout);
+  assert.deepEqual(mine.filter((line) => !SECOND_PLUGIN.test(line)), [], result.stdout);
+  assert.deepEqual(failures(result.stdout).filter((line) => !line.includes(NAME)), [], "and the tree fails on nothing else");
 });
 
 test("the gate does name the skeleton when it is broken, so the test above is not passing by silence", (t) => {

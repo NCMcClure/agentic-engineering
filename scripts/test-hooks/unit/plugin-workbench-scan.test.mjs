@@ -335,17 +335,42 @@ test("CS7: Node hooks behind the guard grade 4, and the scan reads each guard as
   assert.ok(loud.length > 200 || scan.hooks.entries[0].command === loud, "the guard is read from the whole command, not the 200 characters the scan prints");
 });
 
-test("CS7: no guard, a quiet guard at SessionStart, no status message, and a wrapped call are each a finding", (t) => {
+test("CS7: no guard, no status message, a loud guard off session start, and a wrapped call are each a finding", (t) => {
   const bare = `node "${ROOT_VAR}/hooks/start.mjs"`;
   const quiet = hookCommand("demo", "hooks/start.mjs");
   const loud = hookCommand("demo", "hooks/start.mjs", { loud: true });
   const problems = (map) => runScan(demo(t, hooksJson(map))).hooks.unguarded_node_commands.map((p) => `${p.event}: ${p.problem}`);
   assert.deepEqual(problems({ PreToolUse: [hook(bare)] }), ["PreToolUse: no guard for a machine without Node"]);
-  assert.deepEqual(problems({ SessionStart: [hook(quiet, { statusMessage: "Starting" })] }), ["SessionStart: SessionStart needs the guard that tells the person Node is missing"]);
   assert.deepEqual(problems({ SessionStart: [hook(loud)] }), ["SessionStart: SessionStart command has no statusMessage"]);
+  assert.deepEqual(problems({ SessionStart: [hook(loud, { statusMessage: "Starting" })], Stop: [hook(loud)] }),
+    ["Stop: uses the guard that tells the person Node is missing, which would say so on every such event; only one SessionStart command does"]);
   assert.deepEqual(problems({ Stop: [hook(`${quiet} || true`)] }), [`Stop: not a guard followed by node "${ROOT_VAR}/<file>"`]);
   assert.equal(grade(t, "CS7", hooksJson({ PreToolUse: [hook(bare)] })).grade, 2);
   assert.equal(grade(t, "CS7", hooksJson({ PreToolUse: [hook(bare)], Stop: [hook(bare)] })).grade, 0);
+});
+
+// A plugin says it once. Each of several SessionStart commands with the loud
+// guard prints the line again, and a plugin whose every one is quiet leaves a
+// machine without Node with its hooks off and nothing said.
+test("CS7: exactly one SessionStart command tells the person Node is missing, and the rest stay quiet", (t) => {
+  const quiet = (file = "start") => hook(hookCommand("demo", `hooks/${file}.mjs`), { statusMessage: "Starting" });
+  const loud = (file = "start") => hook(hookCommand("demo", `hooks/${file}.mjs`, { loud: true }), { statusMessage: "Starting" });
+  const scanned = (map) => runScan(demo(t, { ...hooksJson(map), "hooks/second.mjs": "process.exitCode = 0;\n", "hooks/third.mjs": "process.exitCode = 0;\n", "skills/demo/SKILL.md": `${SKILL}\nThe hooks are hooks/start.mjs, hooks/second.mjs and hooks/third.mjs.\n` }));
+  const problems = (map) => scanned(map).hooks.unguarded_node_commands.map((p) => `${p.event}: ${p.problem}`);
+
+  // One loud, two quiet: what a plugin with three session commands looks like.
+  const one = scanned({ SessionStart: [loud(), quiet("second"), quiet("third")] });
+  assert.deepEqual(one.mechanical_grades.CS7, { grade: 4, basis: "0/3 Node hook command(s) off the guard: []" });
+  // In another group, or after a quiet one, it is still the one.
+  assert.deepEqual(problems({ SessionStart: [quiet(), { matcher: "startup", ...loud("second") }] }), []);
+
+  assert.deepEqual(problems({ SessionStart: [quiet(), quiet("second")] }), ["SessionStart: no SessionStart command tells the person Node is missing: one of them uses the guard that does"]);
+  const twice = scanned({ SessionStart: [loud(), loud("second"), loud("third")] });
+  assert.deepEqual(twice.hooks.unguarded_node_commands.map((p) => p.problem), Array(2).fill("repeats the guard that tells the person Node is missing; one SessionStart command says it, and the rest stay quiet"));
+  assert.ok(twice.hooks.unguarded_node_commands.every((p) => !p.command.includes("hooks/start.mjs")), "the first to say it is the one that stays");
+  assert.equal(twice.mechanical_grades.CS7.grade, 0);
+  // A plugin with no Node command at session start owes nobody the line.
+  assert.deepEqual(problems({ PreToolUse: [hook(hookCommand("demo", "hooks/start.mjs"))] }), []);
 });
 
 test("CS7 has nothing to judge when no hook runs Node", (t) => {
@@ -400,19 +425,27 @@ test("MH5 judges a file with no extension by its shebang, and leaves workflows a
   assert.deepEqual([scan.components.workflows, scan.mechanical_grades.MH5.grade], [1, 0]);
 });
 
-test("the workbench passes the mechanical checks it applies to others", () => {
-  const scan = runScan(WORKBENCH);
-  const short = Object.entries(scan.mechanical_grades).filter(([check, g]) => g.grade !== 4 && check !== "CF1");
-  assert.deepEqual(short, []);
-  assert.ok(scan.mechanical_grades.CF1.grade >= 3, scan.mechanical_grades.CF1.basis);
-  assert.deepEqual([scan.gates, scan.orphans, scan.components.non_node_scripts], [[], [], []]);
-  assert.equal(scan.skills.length, 5);
-  assert.deepEqual([scan.components.shape, scan.components.routes], ["plain", 0]);
-  // It hides two skills, and nothing it ships sends an agent to call either: a mention is a file to read, or an offer to the person.
-  for (const m of scan.hidden_mentions) {
-    const line = fs.readFileSync(path.join(WORKBENCH, m.file), "utf8").split("\n")[m.line - 1];
-    assert.match(line, /SKILL\.md\]|offer the person|\/plugin-workbench:|same tools the/, `${m.file}:${m.line}: ${line}`);
-  }
+// The workbench is an area now, so the plugin it is scored as is the one it
+// ships in. What that plugin is short of is listed, so a new shortfall fails
+// here and one that is fixed has to leave the list:
+//   SQ7  one relative link in a route that is a template for a project's own file
+//   CS3  the two agents, which a route names by address and never by path, and
+//        three template files a route copies as a tree
+const SHORT = { SQ7: 2, CS3: 0 };
+
+test("the plugin the workbench ships in passes the mechanical checks it applies to others, bar the ones listed", () => {
+  const scan = runScan(path.join(REPO, "plugins", "agentcraft"));
+  const short = Object.fromEntries(Object.entries(scan.mechanical_grades).filter(([, g]) => g.grade !== 4).map(([check, g]) => [check, g.grade]));
+  assert.deepEqual(short, SHORT, JSON.stringify(Object.fromEntries(Object.keys(short).map((check) => [check, scan.mechanical_grades[check].basis])), null, 2));
+  assert.equal(scan.mechanical_grades.CS7.grade, 4, "one SessionStart command tells the person Node is missing, and the rest are quiet");
+  assert.deepEqual([scan.gates, scan.na], [[], { dimensions: [], checks: [] }]);
+  // The three files that are not Node each say why in a debt line, which is what keeps MH5 whole.
+  assert.deepEqual(scan.components.non_node_scripts, ["skills/but-first-planning/routes/spec-init/assets/comments-server.py", "skills/perceptual-loop/scripts/keypoints.py", "skills/perceptual-loop/scripts/semantic.py"]);
+  assert.deepEqual([scan.components.shape, scan.components.areas, scan.components.skills], ["areas", 13, 14]);
+  assert.ok(scan.components.routes >= 70, `${scan.components.routes} routes`);
+  // An area is callable and a route is a document, so the plugin hides nothing a file could send an agent to call.
+  assert.deepEqual(scan.hidden_mentions, []);
+  assert.deepEqual(scan.orphans.filter((file) => !file.startsWith("agents/") && !file.includes("/templates/")), []);
 });
 
 // ---- areas and routes ----------------------------------------------------

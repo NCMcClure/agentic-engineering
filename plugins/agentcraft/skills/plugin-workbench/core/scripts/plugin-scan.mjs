@@ -159,7 +159,9 @@ const NAMED_DIR_RE = /`([A-Z])`\s+below\s+is\s+`([^`\s]+)`\s+from\s+the\s+direct
 const EXIT_CALL_RE = new RegExp("\\bprocess\\.ex" + "it\\(");
 
 // CS7: a hook that runs Node sits behind a guard, so a machine without Node
-// gets one line at session start instead of an error on every event.
+// gets one line at session start instead of an error on every event. One
+// line: the guard that says so is on one SessionStart command of the plugin,
+// and every other Node command, at session start or not, takes the quiet one.
 const QUIET_GUARD = "command -v node >/dev/null 2>&1 || exit 0; ";
 const LOUD_GUARD_RE = /^command -v node >\/dev\/null 2>&1 \|\| \{ echo '(\{.*?\})'; exit 0; \}; /;
 const NODE_CALL_RE = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+\.m?js)"((?: [A-Za-z0-9_./=:-]+)*)$/;
@@ -570,7 +572,7 @@ const CONTEXT_INJECTING_EVENTS = new Set(["SessionStart", "UserPromptSubmit", "U
  * How a hook command stands on CS7: whether it runs Node on a script, which
  * guard it opens with (`loud` tells the person Node is missing, `quiet` stays
  * out of the way, null is none), and whether what follows the guard is a
- * plain `node "${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>"` call.
+ * plain `node "${CLAUDE_PLUGIN_ROOT}/<file>"` call.
  */
 function nodeGuard(command) {
   const runsNode = /\bnode\b/.test(command) && /\.m?js\b/.test(command);
@@ -587,14 +589,33 @@ function nodeGuard(command) {
   return { runsNode, guard, plainCall: NODE_CALL_RE.test(rest) };
 }
 
-/** Why a Node hook entry fails CS7, or null when it passes. */
+/**
+ * Why a Node hook entry fails CS7 by itself, or null when it passes. Which
+ * SessionStart command tells the person is a fact about the plugin's whole
+ * map, so `loudProblems` judges that.
+ */
 function guardProblem(event, entry) {
   if (!entry.runs_node) return null;
-  if (!entry.plain_node_call) return "not a guard followed by node \"${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>\"";
+  if (!entry.plain_node_call) return "not a guard followed by node \"${CLAUDE_PLUGIN_ROOT}/<file>\"";
   if (!entry.node_guard) return "no guard for a machine without Node";
-  if (event === "SessionStart" && entry.node_guard !== "loud") return "SessionStart needs the guard that tells the person Node is missing";
+  if (event !== "SessionStart" && entry.node_guard === "loud") return "uses the guard that tells the person Node is missing, which would say so on every such event; only one SessionStart command does";
   if (event === "SessionStart" && !entry.status_message) return "SessionStart command has no statusMessage";
   return null;
+}
+
+/**
+ * The plugin's SessionStart commands held to one voice: exactly one of them
+ * tells the person Node is missing. With none, a machine without Node hears
+ * nothing and every hook is silently off; with two, the person reads the same
+ * line twice. `{ event, command, problem }` each: the first command when none
+ * is loud, and every loud one after the first.
+ */
+function loudProblems(entries) {
+  const starts = entries.filter((e) => e.event === "SessionStart" && e.runs_node && e.plain_node_call && e.node_guard);
+  if (!starts.length) return [];
+  const loud = starts.filter((e) => e.node_guard === "loud");
+  if (!loud.length) return [{ event: "SessionStart", command: starts[0].command, problem: "no SessionStart command tells the person Node is missing: one of them uses the guard that does" }];
+  return loud.slice(1).map((e) => ({ event: "SessionStart", command: e.command, problem: "repeats the guard that tells the person Node is missing; one SessionStart command says it, and the rest stay quiet" }));
 }
 
 function scanHooks(root) {
@@ -634,6 +655,7 @@ function scanHooks(root) {
       }
     }
   }
+  unguarded.push(...loudProblems(entries));
   // A hook's stdout is its whole contract, and an early exit can cut it
   // short: a hook script sets the exit code and lets Node unwind.
   const exitCalls = [];

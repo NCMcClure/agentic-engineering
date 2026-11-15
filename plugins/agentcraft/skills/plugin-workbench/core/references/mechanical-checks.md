@@ -59,11 +59,15 @@ hook command that runs Node on a plugin file opens with a guard, so a machine
 without Node on PATH gets one line at session start instead of an error on
 every event:
 
-- every such command is the guard, then `node "${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>"`;
+- every such command is the guard, then `node "${CLAUDE_PLUGIN_ROOT}/<file>"`;
 - the quiet guard is `command -v node >/dev/null 2>&1 || exit 0; `;
-- a `SessionStart` command uses the loud guard, which echoes a
-  `systemMessage` telling the person Node is missing before it exits 0, and
-  carries a `statusMessage`.
+- the loud guard echoes a `systemMessage` telling the person Node is missing
+  before it exits 0. Exactly one `SessionStart` command of the plugin uses
+  it: with none, a machine without Node hears nothing and every hook is
+  silently off; with two, the person reads the same line twice. Every other
+  Node command takes the quiet guard, on `SessionStart` and on any other
+  event;
+- every `SessionStart` command carries a `statusMessage`.
 
 The script a hook runs sets `process.exitCode` and lets Node unwind. A hook's
 stdout is its whole contract, and a call that ends the process can cut it
@@ -71,8 +75,9 @@ short.
 
 Read from `hooks.unguarded_node_commands` and `hooks.exit_calls`.
 
-**Fix:** put the guard in front of the call; replace the early exit with the
-exit code and a return.
+**Fix:** put the guard in front of the call, the loud one on the one
+`SessionStart` command that speaks for the plugin and the quiet one on the
+rest; replace the early exit with the exit code and a return.
 
 ## WQ7
 
