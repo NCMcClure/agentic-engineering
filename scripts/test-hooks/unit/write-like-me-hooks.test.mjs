@@ -1,4 +1,4 @@
-// write-like-me's three hooks, each run as a host runs it: one payload on
+// write-like-me's two hooks, each run as a host runs it: one payload on
 // stdin, stdout and the exit code read back. Every run gets a throwaway home
 // and data dir, so the person's own profile and ledger are never read or
 // written. What a hook prints is pinned whole, since the model reads it; what
@@ -66,8 +66,11 @@ test("the plugin's hooks.json runs the prompt hook and the stop hook once each, 
   const on = (event) => mine.filter(([e]) => e === event).map(([, script]) => script);
   assert.deepEqual(on("UserPromptSubmit"), ["prompt-submit.mjs"]);
   assert.deepEqual(on("Stop"), ["stop.mjs"]);
-  // The session hook says nothing any more, so whether it stays registered is the plugin's to decide; nowhere else, though.
-  assert.deepEqual(mine.filter(([event, script]) => script === "session-start.mjs" && event !== "SessionStart"), []);
+  // The area has nothing to say at session start: the profile is a rules file the host loads, and a person
+  // without one is offered the calibration by the entry skill. So it registers nothing there, and ships no hook for it.
+  assert.deepEqual(on("SessionStart"), []);
+  assert.deepEqual(mine.map(([event]) => event).sort(), ["Stop", "UserPromptSubmit"]);
+  assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);
 });
 
 test("the plugin ships no Python and no shell", () => {
@@ -75,18 +78,17 @@ test("the plugin ships no Python and no shell", () => {
   assert.deepEqual(stray, []);
 });
 
-// ---- a person with no writing profile: nothing, from any of the three -------
+// ---- a person with no writing profile: nothing, from either hook -----------
 
 test("without a writing profile no hook says anything or leaves a file, whatever the session does", (t) => {
   const p = person(t, { profile: false });
-  for (const source of ["startup", "resume", "clear", "compact"]) quiet(p.run("session-start.mjs", { hook_event_name: "SessionStart", source, session_id: "s1" }), `session start, ${source}`);
   quiet(p.run("prompt-submit.mjs", { hook_event_name: "UserPromptSubmit", session_id: "s1", prompt: FEEDBACK }), "style feedback in a prompt");
   quiet(p.run("prompt-submit.mjs", { session_id: "s1", prompt: "fix the failing test" }), "an ordinary prompt");
   quiet(p.run("stop.mjs", { hook_event_name: "Stop", session_id: "s1", stop_hook_active: false }), "stop");
   assert.deepEqual(fs.readdirSync(p.home), [], "no data home, no stamp, no ledger");
 
   // Through the plugin's own data directory it is the same: the area's folder in it is never made.
-  for (const [script, payload] of [["session-start.mjs", { source: "startup" }], ["prompt-submit.mjs", { session_id: "s1", prompt: FEEDBACK }], ["stop.mjs", { session_id: "s1" }]]) {
+  for (const [script, payload] of [["prompt-submit.mjs", { session_id: "s1", prompt: FEEDBACK }], ["stop.mjs", { session_id: "s1" }]]) {
     quiet(p.run(script, payload, p.hosted.env), `${script}, the plugin's data dir`);
   }
   assert.deepEqual(fs.readdirSync(p.home), []);
@@ -102,7 +104,7 @@ test("without a writing profile a ledger that is waiting stays as it is, in this
 
   // What the area kept as a plugin of its own is not copied for a person with no profile.
   write(p.hosted.former, "observations.jsonl", LEDGER_LINE);
-  for (const [script, payload] of [["session-start.mjs", { source: "startup" }], ["prompt-submit.mjs", { session_id: "s1", prompt: FEEDBACK }], ["stop.mjs", { session_id: "s1" }]]) {
+  for (const [script, payload] of [["prompt-submit.mjs", { session_id: "s1", prompt: FEEDBACK }], ["stop.mjs", { session_id: "s1" }]]) {
     quiet(p.run(script, payload, p.hosted.env), `${script}, a former ledger`);
   }
   assert.equal(fs.existsSync(path.dirname(p.hosted.home)), false, "the plugin's data dir is not made");
@@ -118,17 +120,6 @@ test("a profile at the overridden path counts, and one at the default path does 
   const q = person(t);
   quiet(q.run("prompt-submit.mjs", { session_id: "s1", prompt: FEEDBACK }, { WLM_PROFILE: path.join(q.home, "no-such-profile.md") }), "WLM_PROFILE names a file that is not there");
   assert.deepEqual(q.files(), []);
-});
-
-// ---- SessionStart: nothing to say -------------------------------------------
-
-test("session start says nothing with a profile either, and never touches the data home", (t) => {
-  const p = person(t);
-  for (const source of ["startup", "resume", "clear", "compact"]) quiet(p.run("session-start.mjs", { hook_event_name: "SessionStart", source, session_id: "s1" }), source);
-  quiet(p.run("session-start.mjs", { source: "startup" }, p.hosted.env), "the plugin's data dir");
-  quiet(p.run("session-start.mjs", { source: "startup" }, { WLM_HOME: "", CLAUDE_PLUGIN_DATA: "" }), "no data home");
-  for (const stdin of ["", "   ", "{not json", "[1,2]", "null", '"text"']) quiet(p.run("session-start.mjs", stdin), JSON.stringify(stdin));
-  assert.deepEqual(fs.readdirSync(p.home), [".claude"]);
 });
 
 // ---- UserPromptSubmit: record the feedback, tell the model ------------------

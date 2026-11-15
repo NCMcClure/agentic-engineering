@@ -87,17 +87,6 @@
             "statusMessage": "Reading the repo's state"
           }
         ]
-      },
-      {
-        "matcher": "startup|resume|clear|compact",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/write-like-me/hooks/session-start.mjs\"",
-            "timeout": 5,
-            "statusMessage": "Checking for a writing profile"
-          }
-        ]
       }
     ],
     "Stop": [
