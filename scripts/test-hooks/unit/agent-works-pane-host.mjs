@@ -22,7 +22,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { REPO, tempRepo, write } from "./helpers.mjs";
 
-export const PLUGIN = path.join(REPO, "plugins", "agent-works");
+export const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 export const KANBAN = path.join(PLUGIN, "hooks", "kanban");
 export const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 const MOD = pathToFileURL(path.join(KANBAN, "register.mjs")).href;

@@ -82,7 +82,7 @@ const NOT_ADDRESSES = new Set(["agent-works:plugins"]);
 // The plugin that is a Claude Code mod, by the paths its files have as a
 // plugin's own: the handlers that answer its tools, and the pattern the card
 // sync reads a tool's name with.
-const MOD = { plugin: "agent-works", handlers: "plugins/agent-works/hooks/kanban/register.mjs", observer: "plugins/agent-works/lib/sync.mjs" };
+const MOD = { plugin: "agent-works", handlers: "plugins/agentcraft/skills/agent-works/hooks/kanban/register.mjs", observer: "plugins/agentcraft/skills/agent-works/lib/sync.mjs" };
 
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
 const exists = (p) => fs.existsSync(p);

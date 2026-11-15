@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { BOARD } from "../../../plugins/agent-works/hooks/kanban/commands.mjs";
+import { BOARD } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/commands.mjs";
 import { KANBAN, board, boardOf, cardText, repo } from "./agent-works-pane-host.mjs";
 
 /** Run one entry of the map; fails with the CLI's own words unless it exits `status`. */

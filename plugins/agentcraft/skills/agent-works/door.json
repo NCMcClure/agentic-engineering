@@ -1,0 +1,49 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "board": {
+      "cue": ""
+    },
+    "coordinate": {
+      "cue": ""
+    },
+    "decisions": {
+      "cue": ""
+    },
+    "dispatch": {
+      "cue": ""
+    },
+    "doctor": {
+      "cue": ""
+    },
+    "guard": {
+      "cue": ""
+    },
+    "hubs": {
+      "cue": ""
+    },
+    "memory": {
+      "cue": ""
+    },
+    "orchestrate": {
+      "cue": ""
+    },
+    "resource-locks": {
+      "cue": ""
+    },
+    "review-card": {
+      "cue": ""
+    },
+    "setup": {
+      "cue": "",
+      "starts": "person"
+    },
+    "sync-cards": {
+      "cue": ""
+    },
+    "work-card": {
+      "cue": ""
+    }
+  }
+}

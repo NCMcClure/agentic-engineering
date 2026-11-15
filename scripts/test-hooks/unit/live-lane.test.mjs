@@ -207,7 +207,7 @@ test("a skill session's arguments leave it four read-only tools and no MCP serve
   assert.ok(!SKILL_SESSION_ARGS.includes("--mcp-config"));
   // A mod registers its tools without an MCP config, so they are denied by
   // name, and the host names them by the plugin that loads the mod.
-  const mod = fs.readFileSync(path.join(REPO, "plugins", "agent-works", "hooks", "kanban", "tools.mjs"), "utf8");
+  const mod = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "kanban", "tools.mjs"), "utf8");
   const denied = after("--disallowedTools");
   assert.deepEqual(NO_MCP, ["--strict-mcp-config", "--disallowedTools", denied]);
   assert.ok(mod.includes(`${denied}__`), `${denied} is not the prefix the mod's tools carry`);

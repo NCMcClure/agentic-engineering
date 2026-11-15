@@ -10,7 +10,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const HOOK = path.join(PLUGIN, "hooks", "session-start.mjs");
 const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 const CONFIG = ".agents/agent-works.json";

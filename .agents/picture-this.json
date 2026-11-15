@@ -1,6 +1,6 @@
 {
   "version": 1,
   "figuresDir": ".agents/picture-this/figures",
-  "stillsDir": "plugins/agent-works/assets/figures",
+  "stillsDir": "plugins/agentcraft/skills/agent-works/assets/figures",
   "mdxComponents": null
 }

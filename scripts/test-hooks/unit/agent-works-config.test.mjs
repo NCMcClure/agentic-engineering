@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const { CONFIG, CONFIG_VERSION, DEFAULTS, OLD_BOARD, boardDir, budget, configPath, defaults, findConfig, loadConfig, merge } =
   await import(pathToFileURL(path.join(PLUGIN, "lib", "config.mjs")).href);
 

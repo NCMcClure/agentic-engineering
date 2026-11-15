@@ -7,7 +7,7 @@
     {"for": "all", "mode": "any", "text": "Render the smallest run that answers the question: the 1 to 3 proving shots per iteration, the whole suite once, when the work is finished. The gate compares a candidate with its own accepted run; never set a target against the reference."}
   ],
   "chains": [
-    {"partner": "agent-works", "for": "all", "mode": "any", "text": "An owed full run or a stale baseline becomes a gate card (`aw board owe`), and a render only one session may run at a time goes under /agent-works:resource-locks."},
+    {"partner": "agent-works", "for": "all", "mode": "any", "text": "An owed full run or a stale baseline becomes a gate card (`aw board owe`), and a render only one session may run at a time goes under /agentcraft:agent-works resource-locks."},
     {"partner": "but-first-planning", "for": "all", "mode": "any", "when": ".agents/plan", "text": "A ruling with reach (how every sky should look) becomes a decision record through /but-first-planning:spec-edit."}
   ]
 }

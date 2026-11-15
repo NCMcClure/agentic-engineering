@@ -32,7 +32,7 @@ the `userConfig` key agent-works declares, `syncIntervalSeconds`.
 
 1. **A plugin's `bin/` is on the Bash tool's PATH, and a launcher there can
    import a script under `skills/`.** `bin/probe` was the three lines
-   `plugins/agent-works/bin/aw` is, pointed at
+   `plugins/agentcraft/bin/aw` is, pointed at
    `../skills/area/scripts/probe.mjs`. A scripted `Bash` call of
    `probe; command -v probe` printed `probe ran from
    <config>/plugins/cache/spike-mkt/agentcraft/1.0.0/skills/area/scripts` and

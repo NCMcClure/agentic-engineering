@@ -7,8 +7,8 @@
 // always proposes the same set.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boardConfig } from "../../../plugins/agent-works/lib/board.mjs";
-import { conflictConfig, locksFor, propose } from "../../../plugins/agent-works/lib/conflicts.mjs";
+import { boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { conflictConfig, locksFor, propose } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
 
 // The rules as a repo's .agents/agent-works.json holds them: the conflict rules under kanban.conflicts, the locks beside them.
 const conflicts = ({ rederived, merge, shared, resources, lockOrder } = {}) => conflictConfig({ kanban: { conflicts: { rederived, merge, shared } }, resources, lockOrder });
@@ -88,8 +88,8 @@ test("a broad path that only meets another card on a merge file warns rather tha
 
 test("a shared path always holds: two cards in one plugin both bump its version line", () => {
   const b = board([
-    card("0001", { files: ["plugins/agent-works/hooks/kanban/"] }),
-    card("0002", { files: ["plugins/agent-works/lib/conflicts.mjs"] }),
+    card("0001", { files: ["plugins/agentcraft/skills/agent-works/hooks/kanban/"] }),
+    card("0002", { files: ["plugins/agentcraft/skills/agent-works/lib/conflicts.mjs"] }),
     card("0003", { files: ["plugins/perceptual-loop/lib/motion.mjs"] }),
   ]);
   const p = propose(b, { config: REPO_CONFIG, max: 3 });

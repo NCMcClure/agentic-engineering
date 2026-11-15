@@ -11,7 +11,7 @@
       "label": "Orchestrator",
       "kind": "session",
       "note": "plans, hands off, reviews",
-      "source": "plugins/agent-works/skills/orchestrate/SKILL.md:11"
+      "source": "plugins/agentcraft/skills/agent-works/routes/orchestrate/ROUTE.md:11"
     },
     {
       "id": "child-a",
@@ -20,7 +20,7 @@
       "note": "a child session, its own window",
       "parent": "orchestrator",
       "born": "hand-off",
-      "source": "plugins/agent-works/skills/dispatch/SKILL.md:59"
+      "source": "plugins/agentcraft/skills/agent-works/routes/dispatch/ROUTE.md:59"
     },
     {
       "id": "child-b",
@@ -29,7 +29,7 @@
       "note": "a second child, in parallel",
       "parent": "orchestrator",
       "born": "fan-out",
-      "source": "plugins/agent-works/skills/work-card/SKILL.md:9"
+      "source": "plugins/agentcraft/skills/agent-works/routes/work-card/ROUTE.md:9"
     },
     {
       "id": "subagent",
@@ -38,14 +38,14 @@
       "note": "a helper a child starts",
       "parent": "child-a",
       "born": "fan-out",
-      "source": "plugins/agent-works/hooks/hooks.json:16"
+      "source": "plugins/agentcraft/hooks/hooks.json:16"
     },
     {
       "id": "hook",
       "label": "SessionStart hook",
       "kind": "hook",
       "note": "runs after a compaction",
-      "source": "plugins/agent-works/hooks/hooks.json:5"
+      "source": "plugins/agentcraft/hooks/hooks.json:5"
     }
   ],
   "flows": [
@@ -55,7 +55,7 @@
       "to": "child-a",
       "kind": "event",
       "label": "brief",
-      "source": "plugins/agent-works/skills/dispatch/SKILL.md:57"
+      "source": "plugins/agentcraft/skills/agent-works/routes/dispatch/ROUTE.md:57"
     },
     {
       "id": "dispatch-b",
@@ -63,7 +63,7 @@
       "to": "child-b",
       "kind": "event",
       "label": "brief",
-      "source": "plugins/agent-works/lib/brief.mjs:97"
+      "source": "plugins/agentcraft/skills/agent-works/lib/brief.mjs:97"
     },
     {
       "id": "delegate",
@@ -71,7 +71,7 @@
       "to": "subagent",
       "kind": "event",
       "label": "task",
-      "source": "plugins/agent-works/hooks/critical.json:8"
+      "source": "plugins/agentcraft/skills/agent-works/hooks/critical.json:8"
     },
     {
       "id": "note",
@@ -79,7 +79,7 @@
       "to": "child-b",
       "kind": "event",
       "label": "note",
-      "source": "plugins/agent-works/scripts/coord/notes.mjs:9"
+      "source": "plugins/agentcraft/skills/agent-works/scripts/coord/notes.mjs:9"
     },
     {
       "id": "report",
@@ -87,7 +87,7 @@
       "to": "orchestrator",
       "kind": "event",
       "label": "CARD line",
-      "source": "plugins/agent-works/skills/work-card/SKILL.md:83"
+      "source": "plugins/agentcraft/skills/agent-works/routes/work-card/ROUTE.md:83"
     },
     {
       "id": "reinject",
@@ -95,7 +95,7 @@
       "to": "orchestrator",
       "kind": "write",
       "label": "instructions",
-      "source": "plugins/agent-works/hooks/session-start.mjs:154"
+      "source": "plugins/agentcraft/skills/agent-works/hooks/session-start.mjs:154"
     },
     {
       "id": "reinject-child",
@@ -103,7 +103,7 @@
       "to": "child-b",
       "kind": "write",
       "label": "card and cadence",
-      "source": "plugins/agent-works/hooks/session-start.mjs:157"
+      "source": "plugins/agentcraft/skills/agent-works/hooks/session-start.mjs:157"
     }
   ],
   "quantities": [
@@ -236,7 +236,7 @@
         "of": "orchestrator",
         "at": "round",
         "role": "agent",
-        "says": "/agent-works:orchestrate"
+        "says": "/agentcraft:agent-works orchestrate"
       },
       {
         "of": "orchestrator",
@@ -347,7 +347,7 @@
         "of": "orchestrator",
         "at": "report",
         "role": "agent",
-        "says": "/agent-works:review-card 12"
+        "says": "/agentcraft:agent-works review-card 12"
       },
       {
         "of": "orchestrator",
@@ -371,7 +371,7 @@
         "of": "orchestrator",
         "at": "compact",
         "role": "hook",
-        "says": "The board is the record: /agent-works:orchestrate resumes it."
+        "says": "The board is the record: /agentcraft:agent-works orchestrate resumes it."
       },
       {
         "of": "orchestrator",
@@ -431,7 +431,7 @@
       },
       {
         "role": "agent",
-        "says": "/agent-works:review-card <id>"
+        "says": "/agentcraft:agent-works review-card <id>"
       },
       {
         "role": "tool",
@@ -506,7 +506,7 @@
       ],
       "flows": [],
       "plain": "The orchestrator plans the round in its own context window, one turn after another.",
-      "technical": "/agent-works:orchestrate reads the board (aw board status, propose) and records the person's yes with aw board grant."
+      "technical": "/agentcraft:agent-works orchestrate reads the board (aw board status, propose) and records the person's yes with aw board grant."
     },
     {
       "id": "hand-off",

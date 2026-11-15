@@ -6,8 +6,8 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 1 | guide |
-| [agent-works](#agent-works) | 1.0.3 | 15 | orchestration |
+| [agentcraft](#agentcraft) | 0.1.0 | 2 | guide |
+| [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 18 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 3 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 6 | collaboration |
@@ -28,6 +28,21 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 
 | Skill | Started | When |
 |---|---|---|
+| `/agentcraft:agent-works [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: board (); coordinate (); decisions (); dispatch (); doctor (); guard (); hubs (); memory (); orchestrate (); resource-locks (); review-card (); setup (); sync-cards (); work-card (). |
+| `/agentcraft:agent-works board [status\|ready\|add\|move\|owe\|settle ...]` | by the agent | Use for anything on the kanban board: out-of-scope work to put on it instead of doing it now, what is ready or in progress, moving or planning a card, owing a check this session cannot run, settling one with evidence. |
+| `/agentcraft:agent-works coordinate` | by the agent | Use before a heavy job, a timing run or shared use of a GPU on a machine agents share, and to leave a note, claim a shared counter or record a lesson for other sessions. |
+| `/agentcraft:agent-works decisions` | by the agent | Use for a hard-to-reverse choice, a new project term, or an agent contract page. |
+| `/agentcraft:agent-works dispatch <card id> [--serial]` | by the agent | Use when a card on the board should start: the person approved a parallel set, the orchestrator picked the next ready card, or the kanban pane asked to start one. |
+| `/agentcraft:agent-works doctor` | by the agent | Use when AGENTS.md, memory or status bloats, rules repeat, ./docs holds agent files, or a command fails because the machine lacks Node, git or the forge's command line. |
+| `/agentcraft:agent-works guard` | by the agent | Use when the agent guard refuses, questions or warns about a command or an edit, or a mistake must not happen again. |
+| `/agentcraft:agent-works hubs` | by the agent | Use when adding, moving, renaming or removing a directory, when aw hubs reports a finding, or when a tree needs a new AGENTS.md hub. |
+| `/agentcraft:agent-works memory` | by the agent | Use to read project memory before a task, record a lesson, or update status. |
+| `/agentcraft:agent-works orchestrate [the goal, or nothing to resume]` | by the agent | Use when the person wants several tasks built, a backlog or a sprint worked, work run in parallel, briefs written for a round of agents, or a round resumed after a restart or a compaction: this session becomes the orchestrator. |
+| `/agentcraft:agent-works resource-locks [run\|acquire\|release\|status] <resource> ...` | by the agent | Use before starting anything only one session on this machine can use at a time: a dev-server port, a simulator, a GPU, a shared database, a timing-sensitive test run. |
+| `/agentcraft:agent-works review-card <card id>` | by the agent | Use when a child session reports its card in review, by its CARD line, a note from its session, or a board wait waking: check the diff against the done criteria, send findings back, land it on green, close the card. |
+| `/agentcraft:agent-works setup` | when you ask for it | Run to set a repository up for agent work, adopt the agent files it already has, or install the aw launcher. A person starts it. |
+| `/agentcraft:agent-works sync-cards [in-flight\|backlog\|suggested] [card ids]` | by the agent | Use when the board may have drifted from the work: a request merged or closed under a card in flight, backlog cards already started or landed, suggestions piling up, the briefing says cards have not changed for a day, or the person asks to sync or groom the board. |
+| `/agentcraft:agent-works work-card <card id>` | by the agent | Use when this session was started to work one card from the board, by a brief or by a work-card command naming the card. |
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
 
 ## agent-works
@@ -35,24 +50,6 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.
 
 Version 1.0.3. [README](../plugins/agent-works/README.md), [changelog](../plugins/agent-works/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/agent-works:agent-works` | by the agent, or by hand | Use when unsure where an agent-facing fact goes in a repository, or which agent-works skill owns a task. |
-| `/agent-works:board [status\|ready\|add\|move\|owe\|settle ...]` | by the agent, or by hand | Use for anything on the kanban board: out-of-scope work to put on it instead of doing it now, what is ready or in progress, moving or planning a card, owing a check this session cannot run, settling one with evidence. |
-| `/agent-works:coordinate` | by the agent, or by hand | Use before a heavy job, a timing run or shared use of a GPU on a machine agents share, and to leave a note, claim a shared counter or record a lesson for other sessions. |
-| `/agent-works:decisions` | by the agent, or by hand | Use for a hard-to-reverse choice, a new project term, or an agent contract page. |
-| `/agent-works:dispatch <card id> [--serial]` | by the agent, or by hand | Use when a card on the board should start: the person approved a parallel set, the orchestrator picked the next ready card, or the kanban pane asked to start one. |
-| `/agent-works:doctor` | by the agent, or by hand | Use when AGENTS.md, memory or status bloats, rules repeat, ./docs holds agent files, or a command fails because the machine lacks Node, git or the forge's command line. |
-| `/agent-works:guard` | by the agent, or by hand | Use when the agent guard refuses, questions or warns about a command or an edit, or a mistake must not happen again. |
-| `/agent-works:hubs` | by the agent, or by hand | Use when adding, moving, renaming or removing a directory, when aw hubs reports a finding, or when a tree needs a new AGENTS.md hub. |
-| `/agent-works:memory` | by the agent, or by hand | Use to read project memory before a task, record a lesson, or update status. |
-| `/agent-works:orchestrate [the goal, or nothing to resume]` | by the agent, or by hand | Use when the person wants several tasks built, a backlog or a sprint worked, work run in parallel, briefs written for a round of agents, or a round resumed after a restart or a compaction: this session becomes the orchestrator. |
-| `/agent-works:resource-locks [run\|acquire\|release\|status] <resource> ...` | by the agent, or by hand | Use before starting anything only one session on this machine can use at a time: a dev-server port, a simulator, a GPU, a shared database, a timing-sensitive test run. |
-| `/agent-works:review-card <card id>` | by the agent, or by hand | Use when a child session reports its card in review, by its CARD line, a note from its session, or a board wait waking: check the diff against the done criteria, send findings back, land it on green, close the card. |
-| `/agent-works:setup` | by hand | Run to set a repository up for agent work, adopt the agent files it already has, or install the aw launcher. A person starts it. |
-| `/agent-works:sync-cards [in-flight\|backlog\|suggested] [card ids]` | by the agent, or by hand | Use when the board may have drifted from the work: a request merged or closed under a card in flight, backlog cards already started or landed, suggestions piling up, the briefing says cards have not changed for a day, or the person asks to sync or groom the board. |
-| `/agent-works:work-card <card id>` | by the agent, or by hand | Use when this session was started to work one card from the board, by a brief or by a work-card command naming the card. |
 
 ## but-first-planning
 

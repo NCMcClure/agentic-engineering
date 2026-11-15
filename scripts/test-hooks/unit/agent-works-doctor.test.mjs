@@ -174,7 +174,7 @@ test("agent-works doctor: Markdown named like a brief outside the briefs folder"
 test("agent-works doctor: the plugin's own templates are no stray briefs when the project is the plugin", () => {
   const repo = path.resolve(PLUGIN, "..", "..");
   const found = doctor.strayBriefFindings(repo, config.loadConfig(repo)).map((f) => f.path);
-  assert.deepEqual(found.filter((where) => where.startsWith("plugins/agent-works/")), []);
+  assert.deepEqual(found.filter((where) => where.startsWith("plugins/agentcraft/skills/agent-works/")), []);
 });
 
 test("agent-works doctor: the contracts page: missing, without a stamp, of another version, over its budget", async (t) => {

@@ -158,10 +158,10 @@ The session becomes the orchestrator: it turns a goal into cards on a kanban boa
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| build a goal bigger than one change, or resume a round | `/agent-works:orchestrate` | agent |
-| see what is on the board, add to it, or move a card | `/agent-works:board` | agent |
-| set a repository up for agent work | `/agent-works:setup` | person |
-| find out why agent files have bloated, or what the machine lacks | `/agent-works:doctor` | agent |
+| build a goal bigger than one change, or resume a round | `/agentcraft:agent-works orchestrate` | agent |
+| see what is on the board, add to it, or move a card | `/agentcraft:agent-works board` | agent |
+| set a repository up for agent work | `/agentcraft:agent-works setup` | person |
+| find out why agent files have bloated, or what the machine lacks | `/agentcraft:agent-works doctor` | agent |
 
 ### agentic-teamwork
 

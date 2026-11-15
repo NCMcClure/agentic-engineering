@@ -49,23 +49,23 @@ gets stated four times, task status lives in six places, and two sessions on
 one machine never learn the other exists. agent-works gives every kind of fact
 one home under `.agents/` with a size budget and checks them all with
 `aw doctor`. Tasks and owed gates live on a kanban board every worktree
-shares; `/agent-works:orchestrate` runs a large goal from it as child sessions
+shares; `/agentcraft:agent-works orchestrate` runs a large goal from it as child sessions
 in their own worktrees, each approved by you, reviewed, and landed on green. A
 guard stops the mistakes agents repeat, and locks, leases, notes and learnings
 let sessions across projects share one machine. Node 22, nothing else. It is
 the foundation the plugins below lean on; each still runs without it.
-[Read more →](plugins/agent-works/README.md)
+[Read more →](plugins/agentcraft/skills/agent-works/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agent-works/assets/figures/one-window.dark.gif">
-  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="plugins/agent-works/assets/figures/one-window.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/agent-works/assets/figures/one-window.dark.gif">
+  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="plugins/agentcraft/skills/agent-works/assets/figures/one-window.gif" width="720">
 </picture>
 
 <sub>One orchestrator window carries a whole round: it holds hand-offs and one-line reports, not the work.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agent-works/assets/screens/doctor.dark.png">
-  <img alt="The aw doctor report for this repo: every check, its severity and what to do about it." src="plugins/agent-works/assets/screens/doctor.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/agent-works/assets/screens/doctor.dark.png">
+  <img alt="The aw doctor report for this repo: every check, its severity and what to do about it." src="plugins/agentcraft/skills/agent-works/assets/screens/doctor.light.png" width="720">
 </picture>
 
 <sub><code>aw doctor</code>, run on this repo.</sub>

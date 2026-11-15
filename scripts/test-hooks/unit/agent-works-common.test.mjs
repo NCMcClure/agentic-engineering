@@ -12,7 +12,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const common = await import(pathToFileURL(path.join(PLUGIN, "lib", "common.mjs")).href);
 const {
   AwError, CODES, Finding, LEVELS, NEVER_ACCEPTED, PLUGINS_BLOCK,

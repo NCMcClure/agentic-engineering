@@ -159,13 +159,13 @@ test("the agent-works lock wrapper is judged as the command it runs", () => {
   allow('aw lease gpu --share 0.5 --mem 12GB --for "three shots" -- npm run render -- sky_0 sky_1 sky_2');
   allow("aw lock run sim --for x -- aw lock run editor --for x -- ./run-in-session.ps1 shot-render sky_0");
   allow(`aw lease gpu --for x -- aw lock run editor --for x -- ${CLI} iterate --group smoke`);
-  allow(`node "/plugins/agent-works/cli/aw.mjs" lock run editor --for "x" -- ${CLI} iterate sky_0`);
+  allow(`node "/plugins/agentcraft/skills/agent-works/cli/aw.mjs" lock run editor --for "x" -- ${CLI} iterate sky_0`);
   assert.deepEqual(log(), []);
   deny('aw lock run editor --for "x" -- ./scripts/shot-render.sh --all', "renders 9 shots");
   deny(`aw lease gpu --share 1 --for "x" -- ${CLI} iterate --group sky`, "renders 6 shots (--group sky)");
   deny(`aw lock run sim --for x -- aw lease gpu --for x -- ${CLI} iterate --all`, "renders 9 shots");
   deny(`aw.cmd lock run editor --for x -- "${CLI_WORDS} iterate --all"`, "renders 9 shots");
-  deny(`python -B "/plugins/agent-works/cli/aw.py" lease gpu --for x -- ${CLI} iterate --all`, "renders 9 shots");
+  deny(`python -B "/plugins/agentcraft/skills/agent-works/cli/aw.py" lease gpu --for x -- ${CLI} iterate --all`, "renders 9 shots");
   deny("AGENT=ue-1 aw lock run editor --for x -- npm run render -- sky_0 sky_1 sky_2 sky_3", "renders 4 shots");
   deny(`bash -c 'aw lock run editor --for x -- ${CLI} iterate --all'`, "renders 9 shots");
   deny(`aw lock run editor --for x -- bash -c '${CLI} iterate --all'`, "renders 9 shots");
@@ -192,7 +192,7 @@ test("other agent-works commands are left alone", () => {
   allow('aw lock acquire editor --for "pl.mjs iterate --all, 3 min"');
   allow("aw lock release editor && aw lock status");
   allow('aw note "pl.mjs iterate --all is next; then shot-render.ps1 -All"');
-  allow('node "/plugins/agent-works/cli/aw.mjs" note "npm run render -- sky_0 sky_1 sky_2 sky_3"');
+  allow('node "/plugins/agentcraft/skills/agent-works/cli/aw.mjs" note "npm run render -- sky_0 sky_1 sky_2 sky_3"');
   const read = (line) => rules.commandsOf(line.split(" "));
   assert.deepEqual(read("aw lock run a --for x -- cmd --flag").commands, [["cmd", "--flag"]]);
   assert.deepEqual(read("aw lock run a -- aw lease b -- cmd one two").commands, [["cmd", "one", "two"]]);

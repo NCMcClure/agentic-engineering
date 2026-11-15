@@ -16,7 +16,7 @@ import path from "node:path";
 import { test } from "node:test";
 import {
   KNOWN_KEYS, appendToSection, cardFile, cardView, doneCriteria, newCard, nextId, parseCard, section, sections, serializeCard, slugify,
-} from "../../../plugins/agent-works/lib/cards.mjs";
+} from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
 import { REPO } from "./helpers.mjs";
 
 const FIXTURES = path.join(REPO, "scripts", "test-hooks", "cases", "agent-works", "cards");

@@ -8,7 +8,7 @@ import { before, test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const real = (p) => fs.realpathSync.native(p);
 
 /** A command module that prints what it was given as one JSON line and exits with its `--exit` (0 without one). */

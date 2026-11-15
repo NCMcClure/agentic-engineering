@@ -5,7 +5,7 @@
 // module and carried out by the real board CLI.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CARD_ROWS, LANE_HEAD, MIN_LANE, cardAt, find as place, fits, keyIntent, keyStep, laneAt, layout, pointerStep, slotAt, walk } from "../../../plugins/agent-works/hooks/kanban/layout.mjs";
+import { CARD_ROWS, LANE_HEAD, MIN_LANE, cardAt, find as place, fits, keyIntent, keyStep, laneAt, layout, pointerStep, slotAt, walk } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/layout.mjs";
 import { DISPATCH, board, boardOf, find, lines, mount, need, repo, walk as walkTree, words } from "./agent-works-pane-host.mjs";
 
 const lane = (id, role, ...cards) => ({ id, title: id, role, cards: cards.map((c) => ({ id: c })) });

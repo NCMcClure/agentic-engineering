@@ -5,9 +5,9 @@
 // where no plugin root is set, so every path in it is absolute.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BoardError, boardConfig } from "../../../plugins/agent-works/lib/board.mjs";
-import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, defaultBranch, grantText, renderBrief } from "../../../plugins/agent-works/lib/brief.mjs";
-import { conflictConfig } from "../../../plugins/agent-works/lib/conflicts.mjs";
+import { BoardError, boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, defaultBranch, grantText, renderBrief } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
+import { conflictConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
 
 const CLI = { board: 'node "/opt/plugin/scripts/aw.mjs" board', lock: 'node "/opt/plugin/scripts/aw.mjs" lock' };
 const T0 = "2026-10-01T09:00:00.000Z";

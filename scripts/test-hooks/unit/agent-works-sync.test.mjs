@@ -6,13 +6,13 @@
 // wins. All pure, over boards built here, so no hook, git or tracker runs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boardConfig, briefLine, note, summary } from "../../../plugins/agent-works/lib/board.mjs";
+import { boardConfig, briefLine, note, summary } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
 import {
   NUDGE_MS, ASK_MS, adoptColumns, afterTool, ago, cardFromIssue, cardHash, cardsOf, decide, drift, epicLabel, epicOfIssue, epicOfLabels, githubHad,
   githubIssue, githubLabels, githubParent, githubProject, gitlabBoard, gitlabFields, gitlabIssue, isBoardLabel, isEpicUrl, isLocalOnly, issueOfForge,
   ledgerOf, linked, milestoneTitle, observe, parentKeys, planOf, pulled, record, remoteHash, remoteKey, section, signals, sprintOfIssue, stale,
   statusLabel, statusOf, stopAsk, sweepCards, tally, working,
-} from "../../../plugins/agent-works/lib/sync.mjs";
+} from "../../../plugins/agentcraft/skills/agent-works/lib/sync.mjs";
 
 const T0 = Date.parse("2026-11-03T12:00:00.000Z");
 const iso = (ms) => new Date(ms).toISOString();

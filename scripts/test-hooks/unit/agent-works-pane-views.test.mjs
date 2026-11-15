@@ -5,9 +5,9 @@
 // each press reaches a callback this file records.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boardConfig } from "../../../plugins/agent-works/lib/board.mjs";
-import { closePreview, lanesOf, nextScope, placeAt, plannedFor, scopeLine, scopeOf } from "../../../plugins/agent-works/hooks/kanban/model.mjs";
-import { footLine, pane, syncLine } from "../../../plugins/agent-works/hooks/kanban/views.mjs";
+import { boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { closePreview, lanesOf, nextScope, placeAt, plannedFor, scopeLine, scopeOf } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/model.mjs";
+import { footLine, pane, syncLine } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/views.mjs";
 import { TABLES, find, keys, lines, need, words } from "./agent-works-pane-host.mjs";
 
 const card = (id, title, fields = {}) => ({

@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const SKILLS = path.join(PLUGIN, "skills");
 const EXPECTED = [
   "agent-works", "board", "coordinate", "decisions", "dispatch", "doctor", "guard", "hubs", "memory", "orchestrate", "resource-locks", "review-card",

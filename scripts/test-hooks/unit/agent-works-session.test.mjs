@@ -9,8 +9,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agent-works", "hooks", "session-start.mjs");
-const AW = path.join(REPO, "plugins", "agent-works", "scripts", "aw.mjs");
+const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "session-start.mjs");
+const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const CONFIG = ".agents/agent-works.json";
 const STAMP = new Date().toISOString();
 const SETTLED = { version: 1, claude: { twins: "link" }, guard: { locks: "warn" } };

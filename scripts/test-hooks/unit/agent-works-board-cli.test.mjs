@@ -11,13 +11,13 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { cardView, parseCard } from "../../../plugins/agent-works/lib/cards.mjs";
-import { bufferedIo } from "../../../plugins/agent-works/lib/common.mjs";
-import { main as board } from "../../../plugins/agent-works/scripts/board.mjs";
-import { LOCK_FILE, findings, readBoard } from "../../../plugins/agent-works/scripts/io.mjs";
+import { cardView, parseCard } from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
+import { bufferedIo } from "../../../plugins/agentcraft/skills/agent-works/lib/common.mjs";
+import { main as board } from "../../../plugins/agentcraft/skills/agent-works/scripts/board.mjs";
+import { LOCK_FILE, findings, readBoard } from "../../../plugins/agentcraft/skills/agent-works/scripts/io.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const AW = path.join(REPO, "plugins", "agent-works", "scripts", "aw.mjs");
+const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const GOLDEN = path.join(REPO, "scripts", "test-hooks", "cases", "agent-works", "cards");
 const OLD = "2020-01-01T00:00:00.000Z";
 const QUIET = { CLAUDECODE: "", AW_AGENT: "", PL_AGENT: "", CLAUDE_AGENT_NAME: "" };

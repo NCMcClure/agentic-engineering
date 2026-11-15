@@ -10,7 +10,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO } from "./helpers.mjs";
 
-const WORKFLOW = path.join(REPO, "plugins", "agent-works", "skills", "sync-cards", "workflows", "sync.js");
+const WORKFLOW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "routes", "sync-cards", "workflows", "sync.js");
 const SRC = fs.readFileSync(WORKFLOW, "utf8");
 const AsyncFunction = (async () => {}).constructor;
 

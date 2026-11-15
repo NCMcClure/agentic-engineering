@@ -462,7 +462,7 @@ const broken = () => (brokenOnce ??= (() => {
     text: {
       "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${STUB}@agentic-engineering\`.\n`,
       "scripts/shared/critical-context.mjs": (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
-      "plugins/agent-works/hooks/kanban/register.mjs": (s) => s.replaceAll("mcp__agent-works__", "mcp__kanban__"),
+      "plugins/agentcraft/skills/agent-works/hooks/kanban/register.mjs": (s) => s.replaceAll("mcp__agent-works__", "mcp__kanban__"),
     },
   }));
   const moving = runNode("scripts/door-plugin.mjs", [PLANNING, "--root", dir, "--write"]);

@@ -9,7 +9,7 @@ import { pathToFileURL } from "node:url";
 import { hookCommand } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const read = (rel) => JSON.parse(fs.readFileSync(path.join(PLUGIN, rel), "utf8"));
 const config = read("hooks/hooks.json");
 const only = (event) => {

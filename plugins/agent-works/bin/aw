@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-// aw: the agent-works command line. The command itself is ../scripts/aw.mjs;
-// this file only gives it a name a PATH can hold.
-import("../scripts/aw.mjs").then(({ cli }) => cli());

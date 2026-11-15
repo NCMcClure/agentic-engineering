@@ -8,8 +8,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agent-works", "hooks", "card-sync.mjs");
-const AW = path.join(REPO, "plugins", "agent-works", "scripts", "aw.mjs");
+const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "card-sync.mjs");
+const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
 function repoWithWorktree(t, { answer = "on" } = {}) {

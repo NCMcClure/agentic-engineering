@@ -445,7 +445,7 @@ test("the session records each call on the Skill tool and each read of a skill's
     toolUse("t2", "Skill", { skill: "agentic-teamwork:tdd" }), toolResult("t2"),
     toolUse("t3", "Read", { file_path: "/srv/plugins/agentcraft/skills/agentic-teamwork/routes/ship/ROUTE.md" }), toolResult("t3"),
     toolUse("t4", "Read", { file_path: "/srv/demo/README.md" }), toolResult("t4"),
-    toolUse("t5", "Read", { file_path: "/srv/plugins/agent-works/skills/board/SKILL.md" }),
+    toolUse("t5", "Read", { file_path: "/srv/plugins/agentcraft/skills/agent-works/routes/board/ROUTE.md" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "calls", ...e }));
   const session = buildSession(entries);
   // A call the host refused is a call that did not go through.

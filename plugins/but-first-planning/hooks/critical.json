@@ -5,6 +5,6 @@
     {"for": "all", "mode": "any", "when": ".agents/plan", "text": "The plan lives in .agents/plan/: a spec decision changes through /but-first-planning:spec-edit, and an issue is built from its acceptance criteria as failing tests first (/but-first-planning:build-tdd)."}
   ],
   "chains": [
-    {"partner": "agent-works", "for": "main", "mode": "any", "when": ".agents/plan", "text": "A published plan is worked through /agent-works:orchestrate: its issues show on the board as cards."}
+    {"partner": "agent-works", "for": "main", "mode": "any", "when": ".agents/plan", "text": "A published plan is worked through /agentcraft:agent-works orchestrate: its issues show on the board as cards."}
   ]
 }
