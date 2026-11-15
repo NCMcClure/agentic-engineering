@@ -29,6 +29,8 @@ function repoWithWorktree(t, { answer = "on", config = null } = {}) {
   const worktree = path.join(main.dir, ".claude", "worktrees", "child");
   main.git("worktree", "add", "-b", "feat/child", worktree);
   const home = tempDir(t, "aw-session-home-");
+  // The first `aw` on the PATH is another program's, so a launcher this machine has of its own is never read.
+  write(home, "bin/aw", "#!/bin/sh\necho another program called aw\n");
   return { main: main.dir, git: main.git, worktree, kanban: path.join(main.dir, ".agents", "kanban"), home, store: path.join(home, "store") };
 }
 
@@ -38,11 +40,14 @@ function card(kanban, id, title, fields = "", body = "") {
   write(kanban, `${id}-${slug}.md`, `---\nid: ${id}\ntitle: ${title}\n${fields}created: ${STAMP}\nupdated: ${STAMP}\n---\n${body}`);
 }
 
+/** The machine's PATH with these folders ahead of it. */
+const onPath = (...dirs) => [...dirs, process.env.PATH ?? process.env.Path ?? ""].join(path.delimiter);
+
 /** Run the hook as a host does, with a home and a store of its own; null for no output. */
 function hook(r, payload, { cwd = r.main, env = {} } = {}) {
   const out = runNode(HOOK, ["agent-works"], {
     cwd,
-    env: { ...process.env, HOME: r.home, USERPROFILE: r.home, CLAUDE_CONFIG_DIR: path.join(r.home, ".claude"), CLAUDE_PLUGIN_DATA: "", AW_HOME: r.store, AW_AGENT: "", CLAUDE_PROJECT_DIR: "", ...env },
+    env: { ...process.env, PATH: onPath(path.join(r.home, "bin")), HOME: r.home, USERPROFILE: r.home, CLAUDE_CONFIG_DIR: path.join(r.home, ".claude"), CLAUDE_PLUGIN_DATA: "", AW_HOME: r.store, AW_AGENT: "", CLAUDE_PROJECT_DIR: "", ...env },
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
   });
   assert.equal(out.status, 0, out.stderr);
@@ -207,6 +212,63 @@ test("agent-works session: the briefing stays a few lines however full the board
   const worst = briefing(hook(r, start(r.worktree), { cwd: r.worktree }));
   assert.match(worst, /^This checkout had no CLAUDE\.md.* You are working card 0041 "A title so long .*\.\.\."\. Done when: a criterion .*\.\.\.\. Its brief: /);
   assert.ok(worst.length - AW.length <= 511, `${worst.length - AW.length} characters besides the plugin's own path`);
+});
+
+// The launcher as it was written before agent-works was an area: the same first lines, and only the old plugin's folder looked in.
+const OLD_LAUNCHER = '#!/usr/bin/env node\n// aw: launcher of the agent-works command line (written by `aw setup --install-launcher`).\n'
+  + 'const copies = list(cache).flatMap((market) => list(path.join(cache, market, "agent-works")));\n';
+const LAUNCHER_LINE = /The `aw` launcher at (\S+) was written before agent-works moved into agentcraft, so it finds no plugin: ask the person to rerun the setup route \(\/agentcraft:agent-works setup\), which writes it again\.$/;
+
+test("agent-works session: a launcher from before the area moved in is named last, with the route that writes it again", (t) => {
+  const r = repoWithWorktree(t, { config: SETTLED });
+  card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
+  const old = tempDir(t, "aw-old-launcher-");
+  write(old, "aw", OLD_LAUNCHER);
+  const said = briefing(hook(r, start(r.main), { env: { PATH: onPath(old) } }));
+  assert.match(said, /^Board: .* The board is the record: \S+ orchestrate resumes it\. The `aw` launcher at /);
+  assert.equal(LAUNCHER_LINE.exec(said)?.[1], path.join(old, "aw").split(path.sep).join("/"));
+  // The line asks: setup is the person's to start, never the session's.
+  assert.doesNotMatch(said, /\brun (the )?setup\b/i);
+
+  // With no board it is the only thing said.
+  const quiet = repoWithWorktree(t, { config: SETTLED });
+  assert.match(briefing(hook(quiet, start(quiet.main), { env: { PATH: onPath(old) } })), new RegExp(`^${LAUNCHER_LINE.source}`));
+});
+
+test("agent-works session: a current launcher, another program called aw, and a repo not set up for agent work say nothing of a launcher", (t) => {
+  const r = repoWithWorktree(t, { config: SETTLED });
+  card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
+  const old = tempDir(t, "aw-old-launcher-");
+  write(old, "aw", OLD_LAUNCHER);
+  const current = tempDir(t, "aw-current-launcher-");
+  write(current, "aw", OLD_LAUNCHER.replace('"agent-works")));', '"agentcraft", "skills", "agent-works")));'));
+  // The first aw on the PATH is the one a shell runs: a current one, or another program's, ahead of the old one settles it.
+  for (const first of [current, path.join(r.home, "bin")]) {
+    assert.doesNotMatch(briefing(hook(r, start(r.main), { env: { PATH: onPath(first, old) } })), /launcher/, first);
+  }
+  const bare = repoWithWorktree(t);
+  assert.doesNotMatch(context(hook(bare, start(bare.main), { env: { PATH: onPath(old) } })), /launcher/, "no .agents/agent-works.json");
+  // A subagent gets no briefing, so no launcher line either.
+  assert.doesNotMatch(context(hook(r, start(r.main, { hook_event_name: "SubagentStart", agent_type: "general-purpose" }), { env: { PATH: onPath(old) } })), /launcher/);
+});
+
+test("agent-works session: the launcher line is left out whole where the rest has used the area's allowance", (t) => {
+  const r = repoWithWorktree(t, { config: { ...SETTLED, claude: { twins: "generated" } } });
+  write(r.worktree, "AGENTS.md", "# fixture\n");
+  const long = "a criterion that goes on and on ".repeat(20);
+  card(r.kanban, "0041", `A title ${"so long ".repeat(20)}`, "status: in-progress\norder: 41\nbranch: feat/child\n", `\n## Done when\n- ${long}\n`);
+  // A launcher whose own path is long enough that the line cannot fit after a fresh worktree's twin line and its card.
+  const old = path.join(tempDir(t, "aw-old-launcher-"), "a-folder-name-that-goes-on-".repeat(8));
+  write(old, "aw", OLD_LAUNCHER);
+  const without = briefing(hook(r, start(r.worktree), { cwd: r.worktree }));
+  const fresh = repoWithWorktree(t, { config: { ...SETTLED, claude: { twins: "generated" } } });
+  write(fresh.worktree, "AGENTS.md", "# fixture\n");
+  card(fresh.kanban, "0041", `A title ${"so long ".repeat(20)}`, "status: in-progress\norder: 41\nbranch: feat/child\n", `\n## Done when\n- ${long}\n`);
+  const withOld = briefing(hook(fresh, start(fresh.worktree), { cwd: fresh.worktree, env: { PATH: onPath(old) } }));
+  assert.match(withOld, /^This checkout had no CLAUDE\.md.* end your final message with the CARD line\.$/, "the card line is whole");
+  assert.doesNotMatch(withOld, /launcher/);
+  assert.equal(withOld.length, without.length, "nothing else changed");
+  assert.ok(withOld.length <= 900, `${withOld.length} characters`);
 });
 
 test("agent-works session: the hook reads its own location, never a plugin root variable", () => {

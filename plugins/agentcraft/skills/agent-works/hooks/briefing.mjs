@@ -25,7 +25,11 @@
 //   - with a board: in a worktree whose branch a card names, which card this
 //     session is working, its done criteria and the command that prints its
 //     brief; anywhere else, the board in one line. After a compaction that
-//     line is how a round comes back from the board instead of from memory.
+//     line is how a round comes back from the board instead of from memory;
+//   - in a repo with the config, where the `aw` on the PATH is a launcher
+//     written before this area moved into the one plugin: one line, last,
+//     that has the model ask the person to rerun the setup route. It is left
+//     out when the lines above have used the area's allowance.
 // No board folder, or no cards: nothing about the board.
 //
 // The modules that read the board and the machine's store are imported only
@@ -164,13 +168,36 @@ async function mayHaveBoard(cwd) {
   return isDir(boardDir(loadConfig(cwd), mainRoot(cwd) ?? projectRoot(cwd)));
 }
 
+/**
+ * One line where the `aw` a shell would run is a launcher written before this area moved into the one plugin:
+ * it looks under the old plugin's cache folder, which holds a stub now, so it answers "not installed". Only in a
+ * repo set up for agent work, where `aw` is what a session and its person type. "" otherwise.
+ */
+async function launcherLine(cwd) {
+  const { loadConfig } = await import("../lib/config.mjs");
+  if (!loadConfig(cwd)._path) return "";
+  const { staleLauncher } = await import("../scripts/setup.mjs");
+  const file = staleLauncher(process.env);
+  return file
+    ? `The \`aw\` launcher at ${file} was written before agent-works moved into agentcraft, so it finds no plugin: ask the person to rerun the setup route (/agentcraft:agent-works setup), which writes it again.`
+    : "";
+}
+
 async function briefing(payload, state) {
   const cwd = [payload.cwd, state.root].find((dir) => typeof dir === "string" && dir && isDir(dir));
   if (!cwd) return "";
   const lines = [];
   try { lines.push(...await setUp(cwd, payload)); } catch { /* the board line still goes out */ }
   try { if (await mayHaveBoard(cwd)) lines.push(await boardLine(cwd)); } catch { /* no board line */ }
-  return lines.filter(Boolean).join(" ");
+  const said = lines.filter(Boolean);
+  // The least urgent line, so it goes last, and only where the area's allowance still holds it whole: cut
+  // short it would be an instruction with no end, and it comes again next session.
+  try {
+    const line = await launcherLine(cwd);
+    const { BRIEFING_CHARS } = await import("../../../hooks/critical-context.mjs");
+    if (line && [...said, line].join(" ").length <= BRIEFING_CHARS["agent-works"]) said.push(line);
+  } catch { /* the rest of the briefing still goes out */ }
+  return said.join(" ");
 }
 
 export { briefing, migrate };
