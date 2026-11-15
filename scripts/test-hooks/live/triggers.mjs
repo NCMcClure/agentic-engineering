@@ -1,28 +1,33 @@
-// The prompts the trigger check sends, each for the skill it should end in,
+// The prompts the trigger check sends, each for the route it should end in,
 // and the scenario the skill-compaction check works inside.
 //
 // A prompt asks the way a person would, so it measures routing: from the
-// skill listing to the skill's instructions. It never carries an address or a
+// skill listing, where the plugin shows its entry skill and an area each, to
+// the area and on to the route's instructions. It never carries an address or a
 // slash command, and it shares no run of four words with any description in
 // the tree, which the unit tests hold: a prompt that quotes the listing
 // measures string matching. A word a person would really say for the task
 // (ship, README, board) is allowed, and `named` records it, so the totals can
 // be read apart for the prompts that name their skill and those that do not.
 //
-// A row is `{ plugin, skill }`. The plugins are becoming areas of one plugin
-// and their skills routes, under the same two names, so a row reads the same
-// against a baseline from either side of that (reach.mjs). A row for a skill
-// named after its plugin carries the one name twice.
+// A row is `{ plugin, skill }`: an area, and a route of it. The two keys are
+// named for what they held when each area was a plugin of its own and each
+// route a skill, and a baseline recorded then carries the same two names, so
+// a row reads the same against a baseline from either side of the move
+// (reach.mjs). A row whose two names are one is the area itself, reached by
+// its own page and no route: the entry skill, and an area whose main job is
+// its own.
 //
-// `person` marks a skill only a person can start today (its frontmatter says
-// `disable-model-invocation: true`): the host refuses a session's call on it,
-// so a session reaches it only by reading its file. The totals are printed
-// apart for those rows, because a restructure that turns them into documents
-// an agent may open moves them for a reason that is not routing.
+// `person` marks a route only a person starts (its area's door.json says
+// `"starts": "person"`). When these were skills the host refused a session's
+// call on one, so a session reached it only by reading its file; a route is a
+// document an agent may open, and its area tells it to wait for the person.
+// The totals are printed apart for those rows, because they moved for a
+// reason that is not routing.
 //
-// The table holds every skill the tree refers to five times or more, and one
-// more in every plugin. `fixture` is the repo the prompt runs in
-// (fixtures.mjs): "standard" carries every plugin's marker, "portable" is a
+// The table holds every route the tree refers to five times or more, and one
+// more in every area. `fixture` is the repo the prompt runs in
+// (fixtures.mjs): "standard" carries every area's marker, "portable" is a
 // repo with none where the person answered `on`. The fixtures where nothing is
 // answered are left out, because a session there asks that question before
 // anything else.
@@ -40,7 +45,7 @@ export function names(prompt, skill) {
   return said.some((_, i) => stems.every((stem, j) => said[i + j]?.startsWith(stem)));
 }
 
-/** How a row is printed and recorded: the plugin and its skill, or the one name of a skill named after its plugin. Never an address. */
+/** How a row is printed and recorded: the area and its route, or the one name of an area reached by its own page. Never an address. */
 export const labelOf = ({ plugin, skill }) => (plugin === skill ? skill : `${plugin} ${skill}`);
 
 const row = (plugin, skill, prompt, { fixture = "standard", person = false } = {}) => ({ plugin, skill, fixture, person, prompt, named: names(prompt, skill) });
@@ -49,7 +54,7 @@ const row = (plugin, skill, prompt, { fixture = "standard", person = false } = {
 const PERSON = { fixture: "portable", person: true };
 
 export const TRIGGERS = [
-  // The skill a person types, in no baseline before the one it was added with. The plugins are its areas, so it carries its one name twice.
+  // The skill a person types, in no baseline before the one it was added with. It is no area's route, so it carries its one name twice.
   row("start-here", "start-here", "These plugins got installed for me and I have no idea what any of them are for. Show me around."),
   row("agentic-teamwork", "bootstrap", "I am about to start coding in this folder and it has none of our team scaffolding yet. Get it set up the way our repos are, before I write anything.", PERSON),
   row("agentic-teamwork", "init-project", "Scaffold a brand new team repo here from the node-service template and call it billing-sync.", PERSON),
@@ -79,7 +84,10 @@ export const TRIGGERS = [
   row("perceptual-loop", "perceptual-loop", "The rendered candidate comes out darker than the reference picture. Fix how it looks."),
   // A known miss, 0 of 6 in the baseline: every session read the app and its docs and described the flow itself.
   row("picture-this", "visualize", "Make me a small moving diagram that shows how a request travels through this app, something I could put at the top of the README."),
-  row("plugin-workbench", "context-lens", "In my last session here the agent seemed to ignore one of our rules. Find out what it was actually given at the start, and where each piece came from."),
+  // The lens left plugin-workbench for an area of its own, so this row is context-doctor's and that area gets a row for what it kept.
+  // Neither is in a baseline recorded before the move: the first holds the lens as a skill of plugin-workbench.
+  row("context-doctor", "lens", "In my last session here the agent seemed to ignore one of our rules. Find out what it was actually given at the start, and where each piece came from."),
+  row("plugin-workbench", "create-plugin", "I keep pasting the same three helper scripts into every session. Package them up as something my teammates could install."),
   row("system-map", "diagrams-init", "I would like an architecture diagram for this repo that is built from the code itself and kept on Miro. There is nothing like that here yet, so set it up from scratch.", PERSON),
   // A known miss, 0 of 6 in the baseline: the fixture carries no .agents/system-map.json, and every session searched for a diagram and found none.
   row("system-map", "diagrams-sync", "I just added a module under src/ that calls into app.py. The architecture diagram no longer matches the code: bring it up to date."),
@@ -94,12 +102,12 @@ export const TRIGGERS = [
 ];
 
 // The skill-compaction check is not about routing, so its first prompt names
-// the skill outright: the session has to be inside it when the compaction
-// comes.
+// the route and the area's skill outright: the session has to be inside it
+// when the compaction comes.
 export const COMPACTION = {
   plugin: "agentic-teamwork",
   skill: "tdd",
   fixture: "standard",
-  before: "Work with the agentic-teamwork:tdd skill on this: I am about to add a function to src/. Tell me in two lines the first step the skill has me take. Change no file.",
-  after: "Carry on with the skill you were following: what is the step after that one? Two lines. Change no file.",
+  before: "Work with the tdd route of the agentcraft:agentic-teamwork skill on this: I am about to add a function to src/. Tell me in two lines the first step the route has me take. Change no file.",
+  after: "Carry on with the route you were following: what is the step after that one? Two lines. Change no file.",
 };

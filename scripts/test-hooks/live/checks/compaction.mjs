@@ -1,8 +1,9 @@
-// What a compaction must bring back. Every fixture compacts once; a plugin's
-// SessionStart channel and each rule file the repo imports are standing
-// context, and must not be "lost" (a request went out without them).
+// What a compaction must bring back. Every fixture compacts once; each
+// area's SessionStart channel (its block of the plugin's lines command, or a
+// hook of its own) and each rule file the repo imports are standing context,
+// and must not be "lost" (a request went out without them).
 export default {
-  name: "a compaction keeps each plugin's SessionStart context and the repo's rules",
+  name: "a compaction keeps each area's SessionStart context and the repo's rules",
   check({ run }) {
     const failures = [];
     for (const [kind, { measure }] of Object.entries(run.fixtures)) {

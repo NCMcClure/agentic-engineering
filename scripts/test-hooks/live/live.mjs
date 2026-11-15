@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The live lane: real headless Claude Code sessions with this checkout's
-// plugins, read back through the context lens, checked structurally against
+// plugin, read back through the context lens, checked structurally against
 // the baseline. Opt-in only: `npm run test:live`. It spends model quota (a few
 // cents a fixture on haiku, about a cent a trigger session, and three times
 // the trigger sessions when their baseline is recorded), so `npm test` and CI
@@ -21,20 +21,21 @@
 // lane started from inside Claude Code does not inherit that host's settings.
 //
 // baseline.json has two parts, each with its own stamp. `fixtures` is the
-// token sizes; `skills` is whether a prompt reaches its skill.
+// token sizes; `skills` is whether a prompt reaches its route.
 //
 // Per fixture (fixtures.mjs KINDS): one prompt, a forced /compact on the same
 // session (--resume), then a prompt that starts each subagent type in
 // session.mjs SUBAGENTS. Every call is capped by --max-budget-usd and
 // --max-turns.
 //
-// The skills part runs in the fixtures where the plugins speak. Each prompt in
+// The skills part runs in the fixtures where the plugin speaks. Each prompt in
 // triggers.mjs is its own session at each context window (session.mjs
-// WINDOWS), read back by reach.mjs for whether it reached its skill; one more
-// session works inside a skill, compacts, and carries on. The first trigger
-// session read at each window also gives each plugin's share of the skill
-// listing there (reach.mjs listingSizes): its entries, how many kept a
-// description, and their characters.
+// WINDOWS), read back by reach.mjs for whether it reached its route (the area
+// called, and the route's document read); one more session works inside a
+// route, compacts, and carries on. The first trigger session read at each
+// window also gives the plugin's share of the skill listing there (reach.mjs
+// listingSizes): its fourteen entries, how many kept a description, and
+// their characters.
 // One session is one sample, so a baseline is three passes over the prompts
 // and a plain run is one, and the check compares "reached in every baseline
 // pass" with "reached in none now". A plain run that misses such a prompt

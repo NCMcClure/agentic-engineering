@@ -6,8 +6,9 @@ export default {
   check({ run }) {
     const failures = [];
     for (const [kind, { measure }] of Object.entries(run.fixtures)) {
-      for (const [plugin, seen] of Object.entries(measure.stop)) {
-        if (seen.person > 0 && seen.model === 0) failures.push(`${kind}: ${plugin}'s Stop output reached the person only`);
+      // A row is the area whose Stop hook it was (measure.mjs hookOutcomes).
+      for (const [area, seen] of Object.entries(measure.stop)) {
+        if (seen.person > 0 && seen.model === 0) failures.push(`${kind}: ${area}'s Stop output reached the person only`);
       }
     }
     return failures;

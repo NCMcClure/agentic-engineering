@@ -6,18 +6,24 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import readline from "node:readline";
-import { KINDS, REPO, makeFixture as buildFixture } from "../fixtures.mjs";
+import { AREA_PLUGIN } from "../../lib.mjs";
+import { KINDS, REPO, makeFixture } from "../fixtures.mjs";
 import { parseTranscript } from "./reach.mjs";
 
-export { REPO };
-// The lens is the one plugin-workbench ships, so the lane reads transcripts
-// exactly as a person running the skill does.
-const LENS = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor", "scripts", "context-lens.mjs");
+export { REPO, makeFixture };
+// The one plugin, loaded from the checkout. A stub beside it is never loaded:
+// it ships nothing a session would see, and its dependency is the plugin itself.
+export const PLUGIN = AREA_PLUGIN;
+const PLUGIN_DIR = path.join(REPO, "plugins", PLUGIN);
+// The lens is the one the context-doctor area ships, so the lane reads
+// transcripts exactly as a person asking for the route does.
+const LENS = path.join(PLUGIN_DIR, "skills", "context-doctor", "scripts", "context-lens.mjs");
 export const MARKETPLACE = "agentic-engineering";
 
 export const MODEL = "haiku";
 export const BUDGET_USD = "0.50"; // per claude -p call; three calls per fixture
-export const SUBAGENTS = ["general-purpose", "Explore", "perceptual-loop:vision-critic"];
+// A plugin's agent is named by the plugin, whichever area dispatches it.
+export const SUBAGENTS = ["general-purpose", "Explore", `${PLUGIN}:vision-critic`];
 export const FIXTURES = KINDS;
 
 // The skill listing gets 1% of the model's context window, so a trigger
@@ -34,13 +40,14 @@ export const WINDOWS = { default: {}, "200k": { CLAUDE_CODE_DISABLE_1M_CONTEXT: 
 //   --tools              the built-in tools, by name; every other one is gone
 //   --strict-mcp-config  with no --mcp-config: no MCP server loads, neither the
 //                        login's connectors nor a plugin's own
-//   --disallowedTools    agent-works' mod registers its tools without an MCP
-//                        config, so they are denied by name (NO_MCP)
+//   --disallowedTools    the plugin's mod (the agent-works area's board) registers
+//                        its tools without an MCP config, so they are denied
+//                        by name (NO_MCP)
 // checks/triggers.mjs fails a session whose transcript shows it was offered
 // any other tool.
 export const SKILL_TOOLS = ["Skill", "Read", "Glob", "Grep"];
 // The host names a mod's tools by the plugin that loads it.
-export const NO_MCP = ["--strict-mcp-config", "--disallowedTools", "mcp__agent-works"];
+export const NO_MCP = ["--strict-mcp-config", "--disallowedTools", `mcp__${PLUGIN}`];
 // Eight turns hold a look around the repo, a skill, and a step past it; a
 // session costs about a cent, so five is a runaway.
 export const SKILL_SESSION_ARGS = ["--tools", SKILL_TOOLS.join(","), ...NO_MCP,
@@ -58,32 +65,14 @@ export function childEnv(env = process.env) {
 }
 
 /**
- * A --plugin-dir load leaves enabledPlugins empty, so a hook that asks which
- * of its siblings are enabled would see none. The fixture declares them in
- * its local settings, which a hook can read from disk and the session itself
- * does not (--setting-sources project), so Claude Code never loads installed
- * copies beside the checkout's.
- */
-function declareEnabled(dir, on = true) {
-  const enabledPlugins = Object.fromEntries(fs.readdirSync(path.join(REPO, "plugins"), { withFileTypes: true })
-    .filter((e) => e.isDirectory()).map((e) => [`${e.name}@${MARKETPLACE}`, on]));
-  fs.mkdirSync(path.join(dir, ".claude"), { recursive: true });
-  fs.writeFileSync(path.join(dir, ".claude", "settings.local.json"), `${JSON.stringify({ enabledPlugins }, null, 2)}\n`);
-}
-
-export function makeFixture(root, kind) {
-  const dir = buildFixture(root, kind);
-  declareEnabled(dir);
-  return dir;
-}
-
-/**
  * One headless call, the prompt on stdin: a positional prompt after --resume
- * is not read as one. `--plugin-dir` loads every plugin under the folder for
- * that session only, from the checkout, with no install; `--setting-sources
- * project` keeps the person's own plugins and CLAUDE.md out.
+ * is not read as one. `--plugin-dir` loads the one plugin for that session
+ * only, from the checkout, with no install; `--setting-sources project`
+ * keeps the person's own plugins and CLAUDE.md out. Every area is in that
+ * plugin, so no hook asks which of its siblings are enabled, and a fixture
+ * declares nothing in its settings.
  */
-const BASE = ["-p", "--model", MODEL, "--setting-sources", "project", "--plugin-dir", path.join(REPO, "plugins")];
+const BASE = ["-p", "--model", MODEL, "--setting-sources", "project", "--plugin-dir", PLUGIN_DIR];
 
 function claude(cwd, prompt, args = []) {
   const r = spawnSync("claude", [...BASE, "--output-format", "json", "--max-budget-usd", BUDGET_USD, ...args],

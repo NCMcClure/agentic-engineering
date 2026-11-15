@@ -439,15 +439,16 @@ test("skillsTable shows each prompt per window against the baseline, the totals 
   assert.match(cut, /reached at default \(1,000,000 tokens\): 0 of 0 sessions, 1 not measured/);
 });
 
-// Where a row's instructions are, in either shape of the tree: a plugin's
-// skill, or, once the plugins are areas of one plugin, a route's document
-// under its area or the SKILL.md of an area (a row that carries one name twice).
+// Where a row's instructions are: a route's document under its area, or the
+// SKILL.md of the area or the entry skill (a row that carries one name twice).
 const PLUGINS = path.join(REPO, "plugins");
 function skillFile({ plugin, skill }) {
   const area = path.join(PLUGINS, MERGED, "skills", plugin);
-  const candidates = [path.join(area, "routes", skill, "ROUTE.md"), ...(plugin === skill ? [path.join(area, "SKILL.md")] : []), path.join(PLUGINS, plugin, "skills", skill, "SKILL.md")];
+  const candidates = [path.join(area, "routes", skill, "ROUTE.md"), ...(plugin === skill ? [path.join(area, "SKILL.md")] : [])];
   return candidates.find((file) => fs.existsSync(file)) ?? null;
 }
+/** Whether an area's door says only a person starts this route. */
+const personStarts = ({ plugin, skill }) => JSON.parse(fs.readFileSync(path.join(PLUGINS, MERGED, "skills", plugin, "door.json"), "utf8")).routes[skill]?.starts === "person";
 /** Every skill and route document the tree ships: what a listing or an area's table can show. */
 function described(dir = PLUGINS, out = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -460,13 +461,13 @@ const frontmatter = (file) => parseFrontmatter(fs.readFileSync(file, "utf8")) ??
 const words = (text) => String(text).toLowerCase().match(/[a-z0-9]+/g) ?? [];
 const runs = (text, n = 4) => { const w = words(text); return new Set(w.slice(0, Math.max(0, w.length - n + 1)).map((_, i) => w.slice(i, i + n).join(" "))); };
 
-test("every trigger prompt is for a real skill, runs where the plugins speak, and asks in a person's words", () => {
+test("every trigger prompt is for a real route or area, runs where the plugin speaks, and asks in a person's words", () => {
   assert.ok(TRIGGERS.length > 0);
   const skills = TRIGGERS.map((t) => t.skill);
   assert.equal(new Set(skills).size, skills.length, "a skill has two prompts");
   for (const t of TRIGGERS) {
     assert.ok(skillFile(t), `${labelOf(t)} is not in this tree`);
-    // Where nothing settles the repo's mode, the session asks the plugins question before anything else.
+    // Where nothing settles the repo's mode, the session asks the plugin question before anything else.
     assert.ok(["standard", "portable"].includes(t.fixture), `${t.skill}: fixture ${t.fixture}`);
     assert.ok(typeof t.prompt === "string" && t.prompt.length > 20, `${t.skill}: no prompt`);
     // The prompt has to reach the skill by what it asks for, never by an address or a slash command.
@@ -475,17 +476,16 @@ test("every trigger prompt is for a real skill, runs where the plugins speak, an
   }
 });
 
-test("a row is marked person exactly when only a person can start its skill today", () => {
+test("a row is marked person exactly when its area's door says only a person starts the route", () => {
   for (const t of TRIGGERS) {
-    const file = skillFile(t);
-    // A route's document is never refused; the mark then stays as the row was recorded.
-    if (path.basename(file) !== "SKILL.md" || t.plugin === t.skill) continue;
-    assert.equal(t.person, frontmatter(file)["disable-model-invocation"] === true || frontmatter(file)["disable-model-invocation"] === "true", `${labelOf(t)}: person is ${t.person}`);
+    // A row for an area's own page, or the entry skill, is no route: anyone may start it.
+    if (t.plugin === t.skill) { assert.equal(t.person, false, labelOf(t)); continue; }
+    assert.equal(t.person, personStarts(t), `${labelOf(t)}: person is ${t.person}`);
   }
   assert.ok(TRIGGERS.some((t) => t.person) && TRIGGERS.some((t) => !t.person));
 });
 
-test("a row's label is its plugin and skill, or one name for a skill named after its plugin, and never an address", () => {
+test("a row's label is its area and route, or one name for an area reached by its own page, and never an address", () => {
   assert.equal(labelOf({ plugin: "agentic-teamwork", skill: "ship" }), "agentic-teamwork ship");
   assert.equal(labelOf({ plugin: "perceptual-loop", skill: "perceptual-loop" }), "perceptual-loop");
   for (const t of TRIGGERS) assert.ok(!labelOf(t).includes(":"), labelOf(t));
@@ -513,18 +513,20 @@ test("each row says whether its prompt names its skill, and the table has prompt
   assert.ok(TRIGGERS.some((t) => t.named) && TRIGGERS.some((t) => !t.named));
 });
 
-test("the prompt table covers every skill the tree refers to five times or more, and one more in every plugin", () => {
+test("the prompt table covers every route the tree refers to five times or more, and one more in every area", () => {
   const skills = new Set(TRIGGERS.map((t) => t.skill));
   assert.equal(MOST_REFERENCED.length, 18);
   for (const skill of MOST_REFERENCED) assert.ok(skills.has(skill), `no prompt for ${skill}`);
-  const plugins = [...new Set(TRIGGERS.filter((t) => t.skill !== "start-here").map((t) => t.plugin))];
-  assert.equal(plugins.length, 12);
-  for (const plugin of plugins) {
-    assert.ok(TRIGGERS.some((t) => t.plugin === plugin && !MOST_REFERENCED.includes(t.skill)), `${plugin} has no prompt beyond the most-referenced`);
+  const areas = [...new Set(TRIGGERS.filter((t) => t.skill !== "start-here").map((t) => t.plugin))].sort();
+  assert.deepEqual(areas, fs.readdirSync(path.join(PLUGINS, MERGED, "skills")).filter((name) => name !== "start-here").sort(), "every area has a row");
+  assert.equal(areas.length, 13);
+  for (const area of areas) {
+    assert.ok(TRIGGERS.some((t) => t.plugin === area && !MOST_REFERENCED.includes(t.skill)), `${area} has no prompt beyond the most-referenced`);
   }
   // The rows the bar is read on: every one but the entry skill's, which the first baseline does not hold.
+  // Two of them are in no baseline from before the lens left plugin-workbench.
   assert.ok(skills.has("start-here"));
-  assert.equal(TRIGGERS.filter((t) => t.skill !== "start-here").length, 30);
+  assert.equal(TRIGGERS.filter((t) => t.skill !== "start-here").length, 31);
 });
 
 test("the entry skill is reached by its own name in the one plugin, called or read", () => {
@@ -536,10 +538,11 @@ test("the entry skill is reached by its own name in the one plugin, called or re
   assert.equal(labelOf(entry), "start-here");
 });
 
-test("the compaction scenario works inside a real skill, named outright, with a prompt on each side of the compaction", () => {
+test("the compaction scenario works inside a real route, named outright with the area it is called through, with a prompt on each side of the compaction", () => {
   assert.ok(skillFile(COMPACTION));
   assert.notEqual(COMPACTION.plugin, COMPACTION.skill);
-  assert.ok(COMPACTION.before.includes(COMPACTION.plugin) && COMPACTION.before.includes(COMPACTION.skill));
+  // The route, then the skill a model calls to get there: the area, by the plugin's name.
+  assert.ok(COMPACTION.before.startsWith(`Work with the ${COMPACTION.skill} route of the ${[MERGED, COMPACTION.plugin].join(":")} skill `), COMPACTION.before);
   assert.ok(typeof COMPACTION.before === "string" && COMPACTION.before.length > 20);
   assert.ok(typeof COMPACTION.after === "string" && COMPACTION.after.length > 20);
 });
