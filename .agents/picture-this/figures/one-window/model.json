@@ -95,7 +95,7 @@
       "to": "orchestrator",
       "kind": "write",
       "label": "instructions",
-      "source": "plugins/agentcraft/skills/agent-works/hooks/session-start.mjs:154"
+      "source": "plugins/agentcraft/skills/agent-works/hooks/briefing.mjs:153"
     },
     {
       "id": "reinject-child",
@@ -103,7 +103,7 @@
       "to": "child-b",
       "kind": "write",
       "label": "card and cadence",
-      "source": "plugins/agentcraft/skills/agent-works/hooks/session-start.mjs:157"
+      "source": "plugins/agentcraft/skills/agent-works/hooks/briefing.mjs:156"
     }
   ],
   "quantities": [

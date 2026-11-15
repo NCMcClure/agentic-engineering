@@ -20,14 +20,14 @@
       "note": "cut where the shell cuts",
       "parent": "line",
       "born": "split",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/shell-words.mjs:293"
+      "source": "plugins/agentcraft/lib/shell-words.mjs:293"
     },
     {
       "id": "folder",
       "label": "Working folder",
       "kind": "tracker",
       "note": "moved by cd and git -C",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/shell-words.mjs:450"
+      "source": "plugins/agentcraft/lib/shell-words.mjs:450"
     },
     {
       "id": "app",
