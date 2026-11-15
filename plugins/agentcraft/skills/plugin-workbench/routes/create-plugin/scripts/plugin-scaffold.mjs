@@ -18,16 +18,34 @@
 //     "version": "0.1.0",              // optional, default 0.1.0, semver
 //     "displayName": "...",            // optional, derived from name
 //     "keywords": ["..."],             // optional
-//     "skills": [
+//     "skills": [                      // a plain plugin: one skill per job
 //       {"name": "<skill-slug>",
-//        "mode": "model" | "user",     // user => disable-model-invocation
+//        "mode": "model" | "callable" | "user",
+//                                      // callable => user-invocable: false (agents call it, nobody types it)
+//                                      // user => disable-model-invocation (only a person starts it)
 //        "argumentHint": "...",        // optional
 //        "withWorkflow": false,        // optional: workflows/<name>.js stub
 //        "withScripts": false,         // optional: scripts/<name>.mjs stub
 //        "withReferences": false}      // optional: references/notes.md
 //     ],
+//     "areas": [                       // a plugin of areas: one skill per body of work
+//       {"name": "<area-slug>",
+//        "lead": "<when to reach for it, one sentence>",   // optional, else a TODO
+//        "default": "<route-slug>",    // optional, the first route
+//        "routes": [
+//          {"name": "<route-slug>",
+//           "cue": "<the route in short, at most 60 characters>",
+//           "starts": "person",        // optional: only a person starts it
+//           "argumentHint": "...",     // optional
+//           "withScripts": false}      // optional: routes/<route>/scripts/<route>.mjs
+//        ]}
+//     ],
+//     "entry": "<skill-slug>",         // optional, with areas: the one skill a person types
 //     "install": "<install command block for the README>"   // optional
 //   }
+//
+// A spec holds `skills`, `areas`, or both; which to choose is in the
+// workbench's core/references/shapes.md.
 //
 // Output: one JSON object on stdout, `{ok: true, target, created, skipped}`
 // or `{ok: false, error}` with exit 1. A file that exists and no longer holds
@@ -36,7 +54,9 @@
 //
 // What comes out meets a marketplace's structural gate as it stands: the
 // manifest, a README with no changelog in it, a CHANGELOG.md whose top entry
-// is the manifest version, and SKILL.md frontmatter of four keys at most.
+// is the manifest version, and SKILL.md frontmatter of four keys at most. An
+// area comes out callable and out of the slash menu, its routes listed as
+// `<route> (<cue>)`, each route naming its directory from its own file.
 import fs from "node:fs";
 import path from "node:path";
 
@@ -44,6 +64,8 @@ const STUBS = path.join(import.meta.dirname, "..", "assets", "stubs");
 const SEMVER = /^\d+\.\d+\.\d+$/;
 const SLUG = /^[a-z0-9][a-z0-9-]*$/;
 const TODO_MARK = "TODO(author)";
+const CUE_CAP = 60;
+const MODES = ["model", "callable", "user"];
 const USAGE = "usage: node plugin-scaffold.mjs <target-dir> --spec <spec.json> [--force]";
 
 class Bail extends Error {}
@@ -80,9 +102,10 @@ function planFiles(spec) {
   })]);
 
   const skillRows = [];
-  for (const skill of spec.skills) {
+  for (const skill of spec.skills ?? []) {
     const sName = skill.name;
-    const user = (skill.mode ?? "model") === "user";
+    const mode = skill.mode ?? "model";
+    const user = mode === "user";
     const hint = skill.argumentHint ?? "";
     // A skill's own files, each named in its SKILL.md from the start: a file
     // the skill never mentions is one the agent never reaches.
@@ -91,7 +114,7 @@ function planFiles(spec) {
       siblings.push([`skills/${sName}/workflows/${sName}.js`, fill(readStub("workflow-js.stub"), { WORKFLOW_NAME: sName })]);
     }
     if (skill.withScripts) {
-      siblings.push([`skills/${sName}/scripts/${sName}.mjs`, fill(readStub("script-mjs.stub"), { SKILL_NAME: sName })]);
+      siblings.push([`skills/${sName}/scripts/${sName}.mjs`, fill(readStub("script-mjs.stub"), { OWNER: `the ${sName} skill` })]);
       sections.push(fill(readStub("skill-script-section.stub"), { SKILL_NAME: sName }));
     }
     if (skill.withReferences) {
@@ -103,15 +126,55 @@ function planFiles(spec) {
     if (skill.withWorkflow) sections.push(fill(readStub("skill-workflow-section.stub"), { SKILL_NAME: sName }));
     files.push([`skills/${sName}/SKILL.md`, endOnOneNewline(fill(readStub("skill-md.stub"), {
       SKILL_NAME: sName,
-      MODE_LINE: user ? "disable-model-invocation: true\n" : "",
+      MODE_LINE: user ? "disable-model-invocation: true\n" : mode === "callable" ? "user-invocable: false\n" : "",
       MODE_NOTE: user
         ? ". It loads only when invoked, so spend words on the contract, not triggers."
         : " AND when to trigger it. This sits in context every turn and must earn it.",
       ARGUMENT_HINT_LINE: hint ? `argument-hint: "${hint.replace(/[\\"]/g, "\\$&")}"\n` : "",
       SECTIONS: sections.join(""),
     }))], ...siblings);
-    const invocation = user ? `\`/${name}:${sName}${hint ? " " + hint : ""}\`` : "model-invoked";
+    const invocation = user ? `\`/${name}:${sName}${hint ? " " + hint : ""}\`` : mode === "callable" ? "called by agents" : "model-invoked";
     skillRows.push(`| \`${sName}\` | ${invocation.replace(/\|/g, "\\|")} | ${TODO_MARK} |`);
+  }
+
+  // An area: one listed skill for a body of work, and a document per route.
+  const cell = (text) => String(text).replace(/\|/g, "\\|");
+  const areaRows = [];
+  for (const area of spec.areas ?? []) {
+    const aName = area.name;
+    const lead = area.lead?.trim() || `${TODO_MARK}, when to reach for this area.`;
+    const listed = area.routes.map((r) => `${r.name} (${r.cue})`).join("; ");
+    files.push([`skills/${aName}/SKILL.md`, fill(readStub("area-md.stub"), {
+      AREA_NAME: aName,
+      // Routes as `<route> (<cue>)`: `<route>: <cue>` is the listing's own shape, and a model calls it as a skill.
+      DESCRIPTION: jsonText(`${lead.replace(/[\s.]+$/, "")}. Routes are its arguments, not skills: ${listed}.`),
+      DEFAULT_ROUTE: area.default ?? area.routes[0].name,
+      ROUTE_ROWS: area.routes.map((r) => `| \`${r.name}\` | ${cell(r.cue)} | ${r.starts === "person" ? "a person" : "an agent"} |`).join("\n"),
+    })]);
+    for (const route of area.routes) {
+      const rName = route.name;
+      const hint = route.argumentHint ?? "";
+      files.push([`skills/${aName}/routes/${rName}/ROUTE.md`, endOnOneNewline(fill(readStub("route-md.stub"), {
+        ROUTE_NAME: rName,
+        ARGUMENT_HINT_LINE: hint ? `argument-hint: "${hint.replace(/[\\"]/g, "\\$&")}"\n` : "",
+        SECTIONS: route.withScripts ? fill(readStub("route-script-section.stub"), { ROUTE_NAME: rName }) : "",
+      }))]);
+      if (route.withScripts) {
+        files.push([`skills/${aName}/routes/${rName}/scripts/${rName}.mjs`, fill(readStub("script-mjs.stub"), { OWNER: `the ${rName} route of ${aName}` })]);
+      }
+    }
+    const routes = area.routes.map((r) => `\`${r.name}\``).join(", ");
+    skillRows.push(`| \`${aName}\` | an agent calls it; routes: ${routes} | ${TODO_MARK} |`);
+    areaRows.push(`| \`${aName}\` | ${TODO_MARK} | ${routes} |`);
+  }
+  if (spec.entry) {
+    files.push([`skills/${spec.entry}/SKILL.md`, fill(readStub("entry-md.stub"), {
+      ENTRY_NAME: spec.entry,
+      PLUGIN_NAME: name,
+      AREA_LIST: spec.areas.map((a) => a.name).join(", "),
+      AREA_ROWS: areaRows.join("\n"),
+    })]);
+    skillRows.unshift(`| \`${spec.entry}\` | \`/${name}:${spec.entry}\`, the one skill to type | ${TODO_MARK} |`);
   }
 
   files.push(["README.md", fill(readStub("readme.stub"), {
@@ -126,21 +189,49 @@ function planFiles(spec) {
 /** The spec, checked: every rule a later step would otherwise trip on. */
 function checkSpec(spec, target) {
   if (typeof spec !== "object" || spec === null || Array.isArray(spec)) throw new Bail("spec must be a JSON object");
-  for (const key of ["name", "description", "author", "skills"]) {
+  if (spec.areas !== undefined && !Array.isArray(spec.areas)) throw new Bail("spec.areas must be a list of areas");
+  const hasAreas = Array.isArray(spec.areas) && spec.areas.length > 0;
+  for (const key of ["name", "description", "author", ...(hasAreas ? [] : ["skills"])]) {
     if (!spec[key]) throw new Bail(`spec missing required key: ${key}`);
   }
   if (typeof spec.author !== "object" || !spec.author.name || !spec.author.email) {
     throw new Bail("spec.author needs name and email");
   }
-  if (!Array.isArray(spec.skills) || !spec.skills.length) throw new Bail("spec.skills must list at least one skill");
+  if (!hasAreas && (!Array.isArray(spec.skills) || !spec.skills.length)) throw new Bail("spec.skills must list at least one skill");
+  if (spec.skills !== undefined && !Array.isArray(spec.skills)) throw new Bail("spec.skills must be a list of skills");
   if (typeof spec.name !== "string" || !SLUG.test(spec.name)) throw new Bail(`name '${spec.name}' is not a lowercase-hyphen slug`);
   if (path.basename(target) !== spec.name) {
     throw new Bail(`spec name '${spec.name}' != target dir basename '${path.basename(target)}'`);
   }
   if (!SEMVER.test(spec.version ?? "0.1.0")) throw new Bail(`version '${spec.version}' is not semver`);
-  for (const skill of spec.skills) {
+  const taken = new Set();
+  const claim = (kind, n) => { if (taken.has(n)) throw new Bail(`${kind} '${n}' shares its name with another skill: each is a directory under skills/`); taken.add(n); };
+  for (const skill of spec.skills ?? []) {
     if (typeof skill?.name !== "string" || !SLUG.test(skill.name)) throw new Bail(`skill name '${skill?.name}' is not a lowercase-hyphen slug`);
-    if (!["model", "user"].includes(skill.mode ?? "model")) throw new Bail(`skill ${skill.name}: mode must be model or user`);
+    if (!MODES.includes(skill.mode ?? "model")) throw new Bail(`skill ${skill.name}: mode must be model, callable, or user`);
+    claim("skill", skill.name);
+  }
+  for (const area of spec.areas ?? []) {
+    if (typeof area?.name !== "string" || !SLUG.test(area.name)) throw new Bail(`area name '${area?.name}' is not a lowercase-hyphen slug`);
+    claim("area", area.name);
+    if (!Array.isArray(area.routes) || !area.routes.length) throw new Bail(`area ${area.name}: routes must list at least one route`);
+    const routes = new Set();
+    for (const route of area.routes) {
+      if (typeof route?.name !== "string" || !SLUG.test(route.name)) throw new Bail(`area ${area.name}: route name '${route?.name}' is not a lowercase-hyphen slug`);
+      if (routes.has(route.name)) throw new Bail(`area ${area.name}: route '${route.name}' is listed twice`);
+      routes.add(route.name);
+      if (typeof route.cue !== "string" || !route.cue.trim()) throw new Bail(`area ${area.name}: route ${route.name} needs a cue, the route in a few words`);
+      if (route.cue.length > CUE_CAP) throw new Bail(`area ${area.name}: route ${route.name}: cue is ${route.cue.length} characters, over ${CUE_CAP}`);
+      // The description lists a route as "<route> (<cue>)", so a cue cannot close the bracket or end the item early.
+      if (/[();]/.test(route.cue)) throw new Bail(`area ${area.name}: route ${route.name}: a cue holds no bracket and no semicolon`);
+      if (route.starts !== undefined && route.starts !== "person") throw new Bail(`area ${area.name}: route ${route.name}: starts is "person" or left out`);
+    }
+    if (area.default !== undefined && !routes.has(area.default)) throw new Bail(`area ${area.name}: default '${area.default}' is not one of its routes`);
+  }
+  if (spec.entry !== undefined) {
+    if (typeof spec.entry !== "string" || !SLUG.test(spec.entry)) throw new Bail(`entry '${spec.entry}' is not a lowercase-hyphen slug`);
+    if (!hasAreas) throw new Bail("spec.entry is the way in to a plugin's areas, and this spec lists none");
+    claim("entry", spec.entry);
   }
 }
 

@@ -1,7 +1,7 @@
 ---
 name: evaluate-plugin
 description: Score a plugin against the six-dimension rubric (skill quality, component symbiosis, workflow quality, architecture, context-window footprint, distribution hygiene) into a chat summary, a markdown report, and an HTML scorecard with an adopt, adopt-with-fixes, rework, or avoid verdict. Use when someone wants a plugin or a bare skill directory evaluated, audited, or compared before installing it.
-argument-hint: "<path | owner/repo | git URL>[#ref] [--output <dir>]"
+argument-hint: "<path | owner/repo | git URL>[#ref] [--output <dir>] [--measured <diagnose.json>]"
 ---
 
 # evaluate-plugin
@@ -90,6 +90,13 @@ node "W/core/scripts/plugin-scan.mjs" <plugin-root> --score <outdir>/grades.json
 Never compute the composite, dimension scores, weight renormalization, or
 verdict yourself. The script owns the arithmetic.
 
+Given `--measured <file>` (the output of `/agentcraft:context-doctor diagnose`
+with `--json`, on a session that used this plugin), add
+`--measured <file>` to that command. score.json then carries `measured`:
+what that one session showed, beside the score, moving no number. Never make
+one up, and never run sessions to get one: `W/core/references/measuring.md`
+says what a measurement is and whose call it is to spend on it.
+
 *Done when: score.json holds composite, per-dimension scores, verdict, and
 any gate cap.*
 
@@ -124,6 +131,7 @@ Workflow({
     coreDir: "W/core",
     outDir: "<absolute output dir>",
     dateToday: "<YYYY-MM-DD, run date +%F yourself; the workflow sandbox has no clock>",
+    measured: "<optional: absolute path of a diagnose --json file, as --measured>",
     context: "<optional: anything the graders should know about the target>"
   }
 })

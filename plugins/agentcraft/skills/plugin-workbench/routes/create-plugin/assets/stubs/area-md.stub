@@ -1,0 +1,26 @@
+---
+name: {{AREA_NAME}}
+description: "{{DESCRIPTION}}"
+user-invocable: false
+argument-hint: "[route] [the route's arguments]"
+---
+
+# {{AREA_NAME}}
+
+TODO(author): the body of work this area stands for, then what its routes
+share, each in a line. Keep it short: this text is appended to the
+conversation every time the area is called.
+
+## Route
+
+A route is `routes/<route>/ROUTE.md` under the directory this file is in, which the host names when it loads this skill.
+
+The arguments are the text this skill was invoked with. Their first word is the route: read that route's `ROUTE.md` and follow it, with the rest as its arguments. If the first word is not a route, the arguments are the task; with no arguments, the task is the one at hand. Take the route whose row fits the task, and when none plainly does, the default, `{{DEFAULT_ROUTE}}`.
+
+A route is a document to read, never a skill to call: no skill is named after one.
+
+| Route | In short | Starts it |
+| --- | --- | --- |
+{{ROUTE_ROWS}}
+
+After a compaction, read your route's `ROUTE.md` again before going on: the host re-attaches this skill, not a file read by path.

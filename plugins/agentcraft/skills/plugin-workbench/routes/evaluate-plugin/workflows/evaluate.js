@@ -1,7 +1,7 @@
 export const meta = {
   name: 'plugin-evaluate',
   description: 'Adversarially-verified multi-agent evaluation of a Claude Code plugin: deterministic scan, one grader per skill and per rubric dimension, refutation-based verification of low grades and serious findings, a generosity critic auditing weakly-evidenced high grades, script-computed scoring, and a filled HTML scorecard + markdown report',
-  whenToUse: "The evaluate-plugin skill's autonomous mode: when the user asks for a thorough/deep/multi-agent plugin audit, or the target exceeds ~15 skills or ~5 workflows. Args: {pluginPath: <absolute plugin root, already acquired locally>, coreDir: <absolute path to the plugin-workbench core dir>, outDir: <absolute output dir>, dateToday: <YYYY-MM-DD>, context?}. Acquisition (clone) and temp cleanup stay with the caller.",
+  whenToUse: "The evaluate-plugin skill's autonomous mode: when the user asks for a thorough/deep/multi-agent plugin audit, or the target exceeds ~15 skills or ~5 workflows. Args: {pluginPath: <absolute plugin root, already acquired locally>, coreDir: <absolute path to the plugin-workbench core dir>, outDir: <absolute output dir>, dateToday: <YYYY-MM-DD>, measured?: <absolute path of a context-doctor diagnose --json file>, context?}. Acquisition (clone) and temp cleanup stay with the caller.",
   phases: [
     { title: 'Scan', detail: 'run plugin-scan.mjs, persist scan.json, load applicability', model: 'haiku' },
     { title: 'Grade', detail: 'one grader per skill (SQ) + one per applicable dimension', model: 'opus' },
@@ -27,6 +27,8 @@ const PLUGIN = A.pluginPath.replace(/\/$/, '')
 const CORE = A.coreDir.replace(/\/$/, '')
 const OUT = A.outDir.replace(/\/$/, '')
 const SCAN = `${OUT}/scan.json`
+// What one session showed, carried beside the score: it moves no number.
+const MEASURED = typeof A.measured === 'string' && A.measured ? ` --measured ${A.measured}` : ''
 // The workbench's scripts are Node, the one runtime a plugin host is sure to have.
 const NODE = 'node'
 
@@ -268,7 +270,7 @@ log(`Generosity critic: ${demoted}/${allGrades.length} grades demoted${critic &&
 // ---------- Phase 5: score (the script owns the arithmetic) ----------
 phase('Score')
 const scored = await agent(
-  `Write the following JSON verbatim to ${OUT}/grades.json, then run: ${NODE} ${CORE}/scripts/plugin-scan.mjs ${PLUGIN} --score ${OUT}/grades.json > ${OUT}/score.json. If the script exits non-zero, set ok=false and put its stderr in error. Otherwise read ${OUT}/score.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
+  `Write the following JSON verbatim to ${OUT}/grades.json, then run: ${NODE} ${CORE}/scripts/plugin-scan.mjs ${PLUGIN} --score ${OUT}/grades.json${MEASURED} > ${OUT}/score.json. If the script exits non-zero, set ok=false and put its stderr in error. Otherwise read ${OUT}/score.json and report the fields below. Pure file writing and script driving; no judgment. ${BRIEF}\n\nJSON:\n${JSON.stringify({ grades: allGrades, findings: allFindings }, null, 1)}`,
   {
     label: 'score', phase: 'Score', model: 'haiku', effort: 'low',
     schema: {

@@ -1,11 +1,11 @@
 export const meta = {
   name: 'plugin-create',
-  description: 'Autonomous plugin authoring: blueprint per-component briefs from a confirmed spec, deterministic scaffold, one parallel author per skill, then a refine loop (scan, rubric reviewers, script-computed score, targeted fixers) until the composite clears the bar or rounds run out',
+  description: 'Autonomous plugin authoring: blueprint per-component briefs from a confirmed spec, deterministic scaffold, one parallel author per skill or area, then a refine loop (scan, rubric reviewers, script-computed score, targeted fixers) until the composite clears the bar or rounds run out',
   whenToUse: "The create-plugin skill's autonomous mode: multi-skill plugins where inline authoring would grind. Args: {spec: <confirmed spec object>, targetDir: <absolute dir to create>, coreDir: <absolute plugin-workbench core dir>, createSkillDir: <absolute create-plugin skill dir>, outDir: <absolute artifacts dir>, dateToday: <YYYY-MM-DD>, bar?, maxRounds?, context?}. The interview stays with the caller; the final certified scorecard comes from a follow-up evaluate-plugin autonomous run.",
   phases: [
-    { title: 'Blueprint', detail: 'spec → per-skill briefs + plugin-level brief (singleton)' },
+    { title: 'Blueprint', detail: 'spec → a brief per skill, area and entry skill + plugin-level brief (singleton)' },
     { title: 'Scaffold', detail: 'run plugin-scaffold.mjs with the spec; verify the tree', model: 'haiku' },
-    { title: 'Author', detail: 'one author per skill + one for root files, parallel over disjoint dirs', model: 'opus' },
+    { title: 'Author', detail: 'one author per skill, area and entry skill + one for root files, parallel over disjoint dirs', model: 'opus' },
     { title: 'Refine', detail: 'scan → rubric reviewers → --score → targeted fixers, loop to bar or maxRounds' },
     { title: 'Report', detail: 'trajectory, residuals, and the independent-eval next step (singleton)' },
   ],
@@ -24,7 +24,16 @@ if (!A || !A.spec || !A.targetDir || !A.coreDir || !A.createSkillDir || !A.outDi
 }
 let SPEC = A.spec
 if (typeof SPEC === 'string') { try { SPEC = JSON.parse(SPEC) } catch { throw new Error('args.spec must be the spec object (or its JSON string)') } }
-if (!SPEC.name || !SPEC.skills || !SPEC.skills.length) throw new Error('spec needs at least name and a non-empty skills list')
+// A spec is plain (skills), areas (each with routes, and maybe an entry skill), or both.
+const SKILLS = Array.isArray(SPEC.skills) ? SPEC.skills : []
+const AREAS = Array.isArray(SPEC.areas) ? SPEC.areas : []
+if (!SPEC.name || !(SKILLS.length || AREAS.length)) throw new Error('spec needs at least name and a non-empty skills or areas list')
+// Everything that owns a directory under skills/: one brief and one author each.
+const UNITS = [
+  ...SKILLS.map(s => ({ name: s.name, kind: 'skill', entry: s })),
+  ...AREAS.map(a => ({ name: a.name, kind: 'area', entry: a })),
+  ...(SPEC.entry ? [{ name: SPEC.entry, kind: 'entry skill', entry: { name: SPEC.entry, areas: AREAS.map(a => a.name) } }] : []),
+]
 const TARGET = A.targetDir.replace(/\/$/, '')
 const CORE = A.coreDir.replace(/\/$/, '')
 const CREATE = A.createSkillDir.replace(/\/$/, '')
@@ -50,6 +59,11 @@ House rules: intra-plugin paths use \${CLAUDE_PLUGIN_ROOT}; persistent state
 uses \${CLAUDE_PLUGIN_DATA}; absolute machine paths never ship; every skill
 mentions each of its sibling files by name; deterministic work goes to
 scripts; no TODO(author) marker survives authoring.
+An area is a skill that holds routes/: its SKILL.md stays short (it is
+appended on every call) and keeps the scaffolded frontmatter, route table and
+compaction line; a route is routes/<route>/ROUTE.md, read by path, so it
+never writes \${CLAUDE_PLUGIN_ROOT} and puts every path under the directory
+its first lines name. ${CORE}/references/shapes.md has the rules.
 ${BRIEF}
 `
 
@@ -93,7 +107,7 @@ const GRADES = {
 // ---------- Phase 1: blueprint (singleton judgment: inherits the session model) ----------
 phase('Blueprint')
 const blueprint = await agent(
-  `${CTX}\nYou are the blueprint author. Read ${CORE}/references/rubric.md sections SQ, CS, and CF in full, and ${CREATE}/references/authoring-notes.md. Then expand this user-confirmed spec into per-skill briefs and a plugin-level brief. Each skill brief: a description draft honest about its invocation mode's context cost, the branch list, a body outline of steps each with an observable done-when, what gets offloaded to scripts (with exact input/output contracts), and which detail belongs in references/ files. The plugin brief: README outline (problem → mechanism → install → skills table; history lives in CHANGELOG.md, never the README) and the one-sentence pitch.\n\nSPEC:\n${JSON.stringify(SPEC, null, 1)}`,
+  `${CTX}\nYou are the blueprint author. Read ${CORE}/references/rubric.md sections SQ, CS, and CF in full, and ${CREATE}/references/authoring-notes.md. Then expand this user-confirmed spec into one brief per skill, per area, and for the entry skill if the spec names one, plus a plugin-level brief. For an area (read ${CORE}/references/shapes.md first) the brief's description draft is the lead only (the route list is scaffolded), and its body outline is the short opening plus one outline per route, each with its own done-when. For the entry skill the outline is the questions to ask, at most four of two to four options, with every area behind exactly one option. Each skill brief: a description draft honest about its invocation mode's context cost, the branch list, a body outline of steps each with an observable done-when, what gets offloaded to scripts (with exact input/output contracts), and which detail belongs in references/ files. The plugin brief: README outline (problem → mechanism → install → skills table; history lives in CHANGELOG.md, never the README) and the one-sentence pitch.\n\nSPEC:\n${JSON.stringify(SPEC, null, 1)}`,
   {
     label: 'blueprint', phase: 'Blueprint', effort: 'high',
     schema: {
@@ -106,7 +120,7 @@ const blueprint = await agent(
             type: 'object',
             required: ['skill', 'descriptionDraft', 'bodyOutline'],
             properties: {
-              skill: { type: 'string', description: 'must match a spec skill name' },
+              skill: { type: 'string', description: 'must match a spec skill name, area name, or the entry skill' },
               descriptionDraft: { type: 'string' },
               bodyOutline: { type: 'string', description: 'steps with done-when criteria' },
               scriptContracts: { type: 'string', description: 'per offloaded script: argv/stdin → stdout contract' },
@@ -126,7 +140,7 @@ const blueprint = await agent(
 if (!blueprint) throw new Error('blueprint agent returned null: nothing to author from')
 const briefFor = {}
 for (const b of blueprint.skillBriefs) briefFor[b.skill] = b
-const missingBriefs = SPEC.skills.map(s => s.name).filter(n => !briefFor[n])
+const missingBriefs = UNITS.map(u => u.name).filter(n => !briefFor[n])
 if (missingBriefs.length) log(`WARNING: no brief for ${missingBriefs.join(', ')}; their authors work from the spec alone`)
 
 // ---------- Phase 2: scaffold (deterministic: the script owns it) ----------
@@ -164,16 +178,16 @@ const AUTHORED = {
 // Safe to parallelize: each skill author writes only under skills/<name>/;
 // the root author is the sole writer of README.md and plugin.json.
 const authors = await parallel([
-  ...SPEC.skills.map(s => () => agent(
-    `${CTX}\nYou are the author of the skill "${s.name}". You write ONLY under ${TARGET}/skills/${s.name}/. Read ${CORE}/references/rubric.md sections SQ, CS, and CF in full first${s.withWorkflow ? ', plus WQ (this skill ships a workflow)' : ''}, and ${CREATE}/references/authoring-notes.md for the stub conventions and authoring order. Then author every scaffolded file in your directory: replace all TODO(author) markers, write scripts before the SKILL.md body that invokes them, give every step an observable done-when, and mention every sibling file by name in SKILL.md.\n\nYOUR BRIEF:\n${JSON.stringify(briefFor[s.name] || { skill: s.name, note: 'no brief, work from the spec entry' }, null, 1)}\n\nSPEC ENTRY:\n${JSON.stringify(s, null, 1)}`,
-    { label: `author:${s.name}`, phase: 'Author', schema: AUTHORED, model: 'opus', effort: 'high' }
+  ...UNITS.map(u => () => agent(
+    `${CTX}\nYou are the author of the ${u.kind} "${u.name}". You write ONLY under ${TARGET}/skills/${u.name}/. Read ${CORE}/references/rubric.md sections SQ, CS, and CF in full first${u.entry.withWorkflow ? ', plus WQ (this skill ships a workflow)' : ''}${u.kind === 'skill' ? '' : `, ${CORE}/references/shapes.md, and the SQ9 and AN6 entries of ${CORE}/references/mechanical-checks.md`}, and ${CREATE}/references/authoring-notes.md for the stub conventions and authoring order. Then author every scaffolded file in your directory: replace all TODO(author) markers, write scripts before the text that invokes them, give every step an observable done-when, and mention every sibling file by name.${u.kind === 'area' ? ' Author each routes/<route>/ROUTE.md first, then the opening of SKILL.md from what the routes share; leave its frontmatter keys, its route table and its compaction line as scaffolded, and keep its description\'s route list in the form "<route> (<cue>)".' : ''}${u.kind === 'entry skill' ? ' It is the one skill a person types: write the questions it asks and each area\'s "use it to" cell from the spec, and change nothing about how it hands off.' : ''}\n\nYOUR BRIEF:\n${JSON.stringify(briefFor[u.name] || { skill: u.name, note: 'no brief, work from the spec entry' }, null, 1)}\n\nSPEC ENTRY:\n${JSON.stringify(u.entry, null, 1)}`,
+    { label: `author:${u.name}`, phase: 'Author', schema: AUTHORED, model: 'opus', effort: 'high' }
   )),
   () => agent(
     `${CTX}\nYou are the plugin-level author. You write ONLY ${TARGET}/README.md and ${TARGET}/.claude-plugin/plugin.json (never anything under skills/). Read ${CORE}/references/rubric.md section MH in full first. Author the README per the brief below (replace all TODO(author) markers; the skills table's Does cells come from the spec), and polish plugin.json's description to the pitch. Keep the scaffolded CHANGELOG.md seed, and give the README no changelog section.\n\nPLUGIN BRIEF:\n${JSON.stringify(blueprint.pluginBrief, null, 1)}\n\nSPEC:\n${JSON.stringify(SPEC, null, 1)}`,
     { label: 'author:plugin-root', phase: 'Author', schema: AUTHORED, model: 'opus', effort: 'high' }
   ),
 ])
-const authorUnits = [...SPEC.skills.map(s => `skill:${s.name}`), 'plugin-root']
+const authorUnits = [...UNITS.map(u => `skill:${u.name}`), 'plugin-root']
 const failedAuthors = authorUnits.filter((u, i) => !authors[i] || !authors[i].ok)
 if (failedAuthors.length === authorUnits.length) throw new Error('every author failed: nothing to refine')
 if (failedAuthors.length) log(`WARNING: ${failedAuthors.length}/${authorUnits.length} authors failed (${failedAuthors.join(', ')}); their TODO markers remain for the Refine loop to finish`)

@@ -1,7 +1,7 @@
 ---
 name: improve-plugin
 description: "Raise an existing plugin's score: baseline it or reuse a prior scorecard, rank the fixes by the point delta the scanner computes, apply them, re-score, and report before against after. Use when someone wants a plugin improved, scorecard findings fixed, or a score pushed past a verdict tier."
-argument-hint: "<path | owner/repo | git URL>[#ref] [--report <dir with score.json + grades.json>] [--bar <tier | composite>] [--output <dir>]"
+argument-hint: "<path | owner/repo | git URL>[#ref] [--report <dir with score.json + grades.json>] [--bar <tier | composite>] [--output <dir>] [--measured <diagnose.json>]"
 ---
 
 # improve-plugin
@@ -23,6 +23,14 @@ the problems. Core dir below means `W/core`.
    specific check or finding; no drive-by rewrites.
 3. **Never publish.** No pushes, no PRs, no releases. The deliverable is an
    edited tree and its diff; distribution stays with the user.
+4. **A shape is not a fix.** Never move a plugin's skills into areas, or
+   back, to raise a score: it changes every address the plugin prints and
+   what an agent reaches. If the plugin has outgrown its shape by the rule of
+   thumb in `W/core/references/shapes.md`, say so in the report as the
+   person's decision, with what it would take.
+5. **Never spend the person's quota.** No scripted sessions, and no run of a
+   repo's own live or reach tests, without their go-ahead and the cost in
+   their words. `W/core/references/measuring.md` says what those measure.
 
 ## Step 1: Acquire
 
@@ -57,6 +65,12 @@ take its output dir as `--report`. Either way, finish with `--score`:
 node "W/core/scripts/plugin-scan.mjs" <plugin-root> --score <outdir>/grades.json > <outdir>/score.json
 ```
 
+Given `--measured <file>` (the output of `/agentcraft:context-doctor diagnose`
+with `--json`), add `--measured <file>` to that command: score.json then
+carries what that session showed. A critical finding in it outranks anything
+in `fix_deltas`, which only knows the files: context a compaction lost, or
+a call the host refused, is a plugin that does not work.
+
 *Done when: baseline scan.json, grades.json, and score.json exist.*
 
 ## Step 3: Rank fixes by what they buy
@@ -66,6 +80,11 @@ composite gain of raising it to 4. Read it, never estimate deltas yourself
 (renormalized weights make intuition wrong). Take the top 3–5, or as many
 as clearing `--bar` needs (a tier name means its verdict threshold; a
 number means the composite).
+
+Mark each fix that changes what an agent sees: a description, a skill's
+name or its invocation keys, a critical line, a hook's output, an address.
+The scanner can say the file is better; it cannot say an agent still reaches
+the skill. Those fixes are the ones Step 6 has to be honest about.
 
 Present the plan (each fix, the files it touches, its recomputed delta)
 and get a go. Skip the ask only when the user already said to just fix it.
@@ -106,6 +125,13 @@ apply/re-score round. Two rounds maximum, then report what remains.
 - **What remains:** the next top fixes if the target still has headroom.
 - **The diff:** `git diff --stat` for in-place targets, the changed-file
   list for clones, plus the clone's absolute path (it is the deliverable).
+- **What was not measured:** for each fix Step 3 marked, one line that reach
+  after it is not measured. Then what would measure it. If the target's own
+  docs name a live or reach lane, name the command and its recorded baseline,
+  and leave the run to the person: never start it. If it has none, offer the
+  half that costs nothing: after a session has used the changed plugin,
+  `/agentcraft:context-doctor diagnose` reads that session's transcript for
+  what the plugin put in the window and what went wrong.
 - Offer the person an independent confirmation of the new score: the
   autonomous mode of `/agentcraft:plugin-workbench evaluate-plugin`, which is theirs to
   start.

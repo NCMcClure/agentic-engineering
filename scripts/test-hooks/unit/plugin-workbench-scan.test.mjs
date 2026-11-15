@@ -667,10 +667,56 @@ test("a target that is not a directory exits 1; a missing or surplus argument ex
     const result = runNode(SCAN, args);
     assert.equal(result.status, 2, JSON.stringify(args));
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, /usage: node plugin-scan\.mjs <plugin_path> \[--score <grades\.json>\]/);
+    assert.match(result.stderr, /usage: node plugin-scan\.mjs <plugin_path> \[--score <grades\.json> \[--measured <diagnose\.json>\]\]/);
   }
   const help = runNode(SCAN, ["--help"]);
-  assert.deepEqual([help.status, help.stdout.trim()], [0, "usage: node plugin-scan.mjs <plugin_path> [--score <grades.json>]"]);
+  assert.deepEqual([help.status, help.stdout.trim()], [0, "usage: node plugin-scan.mjs <plugin_path> [--score <grades.json> [--measured <diagnose.json>]]"]);
+});
+
+// What one session showed rides beside the score. The file is context-doctor's
+// `diagnose --json`, so the shape here is that script's, built by it.
+test("a diagnosis rides on the score as a block of its own, and moves no number", async (t) => {
+  const dir = demo(t);
+  const scan = runScan(dir);
+  const grades = write(dir, "../grades.json", JSON.stringify({ grades: scan.applicable_judgment_checks.map((check) => ({ check, grade: 3, evidence: "f: \"q\"", ...(scan.per_skill_checks.includes(check) ? { skill: "demo" } : {}) })) }));
+  const { diagnose, summary } = await import("../../../plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs");
+  const { buildSession } = await import("../../../plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs");
+  const at = (n) => new Date(Date.parse("2026-11-15T20:00:00Z") + n * 1000).toISOString();
+  const session = { ...buildSession([
+    { type: "user", timestamp: at(1), cwd: "/srv/demo", sessionId: "abc", version: "2.1.325", origin: { kind: "human" }, message: { role: "user", content: "Set it up." } },
+    { type: "assistant", timestamp: at(2), requestId: "t1", message: { id: "m1", role: "assistant", content: [{ type: "tool_use", id: "t1", name: "Skill", input: { skill: "demo:audit" } }], usage: { input_tokens: 10, cache_read_input_tokens: 40_000, cache_creation_input_tokens: 0, output_tokens: 5 } } },
+    { type: "user", timestamp: at(3), message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", is_error: true, content: "This skill can only be started by the user." }] } },
+  ]), file: "/srv/abc.jsonl" };
+  const findings = diagnose(session);
+  const measured = write(dir, "../diagnose.json", JSON.stringify({ ...summary(session, findings), findings }));
+
+  const plain = JSON.parse(runNode(SCAN, [dir, "--score", grades]).stdout);
+  assert.equal("measured" in plain, false, "no file, no block");
+  for (const args of [[dir, "--score", grades, "--measured", measured], [dir, `--measured=${measured}`, "--score", grades]]) {
+    const result = runNode(SCAN, args);
+    assert.equal(result.status, 0, result.stderr);
+    const score = JSON.parse(result.stdout);
+    assert.deepEqual(score.measured.counts, { critical: 1, warning: 0, info: 0 });
+    assert.deepEqual(score.measured.session, { id: "abc", title: null, version: "2.1.325", requests: 1, peak_tokens: 40_010, compactions: 0 });
+    assert.deepEqual(score.measured.findings.map((f) => [f.code, f.level, f.owner]), [["SKILL_REFUSED", "critical", "demo"]]);
+    assert.deepEqual(Object.keys(score.measured.findings[0]), ["code", "level", "owner", "what", "fix"]);
+    assert.equal(score.measured.source, "diagnose.json");
+    assert.match(score.measured.note, /moves no grade and no verdict/);
+    const { measured: _, ...rest } = score;
+    assert.deepEqual(rest, plain, "a critical finding in a session caps nothing: the score reads files");
+  }
+
+  const alone = runNode(SCAN, [dir, "--measured", measured]);
+  assert.equal(alone.status, 2);
+  assert.match(alone.stderr, /^--measured rides on --score: a scan reads files, not sessions\n/);
+  const empty = runNode(SCAN, [dir, "--score", grades, "--measured"]);
+  assert.equal(empty.status, 2);
+  const wrong = runNode(SCAN, [dir, "--score", grades, "--measured", grades]);
+  assert.equal(wrong.status, 1);
+  assert.match(wrong.stderr, /is not the output of context-doctor's diagnose --json: it needs counts and findings/);
+  const missing = runNode(SCAN, [dir, "--score", grades, "--measured", path.join(dir, "nope.json")]);
+  assert.equal(missing.status, 1);
+  assert.match(missing.stderr, /^error: cannot read measured file /);
 });
 
 test("a manifest that is missing, broken, or not an object is a gate, not a crash", (t) => {

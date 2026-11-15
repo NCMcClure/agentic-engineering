@@ -19,7 +19,7 @@ points here):
   Delete the `<template>` tags and the fill-contract header comment
   from the final file.
 - `data-optional="…"` elements are deleted whole when not applicable (no
-  gate cap, no findings, no refuted list, no fixes).
+  gate cap, no findings, no refuted list, no fixes, no measured block).
 - Color maps live in comments beside each template block (the gauge,
   verdict tiers, the dimension bar, kind tags, severity badges, cap meters,
   segment rotation). Each names a class or a token the template's stylesheet
@@ -32,6 +32,20 @@ points here):
   added or an anchor moves.
 - `{{SHAPE}}` = scan.json's `components.shape`, then its counts: `plain, 5
   skills`, or `areas, 14 skills over 75 routes`.
+- `{{LISTING_ENTRIES}}`, `{{LISTING_DESCRIBED_CHARS}}`,
+  `{{LISTING_NAMES_CHARS}}` = scan.json's `context_footprint.listing`:
+  `entries`, `described_chars`, `names_only_chars`. Two rows, because a
+  plugin is listed two ways: with every description at a large window, by
+  name alone at 200k.
+- The measured block is filled only when score.json carries `measured`
+  (`--score` was run with `--measured <diagnose.json>`; see
+  [measuring.md](measuring.md)). `{{MEASURED_COUNTS}}` = its `counts` as
+  `2 critical · 3 warnings · 1 note`; `{{MEASURED_SESSION}}` = its
+  `session` as `<title or id> · Claude Code <version> · <requests> requests
+  · peak <peak_tokens> tokens · <compactions> compactions`; one
+  `tpl-measured-item` per entry of its `findings`, in order, the owner
+  left empty where it is null. Never fill it from anything else: a session
+  you remember is not a measurement.
 - Pips: four per check row, `round(grade)` filled.
 - The Mermaid component map is the one generated part: one node per
   component, edges skill→script/reference/asset it invokes and hook→skill it
@@ -82,6 +96,12 @@ On-invoke: <skill: N lines / ~M tokens, flag >500 lines, and an area body
 over 8,000 characters>.
 <if critical lines: >Critical lines: <chars> of 7,500 across <files>.
 
+<if score.json has `measured`: >## Measured in one session
+
+<session line> · <counts>. It moves no grade and no verdict.
+
+- **<CODE>** (<level>, <owner>): <what> → <fix>
+
 ## Findings
 
 ### critical / major / minor (grouped, in that order)
@@ -106,4 +126,7 @@ Five to ten lines, no headers:
 - One line per applicable dimension: score + the single most load-bearing
   observation, in plain words.
 - Top 3 fixes with their point deltas.
+- If score.json has `measured`: one line, the counts and the most serious
+  finding. If it does not: one line that reach and hook output were not
+  measured, since the score reads files.
 - The absolute paths of both report files.

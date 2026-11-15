@@ -124,6 +124,16 @@
       .cap:has(.cap-near) .count { color: var(--ink); font-weight: 600; }
       .cap:has(.cap-over) .count { color: var(--accent-ink); font-weight: 600; }
       .foot { font-size: 12px; color: var(--ink-2); }
+      /* The listing at each window, and what one session showed: rows of mono figures. */
+      .listing { display: grid; gap: 4px; font: 11.5px/1.5 var(--mono); color: var(--ink-2); }
+      .listing .row span:last-child { color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .measured { display: grid; gap: 12px; }
+      #measured-list { display: grid; gap: 10px; }
+      .seen { display: grid; gap: 3px; }
+      .seen .title { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; }
+      .seen .title .mono { font-size: 11.5px; }
+      .seen p { font-size: 13.5px; }
+      .seen .fix { color: var(--ink-2); }
 
       /* Component map: Mermaid lays it out, these rules colour it, in both themes. */
       .mermaid { margin: 14px 0 0; font: 12px/1.6 var(--mono); color: var(--ink-2); white-space: pre-wrap; }
@@ -270,7 +280,33 @@
           </div>
           <!-- CAP_COLOR: cap-ok under 75%, cap-near 75-100%, cap-over over -->
         </template>
+        <div class="listing">
+          <p class="row"><span>the listing where every description shows · a 1M window</span><span>{{LISTING_ENTRIES}} entries · {{LISTING_DESCRIBED_CHARS}} chars</span></p>
+          <p class="row"><span>the listing where only names show · a 200k window</span><span>{{LISTING_ENTRIES}} entries · {{LISTING_NAMES_CHARS}} chars</span></p>
+        </div>
         <p class="foot">chars÷4 estimate; <code>claude plugin details {{PLUGIN_NAME}}</code> is ground truth when installed. On-invoke bodies: {{ON_INVOKE_SUMMARY}}.</p>
+      </section>
+
+      <!-- ── Measured in a session ──────────────────────────────────── -->
+      <section class="card measured" data-optional="measured">
+        <div class="row">
+          <h2 class="eyebrow">measured · one session</h2>
+          <p class="quiet">{{MEASURED_COUNTS}}</p>
+        </div>
+        <p class="foot">{{MEASURED_SESSION}}. One session, read from its transcript: what happened there, not what always does. It moves no grade and no verdict.</p>
+        <div id="measured-list"></div>
+        <template id="tpl-measured-item" data-fill-into="measured-list">
+          <div class="seen">
+            <div class="title">
+              <span class="chip {{MEASURED_CLASSES}}">{{MEASURED_LEVEL}}</span>
+              <span class="mono">{{MEASURED_CODE}}</span>
+              <span class="quiet">{{MEASURED_OWNER}}</span>
+            </div>
+            <p>{{MEASURED_WHAT}}</p>
+            <p class="fix">{{MEASURED_FIX}}</p>
+          </div>
+          <!-- MEASURED_CLASSES: critical=sev-critical · warning=sev-major · info=sev-minor -->
+        </template>
       </section>
 
       <!-- ── Component map ──────────────────────────────────────────── -->

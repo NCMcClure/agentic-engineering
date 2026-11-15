@@ -220,7 +220,8 @@ the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
 A plugin's true cost is invisible until it's installed, and authoring a good
 one means guessing at standards nobody wrote down. This is both halves of
 that problem on one rubric: create-plugin interviews you, scaffolds the
-layout, and authors against the six evaluation dimensions; evaluate-plugin
+layout (a skill per job, or areas with routes and one skill to type), and
+authors against the six evaluation dimensions; evaluate-plugin
 scores any path or git URL into an HTML scorecard with an adopt/rework
 verdict; improve-plugin applies the fixes ranked by how many points each one
 buys back; refresh-marketplace reinstalls a checkout's plugins so you can try

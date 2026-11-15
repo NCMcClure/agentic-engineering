@@ -277,7 +277,7 @@ A node editor in the browser for dynamic workflows, and the rules for writing th
 
 ### plugin-workbench
 
-One rubric serves all of it: a new plugin is scaffolded against it, an existing one is scored into a scorecard with a verdict, and the fixes are applied in the order of the points each is worth.
+One rubric serves all of it: a new plugin is scaffolded against it, as a skill per job or as areas with routes and one skill to type; an existing one is scored into a scorecard with a verdict; and the fixes are applied in the order of the points each is worth.
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |

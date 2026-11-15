@@ -451,7 +451,9 @@ reach rests on the name and on hook text: grade whether those carry it.
 Restructuring skills into areas is a usability move, not a reach move: fewer
 names to choose from, one way in for a person. Whether an agent still reaches
 the right text afterwards is measured from sessions, never assumed, and the
-bar for the change is "no worse".
+bar for the change is "no worse". When each shape fits is in
+[shapes.md](shapes.md); how reach is measured, and what a recording may
+claim, in [measuring.md](measuring.md).
 
 ### CF4 · On-invoke size (mechanical)
 

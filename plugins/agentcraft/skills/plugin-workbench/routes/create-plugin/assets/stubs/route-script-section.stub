@@ -1,0 +1,9 @@
+
+## The script
+
+TODO(author): what `W/routes/{{ROUTE_NAME}}/scripts/{{ROUTE_NAME}}.mjs`
+computes, the step that runs it, and how to read what it prints.
+
+```bash
+node "W/routes/{{ROUTE_NAME}}/scripts/{{ROUTE_NAME}}.mjs"
+```

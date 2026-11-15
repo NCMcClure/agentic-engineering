@@ -118,3 +118,57 @@ test("refresh-marketplace names the dev-loop scripts this marketplace has, with 
     assert.ok(installer.includes(`"${flag}"`), `${flag} is not a flag of scripts/install.mjs`);
   }
 });
+
+// ---- the two shapes, and what a score does not measure ------------------------
+
+test("plugin-workbench: the shape and measuring references are reached from the routes that need them, by a path under the area", () => {
+  for (const ref of ["shapes.md", "measuring.md"]) assert.ok(fs.existsSync(path.join(AREA.dir, "core", "references", ref)), ref);
+  const names = (route, ref) => AREA.route(route).text.includes(`\`W/core/references/${ref}\``);
+  assert.ok(names("create-plugin", "shapes.md") && names("create-plugin", "measuring.md"));
+  assert.ok(names("improve-plugin", "shapes.md") && names("improve-plugin", "measuring.md"));
+  assert.ok(names("evaluate-plugin", "measuring.md"));
+  assert.match(text("core", "references", "rubric.md"), /\[shapes\.md\]\(shapes\.md\).*\n.*\[measuring\.md\]\(measuring\.md\)/);
+});
+
+test("plugin-workbench: shapes.md teaches the rule of thumb, and its three kinds of skill are the scaffolder's three modes", () => {
+  const shapes = text("core", "references", "shapes.md");
+  assert.match(shapes, /\*\*Plain\*\* while the plugin is one body of work and lists about eight\n\s+skills or fewer/);
+  assert.match(shapes, /\*\*Areas\*\* when the plugin holds several bodies of work/);
+  assert.match(shapes, /\*\*Never for reach\.\*\*/);
+  for (const key of ["`user-invocable: false`", "`disable-model-invocation: true`"]) assert.ok(shapes.includes(key), key);
+  const scaffold = text("routes", "create-plugin", "scripts", "plugin-scaffold.mjs");
+  assert.match(scaffold, /const MODES = \["model", "callable", "user"\];/);
+  for (const mode of ["model", "callable", "user"]) assert.match(AREA.route("create-plugin").text, new RegExp(`mode: "${mode}"`), mode);
+  // A person cannot type an area, and the reference says what that means for anything written for one.
+  assert.match(shapes, /A person cannot type an area/);
+  assert.ok(shapes.split("\n").length < 120, "a reference an agent reads whole");
+});
+
+test("plugin-workbench: measuring.md holds a lane to one prompt, two windows, three passes, and the bar of no worse", () => {
+  const measuring = text("core", "references", "measuring.md");
+  for (const rule of ["**One prompt per session.**", "**Two windows.**", "**Three passes.**", "**A failing recording writes nothing.**", "**The bar is \"no worse\".**", "Never run it yourself."]) assert.ok(measuring.includes(rule), rule);
+  assert.match(measuring, /\/agentcraft:context-doctor diagnose/);
+  assert.match(measuring, /--score <outdir>\/grades\.json --measured <outdir>\/diagnose\.json/);
+});
+
+test("plugin-workbench: no route runs sessions or a repo's live tests, and improve-plugin says what it did not measure", () => {
+  assert.match(AREA.skill.body, /\*\*A score reads files\.\*\*/);
+  const improve = AREA.route("improve-plugin").text;
+  assert.match(improve, /\*\*A shape is not a fix\.\*\*/);
+  assert.match(improve, /\*\*Never spend the person's quota\.\*\*/);
+  assert.match(improve, /\*\*What was not measured:\*\*/);
+  assert.match(improve, /leave the run to the person: never start it/);
+  for (const route of AREA.routes) assert.doesNotMatch(route.text, /npm run test:live/, `${route.name} names no repo's lane by its command: it finds one in the target's docs`);
+});
+
+test("plugin-workbench: the scorecard has a slot for every measured field the report format names, and the listing at both windows", () => {
+  const template = text("core", "assets", "scorecard-template.html");
+  const format = text("core", "references", "report-format.md");
+  const slots = ["LISTING_ENTRIES", "LISTING_DESCRIBED_CHARS", "LISTING_NAMES_CHARS", "MEASURED_COUNTS", "MEASURED_SESSION", "MEASURED_CLASSES", "MEASURED_LEVEL", "MEASURED_CODE", "MEASURED_OWNER", "MEASURED_WHAT", "MEASURED_FIX"];
+  for (const slot of slots) assert.ok(template.includes(`{{${slot}}}`), `template: ${slot}`);
+  for (const slot of ["LISTING_ENTRIES", "LISTING_DESCRIBED_CHARS", "LISTING_NAMES_CHARS", "MEASURED_COUNTS", "MEASURED_SESSION"]) assert.ok(format.includes(`{{${slot}}}`), `report-format: ${slot}`);
+  assert.match(template, /<section class="card measured" data-optional="measured">/);
+  assert.match(template, /id="tpl-measured-item" data-fill-into="measured-list"/);
+  assert.match(format, /no measured block/);
+  assert.match(format, /## Measured in one session/);
+});

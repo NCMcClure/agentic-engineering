@@ -271,7 +271,7 @@
     },
     "plugin-workbench": {
       "cue": "make, score, or fix a plugin or its skills",
-      "how": "One rubric serves all of it: a new plugin is scaffolded against it, an existing one is scored into a scorecard with a verdict, and the fixes are applied in the order of the points each is worth.",
+      "how": "One rubric serves all of it: a new plugin is scaffolded against it, as a skill per job or as areas with routes and one skill to type; an existing one is scored into a scorecard with a verdict; and the fixes are applied in the order of the points each is worth.",
       "uses": [
         {
           "want": "make a new plugin, or wrap skills and scripts they already have",

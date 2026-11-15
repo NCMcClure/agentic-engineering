@@ -77,8 +77,9 @@ Each is `agentcraft/skills/<name>/`.
   studies to learn from, a studio that renders drafts and stills, and the
   `pt` CLI. Descend to change the kit, the studio, a study, the lens method,
   or the house style.
-- `plugin-workbench` - make, score and fix plugins against one rubric.
-  Descend to change what a grade means.
+- `plugin-workbench` - make, score and fix plugins against one rubric, in
+  either shape. Descend to change what a grade means, a shape's rules, or
+  what the scaffolder writes.
 - `system-map` - a system map extracted from `@system` annotations, committed
   as a file and checked against the import graph, with a whole-repo sweep; and
   the Miro board loop that draws it (generators, lint, live check, pull).

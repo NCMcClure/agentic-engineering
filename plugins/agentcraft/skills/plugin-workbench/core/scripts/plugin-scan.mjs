@@ -17,6 +17,8 @@
 // Usage:
 //   node plugin-scan.mjs <plugin_path>                        # scan
 //   node plugin-scan.mjs <plugin_path> --score <grades.json>  # score
+//   node plugin-scan.mjs <plugin_path> --score <grades.json> --measured <diagnose.json>
+//                                                              # score, with what one session showed
 //
 // Exit 0 with JSON on stdout; 1 with a reason on stderr when the target or the
 // grades cannot be used; 2 on a usage error. Paths in the output are relative
@@ -167,7 +169,7 @@ const LOUD_GUARD_RE = /^command -v node >\/dev\/null 2>&1 \|\| \{ echo '(\{.*?\}
 const NODE_CALL_RE = /^node "\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+\.m?js)"((?: [A-Za-z0-9_./=:-]+)*)$/;
 
 const EST_NOTE = "chars/4 estimate; `claude plugin details <name>` is ground truth when installed";
-const USAGE = "usage: node plugin-scan.mjs <plugin_path> [--score <grades.json>]";
+const USAGE = "usage: node plugin-scan.mjs <plugin_path> [--score <grades.json> [--measured <diagnose.json>]]";
 
 class Bail extends Error {
   constructor(message, code = 1) { super(message); this.code = code; }
@@ -1376,11 +1378,41 @@ export function runScore(scan, gradesDoc, withDeltas = true) {
   };
 }
 
+/**
+ * What one session showed, from the output of context-doctor's
+ * `diagnose --json`: the session, the counts by level, and each finding. It
+ * is carried beside the score and moves no grade and no verdict: a score is
+ * what a plugin should cost from its files, and this is what happened once.
+ */
+export function readMeasured(file) {
+  let doc;
+  try { doc = JSON.parse(fs.readFileSync(file, "utf8")); }
+  catch (e) { throw new Bail(`error: cannot read measured file ${file}: ${e.message}`); }
+  const counts = doc?.counts;
+  if (!Array.isArray(doc?.findings) || typeof counts !== "object" || counts === null) {
+    throw new Bail(`error: measured file ${file} is not the output of context-doctor's diagnose --json: it needs counts and findings`);
+  }
+  return {
+    source: path.basename(file),
+    session: {
+      id: doc.id ?? null,
+      title: doc.title ?? null,
+      version: doc.version ?? null,
+      requests: doc.requests ?? null,
+      peak_tokens: doc.peakTokens ?? null,
+      compactions: doc.compactions ?? null,
+    },
+    counts: { critical: counts.critical ?? 0, warning: counts.warning ?? 0, info: counts.info ?? 0 },
+    findings: doc.findings.map((f) => ({ code: String(f.code ?? ""), level: String(f.level ?? ""), owner: f.owner ?? null, what: String(f.what ?? ""), fix: String(f.fix ?? "") })),
+    note: "One session, read from its transcript: what happened there, not what always does. It moves no grade and no verdict.",
+  };
+}
+
 // ---------------------------------------------------------------------------
 
 function main(argv) {
   if (argv.includes("-h") || argv.includes("--help")) { console.log(USAGE); return; }
-  let gradesFile = null, target = null;
+  let gradesFile = null, measuredFile = null, target = null;
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--score") {
@@ -1388,11 +1420,17 @@ function main(argv) {
       if (!gradesFile) throw new Bail(`--score needs a grades file\n${USAGE}`, 2);
     }
     else if (a.startsWith("--score=")) gradesFile = a.slice("--score=".length);
+    else if (a === "--measured") {
+      measuredFile = argv[++i];
+      if (!measuredFile) throw new Bail(`--measured needs a diagnose --json file\n${USAGE}`, 2);
+    }
+    else if (a.startsWith("--measured=")) measuredFile = a.slice("--measured=".length);
     else if (a.startsWith("--")) throw new Bail(`unknown option ${a}\n${USAGE}`, 2);
     else if (target === null) target = a;
     else throw new Bail(`one plugin path at a time, got ${target} and ${a}\n${USAGE}`, 2);
   }
   if (!target) throw new Bail(USAGE, 2);
+  if (measuredFile && !gradesFile) throw new Bail(`--measured rides on --score: a scan reads files, not sessions\n${USAGE}`, 2);
   if (!isDir(target)) throw new Bail(`error: not a directory: ${target}`);
   const scan = runScan(target);
 
@@ -1403,7 +1441,8 @@ function main(argv) {
   if (typeof gradesDoc !== "object" || gradesDoc === null || Array.isArray(gradesDoc)) {
     throw new Bail(`error: grades file ${gradesFile} is not a JSON object with a grades list`);
   }
-  console.log(JSON.stringify(runScore(scan, gradesDoc), null, 1));
+  const measured = measuredFile ? readMeasured(measuredFile) : null;
+  console.log(JSON.stringify({ ...runScore(scan, gradesDoc), ...(measured ? { measured } : {}) }, null, 1));
 }
 
 const invoked = (() => { try { return fs.realpathSync(process.argv[1] ?? "") === fs.realpathSync(import.meta.filename); } catch { return false; } })();
