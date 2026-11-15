@@ -176,6 +176,32 @@ export function criticalBlocks(state, areas = readAreas()) {
   return [SHARED_LINE, ...areas.map(({ area, data }) => renderCritical(area, criticalLines(data, state))).filter(Boolean)];
 }
 
+// ---- the route index -----------------------------------------------------
+// Where the skill listing does not fit its budget (a 200k context window),
+// the host lists this plugin's skills by name alone: fourteen names, and no
+// route among them, since a route is a document and never listed. So the
+// lines command says which routes each area has, and how one is taken. Read
+// from each area's door.json as it runs, so it cannot drift from the areas.
+export const ROUTES_HEAD = `Routes, by area. An area is a skill: call it with the Skill tool and the route as the first word of its arguments (${PLUGIN}:agentic-teamwork with ship). A route is no skill of its own.`;
+const skillsDir = () => path.join(import.meta.dirname, "..", "skills");
+
+/** Each area and its routes, in name order: `{ area, routes }`, for every skill directory with a door.json. */
+export function readRoutes(dir = skillsDir()) {
+  let names = [];
+  try { names = fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort(); } catch { return []; }
+  return names.map((area) => ({ area, routes: Object.keys(readJson(path.join(dir, area, "door.json"))?.routes ?? {}) })).filter((a) => a.routes.length);
+}
+
+/**
+ * The route index, for the main session of a repo where the plugin speaks. A
+ * subagent is handed its task by the session that started it, and a repo
+ * nobody answered for gets the question and nothing else.
+ */
+export function routeIndex(state, areas = readRoutes()) {
+  if (state.mode === "none" || state.subagent || !areas.length) return "";
+  return [ROUTES_HEAD, ...areas.map(({ area, routes }) => `- ${area}: ${routes.join(", ")}`)].join("\n");
+}
+
 // ---- the catalog ---------------------------------------------------------
 // The catalog as this machine last fetched it: the marketplace clone on disk,
 // so nothing here touches the network.

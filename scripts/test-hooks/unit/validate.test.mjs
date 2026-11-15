@@ -321,7 +321,7 @@ test("lines past the total, or a command that could print past what a host shows
   const big = Object.assign({}, ...["agent-works", "agentic-teamwork", "perceptual-loop"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
   let result = gate(tree(t, { write: big }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: critical lines total \d+ characters across the areas, over the 7500 target/m);
+  assert.match(result.stdout, /^FAIL: critical lines and the route index total \d+ characters, over the 7500 target/m);
 
   result = gate(tree(t, { write: Object.assign(big, lines("but-first-planning", { lines: [line("x".repeat(1500))] })) }));
   assert.match(result.stdout, /^FAIL: the lines command can print \d+ characters, over the host's 10000/m);
@@ -329,6 +329,17 @@ test("lines past the total, or a command that could print past what a host shows
   result = gate(tree(t, { text: { [HELPER]: (s) => s.replace("export const MIGRATION_CHARS = 4200;", "export const MIGRATION_CHARS = 9000;") } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: the briefing command can print \d+ characters, over the host's 10000/m);
+});
+
+test("the route index counts toward the lines' total, and a helper that prints none fails", (t) => {
+  // The tree as it is: the lines and the index together are inside the target.
+  const here = gate(tree(t));
+  const total = Number(/^ok: critical lines within budget \((\d+) of 7500 characters/m.exec(here.stdout)?.[1]);
+  assert.ok(total > 6500 && total <= 7500, here.stdout.match(/^ok: critical lines.*$/m)?.[0]);
+  // At a 200k window the index is the only text that names every route, so a helper that drops it is a finding.
+  const silent = gate(tree(t, { text: { [HELPER]: (s) => s.replace('if (state.mode === "none" || state.subagent || !areas.length) return "";', 'return "";') } }));
+  assert.equal(silent.status, 1);
+  assert.match(silent.stdout, /^FAIL: .*routeIndex prints nothing for the main session of an opted-in repo/m);
 });
 
 test("AREAS in the helper and the caps in the gate name the same areas, each with its lines", (t) => {

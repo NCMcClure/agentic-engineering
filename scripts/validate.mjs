@@ -319,7 +319,11 @@ async function validate() {
     for (const copy of tracked.filter((f) => f.startsWith("plugins/") && f.endsWith("/critical-context.mjs") && f !== HELPER && exists(at(f)))) {
       fail(`${copy} is a second copy of the session helper; the one copy is ${HELPER}`, copy);
     }
-    if (total > CRITICAL_TOTAL) fail(`critical lines total ${total} characters across the areas, over the ${CRITICAL_TOTAL} target`, skills);
+    // The route index rides with the lines, and every request pays for it the same way, so it counts toward the same total.
+    const index = helper?.routeIndex ? helper.routeIndex({ mode: "full", subagent: false }, helper.readRoutes(at(skills))) : "";
+    if (helper && !index) fail(`${HELPER}: routeIndex prints nothing for the main session of an opted-in repo; at a 200k window it is the only text that names every route`, HELPER);
+    total += index.length;
+    if (total > CRITICAL_TOTAL) fail(`critical lines and the route index total ${total} characters, over the ${CRITICAL_TOTAL} target`, skills);
     const linesWorst = total + QUESTION_ALLOWANCE + ENVELOPE_ALLOWANCE;
     if (linesWorst > HOOK_OUTPUT_CAP) fail(`the lines command can print ${linesWorst} characters, over the host's ${HOOK_OUTPUT_CAP}`, HELPER);
 

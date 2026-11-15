@@ -105,6 +105,11 @@ and PR. When a rule changes, change the check in the same commit.
   every request pays for them, so 7,500 characters across the areas and
   10,000 for either command's worst case. An agent type in `DENYLIST` gets
   none.
+- The lines command also prints the route index in the main session: each
+  area's routes by name, read from its `door.json` as the hook runs, and how
+  a route is taken. At a 200k window the listing shows fourteen names and no
+  route, so this is the only place a route's own name ("ship") is seen. It
+  counts toward the 7,500.
 - An area's briefing is `skills/<area>/hooks/briefing.mjs`, within its
   allowance in `BRIEFING_CHARS`. Its `migrate` changes a repo only through the
   `move` and `write` it is given, which refuse a path that exists.

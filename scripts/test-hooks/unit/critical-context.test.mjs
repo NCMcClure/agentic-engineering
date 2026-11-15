@@ -445,3 +445,53 @@ test("a plugin with no area folders at all prints the shared line alone, and no 
   assert.deepEqual(lines(t, dir, { from }).blocks, [SHARED_LINE]);
   assert.equal(briefing(t, dir, { from, env: { FIXTURE_BRIEFING: "short" } }).raw, "");
 });
+
+// The route index: at a 200k window the host lists the plugin's skills by
+// name alone, fourteen names and no route, so the lines command names each
+// area's routes itself. It is read from the areas' own door.json files.
+test("the route index names every area's routes, from each door.json, and says how a route is taken", () => {
+  const areas = helper.readRoutes(path.join(REPO, "plugins", PLUGIN, "skills"));
+  assert.equal(areas.length, 13, "every area, whether or not it keeps critical lines");
+  assert.ok(!areas.some((a) => a.area === "start-here"), "the entry skill has no routes");
+  const index = helper.routeIndex({ mode: "full", subagent: false }, areas);
+  const [head, ...rows] = index.split("\n");
+  assert.equal(head, helper.ROUTES_HEAD);
+  assert.match(head, /call it with the Skill tool and the route as the first word of its arguments/);
+  assert.equal(rows.length, 13);
+  for (const { area, routes } of areas) {
+    const door = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", PLUGIN, "skills", area, "door.json"), "utf8"));
+    assert.deepEqual(routes, Object.keys(door.routes), area);
+    assert.ok(rows.includes(`- ${area}: ${routes.join(", ")}`), area);
+  }
+  // The two the first run on the one-plugin tree lost at 200k, where only names show.
+  assert.match(index, /^- agentic-teamwork: .*\bship\b/m);
+  assert.match(index, /^- system-map: .*\bmiro-board\b/m);
+});
+
+test("the route index is the main session's, where the plugin speaks: not a subagent's, and not a repo nobody answered for", () => {
+  const areas = [{ area: "work", routes: ["build", "check"] }];
+  assert.equal(helper.routeIndex({ mode: "portable", subagent: false }, areas), `${helper.ROUTES_HEAD}\n- work: build, check`);
+  assert.equal(helper.routeIndex({ mode: "full", subagent: true }, areas), "");
+  assert.equal(helper.routeIndex({ mode: "none", subagent: false }, areas), "");
+  assert.equal(helper.routeIndex({ mode: "full", subagent: false }, []), "");
+  // A skill directory with no door.json, or one with no routes, is no area.
+  const dir = tempDir(suite, "routes-");
+  write(dir, "work/door.json", JSON.stringify({ lead: "x", default: "build", routes: { build: { cue: "a" }, check: { cue: "b" } } }));
+  write(dir, "start-here/SKILL.md", "---\nname: start-here\n---\n");
+  write(dir, "empty/door.json", JSON.stringify({ routes: {} }));
+  assert.deepEqual(helper.readRoutes(dir), areas);
+  assert.deepEqual(helper.readRoutes(path.join(dir, "nowhere")), []);
+});
+
+test("the lines command prints the route index after the areas' blocks in the main session, and never to a subagent", (t) => {
+  // The plugin as it ships: the throwaway one this suite builds has no door.json, and so no index.
+  const from = path.join(REPO, "plugins", PLUGIN);
+  const dir = repo(t, "manifest");
+  const main = lines(t, dir, { from });
+  const at = main.blocks.findIndex((b) => b.startsWith(helper.ROUTES_HEAD));
+  assert.ok(at > 0, main.context.slice(0, 300));
+  assert.ok(main.blocks.slice(at + 1).every((b) => !b.startsWith("Critical, from ")), "after the last area's block");
+  assert.equal(main.blocks[at].split("\n").length, 14, "the heading and a row per area");
+  assert.ok(!lines(t, dir, { from, event: "SubagentStart", agentType: "general-purpose" }).context.includes(helper.ROUTES_HEAD));
+  assert.ok(!lines(t, dir).context.includes(helper.ROUTES_HEAD), "a plugin with no area data prints no index");
+});
