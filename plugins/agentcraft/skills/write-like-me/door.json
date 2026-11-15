@@ -1,16 +1,16 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Use every time you are about to write or rewrite prose a human will read (emails, docs, READMEs, reports, posts, summaries, chat replies), and whenever the person says draft, write up, humanize, de-AI, make it sound like me, or says text sounds like AI: writes in their own voice, free of AI tells.",
+  "default": "audit",
   "routes": {
     "audit": {
-      "cue": ""
+      "cue": "check existing text for AI tells, optionally rewrite it"
     },
     "calibrate": {
-      "cue": "",
+      "cue": "build or rebuild the voice profile from samples",
       "starts": "person"
     },
     "review": {
-      "cue": "",
+      "cue": "show, prune, or undo what the learning loop changed",
       "starts": "person"
     }
   }

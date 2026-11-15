@@ -1,9 +1,9 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Use when a session ignored a rule, lost its instructions after a compaction, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, when, and from where.",
+  "default": "lens",
   "routes": {
     "lens": {
-      "cue": ""
+      "cue": "what entered an agent's context, by area and hook"
     }
   }
 }

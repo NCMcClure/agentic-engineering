@@ -1,21 +1,21 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Use on any coding task to build at the simplest rung that holds, and to check what already exists before building, hunt over-engineering in a diff, inventory deferred shortcuts, or note what this work built that another project could use.",
+  "default": "ladder",
   "routes": {
-    "capture-reusable": {
-      "cue": ""
-    },
-    "debt": {
-      "cue": ""
-    },
     "ladder": {
-      "cue": ""
+      "cue": "any coding task: the simplest rung that holds"
     },
     "reuse-first": {
-      "cue": ""
+      "cue": "before building: what this repo and others already have"
     },
     "review-diet": {
-      "cue": ""
+      "cue": "hunt over-engineering in the diff, cut behind a check"
+    },
+    "debt": {
+      "cue": "inventory the debt: markers, and whether each still holds"
+    },
+    "capture-reusable": {
+      "cue": "wrapping up: what another project could use"
     }
   }
 }

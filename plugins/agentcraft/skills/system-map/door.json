@@ -1,20 +1,20 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Use when a module or a call between modules is added in a repo that keeps a system map, when a checker reports the map stale, and for any diagram, flow, or architecture frame drawn on Miro from code.",
+  "default": "diagrams-sync",
   "routes": {
-    "browser-setup": {
-      "cue": "",
-      "starts": "person"
-    },
-    "diagrams-init": {
-      "cue": "",
-      "starts": "person"
-    },
     "diagrams-sync": {
-      "cue": ""
+      "cue": "a code change moved the system map or its board"
     },
     "miro-board": {
-      "cue": ""
+      "cue": "draw or update a frame, fix overlaps, pull layout back"
+    },
+    "diagrams-init": {
+      "cue": "give a repo a system map generated from its code",
+      "starts": "person"
+    },
+    "browser-setup": {
+      "cue": "the live check has no browser tools or cannot reach Miro",
+      "starts": "person"
     }
   }
 }

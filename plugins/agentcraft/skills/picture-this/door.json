@@ -1,12 +1,12 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Use when asked to visualize, diagram, illustrate, or animate how a system, a feature, a mechanism, or an idea works, or when a README needs a picture of a figure that already exists.",
+  "default": "visualize",
   "routes": {
-    "export-stills": {
-      "cue": ""
-    },
     "visualize": {
-      "cue": ""
+      "cue": "a description or a feature into an animated figure"
+    },
+    "export-stills": {
+      "cue": "a figure's stills, beat strip, or GIF for a README"
     }
   }
 }

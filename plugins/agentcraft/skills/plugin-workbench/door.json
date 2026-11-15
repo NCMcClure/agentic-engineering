@@ -1,19 +1,19 @@
 {
-  "lead": "",
-  "default": "",
+  "lead": "Makes, scores, and fixes plugins against one rubric: use when making or improving a plugin or its skills, or when the person asks for a plugin to be scored or a marketplace checkout to be reinstalled.",
+  "default": "improve-plugin",
   "routes": {
+    "improve-plugin": {
+      "cue": "raise an existing plugin's score, fix scorecard findings"
+    },
     "create-plugin": {
-      "cue": ""
+      "cue": "make a new plugin, or wrap existing skills or scripts"
     },
     "evaluate-plugin": {
-      "cue": "",
+      "cue": "score a plugin into a scorecard with a verdict",
       "starts": "person"
     },
-    "improve-plugin": {
-      "cue": ""
-    },
     "refresh-marketplace": {
-      "cue": "",
+      "cue": "reinstall a marketplace from the working tree",
       "starts": "person"
     }
   }
