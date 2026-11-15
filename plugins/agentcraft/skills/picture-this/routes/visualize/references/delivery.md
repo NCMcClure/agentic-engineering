@@ -11,7 +11,7 @@ for less motion, and as a picture in a README. One component serves all three.
   components, so the site's build picks them up.
 
   ```
-  node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" init --figures docs/src/figures --stills docs/public/figures --mdx docs/src/mdx.tsx
+  node "${CLAUDE_PLUGIN_ROOT}/skills/picture-this/scripts/pt.mjs" init --figures docs/src/figures --stills docs/public/figures --mdx docs/src/mdx.tsx
   ```
 
 - **A repo with no site**: leave the defaults. Figures live in
@@ -91,7 +91,7 @@ which three, that they are for this figure, and wait for a yes.
 ## In a README
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" still job-queue
+node "${CLAUDE_PLUGIN_ROOT}/skills/picture-this/scripts/pt.mjs" still job-queue
 ```
 
 writes `<stills>/job-queue.light.png` and `.dark.png` at twice their size and
@@ -125,8 +125,8 @@ figure's clock at chosen instants and photographing it, never by recording
 the screen, so the same command twice gives the same file.
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" still job-queue --strip
-node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs" still job-queue --gif
+node "${CLAUDE_PLUGIN_ROOT}/skills/picture-this/scripts/pt.mjs" still job-queue --strip
+node "${CLAUDE_PLUGIN_ROOT}/skills/picture-this/scripts/pt.mjs" still job-queue --gif
 ```
 
 | Export | Files | What it is |

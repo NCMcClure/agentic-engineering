@@ -90,7 +90,7 @@ from studies is the usual sign that it was the second.
 You know what the figure means, so you cannot tell whether it says so. The
 cold reader can.
 
-For each draft, dispatch the `picture-this:cold-reader` agent with one thing:
+For each draft, dispatch the `agentcraft:cold-reader` agent with one thing:
 the path of that draft's `sheet.nocap.png`, the sheet with captions and claim
 left off. Give it nothing else: not the model, not the title, not what the
 figure is for. One fresh reader per draft, in one message so they run

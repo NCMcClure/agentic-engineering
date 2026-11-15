@@ -13,6 +13,8 @@ argument-hint: "[what to visualize: a description, or a path or feature in this 
 
 # visualize
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Draws how something works: what it is made of, what happens in it, and why
 that matters, as one small animated figure that also holds still for a
 README. The figure is a React component and a `model.json`, in the repo.
@@ -22,7 +24,7 @@ vocabulary (the kit) and worked studies to learn technique from; it does not
 ship templates to fill in. A job queue, a lock, a sort and the solar system
 do not share a picture.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs"`. Every command
+`P` below is `node "W/scripts/pt.mjs"`. Every command
 takes `--help`. Exit codes: 0 done, 1 a check found something, 2 usage or
 environment.
 
@@ -142,7 +144,7 @@ It fails a draft whose view is not stated or whose figure is not drawn, and
 prints each view in its own words. Then, for each draft, the two passes in
 `references/review.md`: the checklist on `sheet.png`, the swap test included
 (is this the subject's own picture, or a template with new labels?), and the
-cold read of `sheet.nocap.png` by the `picture-this:cold-reader` agent, which
+cold read of `sheet.nocap.png` by the `agentcraft:cold-reader` agent, which
 is told nothing but the picture's path. Write each draft's `coldread.json`.
 
 *Done when* every draft passes the checklist and has been read cold.

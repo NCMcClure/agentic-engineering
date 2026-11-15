@@ -5,11 +5,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { checkModel, FLOW_KINDS, HUES, LENSES, LIMITS } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
-import { main, COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
+import { checkModel, FLOW_KINDS, HUES, LENSES, LIMITS } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/model-check.mjs";
+import { main, COMMANDS } from "../../../plugins/agentcraft/skills/picture-this/scripts/pt.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "picture-this");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this");
 const PT = path.join(PLUGIN, "scripts", "pt.mjs");
 const FIXTURE = path.join(PLUGIN, "studies", "iso-flow", "model.json");
 const good = () => JSON.parse(fs.readFileSync(FIXTURE, "utf8"));
@@ -176,7 +176,7 @@ test("pt with no command, or one it does not know, prints the usage and exits 2"
 
 test("every command in the table has its file and its function", async () => {
   for (const [name, [file, fn]] of Object.entries(COMMANDS)) {
-    const mod = await import(`../../../plugins/picture-this/scripts/commands/${file}.mjs`);
+    const mod = await import(`../../../plugins/agentcraft/skills/picture-this/scripts/commands/${file}.mjs`);
     assert.equal(typeof mod[fn], "function", `${name}: commands/${file}.mjs exports ${fn}`);
   }
 });

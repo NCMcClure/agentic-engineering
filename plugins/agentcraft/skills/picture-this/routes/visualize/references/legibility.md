@@ -34,7 +34,7 @@ Never judge contrast by eye. When a figure or a repo's `kit.css` introduces a
 colour pair, compute it:
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/contrast-check.mjs" '#5c5c58:#f5f5f3' '#c2410c:#f5f5f3'
+node "${CLAUDE_PLUGIN_ROOT}/skills/picture-this/scripts/contrast-check.mjs" '#5c5c58:#f5f5f3' '#c2410c:#f5f5f3'
 ```
 
 Each argument is `foreground:background`, as hex or `h,s%,l%`. Text needs

@@ -103,8 +103,8 @@ uninstall it and install this one; it will not update in place.
 
 | Skill | What it does |
 |---|---|
-| `/picture-this:visualize` | Finds the lens, models the subject from a description or from code, drafts three views designed from it, refines the one you pick, and places the component and its model in your repo. |
-| `/picture-this:export-stills` | Captures a figure for a README and hands back the snippet that shows it: light and dark PNGs of its hero frame, a beat strip of every step in one row, or a looping GIF. |
+| `/agentcraft:picture-this visualize` | Finds the lens, models the subject from a description or from code, drafts three views designed from it, refines the one you pick, and places the component and its model in your repo. |
+| `/agentcraft:picture-this export-stills` | Captures a figure for a README and hands back the snippet that shows it: light and dark PNGs of its hero frame, a beat strip of every step in one row, or a looping GIF. |
 
 Or just ask: "visualize how the job queue works", "diagram this feature for
 someone non-technical", "the README needs a picture of the sync flow".

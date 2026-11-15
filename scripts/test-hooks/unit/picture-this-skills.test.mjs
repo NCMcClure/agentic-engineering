@@ -7,13 +7,13 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
-import { COMMANDS } from "../../../plugins/picture-this/scripts/pt.mjs";
-import { STATEMENT, studies } from "../../../plugins/picture-this/scripts/commands/draft.mjs";
-import { LENSES } from "../../../plugins/picture-this/scripts/lib/model-check.mjs";
-import { THREE_PACKAGES } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
+import { COMMANDS } from "../../../plugins/agentcraft/skills/picture-this/scripts/pt.mjs";
+import { STATEMENT, studies } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/draft.mjs";
+import { LENSES } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/model-check.mjs";
+import { THREE_PACKAGES } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/owned.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "picture-this");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 

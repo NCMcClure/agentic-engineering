@@ -12,13 +12,15 @@ argument-hint: "<figure> [--strip] [--gif] [--beat <id>]"
 
 # export-stills
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 A figure's still is an exact frame of the live figure, taken in the studio at
 twice its size, once for a light page and once for a dark one. This skill
 takes them and hands back the Markdown that shows the right one. It also
 takes the two exports that show more than one frame: the beat strip and the
 looping GIF.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pt.mjs"`.
+`P` below is `node "W/scripts/pt.mjs"`.
 
 ## 1. The studio and the figure
 

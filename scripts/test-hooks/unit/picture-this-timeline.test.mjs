@@ -8,14 +8,14 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO } from "./helpers.mjs";
 
-const KIT = path.join(REPO, "plugins", "picture-this", "kit");
+const KIT = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "kit");
 const skip = process.features.typescript ? false : "this Node cannot import TypeScript";
 const load = (rel) => import(new URL(`file://${path.join(KIT, rel).split(path.sep).join("/").replace(/^([A-Za-z]:)/, "/$1")}`).href);
 const T = skip ? null : await load("timeline.ts");
 const I = skip ? null : await load("iso/project.ts");
 const M = skip ? null : await load("model.ts");
 const P = skip ? null : await load("iso/place.ts");
-const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "studies", "iso-flow", "model.json"), "utf8"));
+const model = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "studies", "iso-flow", "model.json"), "utf8"));
 const beats = [{ id: "a", ms: 3000 }, { id: "b", ms: 2000 }, { id: "rest", ms: 1000, rest: true }];
 const near = (actual, expected, message) => assert.ok(Math.abs(actual - expected) < 1e-9, `${message ?? ""} ${actual} is not ${expected}`);
 
@@ -279,14 +279,14 @@ test("a wire crosses the gap from the face it leaves, turns once when it must, a
 test("each beat has one leading flow: the one that arrives furthest along", { skip }, () => {
   assert.deepEqual([...M.leads(model)].sort(), ["enqueue", "save", "take"], "of upload, enqueue and reply, the queue is furthest along");
   assert.deepEqual(M.groups(model), []);
-  const split = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "picture-this", "studies", "split", "model.json"), "utf8"));
+  const split = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "studies", "split", "model.json"), "utf8"));
   assert.deepEqual(M.groups(split), ["Without a queue", "With a queue"]);
 });
 
 test("the kit's model type and the checker agree on kinds and hues", { skip }, async () => {
-  const { FLOW_KINDS, HUES } = await import("../../../plugins/picture-this/scripts/lib/model-check.mjs");
+  const { FLOW_KINDS, HUES } = await import("../../../plugins/agentcraft/skills/picture-this/scripts/lib/model-check.mjs");
   const source = fs.readFileSync(path.join(KIT, "model.ts"), "utf8");
-  const { LENSES } = await import("../../../plugins/picture-this/scripts/lib/model-check.mjs");
+  const { LENSES } = await import("../../../plugins/agentcraft/skills/picture-this/scripts/lib/model-check.mjs");
   const union = (name) => [...source.match(new RegExp(`export type ${name} = ([^;]+);`))[1].matchAll(/"([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual(union("Lens"), LENSES);
   assert.deepEqual(union("FlowKind"), FLOW_KINDS);

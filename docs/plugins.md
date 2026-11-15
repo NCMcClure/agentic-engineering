@@ -6,13 +6,13 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 6 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 7 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 0 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.2 | 0 | workflow |
-| [picture-this](#picture-this) | 0.3.0 | 2 | creative |
+| [picture-this](#picture-this) | 0.3.0 | 0 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 2.1.0 | 5 | authoring |
@@ -73,6 +73,9 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:codebase-optimizer codebase-organizer` | by the agent | Reorganize a sprawling file tree into a progressive-disclosure layout: plan, history-preserving git mv, reference rewriting, AGENTS.md hubs, verified by the repo's own build. Use when the ask is about the tree alone (the root is a mess, too many top-level files, organize the folder structure, add AGENTS.md hubs to this repo). Nothing moves until the person has approved the plan. To split god-files in the same pass use optimize-codebase. |
 | `/agentcraft:codebase-optimizer improve-codebase-architecture` | by the agent | Find deepening opportunities in code that already exists: shallow modules, leaky seams, missing adapters, proposed against the project's glossary and its decision records under .agents/. Use when the ask is about architecture ("improve the architecture", consolidate tightly-coupled modules, make this testable) or a seam worth extracting has been spotted. For the file tree use codebase-organizer; to apply deepenings autonomously behind revert on red use optimize-codebase. |
 | `/agentcraft:codebase-optimizer optimize-codebase` | by the agent | The whole sweep and the entry point for the other two skills here: organize the tree, split god-files, deepen shallow modules, each stage on a branch behind the repo's own tests with revert on red. Use when the ask is a multi-stage refactor over a repository that has accreted ("optimize this codebase", "decompose these huge files"). Nothing starts until the person has seen the run plan and said yes. For the tree alone use codebase-organizer; for seams alone use improve-codebase-architecture. |
+| `/agentcraft:picture-this [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: export-stills (); visualize (). |
+| `/agentcraft:picture-this export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
+| `/agentcraft:picture-this visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
 | `/agentcraft:workflow-studio [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: author-workflow (). |
 | `/agentcraft:workflow-studio author-workflow` | by the agent | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
@@ -112,11 +115,6 @@ Version 1.0.2. [README](../plugins/workflow-studio/README.md), [changelog](../pl
 Turns a description or a feature in your codebase into a minimalist animated figure of how something works, designed from the subject and not from a template: three drafts to choose from, a React component that embeds in MDX, and stills, strips and GIFs for a README.
 
 Version 0.3.0. [README](../plugins/picture-this/README.md), [changelog](../plugins/picture-this/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/picture-this:export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent, or by hand | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
-| `/picture-this:visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent, or by hand | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
 
 ## write-like-me
 

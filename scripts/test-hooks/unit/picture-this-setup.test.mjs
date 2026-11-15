@@ -7,15 +7,15 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { run as setup } from "../../../plugins/picture-this/scripts/commands/setup.mjs";
-import { run as studio } from "../../../plugins/picture-this/scripts/commands/studio.mjs";
-import { PtError } from "../../../plugins/picture-this/scripts/lib/args.mjs";
-import { DRAFTS_DIR, ensureDrafts, layout, readConfig, slug } from "../../../plugins/picture-this/scripts/lib/config.mjs";
-import { dataHome, repoRoot } from "../../../plugins/picture-this/scripts/lib/home.mjs";
-import { SOURCE_DIRS, SOURCE_FILES, findOnPath, homeLayout, installState, lockHash, playwrightVersion, prerequisites, runningPort } from "../../../plugins/picture-this/scripts/lib/studio.mjs";
+import { run as setup } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/setup.mjs";
+import { run as studio } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/studio.mjs";
+import { PtError } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/args.mjs";
+import { DRAFTS_DIR, ensureDrafts, layout, readConfig, slug } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/config.mjs";
+import { dataHome, repoRoot } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/home.mjs";
+import { SOURCE_DIRS, SOURCE_FILES, findOnPath, homeLayout, installState, lockHash, playwrightVersion, prerequisites, runningPort } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/studio.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "picture-this");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this");
 const PT = path.join(PLUGIN, "scripts", "pt.mjs");
 const LOCKFILE = path.join(PLUGIN, "app", "package-lock.json");
 
@@ -279,7 +279,7 @@ test("the studio's own files: every source it copies exists, and its lockfile pi
 });
 
 test("a server started for one job keeps a lock of its own, and never takes the repo's", async () => {
-  const { studioEnv } = await import("../../../plugins/picture-this/scripts/lib/studio.mjs");
+  const { studioEnv } = await import("../../../plugins/agentcraft/skills/picture-this/scripts/lib/studio.mjs");
   const at = { repo: "/r", figures: "/r/f", drafts: "/r/d", lock: "/r/d/.studio.lock" };
   assert.deepEqual(studioEnv(at), { PT_REPO: "/r", PT_FIGURES: "/r/f", PT_DRAFTS: "/r/d" }, "the repo's studio writes the repo's lock");
   assert.equal(studioEnv(at, "/tmp/x/lock").PT_LOCK, "/tmp/x/lock");
@@ -291,7 +291,7 @@ test("a server started for one job keeps a lock of its own, and never takes the 
 });
 
 test("the studio's copy of the sources is left alone while it is current, and repaired when it is not", async (t) => {
-  const { syncSources } = await import("../../../plugins/picture-this/scripts/lib/studio.mjs");
+  const { syncSources } = await import("../../../plugins/agentcraft/skills/picture-this/scripts/lib/studio.mjs");
   const w = world(t);
   syncSources(w.at.home, PLUGIN);
   const fixture = path.join(w.at.app, "fixtures", "iso-flow", "figure.tsx");

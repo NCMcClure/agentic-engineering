@@ -172,7 +172,7 @@ codebase, and get three rough animated drafts to choose from, each a
 different picture designed from that subject and not from a template. The one you pick becomes a React component that embeds in MDX,
 with light and dark stills for a plain README. It replaces
 `animated-storytelling`: uninstall that one and install this.
-[Read more →](plugins/picture-this/README.md)
+[Read more →](plugins/agentcraft/skills/picture-this/README.md)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/iso-flow.dark.gif">

@@ -5,13 +5,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { init, kit } from "../../../plugins/picture-this/scripts/commands/kit.mjs";
-import { run as land } from "../../../plugins/picture-this/scripts/commands/land.mjs";
-import { PtError } from "../../../plugins/picture-this/scripts/lib/args.mjs";
-import { THREE_PACKAGES, apply, current, drawsIn3d, hasThree, kitFiles, kitVersion, plan } from "../../../plugins/picture-this/scripts/lib/owned.mjs";
+import { init, kit } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/kit.mjs";
+import { run as land } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/land.mjs";
+import { PtError } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/args.mjs";
+import { THREE_PACKAGES, apply, current, drawsIn3d, hasThree, kitFiles, kitVersion, plan } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/owned.mjs";
 import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "picture-this");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this");
 const KIT = path.join(PLUGIN, "kit");
 const MODEL = fs.readFileSync(path.join(PLUGIN, "studies", "iso-flow", "model.json"), "utf8");
 /** The kit as a repo gets it unless it asks for more: everything but the 3D tier. */

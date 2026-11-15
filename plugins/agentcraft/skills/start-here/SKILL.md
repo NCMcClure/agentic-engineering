@@ -223,8 +223,8 @@ From a description or a feature in a codebase it finds the lens, models the subj
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| turn a system, a mechanism, or an idea into a figure | `/picture-this:visualize` | agent |
-| retake a figure's stills, strip, or GIF for a README | `/picture-this:export-stills` | agent |
+| turn a system, a mechanism, or an idea into a figure | `/agentcraft:picture-this visualize` | agent |
+| retake a figure's stills, strip, or GIF for a README | `/agentcraft:picture-this export-stills` | agent |
 
 ### perceptual-loop
 
