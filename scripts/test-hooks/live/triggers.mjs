@@ -1,0 +1,91 @@
+// The prompts the trigger check sends, each for the skill it should end in,
+// and the scenario the skill-compaction check works inside.
+//
+// A prompt asks the way a person would, so it measures routing: from the
+// skill listing to the skill's instructions. It never carries an address or a
+// slash command, and it shares no run of four words with any description in
+// the tree, which the unit tests hold: a prompt that quotes the listing
+// measures string matching. A word a person would really say for the task
+// (ship, README, board) is allowed, and `named` records it, so the totals can
+// be read apart for the prompts that name their skill and those that do not.
+//
+// A row is `{ plugin, skill }`. The plugins are becoming areas of one plugin
+// and their skills routes, under the same two names, so a row reads the same
+// against a baseline from either side of that (reach.mjs). A row for a skill
+// named after its plugin carries the one name twice.
+//
+// `person` marks a skill only a person can start today (its frontmatter says
+// `disable-model-invocation: true`): the host refuses a session's call on it,
+// so a session reaches it only by reading its file. The totals are printed
+// apart for those rows, because a restructure that turns them into documents
+// an agent may open moves them for a reason that is not routing.
+//
+// The table holds every skill the tree refers to five times or more, and one
+// more in every plugin. `fixture` is the repo the prompt runs in
+// (fixtures.mjs): "standard" carries every plugin's marker, "portable" is a
+// repo with none where the person answered `on`. The fixtures where nothing is
+// answered are left out, because a session there asks that question before
+// anything else.
+
+export const MOST_REFERENCED = ["bootstrap", "docs-sync", "tdd", "orchestrate", "init-project", "calibrate", "diagrams-init",
+  "docs-init", "review", "diagrams-sync", "browser-setup", "ladder", "spec-init", "ship", "build-tdd", "work-card", "setup",
+  "resource-locks"];
+
+const words = (text) => String(text).toLowerCase().match(/[a-z0-9]+/g) ?? [];
+
+/** Whether a prompt says its skill's name: the name's words in a row, each allowed an ending ("hub" names hubs, "shipped" names ship). */
+export function names(prompt, skill) {
+  const stems = words(skill).map((w) => w.replace(/s$/, ""));
+  const said = words(prompt);
+  return said.some((_, i) => stems.every((stem, j) => said[i + j]?.startsWith(stem)));
+}
+
+/** How a row is printed and recorded: the plugin and its skill, or the one name of a skill named after its plugin. Never an address. */
+export const labelOf = ({ plugin, skill }) => (plugin === skill ? skill : `${plugin} ${skill}`);
+
+const row = (plugin, skill, prompt, { fixture = "standard", person = false } = {}) => ({ plugin, skill, fixture, person, prompt, named: names(prompt, skill) });
+const PERSON = { fixture: "portable", person: true };
+
+export const TRIGGERS = [
+  row("agentic-teamwork", "bootstrap", "I am about to start coding in this folder and it has none of our team scaffolding yet. Get it set up the way our repos are, before I write anything.", PERSON),
+  row("agentic-teamwork", "init-project", "Scaffold a brand new team repo here from the node-service template and call it billing-sync.", PERSON),
+  row("agentic-teamwork", "tdd", "Tests that need a real database have nowhere to run in this repo. Give it an integration lane for them and tell me what stays mocked."),
+  row("agentic-teamwork", "ship", "This change is finished and tested. Ship it."),
+  row("agentic-teamwork", "land", "Pull request 12 has its approval. See it through to merged once CI passes."),
+  row("agent-works", "orchestrate", "Three changes for this repo: add a --version flag, start a CHANGELOG.md, and write a usage section in the README. Work on all three at once, one session each, and merge each only after you have looked it over."),
+  row("agent-works", "work-card", "You were opened to build card 0007 off the kanban board, and nothing else. Start on it."),
+  row("agent-works", "setup", "Get this repository ready for agents: the .agents folder, the hubs, the launcher, whatever your tooling needs to be in place.", PERSON),
+  row("agent-works", "resource-locks", "I need the dev server up on port 3000 to check something, but another agent session on this laptop might already be holding that port. Go ahead and start it safely."),
+  row("agent-works", "board", "The changelog is stale, but fixing it is not part of what we are doing right now. Put it on the board so it is not forgotten."),
+  row("but-first-planning", "spec-init", "I want to plan the next big feature for this repo properly, starting from a written spec. Nothing for that exists here yet: get the planning workspace in place.", PERSON),
+  row("but-first-planning", "build-tdd", "Issue 3 of our plan is next. Implement it, with what it says counts as done driving the tests."),
+  row("but-first-planning", "grill", "I want some kind of caching in this app, and I have not thought it through. Help me work out what I actually want before we plan anything."),
+  row("code-diet", "ladder", "I need a function that turns a title into a URL slug. No frameworks, nothing clever: the plainest thing that does the job."),
+  row("code-diet", "reuse-first", "I am about to write a date-parsing helper for this app. Find out first whether we already have one somewhere."),
+  row("codebase-optimizer", "optimize-codebase", "This repo has grown for years without a cleanup: thousand-line files and a directory tree nobody can navigate. Take it apart and put it back in order, in safe steps."),
+  row("docs-parity", "docs-sync", "I changed what the app does in src/app.py, and the guide still describes the old behavior. Fix that before I commit."),
+  row("docs-parity", "docs-init", "This repo has a guide for users and nothing that keeps it honest. Wire up whatever makes it get checked against the code as I work and in CI.", PERSON),
+  row("docs-parity", "readme", "Our README has grown into a wall of internal notes. Cut it down to something a newcomer can read in two minutes and act on."),
+  row("perceptual-loop", "perceptual-loop", "The rendered candidate comes out darker than the reference picture. Fix how it looks."),
+  row("picture-this", "visualize", "Make me a small moving diagram that shows how a request travels through this app, something I could put at the top of the README."),
+  row("plugin-workbench", "context-lens", "In my last session here the agent seemed to ignore one of our rules. Find out what it was actually given at the start, and where each piece came from."),
+  row("system-map", "diagrams-init", "I would like an architecture diagram for this repo that is built from the code itself and kept on Miro. There is nothing like that here yet, so set it up from scratch.", PERSON),
+  row("system-map", "diagrams-sync", "I just added a module under src/ that calls into app.py. The architecture diagram no longer matches the code: bring it up to date."),
+  row("system-map", "browser-setup", "The live check against Miro cannot find a browser to drive on this machine. Get that sorted.", PERSON),
+  row("system-map", "miro-board", "Our team Miro board needs a frame showing how this repo's modules fit together. Draw it."),
+  row("workflow-studio", "author-workflow", "Write me a workflow script for Claude Code that reviews a diff in three parallel passes and then merges what they found."),
+  row("write-like-me", "calibrate", "Set up my writing voice from scratch: look at how I write and build the profile you will use from now on.", PERSON),
+  row("write-like-me", "review", "Show me what the style learning has altered in my profile lately, and take back the most recent alteration.", PERSON),
+  row("write-like-me", "audit", "Here is a line from my draft announcement: \"We are thrilled to unveil a game-changing platform that seamlessly empowers teams.\" Does that read like a machine wrote it?"),
+];
+
+// The skill-compaction check is not about routing, so its first prompt names
+// the skill outright: the session has to be inside it when the compaction
+// comes.
+export const COMPACTION = {
+  plugin: "agentic-teamwork",
+  skill: "tdd",
+  fixture: "standard",
+  before: "Work with the agentic-teamwork:tdd skill on this: I am about to add a function to src/. Tell me in two lines the first step the skill has me take. Change no file.",
+  after: "Carry on with the skill you were following: what is the step after that one? Two lines. Change no file.",
+};

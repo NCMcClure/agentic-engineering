@@ -31,21 +31,52 @@ each transcript back through plugin-workbench's context lens and prints, per
 plugin, what reached the model at the start, after the compaction, and in each
 subagent.
 
-It spends model quota, a few cents a fixture, so it is opt-in and never runs in
-CI. Run it after changing a hook, a skill description, or anything else that
-alters what an agent sees.
+It also asks whether a session still reaches the right skill. Each prompt in
+`live/triggers.mjs` is written the way a person would ask, names no skill by
+address, and runs as its own session at two context windows: the login's
+default, and 200k, where a plugin's skills are listed by name with no
+description. `live/reach.mjs` reads the transcript for whether the session
+opened that skill, by calling it or by reading its file. One more session
+works inside a skill, compacts, and carries on, to see that the skill comes
+back. These sessions get four read-only tools and no MCP server, because the
+prompts ask for work with side effects.
+
+It spends model quota, so it is opt-in and never runs in CI: about 20 cents
+for the seven fixtures, plus 60 trigger sessions capped at five cents each. Run
+it after changing a hook, a skill description, or anything else that alters
+what an agent sees.
 
 ```bash
-npm run test:live                        # run, check, print the before/after table
-npm run test:live -- --only adopted      # one fixture
-npm run test:live -- --keep              # leave the fixtures and transcripts for a look
-npm run test:live -- --write-baseline    # record this run as live/baseline.json
+npm run test:live                               # run, check, print the before/after tables
+npm run test:live -- --only adopted             # one fixture, and the prompts that run in it
+npm run test:live -- --keep                     # leave the fixtures and transcripts for a look
+npm run test:live -- --write-baseline           # record both parts of live/baseline.json
+npm run test:live -- --write-baseline=skills    # record the skills part alone
 ```
 
-`live/baseline.json` holds the last recorded numbers and `expectedFailures`,
-the check failures known at that point. The lane fails only on a failure the
-baseline does not list, and prints `fixed:` when a listed one stops happening.
-Record a new baseline in the same change that fixes one.
+`live/baseline.json` has two parts, each with its own stamp: `fixtures`, the
+token sizes, and `skills`, what each prompt reached. It also holds
+`expectedFailures`, the check failures known when a part was recorded. The lane
+fails only on a failure the baseline does not list, and prints `fixed:` when a
+listed one stops happening. Record a new baseline in the same change that fixes
+one.
+
+One session is one sample, so the skills part is recorded over three passes
+and a plain run is one. A prompt fails only when the baseline reached its skill
+in every pass and this run reached it in none, after two reruns. A session cut
+off before it reached anything was not measured, which is not a miss.
+
+A recording that would hide a problem is refused: nothing is written when a
+session was not measured, when one was offered a tool outside its four, or when
+a prompt the old baseline always reached is now never reached. That last one is
+the restructuring bar: a change to how skills are laid out lands only if reach
+is no worse. If the cause is understood and accepted, change that cell of
+`baseline.json` by hand in the same change, and say why in a comment beside
+the prompt in `live/triggers.mjs`.
+
+The totals print apart for prompts that name their skill and those that do not,
+and for skills a session can call and those only a person can start
+(`disable-model-invocation`), since the host refuses a call on the second kind.
 
 ## Layout
 
@@ -54,5 +85,8 @@ Record a new baseline in the same change that fixes one.
 - `unit/` - tests of the repo's own tooling (the validator and the installer,
   each run against a throwaway copy) and one suite per file in `scripts/shared/`.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
-  arithmetic, `checks/` one file per check. The transcript reader is
+  arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
+  `reach.mjs` what counts as reaching a skill. The transcript reader is
   `plugins/plugin-workbench/skills/context-lens/scripts/`.
+- `fixtures/live-lane/` - recorded transcripts the reach tests read, cut down
+  to the fields the detector uses.

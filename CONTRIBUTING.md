@@ -61,11 +61,13 @@ The gate fails a copy that has drifted. Bump every plugin whose copy changed.
 
 A hook, a skill description, a rule a hook injects: run the live lane. It
 starts real sessions against this checkout's plugins and reports, per plugin,
-what reached the model. It costs a few cents and never runs in CI.
+what reached the model, and whether a plainly worded prompt still ends in the
+right skill. It spends model quota and never runs in CI.
 
 ```bash
 npm run test:live
-npm run test:live -- --write-baseline   # record the new numbers in the same change
+npm run test:live -- --write-baseline          # record the new numbers in the same change
+npm run test:live -- --write-baseline=skills   # record only what each prompt reached
 ```
 
 `scripts/test-hooks/README.md` covers both lanes.

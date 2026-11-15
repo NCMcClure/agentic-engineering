@@ -124,9 +124,12 @@ subagents.
 - Every file in `scripts/shared/` has a suite of the same name in
   `scripts/test-hooks/unit/`.
 - `npm run test:live` is the live lane: real sessions, read back from their
-  transcripts. Opt-in, a few cents a run, never in CI. Run it after changing a
-  hook, a skill description, or anything else that alters what an agent sees, and
-  record the new baseline in the same change.
+  transcripts, for what each plugin put in context and whether a prompt still
+  reaches its skill. Opt-in, it spends model quota, never in CI. Run it after
+  changing a hook, a skill description, or anything else that alters what an
+  agent sees, and record the new baseline in the same change.
+- A change to how skills are laid out lands only if reach is no worse. The lane
+  refuses to record a baseline over a prompt that stopped reaching its skill.
 - `scripts/test-hooks/README.md` has the case format and the baseline ratchet.
 
 ## Adding a plugin

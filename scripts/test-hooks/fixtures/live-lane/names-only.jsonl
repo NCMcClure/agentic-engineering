@@ -1,0 +1,3 @@
+{"type":"user","message":{"role":"user","content":"This project has no .agents/perceptual folder and cannot render a shot on command yet. I want its renders checked by eye before I change them: get it set up for that."}}
+{"type":"attachment","attachment":{"type":"skill_listing","content":"- perceptual-loop:perceptual-loop\n- agentic-teamwork:hubs\n- agentic-teamwork:ladder\n- agentic-teamwork:tdd"}}
+{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"Before I set up the perceptual render check, I need one answer about this repo's agentic-engineering plugins:\n\n- **plugins only**: use the plugins' portable discipline, without the team's conventions.\n- **no**: every agentic-engineering plugin stays silent i [trimmed]"}]}}
