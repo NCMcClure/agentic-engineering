@@ -1,0 +1,15 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "codebase-organizer": {
+      "cue": ""
+    },
+    "improve-codebase-architecture": {
+      "cue": ""
+    },
+    "optimize-codebase": {
+      "cue": ""
+    }
+  }
+}

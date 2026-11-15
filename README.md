@@ -127,18 +127,18 @@ hubs an agent reads before descending), decomposes god-files, and deepens
 shallow architecture. Nothing moves until you have seen the plan, every
 change sits behind CI-faithful validation with revert-on-red, and nothing is
 ever pushed. It writes the hubs and checks that each one names its children.
-[Read more →](plugins/codebase-optimizer/README.md)
+[Read more →](plugins/agentcraft/skills/codebase-optimizer/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/figures/drifted-to-organized.dark.gif">
-  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="plugins/codebase-optimizer/assets/figures/drifted-to-organized.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/codebase-optimizer/assets/figures/drifted-to-organized.dark.gif">
+  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="plugins/agentcraft/skills/codebase-optimizer/assets/figures/drifted-to-organized.gif" width="720">
 </picture>
 
 <sub>One small repo, stage by stage: the plan first, the tree tidied, a red change put back, the long file split.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/codebase-optimizer/assets/screens/report.dark.png">
-  <img alt="The architecture report: candidates for deepening, each with the files and the evidence." src="plugins/codebase-optimizer/assets/screens/report.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/codebase-optimizer/assets/screens/report.dark.png">
+  <img alt="The architecture report: candidates for deepening, each with the files and the evidence." src="plugins/agentcraft/skills/codebase-optimizer/assets/screens/report.light.png" width="720">
 </picture>
 
 <sub>The architecture report, written about this repo's own tooling.</sub>

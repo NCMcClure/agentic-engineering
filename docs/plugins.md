@@ -6,10 +6,10 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 3 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 4 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
-| [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 3 | refactoring |
+| [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 6 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.2 | 2 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
@@ -62,6 +62,10 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:but-first-planning spec-init [--refresh]` | when you ask for it | Scaffolds the `.agents/plan/` workspace: spec site, empty plan tree, glossary and ADRs, tracker config, status scripts. Run once per project, when the user wants to spec or plan it and no workspace exists; `--refresh` updates a workspace's scripts. |
 | `/agentcraft:but-first-planning spec-open` | when you ask for it | Serves the `.agents/plan/` spec site locally (reusing a running server) and opens it in the browser, with inline comments and the live Plan page. Run when the user wants to read, review, or comment on the spec. |
 | `/agentcraft:but-first-planning spec-write` | by the agent | Authors or extends the spec as a progressive-disclosure docs site under `.agents/plan/spec/`. Use when the user wants to write or grow a spec ("spec this out", "document the design"). Needs `.agents/plan/`. |
+| `/agentcraft:codebase-optimizer [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: codebase-organizer (); improve-codebase-architecture (); optimize-codebase (). |
+| `/agentcraft:codebase-optimizer codebase-organizer` | by the agent | Reorganize a sprawling file tree into a progressive-disclosure layout: plan, history-preserving git mv, reference rewriting, AGENTS.md hubs, verified by the repo's own build. Use when the ask is about the tree alone (the root is a mess, too many top-level files, organize the folder structure, add AGENTS.md hubs to this repo). Nothing moves until the person has approved the plan. To split god-files in the same pass use optimize-codebase. |
+| `/agentcraft:codebase-optimizer improve-codebase-architecture` | by the agent | Find deepening opportunities in code that already exists: shallow modules, leaky seams, missing adapters, proposed against the project's glossary and its decision records under .agents/. Use when the ask is about architecture ("improve the architecture", consolidate tightly-coupled modules, make this testable) or a seam worth extracting has been spotted. For the file tree use codebase-organizer; to apply deepenings autonomously behind revert on red use optimize-codebase. |
+| `/agentcraft:codebase-optimizer optimize-codebase` | by the agent | The whole sweep and the entry point for the other two skills here: organize the tree, split god-files, deepen shallow modules, each stage on a branch behind the repo's own tests with revert on red. Use when the ask is a multi-stage refactor over a repository that has accreted ("optimize this codebase", "decompose these huge files"). Nothing starts until the person has seen the run plan and said yes. For the tree alone use codebase-organizer; for seams alone use improve-codebase-architecture. |
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
 
 ## agent-works
@@ -81,12 +85,6 @@ Version 5.0.3. [README](../plugins/but-first-planning/README.md), [changelog](..
 Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.
 
 Version 1.0.3. [README](../plugins/codebase-optimizer/README.md), [changelog](../plugins/codebase-optimizer/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/codebase-optimizer:codebase-organizer` | by the agent, or by hand | Reorganize a sprawling file tree into a progressive-disclosure layout: plan, history-preserving git mv, reference rewriting, AGENTS.md hubs, verified by the repo's own build. Use when the ask is about the tree alone (the root is a mess, too many top-level files, organize the folder structure, add AGENTS.md hubs to this repo). Nothing moves until the person has approved the plan. To split god-files in the same pass use optimize-codebase. |
-| `/codebase-optimizer:improve-codebase-architecture` | by the agent, or by hand | Find deepening opportunities in code that already exists: shallow modules, leaky seams, missing adapters, proposed against the project's glossary and its decision records under .agents/. Use when the ask is about architecture ("improve the architecture", consolidate tightly-coupled modules, make this testable) or a seam worth extracting has been spotted. For the file tree use codebase-organizer; to apply deepenings autonomously behind revert on red use optimize-codebase. |
-| `/codebase-optimizer:optimize-codebase` | by the agent, or by hand | The whole sweep and the entry point for the other two skills here: organize the tree, split god-files, deepen shallow modules, each stage on a branch behind the repo's own tests with revert on red. Use when the ask is a multi-stage refactor over a repository that has accreted ("optimize this codebase", "decompose these huge files"). Nothing starts until the person has seen the run plan and said yes. For the tree alone use codebase-organizer; for seams alone use improve-codebase-architecture. |
 
 ## agentic-teamwork
 

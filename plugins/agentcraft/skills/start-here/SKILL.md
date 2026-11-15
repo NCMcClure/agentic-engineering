@@ -191,9 +191,9 @@ It works in stages on a branch, each one checked by the repo's own tests and rev
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| the whole sweep, stage by stage | `/codebase-optimizer:optimize-codebase` | agent |
-| reorganize a sprawling file tree and nothing else | `/codebase-optimizer:codebase-organizer` | agent |
-| find shallow modules and leaky seams and nothing else | `/codebase-optimizer:improve-codebase-architecture` | agent |
+| the whole sweep, stage by stage | `/agentcraft:codebase-optimizer optimize-codebase` | agent |
+| reorganize a sprawling file tree and nothing else | `/agentcraft:codebase-optimizer codebase-organizer` | agent |
+| find shallow modules and leaky seams and nothing else | `/agentcraft:codebase-optimizer improve-codebase-architecture` | agent |
 
 ### docs-parity
 

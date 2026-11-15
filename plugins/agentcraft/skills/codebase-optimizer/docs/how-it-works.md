@@ -46,7 +46,7 @@ DECOMPOSE and DEEPEN activate once you pass a test command.
 
 ## The scripts
 
-All three live in `skills/codebase-organizer/scripts/`, are Node 22 standard
+All three live in `routes/codebase-organizer/scripts/`, are Node 22 standard
 library only, and run on a repo of any language.
 
 - `repo-scan.mjs` is the recon: one JSON profile of what sits loose at the
@@ -66,7 +66,7 @@ A tidy tree still cannot tell an agent what each subtree is for. The ORGANIZE st
 orientation hub in the repo root and every non-leaf code directory: one honest line
 per direct child, what it holds and when to descend, drafted from the actual
 post-move tree rather than from aspiration. The rules are in
-`skills/codebase-organizer/references/agent-hubs.md`, and the DECOMPOSE and DEEPEN
+`routes/codebase-organizer/references/agent-hubs.md`, and the DECOMPOSE and DEEPEN
 stages keep hubs current in the same commit as any file they move or create.
 Existing `AGENTS.md` files are merged, never clobbered. "Just add hubs to my repo"
 works too: the organizer runs with `hubs: "only"` and zero moves.
@@ -144,6 +144,6 @@ no compatibility-shim mechanism assumed, so every extraction rewrites all
 references. Hub isolation is strict about entry files a toolchain pins beside a
 hub (`main.go`, `lib.rs`, `setup.py`): name them once in the root hub's
 `<!-- verify-hubs: exempt ... -->` line. See the "Known issues / limitations"
-section of `skills/optimize-codebase/SKILL.md` for the rest: approximate pool-reuse
+section of `routes/optimize-codebase/ROUTE.md` for the rest: approximate pool-reuse
 ranges, org-aware placement against concurrency, the chair-unavailable consensus
 fallback, and the observational org audit.

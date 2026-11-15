@@ -11,14 +11,14 @@
       "label": "Run plan",
       "kind": "page",
       "note": "shown to you first",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/SKILL.md:49"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/ROUTE.md:49"
     },
     {
       "id": "loose",
       "label": "Loose files",
       "kind": "file",
       "note": "3 at the root",
-      "source": "plugins/codebase-optimizer/skills/codebase-organizer/scripts/repo-scan.mjs:242"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/scripts/repo-scan.mjs:242"
     },
     {
       "id": "hubs",
@@ -26,14 +26,14 @@
       "kind": "file",
       "note": "one line per child folder",
       "born": "hubs",
-      "source": "plugins/codebase-optimizer/skills/codebase-organizer/references/agent-hubs.md:21"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/references/agent-hubs.md:21"
     },
     {
       "id": "godfile",
       "label": "invoice.ts",
       "kind": "file",
       "note": "2,140 lines, over 1,500",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:49"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:49"
     },
     {
       "id": "pieces",
@@ -41,35 +41,35 @@
       "kind": "file",
       "note": "taxRules.ts, dunning.ts",
       "born": "undone",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1608"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1608"
     },
     {
       "id": "thin",
       "label": "Thin modules",
       "kind": "file",
       "note": "retry, send, sign",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1929"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1929"
     },
     {
       "id": "deep",
       "label": "client.ts",
       "kind": "file",
       "note": "one deeper module",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:188"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:188"
     },
     {
       "id": "check",
       "label": "Check",
       "kind": "service",
       "note": "type check, tests, lint",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1652"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1652"
     },
     {
       "id": "branch",
       "label": "optimize-codebase/auto",
       "kind": "store",
       "note": "never pushed",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:23"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:23"
     }
   ],
   "flows": [
@@ -79,7 +79,7 @@
       "to": "plan",
       "kind": "query",
       "label": "scan",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/SKILL.md:56"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/ROUTE.md:56"
     },
     {
       "id": "tidy",
@@ -87,7 +87,7 @@
       "to": "loose",
       "kind": "write",
       "label": "git mv",
-      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:128"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/workflows/organize-apply.js:128"
     },
     {
       "id": "hub",
@@ -95,7 +95,7 @@
       "to": "hubs",
       "kind": "write",
       "label": "write hubs",
-      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:168"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/workflows/organize-apply.js:168"
     },
     {
       "id": "gate",
@@ -103,7 +103,7 @@
       "to": "check",
       "kind": "query",
       "label": "strict gate",
-      "source": "plugins/codebase-optimizer/skills/codebase-organizer/workflows/organize-apply.js:195"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/workflows/organize-apply.js:195"
     },
     {
       "id": "carve",
@@ -111,7 +111,7 @@
       "to": "pieces",
       "kind": "write",
       "label": "extract",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1608"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1608"
     },
     {
       "id": "validate",
@@ -119,7 +119,7 @@
       "to": "check",
       "kind": "query",
       "label": "validate",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1434"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1434"
     },
     {
       "id": "back",
@@ -127,7 +127,7 @@
       "to": "godfile",
       "kind": "write",
       "label": "put back",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1498"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1498"
     },
     {
       "id": "fold",
@@ -135,7 +135,7 @@
       "to": "deep",
       "kind": "write",
       "label": "merge",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1763"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1763"
     },
     {
       "id": "commit",
@@ -143,7 +143,7 @@
       "to": "branch",
       "kind": "write",
       "label": "commit",
-      "source": "plugins/codebase-optimizer/skills/optimize-codebase/workflows/optimize-codebase.js:1472"
+      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/optimize-codebase/workflows/optimize-codebase.js:1472"
     }
   ],
   "data": {

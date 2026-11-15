@@ -11,6 +11,8 @@ description: >
 
 # Codebase organizer
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Turn a large, unwieldy codebase with a bloated root into something a newcomer
 can navigate in thirty seconds: the test the whole skill optimizes for. It
 runs in four beats: **scan & plan → you approve → apply → verify.** Planning is
@@ -64,11 +66,11 @@ plan before returning it.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/workflows/organize-plan.js",
+  scriptPath: "W/routes/codebase-organizer/workflows/organize-plan.js",
   args: {
     projectDir: "<absolute repo path>",
     dateToday: "<YYYY-MM-DD>",
-    skillDir: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer",
+    skillDir: "W/routes/codebase-organizer",
     depth: "recursive",           // "recursive" (default) or "root-only"
     hubs: "on",                   // "on" (default) | "only" (hubs, no moves) | "off"
     claudeMd: "detect"            // "detect" (default: read it from the repo) | true | false
@@ -136,11 +138,11 @@ Run the apply workflow against the approved plan.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/workflows/organize-apply.js",
+  scriptPath: "W/routes/codebase-organizer/workflows/organize-apply.js",
   args: {
     projectDir: "<absolute repo path>",
     dateToday: "<YYYY-MM-DD>",
-    skillDir: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer",
+    skillDir: "W/routes/codebase-organizer",
     planPath: "<repo>/.codebase-organizer-plan.json",
     branch: "codebase-organizer/reorg",  // it works on a fresh branch by default
     approved: true                       // only once the person has said yes to THIS plan
@@ -161,7 +163,7 @@ The apply workflow detects and runs the project's own build/test/lint (`pytest`,
 and, when hubs are in play, the structure gate:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify-structure.mjs" <repo> --strict --json
+node "W/routes/codebase-organizer/scripts/verify-structure.mjs" <repo> --strict --json
 ```
 
 Its exit code is the verdict. **2, a CRITICAL finding, fails the apply**: in

@@ -46,6 +46,6 @@ Ledger rows are for `publish` and `generalize first`. A `stays here` verdict nee
 
 ## Step 4: Hand it to the person
 
-Show the rows. Nothing is filed or moved anywhere: the person decides what leaves this repo. When they want to act on one, and the plugin is installed, `/plugin-workbench:create-plugin` takes a workflow or an agent-facing tool, and `/codebase-optimizer:improve-codebase-architecture` takes a candidate that needs this repo restructured before it can be lifted out.
+Show the rows. Nothing is filed or moved anywhere: the person decides what leaves this repo. When they want to act on one, and the plugin is installed, `/plugin-workbench:create-plugin` takes a workflow or an agent-facing tool, and `/agentcraft:codebase-optimizer improve-codebase-architecture` takes a candidate that needs this repo restructured before it can be lifted out.
 
 *Done when: the person has seen every row.*

@@ -12,6 +12,8 @@ description: >
 
 # Optimize Codebase
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Runs a staged, autonomous optimizer over a repository. One shared Setup +
 Conventions pass feeds three toggleable stages, run in order:
 
@@ -53,7 +55,7 @@ anything once it has started. So nothing starts until the person has seen what
 it is about to do. Run the read-only recon:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/repo-scan.mjs" <repo> --large-min 1500
+node "W/routes/codebase-organizer/scripts/repo-scan.mjs" <repo> --large-min 1500
 ```
 
 and tell them, in a few lines: the stages you will run and in what order, the
@@ -86,16 +88,16 @@ sandbox has no clock):
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/optimize-codebase/workflows/optimize-codebase.js",
+  scriptPath: "W/routes/optimize-codebase/workflows/optimize-codebase.js",
   args: {
     projectDir: "<absolute repo root>",
     dateToday:  "<YYYY-MM-DD>",
     approved:   true,   // only once the person has seen the run plan and said yes
     // Bundled skill/methodology + tooling: ALWAYS pass these when running from the plugin:
-    skillDir:          "${CLAUDE_PLUGIN_ROOT}/skills/improve-codebase-architecture",
-    organizerSkillDir: "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer",
-    structVerifier:    "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/verify-structure.mjs",
-    scanScript:        "${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/scripts/repo-scan.mjs",
+    skillDir:          "W/routes/improve-codebase-architecture",
+    organizerSkillDir: "W/routes/codebase-organizer",
+    structVerifier:    "W/routes/codebase-organizer/scripts/verify-structure.mjs",
+    scanScript:        "W/routes/codebase-organizer/scripts/repo-scan.mjs",
     // OPTIONAL: omit to let the Setup DETECT step auto-derive them for the repo:
     //   ecosystem: "python"|"node"|"go"|"rust"|"generic"   // override detection
     //   stages: ["organize","decompose","deepen"]   // subset/order; default = all three

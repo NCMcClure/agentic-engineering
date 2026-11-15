@@ -17,10 +17,10 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { FLAT_MAX_DEFAULT, makeExcludeMatcher, parseArgs, scan } from "../../../plugins/codebase-optimizer/skills/codebase-organizer/scripts/repo-scan.mjs";
+import { FLAT_MAX_DEFAULT, makeExcludeMatcher, parseArgs, scan } from "../../../plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/scripts/repo-scan.mjs";
 import { runNode, tempDir, write } from "./helpers.mjs";
 
-const SCRIPT = "plugins/codebase-optimizer/skills/codebase-organizer/scripts/repo-scan.mjs";
+const SCRIPT = "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/scripts/repo-scan.mjs";
 const NO_SYMLINKS = process.platform === "win32" && "a symlink needs a privilege the Windows runner does not have";
 const lines = (n) => "x\n".repeat(n);
 

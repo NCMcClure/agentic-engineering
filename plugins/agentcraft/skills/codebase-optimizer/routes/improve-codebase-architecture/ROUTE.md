@@ -12,6 +12,8 @@ description: >
 
 # Improve Codebase Architecture
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Surface architectural friction and propose **deepening opportunities**: refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
 ## Glossary
@@ -89,4 +91,4 @@ Side effects happen inline as decisions crystallize:
 - **User rejects the candidate with a load-bearing reason?** Offer a decision record under `.agents/decisions/`, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing; skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](ADR-FORMAT.md).
 - **An accepted deepening is itself hard to reverse and surprising without context?** Record that decision the same way, so the next review does not undo it.
 - **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](INTERFACE-DESIGN.md).
-- **An accepted refactor moves or creates modules?** Update the governing `AGENTS.md` hub(s) in the same change; the contract is `${CLAUDE_PLUGIN_ROOT}/skills/codebase-organizer/references/agent-hubs.md`.
+- **An accepted refactor moves or creates modules?** Update the governing `AGENTS.md` hub(s) in the same change; the contract is `W/routes/codebase-organizer/references/agent-hubs.md`.

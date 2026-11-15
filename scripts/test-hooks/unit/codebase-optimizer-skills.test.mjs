@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { parseFrontmatter, walk } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "codebase-optimizer");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "codebase-optimizer");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 const SCRIPTS = "skills/codebase-organizer/scripts";
