@@ -59,7 +59,7 @@ hook command that runs Node on a plugin file opens with a guard, so a machine
 without Node on PATH gets one line at session start instead of an error on
 every event:
 
-- every such command is the guard, then `node "${CLAUDE_PLUGIN_ROOT}/<file>"`;
+- every such command is the guard, then `node "${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>"`;
 - the quiet guard is `command -v node >/dev/null 2>&1 || exit 0; `;
 - a `SessionStart` command uses the loud guard, which echoes a
   `systemMessage` telling the person Node is missing before it exits 0, and

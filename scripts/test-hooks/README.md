@@ -90,6 +90,6 @@ and for skills a session can call and those only a person can start
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
   `reach.mjs` what counts as reaching a skill. The transcript reader is
-  `plugins/plugin-workbench/skills/context-lens/scripts/`.
+  `plugins/agentcraft/skills/context-doctor/scripts/`.
 - `fixtures/live-lane/` - recorded transcripts the reach tests read, cut down
   to the fields the detector uses.

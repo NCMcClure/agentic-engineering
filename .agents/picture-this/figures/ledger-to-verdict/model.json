@@ -11,7 +11,7 @@
       "label": "Target plugin",
       "kind": "folder",
       "note": "read as data, never instructions",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:905"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:905"
     },
     {
       "id": "scanner",
@@ -19,7 +19,7 @@
       "kind": "script",
       "note": "scan mode",
       "hue": "blue",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:903"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:903"
     },
     {
       "id": "mcheck",
@@ -29,7 +29,7 @@
       "parent": "dims",
       "repeat": 15,
       "hue": "blue",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:754"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:754"
     },
     {
       "id": "grader",
@@ -37,7 +37,7 @@
       "kind": "model",
       "note": "reads against rubric.md anchors",
       "hue": "yellow",
-      "source": "plugins/plugin-workbench/skills/evaluate-plugin/SKILL.md:58"
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:58"
     },
     {
       "id": "jcheck",
@@ -48,7 +48,7 @@
       "repeat": 22,
       "hue": "yellow",
       "born": "grade",
-      "source": "plugins/plugin-workbench/skills/evaluate-plugin/SKILL.md:62"
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:62"
     },
     {
       "id": "dims",
@@ -56,7 +56,7 @@
       "kind": "group",
       "note": "weights 30/15/10/15/20/10",
       "repeat": 6,
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:40"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:40"
     },
     {
       "id": "composite",
@@ -64,7 +64,7 @@
       "kind": "number",
       "note": "0-100, renormalized",
       "born": "weigh",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:1041"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1041"
     },
     {
       "id": "verdict",
@@ -72,7 +72,7 @@
       "kind": "tier",
       "note": "a gate can cap it",
       "born": "verdict",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:1044"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1044"
     },
     {
       "id": "fixdeltas",
@@ -80,7 +80,7 @@
       "kind": "list",
       "note": "each fix's gain, ranked",
       "born": "rank",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:945"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:945"
     }
   ],
   "flows": [
@@ -90,7 +90,7 @@
       "to": "scanner",
       "kind": "read",
       "label": "files",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:905"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:905"
     },
     {
       "id": "mgrade",
@@ -98,7 +98,7 @@
       "to": "mcheck",
       "kind": "write",
       "label": "grade 0-4",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:933"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:933"
     },
     {
       "id": "read",
@@ -106,7 +106,7 @@
       "to": "grader",
       "kind": "read",
       "label": "file + quote",
-      "source": "plugins/plugin-workbench/skills/evaluate-plugin/SKILL.md:62"
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:62"
     },
     {
       "id": "jgrade",
@@ -114,7 +114,7 @@
       "to": "jcheck",
       "kind": "write",
       "label": "grades.json",
-      "source": "plugins/plugin-workbench/skills/evaluate-plugin/SKILL.md:75"
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:75"
     },
     {
       "id": "foldm",
@@ -122,7 +122,7 @@
       "to": "dims",
       "kind": "write",
       "label": "grade x 25, weighted",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:1029"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1029"
     },
     {
       "id": "foldj",
@@ -130,7 +130,7 @@
       "to": "dims",
       "kind": "write",
       "label": "mean over skills",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:1026"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1026"
     },
     {
       "id": "weigh",
@@ -138,7 +138,7 @@
       "to": "composite",
       "kind": "write",
       "label": "weights over applicable",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:1039"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1039"
     },
     {
       "id": "tier",
@@ -146,7 +146,7 @@
       "to": "verdict",
       "kind": "write",
       "label": "85 / 70 / 50",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:942"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:942"
     },
     {
       "id": "rescore",
@@ -154,7 +154,7 @@
       "to": "fixdeltas",
       "kind": "write",
       "label": "raise one to 4, re-score",
-      "source": "plugins/plugin-workbench/core/scripts/plugin-scan.mjs:967"
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:967"
     }
   ],
   "beats": [

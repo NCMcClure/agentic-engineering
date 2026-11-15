@@ -6,11 +6,13 @@ argument-hint: "<plugin idea | existing dir to wrap> [--dir <parent>] [--bar <co
 
 # create-plugin
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Author one new plugin, then prove it: the same rubric that scores plugins is
 the spec you write against, and the same scanner that grades them is the
 referee that says you're done. Core dir below means
-`${CLAUDE_PLUGIN_ROOT}/core`; this skill's dir means
-`${CLAUDE_PLUGIN_ROOT}/skills/create-plugin`.
+`W/core`; this skill's dir means
+`W/routes/create-plugin`.
 
 **Safety rule:** never scaffold into a directory that already contains a
 plugin unless the user explicitly confirms overwriting; the scaffolder
@@ -50,7 +52,7 @@ invocation modes, components, target directory.*
 ## Step 2: Scaffold
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/create-plugin/scripts/plugin-scaffold.mjs" <target-dir> --spec <spec.json>
+node "W/routes/create-plugin/scripts/plugin-scaffold.mjs" <target-dir> --spec <spec.json>
 ```
 
 The script validates the spec (name == dir basename, semver, slug rules),
@@ -79,7 +81,7 @@ treats a file without markers as authored and protects it.
 
 Score what you built, with the same tools the evaluate-plugin skill uses:
 
-1. `node "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin-scan.mjs" <target-dir> > scan.json`
+1. `node "W/core/scripts/plugin-scan.mjs" <target-dir> > scan.json`
 2. Grade every applicable judgment check per the grading contract at the end
    of `core/references/rubric.md`, evidence quotes and all.
 3. `plugin-scan.mjs <target-dir> --score grades.json > score.json`. The
@@ -117,12 +119,12 @@ confirmed spec.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/create-plugin/workflows/create.js",
+  scriptPath: "W/routes/create-plugin/workflows/create.js",
   args: {
     spec: <the confirmed spec object from Step 1>,
     targetDir: "<absolute plugin dir to create>",
-    coreDir: "${CLAUDE_PLUGIN_ROOT}/core",
-    createSkillDir: "${CLAUDE_PLUGIN_ROOT}/skills/create-plugin",
+    coreDir: "W/core",
+    createSkillDir: "W/routes/create-plugin",
     outDir: "<absolute dir for scan/grades/score artifacts>",
     dateToday: "<YYYY-MM-DD, run date +%F yourself>",
     bar: 85,
@@ -135,7 +137,7 @@ It blueprints per-skill briefs, scaffolds deterministically, fans out one
 author per skill, then loops scan → rubric reviewers → score → targeted
 fixers until the bar or round limit. Its internal grades steer fixes only.
 For a scorecard worth publishing, offer the person the autonomous mode of
-`/plugin-workbench:evaluate-plugin`, which is theirs to start: an independent
+`/agentcraft:plugin-workbench evaluate-plugin`, which is theirs to start: an independent
 audit, not the author grading itself.
 
 **Where there is no Workflow tool:** run the same phases with parallel

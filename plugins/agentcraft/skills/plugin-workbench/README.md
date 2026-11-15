@@ -109,10 +109,10 @@ a plain plugin's score does not move for them:
 | Skill | Invocation | Does |
 |---|---|---|
 | `create-plugin` | model-invoked ("make me a plugin for…") | interview → scaffold → author → self-eval loop to adopt |
-| `evaluate-plugin` | `/plugin-workbench:evaluate-plugin <path \| owner/repo \| git URL>[#ref]` | acquire → scan → grade → score → scorecard + report |
+| `evaluate-plugin` | `/agentcraft:plugin-workbench evaluate-plugin <path \| owner/repo \| git URL>[#ref]` | acquire → scan → grade → score → scorecard + report |
 | `improve-plugin` | model-invoked ("apply those fixes") | baseline → rank fixes by delta → apply → re-score → delta report |
 | `context-lens` | model-invoked ("what did the agent actually see?") | read a session transcript → what each plugin put in context, who saw it, what survived compaction |
-| `refresh-marketplace` | `/plugin-workbench:refresh-marketplace [--plugins a,b] [--dry-run]` | validate the checkout → reinstall from the working tree → say to start a new session |
+| `refresh-marketplace` | `/agentcraft:plugin-workbench refresh-marketplace [--plugins a,b] [--dry-run]` | validate the checkout → reinstall from the working tree → say to start a new session |
 
 The passive context cost is three model-invoked descriptions (about 300
 estimated tokens combined); `evaluate-plugin` and `refresh-marketplace` are

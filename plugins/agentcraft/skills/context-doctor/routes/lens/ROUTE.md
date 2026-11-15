@@ -1,5 +1,5 @@
 ---
-name: context-lens
+name: lens
 description: "Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw."
 argument-hint: "[report|serve] [session id or transcript path]"
 ---
@@ -14,7 +14,7 @@ reads it back.
 
 `S` below is this skill's `scripts/` directory, under the base directory the
 loader prints when the skill loads (in Claude Code,
-`${CLAUDE_PLUGIN_ROOT}/skills/context-lens`). Node 22, no dependencies.
+`${CLAUDE_PLUGIN_ROOT}`). Node 22, no dependencies.
 
 ## What is true and what is estimated
 

@@ -7,10 +7,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter, walk } from "../../lib.mjs";
-import { runScan } from "../../../plugins/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO, runNode, tempDir, tree, write } from "./helpers.mjs";
 
-const SCAFFOLD = path.join(REPO, "plugins", "plugin-workbench", "skills", "create-plugin", "scripts", "plugin-scaffold.mjs");
+const SCAFFOLD = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench", "routes", "create-plugin", "scripts", "plugin-scaffold.mjs");
 const CATALOG = ".claude-plugin/marketplace.json";
 const NAME = "fresh-kit2go";
 

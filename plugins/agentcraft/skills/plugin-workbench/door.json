@@ -1,0 +1,20 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "create-plugin": {
+      "cue": ""
+    },
+    "evaluate-plugin": {
+      "cue": "",
+      "starts": "person"
+    },
+    "improve-plugin": {
+      "cue": ""
+    },
+    "refresh-marketplace": {
+      "cue": "",
+      "starts": "person"
+    }
+  }
+}

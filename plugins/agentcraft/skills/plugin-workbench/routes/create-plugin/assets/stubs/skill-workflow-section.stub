@@ -5,7 +5,7 @@ TODO(author): when to run the workflow instead of working inline.
 
 ```
 Workflow({
-  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/{{SKILL_NAME}}/workflows/{{SKILL_NAME}}.js",
+  scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/routes/{{SKILL_NAME}}/workflows/{{SKILL_NAME}}.js",
   args: { /* TODO(author): the args contract */ }
 })
 ```

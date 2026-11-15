@@ -263,9 +263,9 @@ One rubric serves all of it: a new plugin is scaffolded against it, an existing 
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| make a new plugin, or wrap skills and scripts they already have | `/plugin-workbench:create-plugin` | agent |
-| raise an existing plugin's score | `/plugin-workbench:improve-plugin` | agent |
-| score a plugin and get a scorecard with a verdict | `/plugin-workbench:evaluate-plugin` | person |
-| see what entered an agent's context, and from which plugin | `/plugin-workbench:context-lens` | agent |
+| make a new plugin, or wrap skills and scripts they already have | `/agentcraft:plugin-workbench create-plugin` | agent |
+| raise an existing plugin's score | `/agentcraft:plugin-workbench improve-plugin` | agent |
+| score a plugin and get a scorecard with a verdict | `/agentcraft:plugin-workbench evaluate-plugin` | person |
+| see what entered an agent's context, and from which plugin | `/agentcraft:plugin-workbench context-lens` | agent |
 
 <!-- end of the generated areas section -->

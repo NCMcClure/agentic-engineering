@@ -570,7 +570,7 @@ const CONTEXT_INJECTING_EVENTS = new Set(["SessionStart", "UserPromptSubmit", "U
  * How a hook command stands on CS7: whether it runs Node on a script, which
  * guard it opens with (`loud` tells the person Node is missing, `quiet` stays
  * out of the way, null is none), and whether what follows the guard is a
- * plain `node "${CLAUDE_PLUGIN_ROOT}/<file>"` call.
+ * plain `node "${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>"` call.
  */
 function nodeGuard(command) {
   const runsNode = /\bnode\b/.test(command) && /\.m?js\b/.test(command);
@@ -590,7 +590,7 @@ function nodeGuard(command) {
 /** Why a Node hook entry fails CS7, or null when it passes. */
 function guardProblem(event, entry) {
   if (!entry.runs_node) return null;
-  if (!entry.plain_node_call) return "not a guard followed by node \"${CLAUDE_PLUGIN_ROOT}/<file>\"";
+  if (!entry.plain_node_call) return "not a guard followed by node \"${CLAUDE_PLUGIN_ROOT}/skills/plugin-workbench/<file>\"";
   if (!entry.node_guard) return "no guard for a machine without Node";
   if (event === "SessionStart" && entry.node_guard !== "loud") return "SessionStart needs the guard that tells the person Node is missing";
   if (event === "SessionStart" && !entry.status_message) return "SessionStart command has no statusMessage";

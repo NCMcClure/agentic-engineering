@@ -9,10 +9,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand, parseHookCommand } from "../../lib.mjs";
-import { runScan, runScore } from "../../../plugins/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan, runScore } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const WORKBENCH = path.join(REPO, "plugins", "plugin-workbench");
+const WORKBENCH = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench");
 const SCAN = path.join(WORKBENCH, "core", "scripts", "plugin-scan.mjs");
 
 /** A plugin directory named `name` holding `files` (relative path to contents). */

@@ -9,12 +9,12 @@ import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { test } from "node:test";
-import { buildSession, parseJsonl } from "../../../plugins/plugin-workbench/skills/context-lens/scripts/transcript.mjs";
-import { attributeHook, loadSources, splitListing } from "../../../plugins/plugin-workbench/skills/context-lens/scripts/sources.mjs";
-import { renderReport } from "../../../plugins/plugin-workbench/skills/context-lens/scripts/report.mjs";
+import { buildSession, parseJsonl } from "../../../plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs";
+import { attributeHook, loadSources, splitListing } from "../../../plugins/agentcraft/skills/context-doctor/scripts/sources.mjs";
+import { renderReport } from "../../../plugins/agentcraft/skills/context-doctor/scripts/report.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const CLI = path.join(REPO, "plugins", "plugin-workbench", "skills", "context-lens", "scripts", "context-lens.mjs");
+const CLI = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor", "scripts", "context-lens.mjs");
 
 const hooksJson = (map) => JSON.stringify({ hooks: map });
 const command = (script) => `node "\${CLAUDE_PLUGIN_ROOT}/hooks/${script}"`;

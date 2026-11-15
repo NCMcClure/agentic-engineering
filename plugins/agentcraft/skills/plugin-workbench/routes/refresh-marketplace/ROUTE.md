@@ -1,7 +1,6 @@
 ---
 name: refresh-marketplace
 description: Validate a marketplace checkout and reinstall its plugins from the working tree, so the edits made this session are what the next session loads. Use when someone has changed a plugin in a marketplace checkout and asks to refresh, reinstall, or try it.
-disable-model-invocation: true
 argument-hint: "[--plugins a,b] [--dry-run]"
 ---
 

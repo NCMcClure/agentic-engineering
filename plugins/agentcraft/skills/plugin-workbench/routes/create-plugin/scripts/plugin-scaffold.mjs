@@ -2,7 +2,7 @@
 // Deterministic plugin scaffolder for the create-plugin skill.
 //
 // Reads a confirmed spec (JSON) and emits a complete, installable plugin
-// skeleton from the stubs in ../assets/stubs/. The model never types
+// skeleton from the stubs in ../assets/stubs The model never types
 // boilerplate; it authors into the TODO(author) markers the stubs leave.
 // plugin.json and the CHANGELOG.md seed carry no marker, so a re-run never
 // overwrites a manifest or a history without --force.

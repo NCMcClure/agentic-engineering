@@ -229,23 +229,23 @@ buys back; refresh-marketplace reinstalls a checkout's plugins so you can try
 them. context-lens then checks the result against reality: it reads a
 session's transcript and shows what each plugin put in the agent's context,
 who saw it, and what a compaction threw away.
-[Read more →](plugins/plugin-workbench/README.md)
+[Read more →](plugins/agentcraft/skills/plugin-workbench/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/figures/ledger-to-verdict.dark.gif">
-  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="plugins/plugin-workbench/assets/figures/ledger-to-verdict.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/plugin-workbench/assets/figures/ledger-to-verdict.dark.gif">
+  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="plugins/agentcraft/skills/plugin-workbench/assets/figures/ledger-to-verdict.gif" width="720">
 </picture>
 
 <sub>Every number on the scorecard is the script's.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/screens/scorecard.dark.png">
-  <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/plugin-workbench/assets/screens/scorecard.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/plugin-workbench/assets/screens/scorecard.dark.png">
+  <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/agentcraft/skills/plugin-workbench/assets/screens/scorecard.light.png" width="720">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/plugin-workbench/assets/screens/context-lens.dark.png">
-  <img alt="context-lens: what each plugin put into a session's context, and what a compaction dropped." src="plugins/plugin-workbench/assets/screens/context-lens.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/plugin-workbench/assets/screens/context-lens.dark.png">
+  <img alt="context-lens: what each plugin put into a session's context, and what a compaction dropped." src="plugins/agentcraft/skills/plugin-workbench/assets/screens/context-lens.light.png" width="720">
 </picture>
 
 <sub>A scorecard for picture-this, and context-lens reading a synthetic session.</sub>

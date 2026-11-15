@@ -6,9 +6,11 @@ argument-hint: "<path | owner/repo | git URL>[#ref] [--report <dir with score.js
 
 # improve-plugin
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Take a plugin that scores below where it should, apply the fixes that buy
 the most points back, and prove the gain with the same scanner that found
-the problems. Core dir below means `${CLAUDE_PLUGIN_ROOT}/core`.
+the problems. Core dir below means `W/core`.
 
 **Ground rules:**
 
@@ -24,7 +26,7 @@ the problems. Core dir below means `${CLAUDE_PLUGIN_ROOT}/core`.
 
 ## Step 1: Acquire
 
-Acquire per `${CLAUDE_PLUGIN_ROOT}/core/references/acquire.md` in
+Acquire per `W/core/references/acquire.md` in
 **improvement mode** (it defines the write-safety rules for in-place
 targets vs. clones), clone prefix `workbench-improve.XXXXXX`.
 
@@ -39,20 +41,20 @@ Always scan fresh, because fixes to mechanical checks need a current scan
 anyway:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin-scan.mjs" <plugin-root> > <outdir>/scan.json
+node "W/core/scripts/plugin-scan.mjs" <plugin-root> > <outdir>/scan.json
 ```
 
 Then get a baseline grades.json: if `--report` supplied one whose check set
 still matches scan.json's `applicable_judgment_checks`, reuse it; otherwise
 grade it yourself, the way Steps 3–4 of
-[../evaluate-plugin/SKILL.md](../evaluate-plugin/SKILL.md) grade. Read that
+[../evaluate-plugin/ROUTE.md](../evaluate-plugin/ROUTE.md) grade. Read that
 file; do not call the skill. Only a person starts it, the host refuses a call
 on it, and these grades are this skill's own baseline. For a target past ~15
 skills, grading inline grinds: stop, offer the person its autonomous mode, and
 take its output dir as `--report`. Either way, finish with `--score`:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin-scan.mjs" <plugin-root> --score <outdir>/grades.json > <outdir>/score.json
+node "W/core/scripts/plugin-scan.mjs" <plugin-root> --score <outdir>/grades.json > <outdir>/score.json
 ```
 
 *Done when: baseline scan.json, grades.json, and score.json exist.*
@@ -79,7 +81,7 @@ actually flipped. The scanner is the referee, not your diff.
 
 Eight mechanical checks have one right fix each (SQ8, SQ9, CS7, WQ7, AN6,
 CF6, MH3, MH5). The rule and the fix for each are in
-`${CLAUDE_PLUGIN_ROOT}/core/references/mechanical-checks.md`: read the
+`W/core/references/mechanical-checks.md`: read the
 check's entry there and apply that fix, not one of your own. Two are the
 owner's call, so ask first: MH5 (rewrite a script in Node, or declare it as
 debt) and CF6 (which critical lines go). For MH3, add the missing changelog
@@ -105,7 +107,7 @@ apply/re-score round. Two rounds maximum, then report what remains.
 - **The diff:** `git diff --stat` for in-place targets, the changed-file
   list for clones, plus the clone's absolute path (it is the deliverable).
 - Offer the person an independent confirmation of the new score: the
-  autonomous mode of `/plugin-workbench:evaluate-plugin`, which is theirs to
+  autonomous mode of `/agentcraft:plugin-workbench evaluate-plugin`, which is theirs to
   start.
 
 *Done when: the delta report is in chat and the improved tree's location is

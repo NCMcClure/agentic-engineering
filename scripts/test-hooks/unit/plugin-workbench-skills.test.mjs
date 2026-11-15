@@ -8,10 +8,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter, walk } from "../../lib.mjs";
-import { runScan, runScore } from "../../../plugins/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan, runScore } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "plugin-workbench");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench");
 const SKILLS = fs.readdirSync(path.join(PLUGIN, "skills"), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
 const FIVE = ["name", "description", "disable-model-invocation", "user-invocable", "argument-hint"];
 const text = (...rel) => fs.readFileSync(path.join(PLUGIN, ...rel), "utf8");

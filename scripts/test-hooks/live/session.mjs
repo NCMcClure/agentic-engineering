@@ -12,7 +12,7 @@ import { parseTranscript } from "./reach.mjs";
 export { REPO };
 // The lens is the one plugin-workbench ships, so the lane reads transcripts
 // exactly as a person running the skill does.
-const LENS = path.join(REPO, "plugins", "plugin-workbench", "skills", "context-lens", "scripts", "context-lens.mjs");
+const LENS = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor", "scripts", "context-lens.mjs");
 export const MARKETPLACE = "agentic-engineering";
 
 export const MODEL = "haiku";
