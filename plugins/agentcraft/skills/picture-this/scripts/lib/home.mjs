@@ -3,6 +3,7 @@
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
+import { areaHome } from "../../../../lib/data-home.mjs";
 import { PtError } from "./args.mjs";
 
 /** The plugin's own folder: the one that holds scripts/, kit/ and app/. */
@@ -14,11 +15,12 @@ export const PLUGIN_ROOT = path.resolve(import.meta.dirname, "..", "..");
  * would install itself into whatever project the command ran in.
  */
 export function dataHome(env = process.env) {
-  const home = env.PT_HOME || env.CLAUDE_PLUGIN_DATA;
-  if (!home || !home.trim()) {
+  if (env.PT_HOME && env.PT_HOME.trim()) return path.resolve(env.PT_HOME);
+  if (!env.CLAUDE_PLUGIN_DATA || !env.CLAUDE_PLUGIN_DATA.trim()) {
     throw new PtError("picture-this has no data folder: CLAUDE_PLUGIN_DATA is not set. Run this from a Claude Code session with the plugin installed, or set PT_HOME to a folder to install the studio into.");
   }
-  return path.resolve(home);
+  // The plugin's data directory is shared by its areas: this one keeps to its own folder in it.
+  return areaHome("picture-this", env);
 }
 
 /** The repo a command works on: --repo, else the git checkout around the current folder, else the folder itself. */

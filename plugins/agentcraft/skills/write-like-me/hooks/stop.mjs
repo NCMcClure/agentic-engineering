@@ -6,7 +6,9 @@
 //   exit 0, {"decision":"block","reason"}    the turn goes on; `reason` is what
 //                                            the model reads next
 //
-// Guards, in order: the loop guard (`stop_hook_active`: this Stop follows the
+// Guards, in order: no writing profile (this area ships in a plugin every
+// session loads, and a person who never built a profile has nothing to
+// refine), the loop guard (`stop_hook_active`: this Stop follows the
 // refinement turn this hook asked for), learning paused (state/refine-disabled),
 // nothing pending, once per session, a one-hour cooldown across sessions.
 //
@@ -27,6 +29,8 @@ const flagName = (sessionId) => FLAG + (typeof sessionId === "string" && session
 function main() {
   const payload = readPayload();
   if (!payload || payload.stop_hook_active) return;
+  // Before anything is made on disk: without a profile this hook leaves no trace.
+  if (!fs.existsSync(profilePath())) return;
 
   ensureDirs();
   const state = stateDir();

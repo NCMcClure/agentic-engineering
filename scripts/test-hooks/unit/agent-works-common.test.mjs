@@ -48,12 +48,16 @@ function linkedTree(tmp, root) {
   return tree;
 }
 
-/** A copy of the plugin's two libraries in a plugin folder of its own, with the files `extra` names beside them. */
+/**
+ * A copy of the area's two libraries in a plugin folder of its own, laid out as the plugin is: the area under
+ * `skills/agent-works`, with the files `extra` names beside the libraries, and the plugin's manifest at the plugin's root.
+ */
 async function pluginCopy(t, extra = {}) {
-  const dir = real(tempDir(t, "aw-plugin-"));
+  const root = real(tempDir(t, "aw-plugin-"));
+  const dir = path.join(root, "skills", "agent-works");
   for (const f of ["common.mjs", "config.mjs"]) write(dir, `lib/${f}`, fs.readFileSync(path.join(PLUGIN, "lib", f)));
-  for (const [file, content] of Object.entries(extra)) write(dir, file, content);
-  return { dir, lib: await import(pathToFileURL(path.join(dir, "lib", "common.mjs")).href) };
+  for (const [file, content] of Object.entries(extra)) write(file.startsWith(".claude-plugin/") ? root : dir, file, content);
+  return { root, dir, lib: await import(pathToFileURL(path.join(dir, "lib", "common.mjs")).href) };
 }
 
 const FINDINGS = () => [
@@ -653,7 +657,9 @@ Not installed: say so once.
 test("agent-works common: template fills the places it is given and leaves the others visible", async (t) => {
   const { dir, lib } = await pluginCopy(t, {
     "assets/templates/decision.md": "# {{number}}. {{title}}\r\n\r\n{{status}} since {{number}}\r\n",
-    ".claude-plugin/plugin.json": '{ "name": "agent-works", "version": "9.8.7" }',
+    ".claude-plugin/plugin.json": '{ "name": "agentcraft", "version": "9.8.7" }',
+    // A manifest in the area itself is nobody's: the version is the plugin's.
+    "plugin.json": '{ "name": "agent-works", "version": "1.1.1" }',
   });
   assert.equal(lib.PLUGIN_ROOT, dir);
   assert.equal(lib.TEMPLATES, path.join(dir, "assets", "templates"));
@@ -669,7 +675,7 @@ test("agent-works common: pluginVersion is 0.0.0 when the manifest cannot say", 
   assert.equal((await pluginCopy(t)).lib.pluginVersion(), "0.0.0");
   assert.equal((await pluginCopy(t, { ".claude-plugin/plugin.json": "[1]" })).lib.pluginVersion(), "0.0.0");
   assert.equal((await pluginCopy(t, { ".claude-plugin/plugin.json": '{"version": ""}' })).lib.pluginVersion(), "0.0.0");
-  assert.equal(common.pluginVersion(), JSON.parse(fs.readFileSync(path.join(PLUGIN, ".claude-plugin", "plugin.json"), "utf8")).version);
+  assert.equal(common.pluginVersion(), JSON.parse(fs.readFileSync(path.join(PLUGIN, "..", "..", ".claude-plugin", "plugin.json"), "utf8")).version);
 });
 
 test("agent-works common: pluginsBlock keeps the rows of the plugins the config names", async (t) => {

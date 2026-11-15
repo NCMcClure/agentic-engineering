@@ -10,7 +10,7 @@
   },
   "env": {
     "WLM_HOME": "{{REPO}}/.git/wlm-prompt-1",
-    "WLM_PROFILE": ""
+    "WLM_PROFILE": "{{REPO}}/README.md"
   },
   "expect": {
     "exit": 0,

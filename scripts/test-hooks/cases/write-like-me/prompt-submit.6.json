@@ -1,0 +1,19 @@
+{
+  "script": "prompt-submit.mjs",
+  "event": "UserPromptSubmit",
+  "fixture": "bare",
+  "stdin": {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "ps-6",
+    "cwd": "{{REPO}}",
+    "prompt": "This draft is too formal, and it sounds like AI."
+  },
+  "env": {
+    "WLM_HOME": "{{REPO}}/.git/wlm-prompt-6",
+    "WLM_PROFILE": "{{REPO}}/no-writing-profile.md"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

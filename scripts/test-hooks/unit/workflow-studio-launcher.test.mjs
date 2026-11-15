@@ -1,6 +1,6 @@
 // workflow-studio's launcher, run far enough to prove everything short of the
 // dev server itself: it reads its three arguments, finds the bundled app inside
-// the plugin, lays the install home out, decides when `npm ci` is due, and
+// the area, lays the install home out in the area's folder of the data dir, decides when `npm ci` is due, and
 // says plainly what is missing. npm is stood in for by a recorder, so no test
 // installs a package, starts a server that stays up, or leaves the machine.
 import assert from "node:assert/strict";
@@ -11,7 +11,9 @@ import { test } from "node:test";
 import { findOnPath, lockHash, main, prerequisites, runningPort } from "../../../plugins/agentcraft/skills/workflow-studio/scripts/launch-studio.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "workflow-studio");
+/** The plugin's root, which the skill passes the launcher, and the area of it the studio is in. */
+const ROOT = path.join(REPO, "plugins", "agentcraft");
+const PLUGIN = path.join(ROOT, "skills", "workflow-studio");
 const APP = path.join(PLUGIN, "app");
 const SCRIPT = path.join(PLUGIN, "scripts", "launch-studio.mjs");
 const USAGE = "Usage: node launch-studio.mjs <plugin-root> <studio-root> <data-dir>";
@@ -35,13 +37,15 @@ function machine(t, { ci = 0, dev = 0, env = {}, fetch = offline } = {}) {
   const root = tempDir(t, "studio-");
   const data = path.join(root, "data"), studio = path.join(root, "project", ".claude", "workflow-studio");
   const calls = [], out = [], err = [];
-  const stamp = path.join(data, "app", ".install-stamp");
+  // The plugin's areas share its data directory, so the app is installed in this area's folder of it.
+  const app = path.join(data, "workflow-studio", "app");
+  const stamp = path.join(app, ".install-stamp");
   const npm = async (args, { cwd, env: childEnv }) => {
     calls.push({ args, cwd, env: childEnv, lockfileThere: fs.existsSync(path.join(cwd, "package-lock.json")), stamped: fs.existsSync(stamp) });
     return args[0] === "ci" ? ci : dev;
   };
   const deps = { env: { PATH: binWithNpm(t), ...env }, npm, fetch, log: (line) => out.push(line), warn: (line) => err.push(line) };
-  return { root, data, studio, app: path.join(data, "app"), stamp, calls, out, err, deps, launch: (pluginRoot = PLUGIN) => main([pluginRoot, studio, data], deps) };
+  return { root, data, studio, app, stamp, calls, out, err, deps, launch: (pluginRoot = ROOT) => main([pluginRoot, studio, data], deps) };
 }
 
 // ---- arguments and prerequisites -------------------------------------------
@@ -131,6 +135,25 @@ test("a first launch copies the app out of the plugin, installs it, then starts 
   assert.deepEqual(fs.readFileSync(path.join(m.app, "package-lock.json")), fs.readFileSync(path.join(APP, "package-lock.json")));
 });
 
+test("the app is found from the plugin's root, and from the area's own directory", async (t) => {
+  for (const given of [ROOT, PLUGIN]) {
+    const m = machine(t);
+    assert.equal(await m.launch(given), 0, given);
+    assert.deepEqual(m.err, []);
+    assert.deepEqual(tree(path.join(m.app, "src")), tree(path.join(APP, "src")), given);
+  }
+});
+
+test("the install home is the area's own folder of the data dir, and what other areas keep there is left alone", async (t) => {
+  const m = machine(t);
+  write(m.data, "write-like-me/observations.jsonl", "{}\n");
+  assert.equal(await m.launch(), 0);
+  assert.deepEqual(fs.readdirSync(m.data).sort(), ["workflow-studio", "write-like-me"], "nothing loose in the shared directory");
+  assert.deepEqual(fs.readdirSync(path.join(m.data, "workflow-studio")), ["app"]);
+  assert.deepEqual(tree(path.join(m.data, "write-like-me")), ["observations.jsonl"]);
+  assert.equal(m.calls[0].cwd, path.join(m.data, "workflow-studio", "app"));
+});
+
 test("a second launch skips the install and refreshes the sources, leaving node_modules alone", async (t) => {
   const m = machine(t);
   await m.launch();
@@ -209,7 +232,7 @@ test("relative arguments are resolved before the launcher moves anywhere", async
   const dev = m.calls.at(-1);
   assert.ok(path.isAbsolute(dev.cwd) && path.isAbsolute(dev.env.STUDIO_ROOT));
   assert.equal(path.basename(dev.env.STUDIO_ROOT), "studio");
-  assert.equal(path.basename(path.dirname(dev.cwd)), "data");
+  assert.deepEqual(dev.cwd.split(path.sep).slice(-3), ["data", "workflow-studio", "app"]);
 });
 
 test("run for real, it starts npm twice in the install home and passes npm's exit code on", { skip: process.platform === "win32" && "the stand-in npm is a shebang script" }, (t) => {
@@ -226,10 +249,10 @@ test("run for real, it starts npm twice in the install home and passes npm's exi
   assert.equal(lines.length, 4);
   assert.match(lines[0], /^Workflow Studio: \(re\)installing app into /);
   assert.match(lines[2], /^Workflow Studio: starting dev server \(STUDIO_ROOT=/);
-  const app = fs.realpathSync(path.join(data, "app"));
+  const app = fs.realpathSync(path.join(data, "workflow-studio", "app"));
   assert.deepEqual(JSON.parse(lines[1]), { args: ["ci"], cwd: app, studio: null });
   assert.deepEqual(JSON.parse(lines[3]), { args: ["run", "dev"], cwd: app, studio });
-  assert.equal(fs.readFileSync(path.join(data, "app", ".install-stamp"), "utf8"), HASH);
+  assert.equal(fs.readFileSync(path.join(data, "workflow-studio", "app", ".install-stamp"), "utf8"), HASH);
 });
 
 // ---- a studio already running ----------------------------------------------

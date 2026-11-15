@@ -48,8 +48,10 @@ test("a data folder is required, and an empty one is refused, not resolved to th
   assert.throws(() => dataHome({}), (e) => e instanceof PtError && e.code === 2 && /CLAUDE_PLUGIN_DATA is not set/.test(e.message));
   assert.throws(() => dataHome({ CLAUDE_PLUGIN_DATA: "" }), PtError);
   assert.throws(() => dataHome({ CLAUDE_PLUGIN_DATA: "   " }), PtError);
-  assert.equal(dataHome({ CLAUDE_PLUGIN_DATA: path.join(REPO, "x") }), path.join(REPO, "x"));
-  assert.equal(dataHome({ CLAUDE_PLUGIN_DATA: "/a", PT_HOME: path.join(REPO, "y") }), path.join(REPO, "y"), "PT_HOME overrides it");
+  assert.equal(dataHome({ CLAUDE_PLUGIN_DATA: path.join(REPO, "x") }), path.join(REPO, "x", "picture-this"), "the plugin's areas share its data directory, so the studio has a folder of its own in it");
+  assert.equal(dataHome({ CLAUDE_PLUGIN_DATA: "/a", PT_HOME: path.join(REPO, "y") }), path.join(REPO, "y"), "PT_HOME overrides it, and is the folder itself");
+  assert.equal(dataHome({ CLAUDE_PLUGIN_DATA: "  ", PT_HOME: path.join(REPO, "y") }), path.join(REPO, "y"));
+  assert.throws(() => dataHome({ CLAUDE_PLUGIN_DATA: "", PT_HOME: "  " }), PtError, "an empty PT_HOME is no folder either");
   const cli = runNode(PT, ["setup", "--check"], { env: { ...process.env, PT_HOME: "", CLAUDE_PLUGIN_DATA: "" } });
   assert.equal(cli.status, 2);
   assert.match(cli.stderr, /has no data folder/);

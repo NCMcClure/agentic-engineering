@@ -256,10 +256,15 @@ export function apply(root, doc) {
 
 const homeOf = (env) => (process.platform === "win32" ? env.USERPROFILE : env.HOME) || os.homedir();
 
-/** The launcher's code: finds the plugin's `scripts/aw.mjs` on each run, so an update needs no reinstall. */
+// What a launcher says of itself, and the plugin a current one looks in first. A launcher written before
+// agent-works became an area of that plugin looks only where the area's command line no longer is.
+const LAUNCHER_MARK = "aw: launcher of the agent-works command line";
+const LAUNCHER_PLUGIN = "agentcraft";
+
+/** The launcher's code: finds the area's `scripts/aw.mjs` on each run, so an update needs no reinstall. */
 function launcherCode(baked) {
   return `#!/usr/bin/env node
-// aw: launcher of the agent-works command line (written by \`aw setup --install-launcher\`).
+// ${LAUNCHER_MARK} (written by \`aw setup --install-launcher\`).
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -270,10 +275,12 @@ const list = (dir) => { try { return fs.readdirSync(dir); } catch { return []; }
 const cache = path.join(os.homedir(), ".claude", "plugins", "cache");
 let found = [process.env.AGENT_WORKS_CLI, ${JSON.stringify(baked)}].find((p) => p && isFile(p));
 if (!found) {
-  // The newest installed copy: one folder per marketplace, then per version.
-  const copies = list(cache).flatMap((market) => list(path.join(cache, market, "agent-works"))
-    .map((version) => path.join(cache, market, "agent-works", version, "scripts", "aw.mjs"))).filter(isFile);
-  found = copies.sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
+  // The newest installed copy: one folder per marketplace, then per version. agent-works is an area of the
+  // ${LAUNCHER_PLUGIN} plugin, so its command line is looked for there first, then where it was as a plugin of its own.
+  const newest = (plugin, ...below) => list(cache).flatMap((market) => list(path.join(cache, market, plugin))
+    .map((version) => path.join(cache, market, plugin, version, ...below, "scripts", "aw.mjs"))).filter(isFile)
+    .sort((a, b) => fs.statSync(b).mtimeMs - fs.statSync(a).mtimeMs)[0];
+  found = newest(${JSON.stringify(LAUNCHER_PLUGIN)}, "skills", "agent-works") ?? newest("agent-works");
 }
 if (!found) {
   process.stderr.write("aw: agent-works is not installed (no scripts/aw.mjs under ~/.claude/plugins/cache)\\n");
@@ -282,6 +289,24 @@ if (!found) {
   import(pathToFileURL(found).href).then(({ cli }) => cli());
 }
 `;
+}
+
+/**
+ * The `aw` launcher on the PATH that was written before agent-works became an area, or null: its path, as the
+ * session briefing names it. Such a launcher looks only under the old plugin's cache folder, which holds a stub
+ * now, so it answers "not installed" until `aw setup --install-launcher` writes it again. Reads one small file
+ * per PATH folder at most, and stops at the first `aw` it finds: that is the one a shell runs.
+ */
+export function staleLauncher(env = process.env) {
+  for (const dir of String(env.PATH ?? env.Path ?? "").split(path.delimiter).filter(Boolean)) {
+    const file = path.join(dir, "aw");
+    let text;
+    try { text = fs.readFileSync(file, "utf8"); } catch { continue; }
+    // Another program called aw, or the plugin's own bin/aw, is not a launcher this wrote.
+    if (!text.includes(LAUNCHER_MARK)) return null;
+    return text.includes(JSON.stringify(LAUNCHER_PLUGIN)) ? null : posix(file);
+  }
+  return null;
 }
 
 const LAUNCHER_CMD = `@echo off

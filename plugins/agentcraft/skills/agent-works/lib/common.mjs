@@ -585,7 +585,7 @@ export function parseFrontmatter(text) {
 
 // ------------------------------------------------------------------------------------------------------ templates
 
-/** The plugin's own folder: the one that holds `lib/`. */
+/** The area's own folder: the one that holds `lib/`. The plugin it is an area of is two folders up, past `skills/`. */
 export const PLUGIN_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 /** Where the plugin keeps its templates. */
 export const TEMPLATES = path.join(PLUGIN_ROOT, "assets", "templates");
@@ -631,9 +631,9 @@ export function withPluginsBlock(text, block) {
   return `${lf}${lf.endsWith("\n") ? "" : "\n"}\n${block}`;
 }
 
-/** The plugin's version, from its `plugin.json`; "0.0.0" when it cannot be read. */
+/** The plugin's version, from the `plugin.json` of the plugin this area is in; "0.0.0" when it cannot be read. */
 export function pluginVersion() {
-  const doc = readJson(path.join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"), {});
+  const doc = readJson(path.join(PLUGIN_ROOT, "..", "..", ".claude-plugin", "plugin.json"), {});
   return isObject(doc) ? String(doc.version || "0.0.0") : "0.0.0";
 }
 

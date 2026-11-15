@@ -14,10 +14,6 @@
   },
   "expect": {
     "exit": 0,
-    "stdoutJson": {
-      "keysPresent": [
-        "systemMessage"
-      ]
-    }
+    "stdoutEmpty": true
   }
 }

@@ -4,9 +4,13 @@
 // server with STUDIO_ROOT pointed at the folder workflow projects persist in.
 //
 //   node launch-studio.mjs <plugin-root> <studio-root> <data-dir>
-//     plugin-root   holds app/, the bundled source (read-only)
+//     plugin-root   the plugin's root, whose skills/workflow-studio/app is
+//                   the bundled source (read-only); the workflow-studio
+//                   area's own directory, the one that holds app/, is
+//                   taken too
 //     studio-root   where workflow projects persist
-//     data-dir      persistent install home; the app runs from <data-dir>/app
+//     data-dir      the plugin's data directory, which its areas share; the
+//                   app runs from <data-dir>/workflow-studio/app
 //
 // Env (optional): WORKFLOW_EXPORT_ROOT or CLAUDE_PROJECT_DIR, the project dir
 // Publish is allowed to write into; forwarded to the dev server.
@@ -19,8 +23,10 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { areaHome } from "../../../lib/data-home.mjs";
 
 const USAGE = "Usage: node launch-studio.mjs <plugin-root> <studio-root> <data-dir>";
+const AREA = "workflow-studio";
 // What the app needs to build and run; everything else in app/ stays in the plugin.
 const SOURCE_DIRS = ["src", "docs"];
 const SOURCE_FILES = ["index.html", "vite.config.ts", "tsconfig.json", "tsconfig.node.json", "package.json", "package-lock.json"];
@@ -123,9 +129,12 @@ export async function main(argv, deps = {}) {
     return 1;
   }
 
-  const appSrc = path.join(pluginRoot, "app");
-  const appRun = path.join(dataDir, "app");
-  if (!fs.existsSync(appSrc) || !fs.statSync(appSrc).isDirectory()) {
+  // The app is in this area of the plugin. A caller that already passes the area's own directory is taken at its word.
+  const isDir = (dir) => { try { return fs.statSync(dir).isDirectory(); } catch { return false; } };
+  const inArea = path.join(pluginRoot, "skills", AREA, "app");
+  const appSrc = isDir(inArea) ? inArea : path.join(pluginRoot, "app");
+  const appRun = path.join(areaHome(AREA, { CLAUDE_PLUGIN_DATA: dataDir }), "app");
+  if (!isDir(appSrc)) {
     warn(`Error: vendored app not found at ${appSrc} \u2014 is the plugin installed correctly?`);
     return 1;
   }

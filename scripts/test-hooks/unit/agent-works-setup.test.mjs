@@ -293,6 +293,73 @@ test("agent-works setup: the launcher finds the plugin's command line", async (t
   }
 });
 
+/** An installed copy's command line in a plugin cache, which prints `says` when a launcher runs it, last changed at `at`. */
+function installedCopy(cache, rel, says, at) {
+  const file = path.join(cache, rel, "scripts", "aw.mjs");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, `export const cli = () => { process.stdout.write(${JSON.stringify(`${says}\n`)}); };\n`);
+  fs.utimesSync(file, at, at);
+}
+
+test("agent-works setup: the launcher looks in the agentcraft plugin first, then where agent-works was a plugin of its own", (t) => {
+  const p = project(t);
+  // A home of the test's own: the launcher reads the plugin cache under it, never the person's.
+  const home = path.join(p.tmp, "home");
+  const env = { ...p.env(), HOME: home, USERPROFILE: home, AGENT_WORKS_CLI: "" };
+  const target = path.join(p.tmp, "bin");
+  setup.installLauncher(target, { env, baked: path.join(p.tmp, "nowhere", "aw.mjs") });
+  const cache = path.join(home, ".claude", "plugins", "cache");
+  const run = () => spawnSync(process.execPath, [path.join(target, "aw")], { cwd: p.root, encoding: "utf8", env });
+  const said = () => { const r = run(); return [r.status, r.stdout, r.stderr]; };
+  const day = (n) => new Date(Date.UTC(2026, 9, n));
+
+  assert.equal(said()[0], 1, "an empty cache: not installed");
+  // A machine that still has only the plugin of its own: that copy runs.
+  installedCopy(cache, "agentic-engineering/agent-works/2.4.0", "the plugin of its own", day(20));
+  assert.deepEqual(said(), [0, "the plugin of its own\n", ""]);
+  // The area's copy is found first, though the old one was written later.
+  installedCopy(cache, "agentic-engineering/agentcraft/0.1.0/skills/agent-works", "the area, 0.1.0", day(10));
+  assert.deepEqual(said(), [0, "the area, 0.1.0\n", ""]);
+  // Of the area's copies the newest runs, in whichever marketplace it is.
+  installedCopy(cache, "a-fork/agentcraft/0.2.0/skills/agent-works", "the area, 0.2.0", day(12));
+  assert.deepEqual(said(), [0, "the area, 0.2.0\n", ""]);
+  // A folder of that plugin with no command line in the area is passed over.
+  fs.mkdirSync(path.join(cache, "agentic-engineering", "agentcraft", "0.3.0", "skills", "start-here"), { recursive: true });
+  assert.deepEqual(said(), [0, "the area, 0.2.0\n", ""]);
+  // AGENT_WORKS_CLI still wins over any installed copy.
+  installedCopy(p.tmp, "dev", "the one the variable names", day(1));
+  const named = spawnSync(process.execPath, [path.join(target, "aw")], { cwd: p.root, encoding: "utf8", env: { ...env, AGENT_WORKS_CLI: path.join(p.tmp, "dev", "scripts", "aw.mjs") } });
+  assert.deepEqual([named.status, named.stdout], [0, "the one the variable names\n"]);
+});
+
+test("agent-works setup: staleLauncher names the launcher on the PATH that was written before agent-works was an area", (t) => {
+  const p = project(t);
+  const dir = (name) => { const d = path.join(p.tmp, "path", name); fs.mkdirSync(d, { recursive: true }); return d; };
+  const on = (...dirs) => ({ PATH: dirs.join(path.delimiter) });
+  // The launcher as it was written before: the same first lines, and only the old plugin's folder looked in.
+  const BEFORE = '#!/usr/bin/env node\n// aw: launcher of the agent-works command line (written by `aw setup --install-launcher`).\n'
+    + 'const copies = list(cache).flatMap((market) => list(path.join(cache, market, "agent-works")));\n';
+  const [old, current, other, empty] = ["old", "current", "other", "empty"].map(dir);
+  fs.writeFileSync(path.join(old, "aw"), BEFORE);
+  setup.installLauncher(current, { env: p.env(), baked: "" });
+  fs.writeFileSync(path.join(other, "aw"), "#!/bin/sh\necho another program called aw\n");
+
+  assert.equal(setup.staleLauncher(on(old)), common.posix(path.join(old, "aw")));
+  assert.equal(setup.staleLauncher(on(empty, path.join(p.tmp, "no-such-folder"), old)), common.posix(path.join(old, "aw")), "folders without an aw are passed over");
+  assert.equal(setup.staleLauncher(on(current)), null, "the launcher this version writes is current");
+  // The first aw on the PATH is the one a shell runs: nothing behind it matters.
+  assert.equal(setup.staleLauncher(on(current, old)), null);
+  assert.equal(setup.staleLauncher(on(other, old)), null, "another program called aw is not ours to judge");
+  assert.equal(setup.staleLauncher(on(old, current)), common.posix(path.join(old, "aw")));
+  // The plugin's own bin/aw, which the host puts on the PATH of its shell tool, is no launcher.
+  assert.equal(setup.staleLauncher(on(path.join(PLUGIN, "..", "..", "bin"), old)), null);
+  for (const env of [{}, { PATH: "" }, on(empty), { Path: empty }]) assert.equal(setup.staleLauncher(env), null);
+  assert.equal(setup.staleLauncher({ Path: old }), common.posix(path.join(old, "aw")), "Windows spells the variable Path");
+  // Writing the launcher again is the fix: the same folder is current afterwards.
+  setup.installLauncher(old, { env: p.env(), baked: "" });
+  assert.equal(setup.staleLauncher(on(old)), null);
+});
+
 test("agent-works setup: --apply with --install-launcher does both", async (t) => {
   const p = project(t);
   const target = path.join(p.tmp, "bin");
