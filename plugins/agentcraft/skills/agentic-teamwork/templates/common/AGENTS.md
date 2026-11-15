@@ -2,7 +2,7 @@
 
 {{DESCRIPTION}}
 
-This repo follows its team's conventions, version {{STANDARD_VERSION}}. `.agents/manifest.json` is the marker: the agentic-teamwork plugin reads it at every session start and brings the working rules with it (branch first, tests with the logic, no secrets, how a change lands), so this file carries no copy of them.
+This repo follows its team's conventions, version {{STANDARD_VERSION}}. `.agents/manifest.json` is the marker: the agentcraft plugin reads it at every session start and brings the working rules with it (branch first, tests with the logic, no secrets, how a change lands), so this file carries no copy of them.
 
 ## Project rules
 

@@ -4,7 +4,7 @@
 
 It follows its team's conventions, version {{STANDARD_VERSION}}. `AGENTS.md` is the map; start there. `.agents/manifest.json` records the default branch, the test lanes, and which files the scaffold wrote, and `.agents/scripts/` holds the checks the repo runs on itself.
 
-Working with Claude Code, install the agentic-teamwork plugin: it enforces the rules below as you go, and the repo offers it at session start if you do not have it. Working in a terminal, turn the pre-commit hook on once per clone:
+Working with Claude Code, install the agentcraft plugin: it enforces the rules below as you go, and the repo offers it at session start if you do not have it. Working in a terminal, turn the pre-commit hook on once per clone:
 
 ```bash
 git config core.hooksPath .githooks

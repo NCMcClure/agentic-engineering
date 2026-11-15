@@ -51,7 +51,8 @@ the board, and its own:
   --html FILE also write the report as one self-contained page
   --all       list every finding (the text report shows eight per code)
   --accepted  list the findings \`accept\` in the config took out, each with its why
-  --machine   check this machine instead: Node 22, git, and the command line of the remote's forge
+  --machine   check this machine instead: Node 22, git, the command line of the remote's forge, and what the
+              move to one plugin leans on (the Claude Code build, the non-essential traffic switch)
 
 Without a config the defaults apply, so a legacy repository gets its first report before anything is set up. Only
 HUB_ISOLATION, CONFIG_INVALID and a status file over three times its budget are critical. Exit 0 / 1 / 2.

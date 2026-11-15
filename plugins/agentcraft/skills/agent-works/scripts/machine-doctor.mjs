@@ -12,8 +12,12 @@
 // Each check is ok, missing, misconfigured, or skipped (it does not apply to
 // this repository). Hard checks (Node, git) are what every command needs; the
 // forge's command line is needed only where cards follow issues, so it warns.
+// The last two warn as well, and matter to a machine coming from the separate
+// plugins: the Claude Code build, and the switch that stops a stub's update
+// from bringing agentcraft in (docs/known-limits.md, finding 7).
 // Nothing here signs in, reads a credential or installs anything: a fix is a
 // line for the person.
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { emit, ioOf, parseArgs, repoRoot, runMain } from "../lib/common.mjs";
 import { FORGES, checkCli, cliPath, detect } from "../../../lib/provider.mjs";
@@ -22,12 +26,41 @@ const USAGE = `usage: aw doctor --machine [--json]
        node machine-doctor.mjs [--json] [--root DIR]
 
 Check what agent-works needs on this machine: Node 22 or newer, git, and the command line of the forge the
-repository's remote is on (gh for GitHub, glab for GitLab). Exit 1 when a hard check (Node, git) fails.`;
+repository's remote is on (gh for GitHub, glab for GitLab). Then two things the move to one plugin leans on:
+the Claude Code build (2.1.321 or newer) and CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC (not set). Exit 1 when a
+hard check (Node, git) fails.`;
 
 /** The oldest Node the plugin runs on. */
 export const NODE_MAJOR = 22;
 
 const nodeOk = (version) => Number(String(version).split(".")[0]) >= NODE_MAJOR;
+
+// The first Claude Code build that installs a dependency a plugin update adds
+// in the same step. The move to one plugin leans on that: each old plugin's
+// name is now a stub that depends on agentcraft.
+export const CLAUDE_CODE_FLOOR = "2.1.321";
+const PLUGIN = "agentcraft@agentic-engineering";
+// The switch that stops that install on any build.
+const TRAFFIC = "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC";
+
+/** Whether version `a` is older than `b`, part by part as numbers: 2.1.99 is older than 2.1.321. */
+export const olderThan = (a, b) => {
+  const [x, y] = [a, b].map((v) => String(v).split(".").map(Number));
+  const at = x.findIndex((n, i) => n !== y[i]);
+  return at !== -1 && x[at] < y[at];
+};
+
+/**
+ * The build `claude --version` reports: `{ version }`, or `{ none }` saying why there is none to read. The
+ * program is the one this session runs in when it names it, else the first on the PATH.
+ */
+export function claudeCodeVersion(env = process.env, which = cliPath) {
+  const claude = env.CLAUDE_CODE_EXECPATH || which("claude", env);
+  if (!claude) return { none: "no claude on the PATH, and no session naming its own" };
+  const run = spawnSync(claude, ["--version"], { encoding: "utf8", timeout: 10000, stdio: ["ignore", "pipe", "ignore"], env });
+  const version = /\b(\d+\.\d+\.\d+)\b/.exec(run.stdout ?? "")?.[1];
+  return version ? { version } : { none: `${claude} --version printed no version` };
+}
 
 /**
  * The hard gaps a lookup can see, with no process started: cheap enough for a session-start hook. `which(name, env)`
@@ -42,10 +75,10 @@ export function hardGaps(env = process.env, { nodeVersion = process.versions.nod
 
 /**
  * Every check for the repository at `root`: `[{ id, hard, status, detail, fix? }]`, `status` one of ok, missing,
- * misconfigured, skipped. `run` is the process runner `detect` takes and `which` the program lookup (a test hands
- * both in).
+ * misconfigured, skipped. `run` is the process runner `detect` takes, `which` the program lookup, and `claude`
+ * what reads the Claude Code build (a test hands all three in).
  */
-export function checks({ root = null, env = process.env, nodeVersion = process.versions.node, run, which = cliPath } = {}) {
+export function checks({ root = null, env = process.env, nodeVersion = process.versions.node, run, which = cliPath, claude = claudeCodeVersion } = {}) {
   const out = [];
   const add = (id, hard, status, detail, fix = null) => out.push({ id, hard, status, detail, ...(fix ? { fix } : {}) });
 
@@ -73,6 +106,17 @@ export function checks({ root = null, env = process.env, nodeVersion = process.v
       else add("forge", false, "missing", `${forge.cli} is not on the PATH, and the remote is on ${host}`, `install it from ${forge.install} (the person signs in themselves)`);
     }
   }
+
+  const build = claude(env, which);
+  if (build.none) add("claude", false, "skipped", build.none);
+  else if (!olderThan(build.version, CLAUDE_CODE_FLOOR)) add("claude", false, "ok", `Claude Code ${build.version}`);
+  else add("claude", false, "misconfigured", `Claude Code ${build.version} is older than ${CLAUDE_CODE_FLOOR}: each old plugin's name is now a stub that depends on ${PLUGIN}, and only ${CLAUDE_CODE_FLOOR} or newer installs that in the same step as the stub's update; on an older build it arrives a session late, and the old plugin is off until it does`,
+    `the person updates Claude Code (claude update in a terminal; the desktop app from its own menu), or installs the plugin by name: claude plugin install ${PLUGIN}`);
+
+  const off = String(env[TRAFFIC] ?? "").trim().toLowerCase();
+  if (!off || off === "0" || off === "false") add("deps", false, "ok", `${TRAFFIC} is not set: a stub's update can install ${PLUGIN}`);
+  else add("deps", false, "misconfigured", `${TRAFFIC} is set: Claude Code installs no dependency while it is, so the update that turns an old plugin into its stub leaves the stub failing to load, with ${PLUGIN} not installed`,
+    `the person runs the update once without the variable: claude plugin update <old plugin>@agentic-engineering`);
   return out;
 }
 
