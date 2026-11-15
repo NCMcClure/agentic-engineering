@@ -1,6 +1,6 @@
 ---
 name: create-plugin
-description: Author a new plugin end to end: interview for intent, scaffold the layout with a script, write the skills against the evaluation rubric, then score and fix until the verdict is adopt. Use when someone wants to make a plugin, turn existing skills or scripts into one, or asks what a good plugin needs.
+description: "Author a new plugin end to end: interview for intent, scaffold the layout with a script, write the skills against the evaluation rubric, then score and fix until the verdict is adopt. Use when someone wants to make a plugin, turn existing skills or scripts into one, or asks what a good plugin needs."
 argument-hint: "<plugin idea | existing dir to wrap> [--dir <parent>] [--bar <composite>]"
 ---
 
@@ -28,7 +28,9 @@ Collect the spec, in one round of questions where possible:
 3. **Per skill: who fires it?** Model-invoked (the model should reach it from
    natural conversation, so the description must say *when*) or user-invoked
    (`disable-model-invocation: true`: a hand-run entry point with zero
-   passive cost).
+   passive cost). Hide a skill only when nothing else in the plugin sends an
+   agent to it: the host refuses a call on a hidden skill and tells the model
+   to stop.
 4. **Components:** map what the user described onto scripts, assets,
    hooks, and workflows with `references/authoring-notes.md`'s
    interview-to-design table. Read it rather than re-deriving the mapping.
@@ -132,8 +134,9 @@ Workflow({
 It blueprints per-skill briefs, scaffolds deterministically, fans out one
 author per skill, then loops scan → rubric reviewers → score → targeted
 fixers until the bar or round limit. Its internal grades steer fixes only.
-For a scorecard worth publishing, follow with the evaluate-plugin skill's
-autonomous mode: an independent audit, not the author grading itself.
+For a scorecard worth publishing, offer the person the autonomous mode of
+`/plugin-workbench:evaluate-plugin`, which is theirs to start: an independent
+audit, not the author grading itself.
 
 **Where there is no Workflow tool:** run the same phases with parallel
 subagents instead. The contract is in

@@ -55,7 +55,8 @@ const CHECKS = {
   SQ5: ["SQ", "j", 2, "Failure modes: duplication, sediment, sprawl, no-ops"],
   SQ6: ["SQ", "j", 1, "Leading words earning their repetitions"],
   SQ7: ["SQ", "m", 1, "Relative links resolve"],
-  SQ8: ["SQ", "m", 1, "Frontmatter carries only the four keys"],
+  SQ8: ["SQ", "m", 1, "Frontmatter carries only its keys, quoted where YAML needs it"],
+  SQ9: ["SQ", "m", 2, "Areas and their routes are well-formed"],
   CS1: ["CS", "j", 2, "Hooks complement skills"],
   CS2: ["CS", "j", 3, "Deterministic offload to scripts"],
   CS3: ["CS", "m", 1, "No orphaned components"],
@@ -75,11 +76,13 @@ const CHECKS = {
   AN3: ["AN", "j", 1, "Extensibility"],
   AN4: ["AN", "j", 1, "Single source of truth"],
   AN5: ["AN", "m", 1, "No cruft or never-loaded files"],
+  AN6: ["AN", "m", 2, "Route paths resolve from the route's own file"],
   CF1: ["CF", "m", 2, "Passive token footprint"],
   CF2: ["CF", "m", 1, "Description length caps"],
   CF3: ["CF", "j", 2, "Passive cost buys autonomous reach"],
   CF4: ["CF", "m", 1, "On-invoke body size"],
   CF5: ["CF", "j", 1, "Hook context-injection cost"],
+  CF6: ["CF", "m", 1, "Critical lines within their caps"],
   MH1: ["MH", "m", 1, "Manifest completeness"],
   MH2: ["MH", "j", 1, "README answers problem/how/install/skills"],
   MH3: ["MH", "m", 1, "CHANGELOG.md present and current"],
@@ -93,11 +96,21 @@ const PER_SKILL_CHECKS = ["SQ1", "SQ2", "SQ3", "SQ4", "SQ5", "SQ6"];
 const VERDICT_TIERS = [[85, "adopt"], [70, "adopt-with-fixes"], [50, "rework"], [0, "avoid"]];
 const TIER_ORDER = ["adopt", "adopt-with-fixes", "rework", "avoid"]; // best to worst
 
-// CF1 bands: estimated always-on tokens to grade.
+// The rubric this script grades by. A scorecard carries it, so two of them are
+// compared only when they agree on it. 2: areas and routes, `user-invocable`,
+// and three checks a plain plugin is not held to (SQ9, AN6, CF6).
+const RUBRIC = "2";
+
+// CF1 bands: estimated always-on tokens to grade. A plugin of areas is graded
+// on the mean per listed entry: it stands in for as many plugins as it has
+// areas, and its total is printed beside the grade.
 const PASSIVE_TOKEN_BANDS = [[200, 4], [400, 3], [800, 2], [1500, 1]];
 
 const DESCRIPTION_CAP = 1536;   // combined description + when_to_use, chars
 const BODY_LINE_GUIDANCE = 500; // SKILL.md body lines before disclosure should kick in
+const AREA_BODY_CAP = 8000;     // an area called again is appended to the conversation again, chars
+const CRITICAL_TOTAL_CAP = 7500; // every critical line a session start prints, chars
+const HOOK_OUTPUT_CAP = 10000;  // past this the host shows the model a preview of a hook's output, chars
 const BIG_FENCE_LINES = 40;     // fenced blocks this long are extraction candidates
 const OVERSTUFFED = 25;         // direct source files in one directory
 
@@ -128,9 +141,22 @@ const KNOWN_SKILL_FIELDS = new Set(["name", "description", "when_to_use", "argum
   "disable-model-invocation", "user-invocable", "allowed-tools",
   "disallowed-tools", "model", "effort", "context", "agent", "hooks",
   "paths", "shell", "license", "metadata"]);
-// The four SQ8 allows, so a listing costs what its description costs and
-// nothing in a skill depends on a field one host version reads and another drops.
-const FOUR_KEYS = new Set(["name", "description", "disable-model-invocation", "argument-hint"]);
+// The keys SQ8 allows, so a listing costs what its description costs and
+// nothing in a skill depends on a field one host version reads and another
+// drops. `user-invocable: false` is how a skill agents call stays out of the
+// slash menu. A route is a document no host lists, so it carries only what
+// its area's table is built from.
+const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "user-invocable", "argument-hint"]);
+const ROUTE_KEYS = new Set(["name", "description", "argument-hint"]);
+// A plain scalar holding a colon and a space is a mapping to a YAML parser,
+// and a host that reads frontmatter strictly drops the skill.
+const UNQUOTED_COLON_RE = /^description:[ \t]*(?!["'>|])\S.*: /m;
+
+// AN6: a file read by path gets no root variable, so a route names each
+// directory its paths need from its own location, once, in this sentence.
+const NAMED_DIR_RE = /`([A-Z])`\s+below\s+is\s+`([^`\s]+)`\s+from\s+the\s+directory\s+this\s+file\s+is\s+in/g;
+// Built in pieces: this file must not hold the call it looks for.
+const EXIT_CALL_RE = new RegExp("\\bprocess\\.ex" + "it\\(");
 
 // CS7: a hook that runs Node sits behind a guard, so a machine without Node
 // gets one line at session start instead of an error on every event.
@@ -184,11 +210,16 @@ function listDir(dir) {
   return out;
 }
 
-/** Every file under root, skipping SKIP_DIRS: this directory's files, then each subdirectory. */
+/**
+ * Every file under root, skipping SKIP_DIRS: this directory's files, then
+ * each subdirectory. A directory under `routes/` is a route whatever it is
+ * called: `routes/build/` is a document to read, not build output.
+ */
 function* walkFiles(root) {
   const { dirs, files } = listDir(root);
+  const routes = path.basename(root) === "routes";
   for (const f of files) yield path.join(root, f);
-  for (const d of dirs) if (!SKIP_DIRS.has(d)) yield* walkFiles(path.join(root, d));
+  for (const d of dirs) if (routes || !SKIP_DIRS.has(d)) yield* walkFiles(path.join(root, d));
 }
 
 /** Every directory under root, unfiltered: the cruft sweep must see node_modules. */
@@ -279,17 +310,31 @@ const asText = (val) => (val === undefined || val === true ? "" : String(val));
 // Skills
 // ---------------------------------------------------------------------------
 
+// A skill that holds `routes/` is an area, and each `routes/<route>/ROUTE.md`
+// under it is a document the area reads by path: never listed, costing nothing
+// until its route is taken, and held to everything else a skill's text is.
+const isRouteFile = (file) => path.basename(file) === "ROUTE.md";
+const routeNames = (skillDir) => listDir(path.join(skillDir, "routes")).dirs.sort();
+
 function findSkillFiles(root) {
   const out = [];
+  const routesOf = (skillDir) => {
+    for (const route of routeNames(skillDir)) {
+      const doc = path.join(skillDir, "routes", route, "ROUTE.md");
+      if (isFile(doc)) out.push(doc);
+    }
+  };
   const skillsDir = path.join(root, "skills");
   if (isDir(skillsDir)) {
     for (const entry of fs.readdirSync(skillsDir).sort()) {
       const p = path.join(skillsDir, entry, "SKILL.md");
       if (isFile(p)) out.push(p);
+      routesOf(path.join(skillsDir, entry));
     }
   }
+  // A bare skill directory, or one area on its own, is a target too.
   const rootSkill = path.join(root, "SKILL.md");
-  if (isFile(rootSkill)) out.push(rootSkill);
+  if (isFile(rootSkill)) { out.push(rootSkill); routesOf(root); }
   return out;
 }
 
@@ -309,7 +354,11 @@ function scanSkill(root, file) {
   const desc = asText(fm.description);
   const wtu = asText(fm.when_to_use);
   const combined = chars(desc) + chars(wtu);
-  const modelInvoked = !truthy(fm["disable-model-invocation"] ?? "");
+  const route = isRouteFile(file);
+  const area = !route && isDir(path.join(skillDir, "routes"));
+  const modelInvoked = !route && !truthy(fm["disable-model-invocation"] ?? "");
+  const allowed = route ? ROUTE_KEYS : SKILL_KEYS;
+  const head = text.startsWith("---") ? splitN(text, "\n---", 1)[0] : "";
 
   const links = [], broken = [];
   for (const target of findAll(text, MD_LINK_RE)) {
@@ -341,9 +390,13 @@ function scanSkill(root, file) {
       parse_ok: parseOk,
       fields: order,
       unknown_fields: uniqueSorted(order.filter((k) => !KNOWN_SKILL_FIELDS.has(k))),
-      // SQ8: everything beyond name, description, disable-model-invocation, argument-hint.
-      extra_fields: uniqueSorted(order.filter((k) => !FOUR_KEYS.has(k))),
+      // SQ8: every key beyond the ones a skill, or a route, may carry.
+      extra_fields: uniqueSorted(order.filter((k) => !allowed.has(k))),
+      // SQ8: a description a strict YAML reader takes for a mapping. A route's is read by no host.
+      unquoted_colon: !route && UNQUOTED_COLON_RE.test(head),
     },
+    route,
+    area,
     model_invoked: modelInvoked,
     user_invocable: !(String(fm["user-invocable"] ?? "").trim().toLowerCase() === "false"),
     description_chars: chars(desc),
@@ -363,6 +416,148 @@ function scanSkill(root, file) {
     mentions_workflow_tool: text.includes("Workflow("),
     names_subagent_fallback: /subagent/i.test(text),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Areas and routes
+// ---------------------------------------------------------------------------
+
+const bodyOf = (text) => (text.startsWith("---") ? splitN(text, "\n---", 2).at(-1) : text);
+
+/**
+ * SQ9: what each area gets wrong about its routes. An area is a skill that
+ * holds `routes/`; an agent calls it and reads `routes/<route>/ROUTE.md` by
+ * path, so the area's own text is the only place a route is ever named.
+ */
+function scanAreas(root, skills) {
+  const out = [];
+  for (const s of skills.filter((x) => x.area)) {
+    const file = path.join(root, s.path), dir = path.dirname(file);
+    const text = readText(file) ?? "", body = bodyOf(text);
+    const desc = asText(parseFrontmatter(text).fields.description);
+    const routes = routeNames(dir);
+    const problems = [];
+    if (!s.model_invoked) problems.push("the area is hidden from the model, so the host refuses a call on it; `user-invocable: false` keeps it out of the slash menu and callable");
+    for (const route of routes) {
+      const doc = path.join(dir, "routes", route, "ROUTE.md");
+      if (!isFile(doc)) { problems.push(`routes/${route}/ has no ROUTE.md`); continue; }
+      const name = parseFrontmatter(readText(doc) ?? "").fields.name;
+      if (name !== route) problems.push(`routes/${route}/ROUTE.md: name is ${JSON.stringify(name ?? null)}, its directory is ${route}`);
+      if (!body.includes(`\`${route}\``)) problems.push(`the body never names \`${route}\`, so nothing sends an agent to it`);
+      // As an item of a list: prose that happens to end a clause on the word ("the kanban board: several tasks") is not one.
+      const listed = new RegExp(`(?:^|[;,:(]\\s*)${route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}: `);
+      if (listed.test(desc)) problems.push(`the description lists ${route} as "${route}: ", the skill listing's own shape, which a model reads as a skill to call; write "${route} (<cue>)"`);
+    }
+    for (const other of walkFiles(dir)) {
+      if (other !== file && path.basename(other) === "SKILL.md") problems.push(`${rel(root, other)}: a skill below an area; a route is a ROUTE.md`);
+    }
+    if (routes.length && !/compact/i.test(body)) problems.push("the body does not say to read the route again after a compaction: the host re-attaches the area, not a file read by path");
+    out.push({ area: s.name, path: s.path, routes, problems });
+  }
+  return out;
+}
+
+/** The directories a file names from its own location: `{ name, rel }` each, in order. */
+const namedDirs = (text) => matchAll(text, NAMED_DIR_RE).map((m) => ({ name: m[1], rel: m[2] }));
+
+/**
+ * The paths one line writes under named directories: `{ name, path, quoted }`
+ * each. A letter inside a word or a longer path is not one (`JS/TS`,
+ * `docs/S/x`). `quoted` says whether the name follows a double quote or a
+ * backtick: a command quotes the path, prose gives it a code span.
+ */
+function namedPaths(line, names) {
+  if (!names.length) return [];
+  const use = new RegExp(`(?<![A-Za-z0-9_./-])(${names.join("|")})\\/((?:[A-Za-z0-9_.-]+\\/)*[A-Za-z0-9_.-]+)`, "g");
+  return matchAll(line, use).map((m) => ({ name: m[1], path: m[2], quoted: m.index > 0 && "\"`".includes(line[m.index - 1]) }));
+}
+
+/**
+ * AN6: whether every path a route writes can be followed from where the route
+ * sits. A route is read by path, so it gets no root variable: it declares its
+ * directories from its own file and writes every path under one of them.
+ */
+function scanRoutePaths(root, skills) {
+  const problems = [];
+  const inside = (full) => full === root || full.startsWith(root + path.sep);
+  let declarations = 0, paths = 0;
+  for (const s of skills) {
+    const file = path.join(root, s.path), here = path.dirname(file);
+    const text = readText(file) ?? "";
+    const at = (line) => ({ file: s.path, ...(line ? { line } : {}) });
+    const dirs = new Map();
+    for (const d of namedDirs(text)) {
+      const full = path.resolve(here, d.rel);
+      if (dirs.has(d.name)) problems.push({ ...at(), problem: `\`${d.name}\` is declared twice` });
+      else if (!inside(full)) problems.push({ ...at(), problem: `\`${d.name}\` is ${d.rel} from this file, which leaves the plugin` });
+      else if (!isDir(full)) problems.push({ ...at(), problem: `\`${d.name}\` is ${d.rel} from this file, which is not a directory` });
+      else { dirs.set(d.name, full); declarations++; }
+    }
+    text.split("\n").forEach((line, i) => {
+      if (s.route && line.includes("${CLAUDE_PLUGIN_ROOT}")) problems.push({ ...at(i + 1), problem: "a route writes the root variable, which is not filled in for a file read by path" });
+      for (const found of namedPaths(line, [...dirs.keys()])) {
+        const base = dirs.get(found.name);
+        // A full stop that ends the sentence is not part of the path.
+        const target = fs.existsSync(path.join(base, found.path)) ? found.path : found.path.replace(/\.+$/, "");
+        const full = path.resolve(base, target), written = `${found.name}/${target}`;
+        paths++;
+        if (!found.quoted) problems.push({ ...at(i + 1), problem: `${written} is not quoted: an install path may hold a space` });
+        if (!inside(full)) problems.push({ ...at(i + 1), problem: `${written} leaves the plugin` });
+        else if (!fs.existsSync(full)) problems.push({ ...at(i + 1), problem: `${written} is not there` });
+      }
+      // A path copied in from another route, whose name this one never declared.
+      if (s.route) for (const m of matchAll(line, /(?<=["`])([A-Z])\/[a-z][A-Za-z0-9_./-]*/g)) {
+        if (!dirs.has(m[1])) problems.push({ ...at(i + 1), problem: `${m[0]} is under \`${m[1]}\`, which this file does not declare` });
+      }
+    });
+  }
+  return { declarations, paths, problems };
+}
+
+/**
+ * CF6: the critical lines a plugin keeps in context for a whole session, read
+ * from every `hooks/critical.json`, each block sized as a session start prints
+ * it: its heading, then a bullet per line.
+ */
+function scanCritical(root, allFiles) {
+  const files = [];
+  for (const file of allFiles) {
+    if (path.basename(file) !== "critical.json" || path.basename(path.dirname(file)) !== "hooks") continue;
+    let data = null;
+    try { data = JSON.parse(readText(file) ?? ""); } catch { /* reported as unreadable */ }
+    if (typeof data !== "object" || data === null) { files.push({ path: rel(root, file), parse_ok: false, lines: 0, chars: 0 }); continue; }
+    const owner = String(data.area ?? data.plugin ?? path.basename(path.dirname(path.dirname(file))));
+    const lines = [...(Array.isArray(data.lines) ? data.lines : []), ...(Array.isArray(data.chains) ? data.chains : [])];
+    const size = `Critical, from ${owner}:`.length + lines.reduce((n, l) => n + chars(String(l?.text ?? "")) + 3, 0);
+    files.push({ path: rel(root, file), parse_ok: true, owner, lines: lines.length, chars: size });
+  }
+  return { files, total_chars: files.reduce((n, f) => n + f.chars, 0), total_cap: CRITICAL_TOTAL_CAP, hook_output_cap: HOOK_OUTPUT_CAP };
+}
+
+/**
+ * SQ2's signal: where the plugin's own text names a skill the model cannot
+ * call. A session sent to a hidden skill is refused and told to stop, so a
+ * mention in a skill, a route, an agent, or a hook is a dead end to confirm.
+ */
+function scanHiddenMentions(root, skills, allFiles) {
+  const hidden = skills.filter((s) => !s.route && !s.model_invoked);
+  if (!hidden.length) return [];
+  const readers = allFiles.filter((f) => {
+    const r = rel(root, f);
+    return ["SKILL.md", "ROUTE.md"].includes(path.basename(f)) || /^agents\/[^/]+\.md$/.test(r) || (r.split("/").includes("hooks") && TEXT_EXTS.has(path.extname(f)));
+  });
+  const out = [];
+  for (const s of hidden) {
+    const name = s.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const mention = new RegExp(`\`${name}\`|[A-Za-z0-9_-]:${name}\\b|\\b${name} skill\\b`);
+    for (const file of readers) {
+      if (rel(root, file) === s.path) continue;
+      (readText(file) ?? "").split("\n").forEach((line, i) => {
+        if (mention.test(line)) out.push({ skill: s.name, file: rel(root, file), line: i + 1 });
+      });
+    }
+  }
+  return out.slice(0, 40);
 }
 
 // ---------------------------------------------------------------------------
@@ -411,7 +606,7 @@ function scanHooks(root) {
   if (typeof hooksObj !== "object" || hooksObj === null || Array.isArray(hooksObj)) {
     return { present: true, parse_ok: false };
   }
-  const entries = [], unguarded = [];
+  const entries = [], unguarded = [], scripts = new Set();
   for (const [event, groups] of Object.entries(hooksObj)) {
     if (!Array.isArray(groups)) continue;
     for (const group of groups) {
@@ -419,6 +614,7 @@ function scanHooks(root) {
         const cmd = String(h?.command ?? "");
         const m = /\$\{CLAUDE_PLUGIN_ROOT\}["']?(\/[^\s"']+)/.exec(cmd);
         const { runsNode, guard, plainCall } = nodeGuard(cmd);
+        if (runsNode && m) scripts.add(m[1].replace(/^\/+/, ""));
         const entry = {
           event,
           matcher: group.matcher ?? "",
@@ -438,9 +634,18 @@ function scanHooks(root) {
       }
     }
   }
+  // A hook's stdout is its whole contract, and an early exit can cut it
+  // short: a hook script sets the exit code and lets Node unwind.
+  const exitCalls = [];
+  for (const script of [...scripts].sort()) {
+    const lines = (readText(path.join(root, script)) ?? "").split("\n");
+    const line = lines.findIndex((l) => EXIT_CALL_RE.test(l) && !/^\s*(\/\/|\*)/.test(l));
+    if (line !== -1) exitCalls.push({ file: script, line: line + 1 });
+  }
   return {
     present: true,
     parse_ok: true,
+    exit_calls: exitCalls,
     hook_count: entries.length,
     events: uniqueSorted(entries.map((e) => e.event)),
     entries,
@@ -649,8 +854,14 @@ function scanComponents(root, skills, workflows) {
     scriptFiles.push(r);
     if (NON_NODE_EXTS.has(ext)) nonNode.push(r);
   }
+  const listed = skills.filter((s) => !s.route);
+  const areas = listed.filter((s) => s.area).length;
   return {
-    skills: skills.length,
+    skills: listed.length,
+    routes: skills.length - listed.length,
+    areas,
+    // "areas" allows one skill that is not an area: the entry a person types.
+    shape: areas === 0 ? "plain" : listed.length - areas <= 1 ? "areas" : "mixed",
     commands: countMd("commands"),
     agents: countMd("agents"),
     hooks: isFile(path.join(root, "hooks", "hooks.json")),
@@ -684,7 +895,7 @@ function scanAgentsPassive(root) {
   return out;
 }
 
-function buildFootprint(skills, agentsPassive, components) {
+function buildFootprint(skills, agentsPassive, components, plugin) {
   const perSource = [];
   for (const s of skills) {
     if (s.model_invoked) perSource.push({ source: `${s.path} (description)`, tokens: s.est_passive_tokens });
@@ -693,15 +904,27 @@ function buildFootprint(skills, agentsPassive, components) {
     perSource.push({ source: `agents/${a.agent} (description)`, tokens: a.est_passive_tokens });
   }
   if (components.mcp) perSource.push({ source: ".mcp.json tool names (deferred schemas)", tokens: 30 });
+  // The listing gets about 1% of the context window. Where every description
+  // fits, an entry is its address and its description; where they do not (a
+  // 200k window), a plugin's skills are listed by name alone, so a skill is
+  // found by its name and by what a hook says, never by its description.
+  const entries = skills.filter((s) => s.model_invoked);
+  const address = (s) => chars(`- ${plugin}:${s.name}`);
   return {
     passive_tokens_est: perSource.reduce((n, p) => n + p.tokens, 0),
     per_source: perSource,
+    listing: {
+      entries: entries.length,
+      names_only_chars: entries.reduce((n, s) => n + address(s), 0),
+      described_chars: entries.reduce((n, s) => n + address(s) + 2 + s.combined_chars, 0),
+    },
     cap_violations: skills.filter((s) => s.over_1536).map((s) => s.path),
     on_invoke: skills.map((s) => ({
       skill: s.path,
       body_tokens_est: s.est_body_tokens,
       body_lines: s.body_lines,
       over_500_lines: s.body_lines > BODY_LINE_GUIDANCE,
+      ...(s.area ? { body_chars: s.body_chars, over_area_cap: s.body_chars > AREA_BODY_CAP } : {}),
     })),
     note: EST_NOTE,
   };
@@ -717,7 +940,7 @@ function scanOrphans(root, allFiles) {
     if (TEXT_EXTS.has(path.extname(file))) texts.set(file, readText(file) ?? "");
   }
   const corpus = [...texts.values()].join("\n");
-  const exempt = new Set(["plugin.json", "README.md", "CHANGELOG.md", "SKILL.md", "hooks.json",
+  const exempt = new Set(["plugin.json", "README.md", "CHANGELOG.md", "SKILL.md", "ROUTE.md", "hooks.json",
     "marketplace.json", ".gitignore", "LICENSE", "CLAUDE.md",
     "__init__.py", "index.md", "index.html"]);
   const orphans = [];
@@ -757,12 +980,22 @@ function mechanicalGrades(scan) {
   const broken = scan.skills.reduce((n, s) => n + s.broken_links.length, 0);
   g.SQ7 = { grade: tiered(broken), basis: `${broken} broken relative link(s)` };
 
-  const extra = scan.skills.filter((s) => s.frontmatter.extra_fields.length);
+  const extra = scan.skills.filter((s) => s.frontmatter.extra_fields.length || s.frontmatter.unquoted_colon);
+  const said = (s) => [...s.frontmatter.extra_fields, ...(s.frontmatter.unquoted_colon ? ["description holds a colon and a space, unquoted"] : [])].join(", ");
   g.SQ8 = {
     grade: tiered(extra.length),
-    basis: `${extra.length} skill(s) with frontmatter beyond name/description/disable-model-invocation/argument-hint: `
-      + JSON.stringify(extra.slice(0, 5).map((s) => `${s.path}: ${s.frontmatter.extra_fields.join(", ")}`)),
+    basis: `${extra.length} file(s) with frontmatter beyond name/description/disable-model-invocation/user-invocable/argument-hint `
+      + `(a route: name/description/argument-hint), or a description YAML reads as a mapping: `
+      + JSON.stringify(extra.slice(0, 5).map((s) => `${s.path}: ${said(s)}`)),
   };
+
+  if (scan.areas.length) {
+    const wrong = scan.areas.flatMap((a) => a.problems.map((p) => `${a.path}: ${p}`));
+    g.SQ9 = {
+      grade: tiered(wrong.length),
+      basis: `${wrong.length} problem(s) in ${scan.areas.length} area(s) over ${scan.components.routes} route(s): ${JSON.stringify(wrong.slice(0, 5))}`,
+    };
+  }
 
   const orphanN = scan.orphans.length;
   g.CS3 = {
@@ -772,10 +1005,12 @@ function mechanicalGrades(scan) {
 
   if (scan.hooks.node_commands) {
     const bad = scan.hooks.unguarded_node_commands;
+    const exits = scan.hooks.exit_calls;
     g.CS7 = {
-      grade: tiered(bad.length),
+      grade: tiered(bad.length + exits.length),
       basis: `${bad.length}/${scan.hooks.node_commands} Node hook command(s) off the guard: `
-        + JSON.stringify(bad.slice(0, 5).map((b) => `${b.event}: ${b.problem}`)),
+        + JSON.stringify(bad.slice(0, 5).map((b) => `${b.event}: ${b.problem}`))
+        + (exits.length ? `; ${exits.length} hook script(s) end the process early instead of setting the exit code: ${JSON.stringify(exits.slice(0, 5).map((e) => `${e.file}:${e.line}`))}` : ""),
     };
   }
 
@@ -814,18 +1049,47 @@ function mechanicalGrades(scan) {
       + `own marketplace.json=${lint.own_marketplace_json}`,
   };
 
+  const routed = scan.route_paths;
+  if (scan.components.routes || routed.declarations) {
+    g.AN6 = {
+      grade: tiered(routed.problems.length),
+      basis: `${routed.problems.length} problem(s) in ${routed.paths} path(s) under ${routed.declarations} named directory declaration(s): `
+        + JSON.stringify(routed.problems.slice(0, 5).map((p) => `${p.file}${p.line ? `:${p.line}` : ""}: ${p.problem}`)),
+    };
+  }
+
   const passive = scan.context_footprint.passive_tokens_est;
-  g.CF1 = { grade: bandGrade(passive, PASSIVE_TOKEN_BANDS), basis: `~${passive} est passive tokens (${EST_NOTE})` };
+  const listedN = scan.context_footprint.per_source.length;
+  if (scan.components.shape === "areas" && listedN) {
+    const each = Math.floor(passive / listedN);
+    g.CF1 = {
+      grade: bandGrade(each, PASSIVE_TOKEN_BANDS),
+      basis: `~${each} est passive tokens per listed entry, ~${passive} over ${listedN} entries: a plugin of areas is graded per entry (${EST_NOTE})`,
+    };
+  } else g.CF1 = { grade: bandGrade(passive, PASSIVE_TOKEN_BANDS), basis: `~${passive} est passive tokens (${EST_NOTE})` };
 
   const caps = scan.context_footprint.cap_violations.length;
   g.CF2 = { grade: caps === 0 ? 4 : 1, basis: `${caps} skill(s) over the ${DESCRIPTION_CAP}-char combined cap` };
 
   const over = scan.context_footprint.on_invoke.filter((o) => o.over_500_lines);
+  const fat = scan.context_footprint.on_invoke.filter((o) => o.over_area_cap);
   g.CF4 = {
-    grade: tiered(over.length),
+    grade: tiered(over.length + fat.length),
     basis: `${over.length} SKILL.md bodies over ${BODY_LINE_GUIDANCE} lines: `
-      + JSON.stringify(over.slice(0, 3).map((o) => o.skill)),
+      + JSON.stringify(over.slice(0, 3).map((o) => o.skill))
+      + (scan.areas.length ? `; ${fat.length} area bodies over ${AREA_BODY_CAP} characters: ${JSON.stringify(fat.slice(0, 3).map((o) => o.skill))}` : ""),
   };
+
+  const critical = scan.critical_lines;
+  if (critical.files.length) {
+    const unread = critical.files.filter((f) => !f.parse_ok).map((f) => f.path);
+    g.CF6 = {
+      grade: unread.length || critical.total_chars > HOOK_OUTPUT_CAP ? 0 : critical.total_chars > CRITICAL_TOTAL_CAP ? 2 : 4,
+      basis: `${critical.total_chars} characters of critical lines in ${critical.files.length} file(s), against ${CRITICAL_TOTAL_CAP} `
+        + `(and ${HOOK_OUTPUT_CAP}, past which the model reads a preview)`
+        + (unread.length ? `; not readable: ${JSON.stringify(unread)}` : ""),
+    };
+  }
 
   const man = scan.manifest;
   if (!man.parse_ok) g.MH1 = { grade: 0, basis: "plugin.json missing or unparseable" };
@@ -876,6 +1140,10 @@ function computeNa(scan) {
   if (!scan.hooks.node_commands) naChecks.push("CS7");
   // WQ7 only means something where a skill reaches for the tool.
   if (!scan.skills.some((s) => s.mentions_workflow_tool)) naChecks.push("WQ7");
+  // The three a plain plugin is not held to: no area, no route, no critical lines.
+  if (!scan.areas.length) naChecks.push("SQ9");
+  if (!c.routes && !scan.route_paths.declarations) naChecks.push("AN6");
+  if (!scan.critical_lines.files.length) naChecks.push("CF6");
   return { dimensions: naDims, checks: naChecks };
 }
 
@@ -910,12 +1178,19 @@ export function runScan(target) {
   const components = scanComponents(root, skills, workflows);
   const agentsPassive = scanAgentsPassive(root);
   const scan = {
+    rubric: RUBRIC,
     plugin_path: root,
     manifest,
     components,
     skills,
+    areas: scanAreas(root, skills),
+    route_paths: scanRoutePaths(root, skills),
+    // SQ2's signals: the skills in the slash menu, and where the plugin's own text sends an agent to one it cannot call.
+    slash_menu: skills.filter((s) => !s.route && s.user_invocable).map((s) => s.name),
+    hidden_mentions: scanHiddenMentions(root, skills, allFiles),
     agents_passive: agentsPassive,
-    context_footprint: buildFootprint(skills, agentsPassive, components),
+    context_footprint: buildFootprint(skills, agentsPassive, components, manifest.name ?? path.basename(root)),
+    critical_lines: scanCritical(root, allFiles),
     hooks: scanHooks(root),
     workflow_static: workflows,
     lint: scanLint(root, allFiles),
@@ -1060,6 +1335,7 @@ export function runScore(scan, gradesDoc, withDeltas = true) {
   }
 
   return {
+    rubric: RUBRIC,
     dimensions: dimsOut,
     composite,
     // pre-computed for the scorecard donut (r=54, circumference 339.292) so the

@@ -31,10 +31,19 @@ use; grade with them.
 - **Cognitive load**: the reciprocal cost of a user-invoked skill: the human
   is the index that must remember it exists. Not to be minimized: it is the
   price of human agency. Spend it where human judgment matters.
-- **Invocation modes**: keep a `description` and the model can fire the skill
-  autonomously (paying context load); set `disable-model-invocation: true` and
-  only the human can (paying cognitive load, zero context load). Model
-  invocation always includes user reach; there is no model-only state.
+- **Invocation modes**: three states. *Listed and typed* (the default): the
+  model can fire the skill and a person can type it, paying context load.
+  *Callable, not typed* (`user-invocable: false`): agents and other skills
+  call it and it stays out of the slash menu, paying context load and no
+  cognitive load. *Hidden* (`disable-model-invocation: true`): only a person
+  starts it, paying cognitive load and zero context load. A call on a hidden
+  skill is refused, and the host tells the model to do the work no other way,
+  so hiding is right only where nothing sends an agent there.
+- **Area, route**: an area is a skill that holds `routes/`. An agent calls
+  the area with a route as the first word of its arguments and reads
+  `routes/<route>/ROUTE.md` by path. A route is a document: never listed,
+  never refused, free until it is read. One listed name stands for a body of
+  work.
 - **Leading word**: a compact concept already in the model's pretraining
   (*tight*, *red*, *seam*) repeated as a token so it anchors behavior in few
   tokens. In a description it anchors invocation; in a body it anchors
@@ -65,9 +74,10 @@ use; grade with them.
 
 ## SQ: Skill quality
 
-Graded **per skill** (every SKILL.md and command file), then averaged by
-`--score`. In `grades.json`, emit one entry per skill per check with the
-`skill` field set.
+Graded **per skill** (every SKILL.md, ROUTE.md, and command file), then
+averaged by `--score`. In `grades.json`, emit one entry per skill per check
+with the `skill` field set. A route is graded as a skill's text is: its
+description is what its area's table shows an agent choosing a route.
 
 ### SQ1 · Description quality
 
@@ -75,9 +85,16 @@ The description does two jobs: state what the skill is and list the branches
 that trigger it. For user-invoked skills (`disable-model-invocation: true`)
 grade the human-facing one-liner: clear summary, no wasted trigger list.
 
+Two things a description cannot do. At a 200k context window a plugin's
+skills are listed by **name only** (`context_footprint.listing` gives both
+sizes), so the name has to say the job without it. And a trigger written from
+the skill's own text matches nothing a person says: it is written from what
+the person would be doing.
+
 - **4**: leading word front-loaded; one trigger per genuinely distinct
-  branch; no identity prose that merely restates the body; a user-invoked
-  skill's description is a clean human-facing summary.
+  branch, in the words of someone asking for the work; the name alone says
+  what the skill is for; no identity prose that merely restates the body; a
+  user-invoked skill's description is a clean human-facing summary.
 - **2**: triggers present but synonym-duplicated ("build with TDD … asks for
   test-first development" is one branch twice), or the lead is buried behind
   throat-clearing, or identity crowds out triggers.
@@ -88,16 +105,23 @@ grade the human-facing one-liner: clear summary, no wasted trigger list.
 
 Is each skill's mode the right spend? Model-invoked costs context load every
 turn; that's only worth paying if the agent (or another skill) must reach it
-on its own.
+on its own. Hiding has a cost too: a session sent to a hidden skill is
+refused and stops. Scanner signals: `hidden_mentions` (where the plugin's own
+skills, routes, agents, and hooks name a hidden skill) and `slash_menu` (what
+a person sees). Signals locate; confirm each in the source.
 
-- **4**: every mode matches purpose: autonomous-trigger skills are
-  model-invoked with rich triggers; run-by-hand entry points are
-  `disable-model-invocation: true`.
+- **4**: every mode matches purpose: autonomous-trigger skills are listed
+  with rich triggers; a skill only agents call is `user-invocable: false`;
+  a skill is hidden only where nothing in the plugin sends an agent to it;
+  in a plugin of areas a job only a person starts is a route its area marks
+  so, and the slash menu holds one way in.
 - **2**: one or two mismatches: a hand-run setup skill paying passive cost,
-  or a should-fire-automatically skill hidden behind user invocation.
-- **0**: systematically wrong: a pile of always-loaded descriptions the
-  model can never usefully auto-fire, or core behavior the user must remember
-  to trigger by hand.
+  a should-fire-automatically skill hidden behind user invocation, or areas
+  a person is left to pick between in the slash menu.
+- **0**: a hidden skill the plugin's own text sends an agent to (grade the
+  hidden skill 0, and record the sender as a finding); or systematically
+  wrong: a pile of always-loaded descriptions the model can never usefully
+  auto-fire, or core behavior the user must remember to trigger by hand.
 
 ### SQ3 · Information hierarchy
 
@@ -145,14 +169,17 @@ Hunt duplication, sediment, sprawl, and no-ops line by line.
 
 Graded by the script from `broken_links`.
 
-### SQ8 · Four frontmatter keys (mechanical)
+### SQ8 · Frontmatter keys (mechanical)
 
-A SKILL.md's frontmatter carries `name`, `description`,
-`disable-model-invocation`, and `argument-hint`, and nothing else. Every
-other key is either cost in the listing or behavior that lives in one host
-version and not the next; what a skill needs to say goes in its body. Graded
-by the script from each skill's `frontmatter.extra_fields`: 4 when no skill
-carries an extra key, 2 when one does, 0 when more do.
+Five keys on a SKILL.md, three on a ROUTE.md, and a description a strict
+YAML reader can take. Graded by the script; the rule is in
+[mechanical-checks.md](mechanical-checks.md#sq8).
+
+### SQ9 · Areas and routes (mechanical, N/A when no skill holds `routes/`)
+
+Every route has its document, the area's own text names it, and the area can
+be called. Graded by the script from `areas`; the rule is in
+[mechanical-checks.md](mechanical-checks.md#sq9).
 
 ---
 
@@ -164,7 +191,11 @@ Do the parts amplify each other, or just cohabit a directory?
 
 - **4**: hooks enforce or feed what skills instruct (a guard hook backs a
   rule a skill states; a SessionStart hook loads state a skill maintains);
-  every hook's referenced file exists; no hook contradicts a skill.
+  every hook's referenced file exists; no hook contradicts a skill. A hook
+  that speaks at session start says only what applies to its reader: a
+  subagent gets the lines marked for it, and an agent that must not see the
+  builder's context gets none. A hook that moves a repo to a new layout does
+  it by steps that never overwrite, so a second run changes nothing.
 - **2**: hooks work but are disconnected from the skills' story, or one
   hook is dead weight nothing references or explains.
 - **0**: hooks fight the skills (blocking what a skill instructs), or
@@ -245,18 +276,9 @@ artifact reproduced verbatim; that distinction is your judgment.
 
 ### CS7 · Node hooks behind the guard (mechanical, N/A when no hook runs Node)
 
-A hook command that runs Node on a plugin file opens with a guard, so a
-machine without Node on PATH gets one line at session start instead of an
-error on every event:
-
-- every such command is the guard, then `node "${CLAUDE_PLUGIN_ROOT}/<file>"`;
-- the quiet guard is `command -v node >/dev/null 2>&1 || exit 0; `;
-- a `SessionStart` command uses the loud guard, which echoes a
-  `systemMessage` telling the person Node is missing before it exits 0, and
-  carries a `statusMessage`.
-
-Graded by the script from `hooks.unguarded_node_commands`: 4 when none, 2
-when one, 0 when more.
+A hook command that runs Node opens with a guard, and the script it runs
+sets its exit code instead of ending the process. Graded by the script; the
+rule is in [mechanical-checks.md](mechanical-checks.md#cs7).
 
 ---
 
@@ -321,12 +343,9 @@ can collide.
 
 ### WQ7 · Subagent fallback (mechanical, N/A when no skill calls `Workflow()`)
 
-The Workflow tool is not in every session. A skill whose autonomous mode is
-only a `Workflow({...})` block leaves the model with an instruction it cannot
-follow, so a skill that calls it also says how to run the same phases with
-subagents. Graded by the script from each skill's `mentions_workflow_tool`
-and `names_subagent_fallback`: 4 when every calling skill names the fallback,
-2 when one does not, 0 when more do not.
+A skill that calls `Workflow()` also says how to run the same phases with
+subagents. Graded by the script; the rule is in
+[mechanical-checks.md](mechanical-checks.md#wq7).
 
 ---
 
@@ -371,6 +390,12 @@ the script, and any hit also triggers a verdict gate.
 Junk files, plus files the harness never loads (a plugin-root CLAUDE.md, a
 plugin-local marketplace.json).
 
+### AN6 · Route paths (mechanical, N/A when no route and no named directory)
+
+A route is read by path, so it names its directories from its own file and
+every path under them is there. Graded by the script from `route_paths`; the
+rule is in [mechanical-checks.md](mechanical-checks.md#an6).
+
 ---
 
 ## CF: Context-window footprint
@@ -378,18 +403,27 @@ plugin-local marketplace.json).
 The cost model: a model-invoked skill's description (plus `when_to_use`, where
 a plugin still carries one) sits in
 the listing **every turn** (combined cap 1,536 chars per skill; global listing
-budget ~1% of the window). `disable-model-invocation: true` removes it
-entirely: zero passive cost. SKILL.md bodies load only on invocation and stay
-for the session. Hooks run out-of-band: zero passive cost; they spend tokens
-only via injected output (`additionalContext`, or stdout for
-SessionStart/UserPromptSubmit). Agent descriptions are listed passively; MCP
-tool schemas defer behind tool search. All scanner numbers are chars÷4
-estimates; `claude plugin details <name>` is ground truth when installed.
+budget ~1% of the window). Past that budget the host drops descriptions and
+lists a plugin's skills by name: at a 200k window that is every one of them,
+so there a skill is found by its name and by what a hook says. A route costs
+the listing nothing. `disable-model-invocation: true` removes a skill from
+the listing entirely, and with it the model's way to call the skill (SQ2).
+SKILL.md bodies load only on invocation and stay for the session; an area
+called a second time is appended a second time. Hooks run out-of-band: zero
+passive cost; they spend tokens only via injected output
+(`additionalContext`, or stdout for SessionStart/UserPromptSubmit), and past
+10,000 characters the model is shown a preview of it. Agent descriptions are
+listed passively; MCP tool schemas defer behind tool search. All scanner
+numbers are chars÷4 estimates; `claude plugin details <name>` is ground truth
+when installed, and a session's transcript is ground truth for what a hook
+put in the window.
 
 ### CF1 · Passive footprint (mechanical)
 
 Banded estimate of always-on tokens across skill descriptions, agent
-descriptions, and MCP names.
+descriptions, and MCP names. A plugin of areas is banded on the mean per
+listed entry, with its total in the basis: it stands in for as many plugins
+as it has areas.
 
 ### CF2 · Description caps (mechanical)
 
@@ -398,28 +432,55 @@ the author's trigger prose silently disappears.
 
 ### CF3 · Passive cost buys reach
 
-For each model-invoked skill: does autonomous invocation actually buy
-anything? A skill only ever run by hand, paying listing cost every turn, is
-waste. A skill the model must reach mid-task, hidden behind
-`disable-model-invocation`, is a different waste.
+For each listed entry: does autonomous invocation actually buy anything? A
+skill only ever run by hand, paying listing cost every turn, is waste. The
+saving worth grading is fewer listed entries (several skills of one body of
+work behind one area, their text in routes), never a skill hidden from the
+model that a session still has to reach. Where descriptions do not show,
+reach rests on the name and on hook text: grade whether those carry it.
 
-- **4**: every always-loaded description earns its place with real
-  autonomous-trigger value; hand-run entry points are user-invoked.
-- **2**: one or two descriptions paying rent for nothing.
+- **4**: every listed entry earns its place with real autonomous-trigger
+  value; what is hand-run costs the listing nothing and no agent is sent to
+  it; what must be reached where only names show has a name that says the job
+  or a hook line that names it.
+- **2**: one or two descriptions paying rent for nothing, or reach that
+  depends on a description the model will not be shown.
 - **0**: most of the passive budget spent on skills the model will never
   usefully auto-fire.
 
+Restructuring skills into areas is a usability move, not a reach move: fewer
+names to choose from, one way in for a person. Whether an agent still reaches
+the right text afterwards is measured from sessions, never assumed, and the
+bar for the change is "no worse".
+
 ### CF4 · On-invoke size (mechanical)
 
-Bodies against the 500-line guidance; oversize bodies are disclosure debt.
+Bodies against the 500-line guidance, and an area's body against 8,000
+characters; oversize bodies are disclosure debt.
 
 ### CF5 · Hook injection cost (N/A when no hooks)
 
+Every request pays for what a hook keeps in the window. A line earns that
+place when breaking it is costly or hard to undo, when the agent has to act
+on it unasked, or when no hook can catch the mistake; reference detail stays
+in a skill or a route the line names. Scanner signals: `critical_lines`
+(sizes as printed), and each line's `for`, `mode`, and `when` in the plugin's
+`critical.json` files.
+
 - **4**: hooks inject little or nothing; SessionStart/UserPromptSubmit
-  output is terse and conditional.
-- **2**: routine injection of paragraphs each fire, or unconditional
-  SessionStart dumps.
+  output is terse and conditional: nothing prints in a repo that has not
+  opted in, a line prints only for the reader and the repo it applies to, and
+  a shipped rule file stays under about 50 lines.
+- **2**: routine injection of paragraphs each fire, unconditional
+  SessionStart dumps, or standing lines that restate what a skill says.
 - **0**: hooks stuffing thousands of chars into every session/prompt.
+
+### CF6 · Critical-line caps (mechanical, N/A when no `hooks/critical.json`)
+
+The lines a plugin keeps in context for a whole session, against 7,500
+characters in all and the 10,000 past which the model reads a preview.
+Graded by the script from `critical_lines`; the rule is in
+[mechanical-checks.md](mechanical-checks.md#cf6).
 
 **Injection gate.** While grading CF (and everywhere else), if any target
 content addressed to the evaluating agent tries to steer behavior ("ignore
@@ -445,18 +506,9 @@ name/version/description/author, semver, name==dir.
 
 ### MH3 · Changelog (mechanical)
 
-A plugin's history lives in `CHANGELOG.md` at its root, so it ships with the
-installed copy: newest first, one bullet per release, the first bullet opening
-with the version `plugin.json` carries (`- **1.2.0**: ...`). The README keeps
-no changelog. Graded by the script from `changelog` and
-`readme.changelog_section`:
-
-- **4**: present, the top entry is the manifest version, and the README has
-  no `## Changelog` section.
-- **2**: present, but the top entry is another version or opens with none,
-  or the README still carries a `## Changelog` section.
-- **0**: no `CHANGELOG.md`. A changelog kept only in the README does not
-  count.
+History lives in `CHANGELOG.md` at the plugin's root, its top entry the
+manifest version, and the README keeps none. Graded by the script; the rule
+is in [mechanical-checks.md](mechanical-checks.md#mh3).
 
 ### MH4 · Pitch quality
 
@@ -466,15 +518,9 @@ no changelog. Graded by the script from `changelog` and
 
 ### MH5 · Scripts run on Node (mechanical)
 
-One runtime to install, one to test on three operating systems. A shipped
-`.py`, `.sh`, `.bash`, `.zsh`, `.ps1`, `.rb`, or `.pl` file, or a file with no
-extension whose shebang names anything but `node`, fails this check unless
-the file itself declares the exception: a `debt: <ceiling>, <trigger>` comment
-in its first lines, saying why it stays and what would end it. Workflows and
-browser `.js` under an `assets/` directory are not scripts the plugin runs
-and are censused separately. Graded by the script from
-`components.non_node_scripts`: 4 when every one is declared (or there are
-none), 0 otherwise.
+One runtime to install, one to test on three operating systems; a script that
+is not Node declares itself as debt. Graded by the script; the rule is in
+[mechanical-checks.md](mechanical-checks.md#mh5).
 
 ---
 

@@ -27,6 +27,11 @@ points here):
   green for good, no red for bad.
 - `{{COMPOSITE_DASH}}` = score.json's `composite_dash`, verbatim. The
   script pre-computes it; never do the arithmetic yourself.
+- `{{RUBRIC}}` = score.json's `rubric`, verbatim. Two scorecards are compared
+  only when they carry the same one: a rubric number changes when a check is
+  added or an anchor moves.
+- `{{SHAPE}}` = scan.json's `components.shape`, then its counts: `plain, 5
+  skills`, or `areas, 14 skills over 75 routes`.
 - Pips: four per check row, `round(grade)` filled.
 - The Mermaid component map is the one generated part: one node per
   component, edges skill→script/reference/asset it invokes and hook→skill it
@@ -48,7 +53,7 @@ Same content as the scorecard, plain markdown, this shape:
 ```markdown
 # Plugin evaluation: <name> v<version>
 
-**<COMPOSITE>/100 · <VERDICT>** · evaluated <date> · <source line>
+**<COMPOSITE>/100 · <VERDICT>** · rubric <N> · <shape and counts> · evaluated <date> · <source line>
 <if capped: > ⚠ Verdict capped by gate: <reason> (uncapped: <tier>)
 
 ## Dimensions
@@ -71,7 +76,11 @@ Same content as the scorecard, plain markdown, this shape:
 
 ~<N> est. always-on tokens/turn (chars÷4; `claude plugin details <name>` is
 ground truth). Per source: <list>. Cap violations: <list or none>.
-On-invoke: <skill: N lines / ~M tokens, flag >500 lines>.
+The listing (scan.json's `context_footprint.listing`): <N> entries, ~<chars>
+characters where every description shows, <chars> where only names do.
+On-invoke: <skill: N lines / ~M tokens, flag >500 lines, and an area body
+over 8,000 characters>.
+<if critical lines: >Critical lines: <chars> of 7,500 across <files>.
 
 ## Findings
 

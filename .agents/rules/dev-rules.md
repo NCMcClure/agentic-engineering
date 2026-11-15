@@ -33,7 +33,10 @@ When a rule changes, change the check in the same commit.
   persistent state (installed deps, caches) use `${CLAUDE_PLUGIN_DATA}`.
 - Absolute machine paths never ship, in any tracked file.
 - `SKILL.md` frontmatter carries only `name`, `description`,
-  `disable-model-invocation`, and `argument-hint`. `name` matches the directory.
+  `disable-model-invocation`, `user-invocable`, and `argument-hint`. `name`
+  matches the directory. A skill agents call and people do not type is
+  `user-invocable: false`; hide one with `disable-model-invocation` only where
+  nothing sends an agent to it, because the host refuses that call.
 - Hooks register known events, their commands point at files inside the plugin,
   and a hooks module listed under `modules` is a `.mjs` or `.js` file inside it.
 - A Node hook's command is a guard, then `node "${CLAUDE_PLUGIN_ROOT}/<file>"`:

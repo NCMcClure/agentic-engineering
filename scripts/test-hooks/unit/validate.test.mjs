@@ -78,7 +78,7 @@ test("a README that still carries a ## Changelog section fails", (t) => {
   assert.match(result.stdout, /^FAIL: code-diet: README carries a "## Changelog" section/m);
 });
 
-// Plugins run on Node, and a skill's frontmatter carries four keys.
+// Plugins run on Node, and a skill's frontmatter carries five keys.
 test("a plugin is held to the Node-only rules", (t) => {
   const result = validate(tree(t, withTidy({
     "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n",
@@ -86,7 +86,14 @@ test("a plugin is held to the Node-only rules", (t) => {
   })));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/guard\.py is not Node/m);
-  assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the four allowed/m);
+  assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the five allowed/m);
+});
+
+test("a skill kept out of the slash menu with user-invocable passes the frontmatter rule", (t) => {
+  const result = validate(tree(t, withTidy({
+    "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nuser-invocable: false\n---\n\n# sweep\n",
+  })));
+  assert.doesNotMatch(result.stdout, /frontmatter key/);
 });
 
 test("a new plugin that meets every rule passes", (t) => {

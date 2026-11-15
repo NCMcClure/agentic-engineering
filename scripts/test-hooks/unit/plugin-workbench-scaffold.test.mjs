@@ -148,7 +148,7 @@ test("the gate does name the skeleton when it is broken, so the test above is no
   assert.equal(result.status, 1);
   const mine = failures(result.stdout).filter((line) => line.includes(NAME));
   assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}: missing CHANGELOG.md`)), result.stdout);
-  assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}/restock: frontmatter key "license" is not one of the four allowed`)), result.stdout);
+  assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}/restock: frontmatter key "license" is not one of the five allowed`)), result.stdout);
 });
 
 test("the skeleton scores clean on every mechanical check of the workbench's own scanner", (t) => {

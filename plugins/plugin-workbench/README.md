@@ -79,16 +79,21 @@ the skills say how to run the same phases with subagents
 
 ### What the scanner grades on its own
 
-Fifteen of the rubric's checks are mechanical: links, orphans, workflow
+Eighteen of the rubric's checks are mechanical: links, orphans, workflow
 metadata, paths that would break a cached install, description and body
-size, the manifest. Five of them hold a plugin to the rules a marketplace
-gate enforces, so a plugin that scores clean here passes there:
+size, the manifest. Eight of them hold a plugin to the rules a marketplace
+gate enforces, so a plugin that scores clean here passes there. Three (SQ9,
+AN6, CF6) apply only to a plugin that has areas, routes, or critical lines, so
+a plain plugin's score does not move for them:
 
 | Check | Holds the plugin to |
 |---|---|
-| SQ8 | SKILL.md frontmatter of four keys: `name`, `description`, `disable-model-invocation`, `argument-hint` |
-| CS7 | A hook that runs Node sits behind a guard, so a machine without Node hears about it once instead of failing on every event |
+| SQ8 | SKILL.md frontmatter of five keys: `name`, `description`, `disable-model-invocation`, `user-invocable`, `argument-hint`; a description holding a colon and a space is quoted |
+| SQ9 | An area (a skill that holds `routes/`) names every route, each route has its `ROUTE.md`, and the area can be called |
+| CS7 | A hook that runs Node sits behind a guard, so a machine without Node hears about it once instead of failing on every event; its script sets the exit code instead of ending the process |
 | WQ7 | A skill that calls `Workflow()` names a subagent fallback |
+| AN6 | A route, which is read by path, names its directories from its own file and every path under them exists |
+| CF6 | The critical lines a plugin keeps in context all session stay within 7,500 characters |
 | MH3 | History in `CHANGELOG.md`, newest first, the top entry the version in `plugin.json`; no changelog in the README |
 | MH5 | Shipped scripts run on Node, or the file itself carries a `debt: <ceiling>, <trigger>` comment |
 

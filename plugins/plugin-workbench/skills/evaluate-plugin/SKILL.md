@@ -43,13 +43,20 @@ estimates, workflow/hook signals, lint results, the mechanical grades, the
 `na` set (checks and dimensions excluded from scoring), and any triggered
 gates. Do not re-derive any of these by hand.
 
-The mechanical grades are final, and five of them hold the target to rules a
-marketplace gate enforces: **SQ8** (SKILL.md frontmatter of four keys),
-**CS7** (a hook that runs Node sits behind the guard), **WQ7** (a skill that
-calls `Workflow()` names a subagent fallback), **MH3** (history in
+The mechanical grades are final, and eight of them hold the target to rules a
+marketplace gate enforces: **SQ8** (frontmatter keys), **SQ9** (an area's
+routes), **CS7** (a hook that runs Node sits behind the guard), **WQ7** (a
+skill that calls `Workflow()` names a subagent fallback), **AN6** (a route's
+paths), **CF6** (critical lines within their caps), **MH3** (history in
 `CHANGELOG.md` with the manifest version on top), and **MH5** (scripts that
-run on Node). Each one's `basis` names the files; quote it in the report
-rather than re-checking the files yourself.
+run on Node). `${CLAUDE_PLUGIN_ROOT}/core/references/mechanical-checks.md`
+states each rule. Each one's `basis` names the files; quote it in the report
+rather than re-checking the files yourself. Three of them, SQ9, AN6, and CF6,
+apply only to a plugin with areas, routes, or critical lines.
+
+The scan also says what shape the plugin is (`components.shape`: `plain`,
+`areas`, or `mixed`) and which rubric graded it (`rubric`). Carry both into
+the report.
 
 *Done when: scan.json exists and parses.*
 

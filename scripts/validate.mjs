@@ -29,7 +29,9 @@ const rel = (p) => path.relative(ROOT, p).split(path.sep).join("/") || ".";
 const HOOK_EVENTS = new Set(["PreToolUse", "PostToolUse", "PostToolUseFailure", "PermissionRequest", "UserPromptSubmit",
   "Notification", "Stop", "SubagentStart", "SubagentStop", "SessionStart", "SessionEnd", "PreCompact", "PostCompact",
   "TaskCompleted"]);
-const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "argument-hint"]);
+// `user-invocable: false` keeps a skill agents call out of the slash menu. It is never the way to hide one from
+// the model: the host refuses a call on a `disable-model-invocation` skill and tells the model to stop.
+const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "user-invocable", "argument-hint"]);
 // Non-Node files a plugin ships on purpose, by exact path. Two need numpy and
 // a model download, which no stdlib rewrite replaces; the third fronts a
 // MkDocs site, which is Python already wherever it runs.
@@ -161,8 +163,8 @@ async function validate() {
       if (!fm) { fail(`${name}/${skill}: SKILL.md has no frontmatter`, rel(md)); continue; }
       if (fm.name !== skill) fail(`${name}/${skill}: frontmatter name is "${fm.name}"`, rel(md));
       if (!fm.description) fail(`${name}/${skill}: frontmatter has no description`, rel(md));
-      // Four keys, so a listing costs what its description costs.
-      for (const key of Object.keys(fm)) if (!SKILL_KEYS.has(key)) fail(`${name}/${skill}: frontmatter key "${key}" is not one of the four allowed`, rel(md));
+      // Five keys, so a listing costs what its description costs.
+      for (const key of Object.keys(fm)) if (!SKILL_KEYS.has(key)) fail(`${name}/${skill}: frontmatter key "${key}" is not one of the five allowed`, rel(md));
     }
 
     // Hooks: known events, commands that point inside the plugin, and a hooks

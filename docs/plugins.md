@@ -14,7 +14,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
-| [plugin-workbench](#plugin-workbench) | 1.0.2 | 5 | authoring |
+| [plugin-workbench](#plugin-workbench) | 2.0.0 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
 | [system-map](#system-map) | 0.3.0 | 4 | documentation |
@@ -150,7 +150,7 @@ Version 1.0.3. [README](../plugins/code-diet/README.md), [changelog](../plugins/
 
 A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.
 
-Version 1.0.2. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
+Version 2.0.0. [README](../plugins/plugin-workbench/README.md), [changelog](../plugins/plugin-workbench/CHANGELOG.md).
 
 | Skill | Started | When |
 |---|---|---|

@@ -1,6 +1,6 @@
 ---
 name: improve-plugin
-description: Raise an existing plugin's score: baseline it or reuse a prior scorecard, rank the fixes by the point delta the scanner computes, apply them, re-score, and report before against after. Use when someone wants a plugin improved, scorecard findings fixed, or a score pushed past a verdict tier.
+description: "Raise an existing plugin's score: baseline it or reuse a prior scorecard, rank the fixes by the point delta the scanner computes, apply them, re-score, and report before against after. Use when someone wants a plugin improved, scorecard findings fixed, or a score pushed past a verdict tier."
 argument-hint: "<path | owner/repo | git URL>[#ref] [--report <dir with score.json + grades.json>] [--bar <tier | composite>] [--output <dir>]"
 ---
 
@@ -44,8 +44,12 @@ node "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin-scan.mjs" <plugin-root> > <outdi
 
 Then get a baseline grades.json: if `--report` supplied one whose check set
 still matches scan.json's `applicable_judgment_checks`, reuse it; otherwise
-grade per the evaluate-plugin skill's Steps 3–4 (its autonomous mode for
-targets past ~15 skills). Either way, finish with `--score`:
+grade it yourself, the way Steps 3–4 of
+[../evaluate-plugin/SKILL.md](../evaluate-plugin/SKILL.md) grade. Read that
+file; do not call the skill. Only a person starts it, the host refuses a call
+on it, and these grades are this skill's own baseline. For a target past ~15
+skills, grading inline grinds: stop, offer the person its autonomous mode, and
+take its output dir as `--report`. Either way, finish with `--score`:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/core/scripts/plugin-scan.mjs" <plugin-root> --score <outdir>/grades.json > <outdir>/score.json
@@ -73,15 +77,13 @@ One fix at a time, smallest diff that satisfies the check's rubric anchor
 After each fix to a mechanical check, re-run the scan and confirm the grade
 actually flipped. The scanner is the referee, not your diff.
 
-The mechanical checks with one right fix each:
-
-| Check | The fix |
-|---|---|
-| SQ8 | Delete the frontmatter keys beyond `name`, `description`, `disable-model-invocation`, `argument-hint`; what a key was saying moves into the skill's body, or goes. |
-| CS7 | Put the guard the rubric spells out in front of the hook's `node "${CLAUDE_PLUGIN_ROOT}/<file>"` call; a `SessionStart` command takes the loud guard and a `statusMessage`. |
-| WQ7 | Next to the `Workflow()` call, say how to run the same phases with subagents. |
-| MH3 | History moves to `CHANGELOG.md`, newest first, the first bullet opening with the version in `plugin.json`; the README's `## Changelog` section goes. Never bump the version to match a changelog: add the missing line. |
-| MH5 | Rewrite the script in Node, or, when it has to stay, put a `debt: <ceiling>, <trigger>` comment in its first lines. Which one is the owner's call: ask. |
+Eight mechanical checks have one right fix each (SQ8, SQ9, CS7, WQ7, AN6,
+CF6, MH3, MH5). The rule and the fix for each are in
+`${CLAUDE_PLUGIN_ROOT}/core/references/mechanical-checks.md`: read the
+check's entry there and apply that fix, not one of your own. Two are the
+owner's call, so ask first: MH5 (rewrite a script in Node, or declare it as
+debt) and CF6 (which critical lines go). For MH3, add the missing changelog
+line; never bump the version to match a changelog.
 
 *Done when: every planned fix is applied or explicitly skipped with a
 reason.*
@@ -102,8 +104,9 @@ apply/re-score round. Two rounds maximum, then report what remains.
 - **What remains:** the next top fixes if the target still has headroom.
 - **The diff:** `git diff --stat` for in-place targets, the changed-file
   list for clones, plus the clone's absolute path (it is the deliverable).
-- Offer the evaluate-plugin skill's autonomous mode as independent
-  confirmation of the new score.
+- Offer the person an independent confirmation of the new score: the
+  autonomous mode of `/plugin-workbench:evaluate-plugin`, which is theirs to
+  start.
 
 *Done when: the delta report is in chat and the improved tree's location is
 unambiguous.*

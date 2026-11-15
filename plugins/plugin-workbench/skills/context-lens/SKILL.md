@@ -1,6 +1,6 @@
 ---
 name: context-lens
-description: Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw.
+description: "Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw."
 argument-hint: "[report|serve] [session id or transcript path]"
 ---
 

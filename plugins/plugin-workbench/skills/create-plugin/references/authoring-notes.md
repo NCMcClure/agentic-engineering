@@ -10,7 +10,7 @@ anchors or numeric limits here; read them there, always current.
 | The user says | The design answer |
 |---|---|
 | "every time I do X, I also want Y" | a hook, not a skill: enforcement shouldn't depend on the model remembering |
-| "I want to run X on demand" | user-invoked skill (`disable-model-invocation: true`), zero passive cost |
+| "I want to run X on demand" | user-invoked skill (`disable-model-invocation: true`), zero passive cost, as long as no other skill, agent, or hook sends an agent to it: a call on a hidden skill is refused |
 | "the model should just know to do X" | model-invoked skill; the description must state the trigger conditions, and its passive cost has to buy that reach |
 | "X is the same steps every time" | a script; the skill invokes it and reads its output; the model never re-derives what code can compute |
 | "X produces the same document/page shape every run" | an asset/template the skill fills, never regenerates |

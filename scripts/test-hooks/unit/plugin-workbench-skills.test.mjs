@@ -13,7 +13,7 @@ import { REPO } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "plugin-workbench");
 const SKILLS = fs.readdirSync(path.join(PLUGIN, "skills"), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
-const FOUR = ["name", "description", "disable-model-invocation", "argument-hint"];
+const FIVE = ["name", "description", "disable-model-invocation", "user-invocable", "argument-hint"];
 const text = (...rel) => fs.readFileSync(path.join(PLUGIN, ...rel), "utf8");
 const shipped = walk(PLUGIN).map((f) => f.split(path.sep).join("/"));
 
@@ -27,10 +27,10 @@ for (const skill of SKILLS) {
   const md = text("skills", skill, "SKILL.md");
   const fm = parseFrontmatter(md);
 
-  test(`${skill}: frontmatter is the directory's name, a description, and nothing beyond the four keys`, () => {
+  test(`${skill}: frontmatter is the directory's name, a description, and nothing beyond the five keys`, () => {
     assert.ok(fm, "no frontmatter");
     assert.equal(fm.name, skill);
-    assert.deepEqual(Object.keys(fm).filter((k) => !FOUR.includes(k)), []);
+    assert.deepEqual(Object.keys(fm).filter((k) => !FIVE.includes(k)), []);
     assert.ok(fm.description.length >= 80 && fm.description.length <= 1024, `${fm.description.length} characters`);
   });
 
@@ -71,8 +71,27 @@ test("the rubric has a section for every check the scorer knows, and marks the m
   const known = runScore(scan, { grades }).dimensions.flatMap((d) => d.checks.map((c) => [c.id, c.kind]));
   const sections = [...text("core", "references", "rubric.md").matchAll(/^### ([A-Z]{2}\d) · (.*)$/gm)].map((m) => [m[1], /\(mechanical/.test(m[2]) ? "m" : "j"]);
   assert.deepEqual(sections, known);
-  assert.equal(known.filter(([, kind]) => kind === "m").length, 15, "the README counts them");
-  assert.match(text("README.md"), /^Fifteen of the rubric's checks are mechanical/m);
+  assert.equal(known.filter(([, kind]) => kind === "m").length, 18, "the README counts them");
+  assert.match(text("README.md"), /^Eighteen of the rubric's checks are mechanical/m);
+});
+
+test("each house check the rubric sends to mechanical-checks.md has its rule and its fix there", () => {
+  const rubric = text("core", "references", "rubric.md");
+  const house = text("core", "references", "mechanical-checks.md");
+  const sent = [...rubric.matchAll(/\[mechanical-checks\.md\]\(mechanical-checks\.md#([a-z]{2}\d)\)/g)].map((m) => m[1].toUpperCase());
+  assert.deepEqual(sent, ["SQ8", "SQ9", "CS7", "WQ7", "AN6", "CF6", "MH3", "MH5"]);
+  // A heading that is the id alone, so the rubric's link lands on it.
+  const entries = [...house.matchAll(/^## ([A-Z]{2}\d)$/gm)].map((m) => m[1]);
+  assert.deepEqual(entries, sent);
+  entries.forEach((id, i) => {
+    const from = house.indexOf(`## ${id}\n`);
+    const entry = house.slice(from, i + 1 < entries.length ? house.indexOf(`## ${entries[i + 1]}\n`) : undefined);
+    assert.match(entry, /^\*\*Fix:\*\* /m, `${id} names no fix`);
+  });
+  // improve-plugin applies those fixes, so it points at the file and names every check in it.
+  const improve = text("skills", "improve-plugin", "SKILL.md");
+  assert.ok(improve.includes("core/references/mechanical-checks.md"));
+  for (const id of entries) assert.ok(improve.includes(id), `improve-plugin does not name ${id}`);
 });
 
 test("the workflows send their graders to rubric sections that exist", () => {
