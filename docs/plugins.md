@@ -6,14 +6,14 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 7 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 8 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 0 | collaboration |
 | [workflow-studio](#workflow-studio) | 1.0.2 | 0 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 0 | creative |
-| [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
+| [write-like-me](#write-like-me) | 1.0.1 | 0 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 2.1.0 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
@@ -79,6 +79,10 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
 | `/agentcraft:workflow-studio [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: author-workflow (). |
 | `/agentcraft:workflow-studio author-workflow` | by the agent | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
+| `/agentcraft:write-like-me [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: audit (); calibrate (); review (). |
+| `/agentcraft:write-like-me audit` | by the agent | Analyze existing text for AI-writing tells, report a verdict, and optionally rewrite it in the user's voice. Use when the user runs /agentcraft:write-like-me audit, asks "does this sound AI-written?", or wants a draft checked for AI tells. (Fresh prose is the write-like-me skill's job.) |
+| `/agentcraft:write-like-me calibrate` | when you ask for it | Build or rebuild the user's writing voice profile through sample analysis and a short interview. Use when the user runs /agentcraft:write-like-me calibrate: the plugin's one-time setup, and the full rebuild when the profile has drifted. |
+| `/agentcraft:write-like-me review` | when you ask for it | Show, prune, revert, or configure the user's writing profile and its auto-refinement history. Use when the user runs /agentcraft:write-like-me review to see what the learning loop changed, undo a revision, or pause learning. |
 
 ## agent-works
 
@@ -121,13 +125,6 @@ Version 0.3.0. [README](../plugins/picture-this/README.md), [changelog](../plugi
 Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.
 
 Version 1.0.1. [README](../plugins/write-like-me/README.md), [changelog](../plugins/write-like-me/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/write-like-me:audit` | by the agent, or by hand | Analyze existing text for AI-writing tells, report a verdict, and optionally rewrite it in the user's voice. Use when the user runs /write-like-me:audit, asks "does this sound AI-written?", or wants a draft checked for AI tells. (Fresh prose is the write-like-me skill's job.) |
-| `/write-like-me:calibrate` | by hand | Build or rebuild the user's writing voice profile through sample analysis and a short interview. Use when the user runs /write-like-me:calibrate: the plugin's one-time setup, and the full rebuild when the profile has drifted. |
-| `/write-like-me:review` | by hand | Show, prune, revert, or configure the user's writing profile and its auto-refinement history. Use when the user runs /write-like-me:review to see what the learning loop changed, undo a revision, or pause learning. |
-| `/write-like-me:write-like-me` | by the agent, or by hand | Write human-facing prose in the user's own voice, free of AI tells. Use EVERY time you are about to write or rewrite prose a human will read — emails, docs, READMEs, reports, posts, summaries, chat replies — and whenever the user says "draft", "write up", "humanize", "de-AI", "make it sound like me", or complains that text "sounds like AI". Prose only: code, commit messages, and PR descriptions are out of scope. |
 
 ## code-diet
 

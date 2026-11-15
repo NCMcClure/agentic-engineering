@@ -36,11 +36,11 @@ The message that invoked you names two resolved paths — use those, not guesses
      evict the least load-bearing one to make room.
    - When feedback contradicts an existing line, the feedback wins — revise
      the line, and flag the change prominently in your report so the user can
-     reverse it via `/write-like-me:review`. The changelog entry (step 3) is
+     reverse it via `/agentcraft:write-like-me review`. The changelog entry (step 3) is
      what makes the revision reversible; never skip it.
    - If no profile exists yet, create one containing only a `# Writing profile`
      heading, the section heading your line(s) belong under, and a note to run
-     `/write-like-me:calibrate`.
+     `/agentcraft:write-like-me calibrate`.
 
 3. Append one dated entry to the changelog:
 

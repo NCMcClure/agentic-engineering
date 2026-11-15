@@ -211,7 +211,7 @@ test("a shared copy that is missing or has drifted fails, and sync-shared --writ
   assert.equal(check.status, 1);
   assert.match(check.stdout, /^missing: plugins\/write-like-me\/hooks\/critical-context\.mjs/m);
   assert.match(check.stdout, /^drifted: plugins\/workflow-studio\/hooks\/critical-context\.mjs/m);
-  assert.equal(fs.existsSync(path.join(dir, "plugins/write-like-me/hooks/critical-context.mjs")), false, "a check writes nothing");
+  assert.equal(fs.existsSync(path.join(dir, "plugins/agentcraft/skills/write-like-me/hooks/critical-context.mjs")), false, "a check writes nothing");
 
   data(["hooks/critical-context.mjs"]);
   assert.equal(runNode("scripts/sync-shared.mjs", ["--root", dir, "--write"]).status, 0);

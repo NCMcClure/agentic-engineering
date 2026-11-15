@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "write-like-me");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "write-like-me");
 const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
 
 const NUDGE = "write-like-me: no writing profile found. Run /write-like-me:calibrate once to teach Claude your voice.";

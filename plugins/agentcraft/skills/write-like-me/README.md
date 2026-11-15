@@ -41,16 +41,16 @@ without Node the hooks switch themselves off and say so once per session.
 /plugin install write-like-me@agentic-engineering
 ```
 
-Then run `/write-like-me:calibrate` once.
+Then run `/agentcraft:write-like-me calibrate` once.
 
 ## Skills
 
 | Skill | Invocation | Does |
 |---|---|---|
 | `write-like-me` | automatic on prose tasks | drafts in your voice; self-checks against the AI-tells catalog |
-| `calibrate` | `/write-like-me:calibrate` | builds the profile from writing samples + a short interview |
-| `audit` | `/write-like-me:audit` or "does this sound AI?" | scans existing text for tell clusters, offers a rewrite |
-| `review` | `/write-like-me:review` | shows/prunes/reverts the profile, pauses learning |
+| `calibrate` | `/agentcraft:write-like-me calibrate` | builds the profile from writing samples + a short interview |
+| `audit` | `/agentcraft:write-like-me audit` or "does this sound AI?" | scans existing text for tell clusters, offers a rewrite |
+| `review` | `/agentcraft:write-like-me review` | shows/prunes/reverts the profile, pauses learning |
 
 ## State on disk
 
@@ -81,7 +81,7 @@ rm ~/.claude/rules/write-like-me.md
 ## The tells catalog
 
 The catalog Claude checks drafts against is
-[`skills/write-like-me/references/ai-tells.md`](skills/write-like-me/references/ai-tells.md):
+[`references/ai-tells.md`](references/ai-tells.md):
 a lexical framework (style-word categories plus the spoken-register test,
 rather than a decaying word list), structural/rhetorical patterns
 (rule-of-three runs, negative parallelism, hedging, uniform rhythm),

@@ -243,10 +243,10 @@ A calibrated profile of how the person writes, applied to prose a human will rea
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| build or rebuild the voice profile | `/write-like-me:calibrate` | person |
-| draft something in their voice | `/write-like-me:write-like-me` | agent |
-| check a draft for AI-writing tells | `/write-like-me:audit` | agent |
-| see or undo what the learning loop changed | `/write-like-me:review` | person |
+| build or rebuild the voice profile | `/agentcraft:write-like-me calibrate` | person |
+| draft something in their voice | `/agentcraft:write-like-me` | agent |
+| check a draft for AI-writing tells | `/agentcraft:write-like-me audit` | agent |
+| see or undo what the learning loop changed | `/agentcraft:write-like-me review` | person |
 
 ### workflow-studio
 

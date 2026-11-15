@@ -78,6 +78,17 @@
             "statusMessage": "Reading the team conventions"
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agentcraft hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/skills/write-like-me/hooks/session-start.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking for a writing profile"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -96,6 +107,15 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/stop-gate.mjs\"",
             "timeout": 300
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/write-like-me/hooks/stop.mjs\"",
+            "timeout": 30
           }
         ]
       }
@@ -147,6 +167,17 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/but-first-planning/hooks/plan-gate.mjs\"",
             "timeout": 30
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/write-like-me/hooks/prompt-submit.mjs\"",
+            "timeout": 5
           }
         ]
       }

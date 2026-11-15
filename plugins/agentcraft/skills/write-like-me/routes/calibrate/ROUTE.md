@@ -2,12 +2,13 @@
 name: calibrate
 description: >
   Build or rebuild the user's writing voice profile through sample analysis
-  and a short interview. Use when the user runs /write-like-me:calibrate: the
+  and a short interview. Use when the user runs /agentcraft:write-like-me calibrate: the
   plugin's one-time setup, and the full rebuild when the profile has drifted.
-disable-model-invocation: true
 ---
 
 # Calibrate: Build the Voice Profile
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
 Produce a **concise** profile of how the user writes, saved to the profile
 path (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE` if set —
@@ -56,7 +57,7 @@ captures five true things beats one that catalogs twenty.
    be an instruction Claude can act on while writing ("Short declarative
    openers; no throat-clearing greeting line") — a line that merely describes
    ("has a distinctive style") is dead weight; cut it. Verify the budget with
-   `node "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile-budget.mjs" <draft>` —
+   `node "W/scripts/wlm/profile-budget.mjs" <draft>` —
    it must exit 0 before you show the draft.
 
 6. **Show the user the full draft and iterate** until they approve it. Then
@@ -67,4 +68,4 @@ captures five true things beats one that catalogs twenty.
 Calibration is complete when the approved profile is on disk, the changelog
 entry exists, and you've told the user it now loads in every session — and
 that the plugin will keep refining it as they give style feedback, reviewable
-anytime via `/write-like-me:review`.
+anytime via `/agentcraft:write-like-me review`.

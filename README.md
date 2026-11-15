@@ -189,11 +189,11 @@ every session, skills audit text for AI tells by hunting clusters of
 co-occurring patterns rather than lone buzzwords, and reflective hooks fold
 your style feedback back into the profile.
 Prose only: code and commit messages stay out of scope.
-[Read more →](plugins/write-like-me/README.md)
+[Read more →](plugins/agentcraft/skills/write-like-me/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/write-like-me/assets/figures/profile-page-revised.dark.gif">
-  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="plugins/write-like-me/assets/figures/profile-page-revised.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/write-like-me/assets/figures/profile-page-revised.dark.gif">
+  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="plugins/agentcraft/skills/write-like-me/assets/figures/profile-page-revised.gif" width="720">
 </picture>
 
 <sub>One remark about your style becomes a line in the profile every later session loads.</sub>

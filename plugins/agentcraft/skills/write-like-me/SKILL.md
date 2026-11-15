@@ -1,12 +1,8 @@
 ---
 name: write-like-me
-description: >
-  Write human-facing prose in the user's own voice, free of AI tells. Use
-  EVERY time you are about to write or rewrite prose a human will read —
-  emails, docs, READMEs, reports, posts, summaries, chat replies — and
-  whenever the user says "draft", "write up", "humanize", "de-AI", "make it
-  sound like me", or complains that text "sounds like AI". Prose only: code,
-  commit messages, and PR descriptions are out of scope.
+description: "Routes are its arguments, not skills: audit (); calibrate (); review ()."
+user-invocable: false
+argument-hint: "[route] [the route's arguments]"
 ---
 
 # Write Like Me
@@ -20,7 +16,7 @@ The user's voice profile lives at `~/.claude/rules/write-like-me.md` (or
 `$WLM_PROFILE` if set) and is already in your context if it exists. It is the authority on tone, rhythm,
 vocabulary, and formatting; everything below fills only the space it leaves
 open. No profile in context? Write with the defaults below, and mention
-`/write-like-me:calibrate` once at the end of your reply — a one-time setup
+`/agentcraft:write-like-me calibrate` once at the end of your reply — a one-time setup
 that makes every future draft personal.
 
 ## Drafting moves
@@ -56,3 +52,23 @@ the user's voice, not by thesaurus-swapping the flagged word.
 Draft passes but reads flat? Read
 [references/natural-writing.md](references/natural-writing.md) for craft
 techniques, then revise once.
+
+## Route
+
+A route is `routes/<route>/ROUTE.md` under the directory this file is in, which the host names when it loads this skill.
+
+The arguments are the text this skill was invoked with. Their first word is the route: read that route's `ROUTE.md` and follow it, with the rest as its arguments. If the first word is not a route, the arguments are the task; with no arguments, the task is the one at hand. Take the route whose row fits the task.
+
+A route is a document to read, never a skill to call: no skill is named after one.
+
+| Route | In short | Use when | Arguments | Starts it |
+| --- | --- | --- | --- | --- |
+| `audit` |  | Use when the user runs /agentcraft:write-like-me audit, asks "does this sound AI-written?", or wants a draft checked for AI tells. |  | agent |
+| `calibrate` |  | Use when the user runs /agentcraft:write-like-me calibrate: the plugin's one-time setup, and the full rebuild when the profile has drifted. |  | person |
+| `review` |  | Use when the user runs /agentcraft:write-like-me review to see what the learning loop changed, undo a revision, or pause learning. |  | person |
+
+A `person` route runs when the person asks for it, by name or by what it does; never start one on your own. That holds when its name is the first word of the arguments too: read it only where the person in this session asked, or the arguments say they did (`start-here` says so when it hands one over). In a child session, a headless run, or a subagent, say that it needs a person, name it, and do not do its work another way.
+
+After a compaction, read your route's `ROUTE.md` again before going on: the host re-attaches this skill, not a file read by path.
+
+<!-- end of the generated Route section -->

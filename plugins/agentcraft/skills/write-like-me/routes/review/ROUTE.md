@@ -2,12 +2,13 @@
 name: review
 description: >
   Show, prune, revert, or configure the user's writing profile and its
-  auto-refinement history. Use when the user runs /write-like-me:review to see
+  auto-refinement history. Use when the user runs /agentcraft:write-like-me review to see
   what the learning loop changed, undo a revision, or pause learning.
-disable-model-invocation: true
 ---
 
 # Review: Inspect and Curate the Profile
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
 The profile (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE`
 if set) is auto-loaded into every session, and the Stop hook auto-applies
@@ -18,7 +19,7 @@ skill is the human valve on that loop.
 ## Steps
 
 1. **Show the current state.** Print the profile, run
-   `node "${CLAUDE_PLUGIN_ROOT}/scripts/wlm/profile-budget.mjs"` for the
+   `node "W/scripts/wlm/profile-budget.mjs"` for the
    line count against the budget, then show the recent entries from
    `${CLAUDE_PLUGIN_DATA}/changelog.md` so the user can see what was
    auto-applied and when. Flag any auto-applied revision that overwrote a
@@ -36,7 +37,7 @@ skill is the human valve on that loop.
    - **Pause/resume learning** — pause: create the empty file
      `${CLAUDE_PLUGIN_DATA}/state/refine-disabled`; resume: delete it.
      Confirm which state it's now in.
-   - **Full rebuild** — that's `/write-like-me:calibrate`; hand off rather
+   - **Full rebuild** — that's `/agentcraft:write-like-me calibrate`; hand off rather
      than reimplementing the interview here.
 
 3. **Write and log.** Any profile change gets a dated changelog entry

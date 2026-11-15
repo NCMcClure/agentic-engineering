@@ -2,7 +2,7 @@
 name: audit
 description: >
   Analyze existing text for AI-writing tells, report a verdict, and optionally
-  rewrite it in the user's voice. Use when the user runs /write-like-me:audit,
+  rewrite it in the user's voice. Use when the user runs /agentcraft:write-like-me audit,
   asks "does this sound AI-written?", or wants a draft checked for AI tells.
   (Fresh prose is the write-like-me skill's job.)
 ---
@@ -15,7 +15,7 @@ wants, rewrite it in their **voice**.
 ## Steps
 
 1. **Read the full catalog** at
-   [../write-like-me/references/ai-tells.md](../write-like-me/references/ai-tells.md)
+   [../../references/ai-tells.md](../../references/ai-tells.md)
    before judging — auditing uses the complete list, not the drafting subset.
 
 2. **Scan for clusters.** Walk the text and collect instances by category
