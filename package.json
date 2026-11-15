@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "version": "0.0.0",
-  "description": "Repo tooling for the agentic-engineering plugin marketplace. No dependencies, nothing published: plugins install from git.",
+  "description": "Repo tooling for the agentic-engineering marketplace and its one plugin, agentcraft. No dependencies, nothing published: the plugin installs from git.",
   "license": "MIT",
   "engines": {
     "node": ">=22"

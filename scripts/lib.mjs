@@ -125,95 +125,44 @@ export function namedPaths(line, names) {
   return [...line.matchAll(use)].map((m) => ({ name: m[1], path: m[2], quoted: m.index > 0 && "\"`".includes(line[m.index - 1]) }));
 }
 
-// ---- areas ---------------------------------------------------------------
-// The plugins are becoming one plugin whose skills are areas, one per former
-// plugin. An area is a skill directory that holds `routes/`, and each of the
-// former plugin's skills is a document there, `routes/<route>/ROUTE.md`.
-// These say where a former plugin's files are in that shape, for the script
-// that moves them and for every check that names one by its old path.
+// ---- one plugin of areas -------------------------------------------------
+// The marketplace ships one plugin whose skills are areas. An area is a skill
+// directory that holds `routes/`, and each route is a document there,
+// `routes/<route>/ROUTE.md`. Every other directory under plugins/ is a stub
+// left under a plugin's old name.
 
-/** The one plugin the plugins become areas of, and the skill a person types, which stays a skill. */
+/** The one plugin, and the skill a person types, which is the one skill of it that is not an area. */
 export const AREA_PLUGIN = "agentcraft";
 export const ENTRY_SKILL = "start-here";
-// What stays in the old directory, which becomes a stub: its manifest.
-const STAYS = /^\.claude-plugin(?:\/|$)/;
-// What the one plugin holds once, at its own root: the agents, the MCP
-// servers, the hook map, and the commands a plugin puts on PATH.
-const SHARED = /^(?:agents(?:\/|$)|bin(?:\/|$)|\.mcp\.json$|hooks\/hooks\.json$)/;
-// A skill that leaves its plugin for an area of its own: the context lens is
-// context-doctor's `lens` route, and its scripts and page are that area's.
-export const SPLIT = { "plugin-workbench": { "context-lens": { area: "context-doctor", route: "lens" } } };
 
-/**
- * A path under plugin `plugin`'s root as the path under the root of the one
- * plugin it becomes an area of, or null for what stays behind. A skill named
- * after its plugin is the area's own directory, any other skill is a route,
- * and applying it to its own answer changes nothing.
- */
-export function areaPath(plugin, rest) {
-  if (STAYS.test(rest)) return null;
-  if (SHARED.test(rest)) return rest;
-  const area = `skills/${plugin}`;
-  if (!rest) return area;
-  const [top, skill, ...deeper] = rest.split("/");
-  if (top !== "skills") return `${area}/${rest}`;
-  if (!skill) return `${area}/routes${rest.endsWith("/") ? "/" : ""}`;
-  if (skill === plugin) return [area, ...deeper].join("/");
-  if (skill === ENTRY_SKILL) return rest;
-  const split = SPLIT[plugin]?.[skill];
-  if (split) {
-    // Its instructions are the new area's route; everything beside them is the area's own.
-    if (deeper.length === 1 && deeper[0] === "SKILL.md") return `skills/${split.area}/routes/${split.route}/ROUTE.md`;
-    return ["skills", split.area, ...deeper].join("/");
-  }
-  if (deeper.length === 1 && deeper[0] === "SKILL.md") return `${area}/routes/${skill}/ROUTE.md`;
-  return [area, "routes", skill, ...deeper].join("/");
-}
-
-const subdirs = (dir) => { try { return fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort(); } catch { return []; } };
-
-/** The plugin that holds an area named `name` in the tree at `root`, or null. */
-export const areaOwner = (root, name) =>
-  subdirs(path.join(root, "plugins")).find((plugin) => subdirs(path.join(root, "plugins", plugin, "skills", name)).includes("routes")) ?? null;
-
-/**
- * Where a file named by its path in the plugin-per-directory shape is in the
- * tree at `root`: the same path, until the plugin it is under is an area of
- * another, and then its path there.
- */
-export function placed(root, rel) {
-  const [, plugin, rest] = /^plugins\/([^/]+)(?:\/(.*))?$/.exec(rel) ?? [];
-  const owner = plugin && areaOwner(root, plugin);
-  const to = owner && owner !== plugin ? areaPath(plugin, rest ?? "") : null;
-  return to == null ? rel : `plugins/${owner}/${to}`;
-}
+/** A stub is named after the area its plugin became, bar the two whose plugin was renamed before it moved in. */
+export const STUB_AREA = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
 
 // Files duplicated on purpose: a canonical file, and the copies held
-// hash-equal to it. The one plugin keeps one copy of what its areas share (in
-// its lib/), so the only pairs left are files a route copies into a user's
-// repo, where nothing can reach back into the plugin.
+// hash-equal to it. The plugin keeps one copy of what its areas share (in its
+// lib/), so the only pairs left are files a route copies into a user's repo,
+// where nothing can reach back into the plugin.
 export const HASH_PAIRS = [
   { canonical: "plugins/agentcraft/lib/provider.mjs", copies: ["plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/provider.mjs"] },
 ];
 
-// The trees a plugin copies into a user's repo. A file there is another
-// repo's file once copied: what it names is in that repo, and a copy already
-// out there does not change when this one does. Each is given by the plugin
-// it is in today and its path there.
+// The trees a route copies into a user's repo. A file there is another repo's
+// file once copied: what it names is in that repo, and a copy already out
+// there does not change when this one does.
 const TEMPLATE_TREES = [
-  ["agentic-teamwork", "templates/"],
-  ["agent-works", "assets/templates/"],
-  ["but-first-planning", "skills/spec-init/assets/"],
-  ["docs-parity", "skills/docs-init/assets/"],
-  ["system-map", "skills/diagrams-init/assets/"],
-  ["write-like-me", "skills/calibrate/assets/"],
-  ["picture-this", "kit/"],
-  ["picture-this", "blank/"],
+  "plugins/agentcraft/skills/agentic-teamwork/templates/",
+  "plugins/agentcraft/skills/agent-works/assets/templates/",
+  "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/",
+  "plugins/agentcraft/skills/docs-parity/routes/docs-init/assets/",
+  "plugins/agentcraft/skills/system-map/routes/diagrams-init/assets/",
+  "plugins/agentcraft/skills/write-like-me/routes/calibrate/assets/",
+  "plugins/agentcraft/skills/picture-this/kit/",
+  "plugins/agentcraft/skills/picture-this/blank/",
 ];
 
-/** Whether a tracked file is a template copy, by its path as a plugin's or as an area's. */
+/** Whether a tracked file is a template copy: under one of those trees, or the canonical file of a pair whose copy is. */
 export const isTemplateCopy = (f) =>
-  TEMPLATE_TREES.some(([plugin, tree]) => f.startsWith(`plugins/${plugin}/${tree}`) || f.replace(/^plugins\/[^/]+\//, "").startsWith(areaPath(plugin, tree)))
+  TEMPLATE_TREES.some((tree) => f.startsWith(tree))
   || HASH_PAIRS.some((pair) => pair.canonical === f && pair.copies.some((copy) => isTemplateCopy(copy)));
 
 // Files that record what a session did, or what a board held: the live lane's

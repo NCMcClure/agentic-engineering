@@ -1,48 +1,86 @@
 // validate.mjs against a copy of this checkout with one thing broken at a
 // time. Each case asserts the finding it expects, not only the exit code.
+//
+// The tree has one shape: the one plugin, whose skills are the entry skill
+// and the areas, and beside it a stub under each old plugin name. So what a
+// case adds is an area (`tidy`, with one route), a stub for it, or both.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
-import { AREA_PLUGIN as ONE, hookCommand } from "../../lib.mjs";
+import { AREA_PLUGIN as ONE, hookCommand, parseHookCommand } from "../../lib.mjs";
 import { REPO, runNode, tree } from "./helpers.mjs";
 
 const CATALOG = ".claude-plugin/marketplace.json";
 const gate = (dir, ...args) => runNode("scripts/validate.mjs", ["--root", dir, ...args]);
-// A tree with a plugin added or renamed needs its guide written again; every
-// case but the guide's own wants that done, so it is not what fails.
+// A tree with an area added or renamed needs its generated files written
+// again; every case but the generator's own wants that done, so it is not
+// what fails.
 const validate = (dir, ...args) => {
   runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]);
   return gate(dir, ...args);
 };
 const entry = (name, fn) => (m) => ({ ...m, plugins: m.plugins.map((p) => (p.name === name ? fn(p) : p)) });
+const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
 
-// A plugin that meets every rule: what a new one looks like.
-const TIDY = {
-  "plugins/tidy/.claude-plugin/plugin.json": `${JSON.stringify({ name: "tidy", version: "0.1.0", description: "A plugin with nothing to waive." }, null, 2)}\n`,
-  "plugins/tidy/README.md": "# tidy\n\nNothing to waive.\n",
-  "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **0.1.0**: first release.\n",
-  "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\n---\n\n# sweep\n",
-};
-const listTidy = (m) => ({ ...m, plugins: [...m.plugins, { name: "tidy", source: "./plugins/tidy", description: "Nothing to waive.", category: "testing" }] });
-// A plugin is an area a person is offered, so a new one joins a group of the
-// entry skill's data, with what it is picked for and a skill to hand off to.
-const ENTRY_DATA = "plugins/agentcraft/skills/start-here/start-here.json";
-const ENTRY_FILE = "plugins/agentcraft/skills/start-here/SKILL.md";
+const HOME = `plugins/${ONE}`;
+const MANIFEST = `${HOME}/.claude-plugin/plugin.json`;
+const VERSION = JSON.parse(fs.readFileSync(path.join(REPO, MANIFEST), "utf8")).version;
+const ENTRY_DATA = `${HOME}/skills/start-here/start-here.json`;
+const ENTRY_FILE = `${HOME}/skills/start-here/SKILL.md`;
+
+// An area that meets every rule: what a new one looks like. Its SKILL.md is
+// the generator's to write.
+// The stub's name is never written beside a colon or an @ here: in a tree
+// where it is a stub, this file's own lines would be read as its old addresses.
+const STUB = "tidy";
+const TIDY_AREA = `${HOME}/skills/tidy`;
+const SWEEP = `${TIDY_AREA}/routes/sweep/ROUTE.md`;
+const route = (name, body = `# ${name}\n\nDo it.\n`, extra = "") => `---\nname: ${name}\ndescription: "Does ${name}. Use when ${name} is wanted."\n${extra}---\n\n${body}`;
+const TIDY_DOOR = { lead: "Keeps the floor clean.", default: "sweep", routes: { sweep: { cue: "sweep the floor" } } };
+// A person is asked about every area, so a new one joins a group of the entry
+// skill's data, with what it is picked for and a route to hand off to.
 const askTidy = (d) => ({
   groups: d.groups.map((g, i) => (i === d.groups.length - 1 ? { ...g, areas: [...g.areas, "tidy"] } : g)),
   areas: { ...d.areas, tidy: { cue: "sweep the floor", how: "It sweeps.", uses: [{ want: "a clean floor", to: "sweep" }] } },
 });
-const withTidy = (extra = {}) => ({
-  json: { [CATALOG]: listTidy, [ENTRY_DATA]: askTidy },
-  write: { ...TIDY, ...extra },
+const withArea = ({ door = TIDY_DOOR, write = {}, text = {}, json: edits = {} } = {}) => ({
+  json: { [ENTRY_DATA]: askTidy, ...edits },
+  text,
+  write: { [`${TIDY_AREA}/door.json`]: json(door), [SWEEP]: route("sweep"), ...write },
 });
+
+// What is left under a plugin's old name once it is an area: a manifest that
+// depends on the one plugin, a README, and its history.
+const TIDY_STUB = { name: "tidy", version: "1.0.0", description: `Moved: tidy is an area of ${ONE} now.`, dependencies: [ONE] };
+const stubFiles = (manifest = TIDY_STUB) => ({
+  "plugins/tidy/.claude-plugin/plugin.json": json(manifest),
+  "plugins/tidy/README.md": `# tidy\n\nMoved into ${ONE}, as its tidy area.\n`,
+  "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **1.0.0**: moved in as the tidy area.\n",
+});
+const listTidy = (m) => ({ ...m, plugins: [...m.plugins, { name: "tidy", source: "./plugins/tidy", description: `Moved into ${ONE}.`, category: "moved" }] });
+/** The area and the stub it left behind. */
+const moved = ({ stub = TIDY_STUB, write = {}, ...rest } = {}) => withArea({ ...rest, json: { [CATALOG]: listTidy }, write: { ...stubFiles(stub), ...write } });
 
 test("this checkout passes", (t) => {
   const result = validate(tree(t));
   assert.equal(result.status, 0, result.stdout);
   assert.match(result.stdout, /^validate: all green$/m);
+  assert.match(result.stdout, /^ok: 13 areas: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
+  assert.match(result.stdout, /^ok: 14 stubs: each depends on the plugin it moved into/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 13 areas/m);
+});
+
+test("a new area that meets every rule passes, and so does the stub of a plugin that became one", (t) => {
+  const alone = validate(tree(t, withArea()));
+  assert.equal(alone.status, 0, alone.stdout);
+  assert.match(alone.stdout, /^ok: 14 areas: /m);
+  const both = validate(tree(t, moved()));
+  assert.equal(both.status, 0, both.stdout);
+  assert.match(both.stdout, /^ok: 15 stubs: each depends on the plugin it moved into/m);
+  assert.match(both.stdout, /^ok: \d+ addresses resolve \(.*\), [1-9]\d* of them on through an area to its route$/m);
+  assert.match(both.stdout, /^ok: the entry skill offers 14 areas/m);
 });
 
 test("a catalog entry with a version key fails", (t) => {
@@ -52,9 +90,20 @@ test("a catalog entry with a version key fails", (t) => {
 });
 
 test("a plugin directory with no catalog entry fails", (t) => {
-  const result = validate(tree(t, { write: TIDY }));
+  const result = validate(tree(t, { write: stubFiles() }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/tidy has no catalog entry/m);
+});
+
+// One shape: a directory under plugins/ is the one plugin or a stub. A plugin
+// with skills of its own is neither, and is told where they belong.
+test("a second plugin with skills of its own is not a shape the tree has: it fails as a stub that ships them", (t) => {
+  const own = { name: "tidy", version: "0.1.0", description: "A plugin with skills of its own." };
+  const result = validate(tree(t, { json: { [CATALOG]: listTidy }, write: { ...stubFiles(own), "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\n---\n\n# sweep\n", "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **0.1.0**: first release.\n" } }));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, new RegExp(`^FAIL: tidy: a plugin directory is ${ONE} or the stub of a plugin that became one of its areas, and tidy is not an area; what is new goes in as one, ${HOME}/skills/<area>/`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: tidy: a stub's plugin\\.json carries "dependencies": \\["${ONE}"\\], so an install of the old name brings the plugin it moved into`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: plugins/tidy/skills/sweep/SKILL\\.md: a stub holds its manifest, a README\\.md, a CHANGELOG\\.md, and nothing else; this belongs in ${HOME}/skills/tidy/`, "m"));
 });
 
 test("an external entry passes as a github object and fails as an unknown kind", (t) => {
@@ -68,99 +117,96 @@ test("an external entry passes as a github object and fails as an unknown kind",
 });
 
 // History has one home: CHANGELOG.md inside the plugin, newest first, its top
-// entry the version plugin.json carries. A README keeps no changelog.
-test("a plugin with no CHANGELOG.md fails", (t) => {
-  const result = validate(tree(t, { remove: ["plugins/agentcraft/skills/code-diet/CHANGELOG.md"] }));
+// entry the one version, which plugin.json carries. A README keeps no
+// changelog. An area's CHANGELOG.md is its history as a plugin of its own,
+// and is held to nothing.
+test("the plugin with no CHANGELOG.md fails, and an area without one does not", (t) => {
+  const result = validate(tree(t, { remove: [`${HOME}/CHANGELOG.md`] }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: code-diet: missing CHANGELOG\.md/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${ONE}: missing CHANGELOG\\.md`, "m"));
+  const area = validate(tree(t, { remove: [`${HOME}/skills/code-diet/CHANGELOG.md`] }));
+  assert.doesNotMatch(area.stdout, /^FAIL: .*CHANGELOG/m);
 });
 
 test("a CHANGELOG.md whose top entry is not the plugin.json version fails", (t) => {
-  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a version plugin.json does not carry.\n") } }));
+  const result = validate(tree(t, { text: { [`${HOME}/CHANGELOG.md`]: (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a version plugin.json does not carry.\n") } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: code-diet: CHANGELOG\.md top entry is 9\.9\.9, plugin\.json is /m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${ONE}: CHANGELOG\\.md top entry is 9\\.9\\.9, plugin\\.json is `, "m"));
 });
 
 test("a README that still carries a ## Changelog section fails", (t) => {
-  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/README.md": (s) => `${s}\n## Changelog\n\n- 0.0.1: history kept in the wrong place.\n` } }));
+  const result = validate(tree(t, { text: { [`${HOME}/README.md`]: (s) => `${s}\n## Changelog\n\n- 0.0.1: history kept in the wrong place.\n` } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: code-diet: README carries a "## Changelog" section/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${ONE}: README carries a "## Changelog" section`, "m"));
 });
 
-// Plugins run on Node, and a skill's frontmatter carries five keys.
-test("a plugin is held to the Node-only rules", (t) => {
-  const result = validate(tree(t, withTidy({
-    "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nlicense: MIT\n---\n\n# sweep\n",
-    "plugins/tidy/hooks/guard.py": "print('swept')\n",
+// The plugin runs on Node, and a skill's frontmatter carries five keys.
+test("the plugin is held to the Node-only rules, and a skill to its five keys", (t) => {
+  const result = validate(tree(t, withArea({
+    write: { [`${TIDY_AREA}/hooks/guard.py`]: "print('swept')\n" },
+    text: { [ENTRY_FILE]: (s) => s.replace("argument-hint:", "license: MIT\nargument-hint:") },
   })));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/guard\.py is not Node/m);
-  assert.match(result.stdout, /^FAIL: tidy\/sweep: frontmatter key "license" is not one of the five allowed/m);
-});
-
-test("a skill kept out of the slash menu with user-invocable passes the frontmatter rule", (t) => {
-  const result = validate(tree(t, withTidy({
-    "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\nuser-invocable: false\n---\n\n# sweep\n",
-  })));
-  assert.doesNotMatch(result.stdout, /frontmatter key/);
-});
-
-test("a new plugin that meets every rule passes", (t) => {
-  const result = validate(tree(t, withTidy()));
-  assert.equal(result.status, 0, result.stdout);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${TIDY_AREA}/hooks/guard\\.py is not Node`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${ONE}/start-here: frontmatter key "license" is not one of the five allowed`, "m"));
 });
 
 test("a file with no extension is judged by its shebang", (t) => {
-  const result = validate(tree(t, withTidy({ "plugins/tidy/bin/tidy": "#!/bin/sh\necho swept\n", "plugins/tidy/bin/sweep": "#!/usr/bin/env node\nconsole.log('swept');\n" })));
+  const result = validate(tree(t, { write: { [`${HOME}/bin/tidy`]: "#!/bin/sh\necho swept\n", [`${HOME}/bin/sweep`]: "#!/usr/bin/env node\nconsole.log('swept');\n" } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/tidy\/bin\/tidy runs under "\/bin\/sh", not Node/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HOME}/bin/tidy runs under "/bin/sh", not Node`, "m"));
   assert.doesNotMatch(result.stdout, /bin\/sweep/);
 });
 
-// Hooks: known events, commands inside the plugin, a module the host can load.
-const hooks = (map) => withTidy({
-  "plugins/tidy/hooks/hooks.json": `${JSON.stringify(map, null, 2)}\n`,
-  "plugins/tidy/hooks/start.mjs": "process.exitCode = 0;\n",
-  "plugins/tidy/hooks/pane.tsx": "export {};\n",
+// Hooks: the plugin has one map. Known events, commands inside the plugin, a
+// module the host can load.
+const MAP = `${HOME}/hooks/hooks.json`;
+const WHERE = `${ONE}/hooks/hooks\\.json`;
+const mapped = (fn, write = {}) => ({
+  json: { [MAP]: fn },
+  write: { [`${HOME}/hooks/start.mjs`]: "process.exitCode = 0;\n", [`${HOME}/hooks/pane.tsx`]: "export {};\n", ...write },
 });
-const command = (file, { plugin = "tidy", loud = true, ...rest } = {}) => ({ hooks: [{ type: "command", command: hookCommand(plugin, `hooks/${file}`, { loud }), statusMessage: "Tidying", ...rest }] });
+const command = (file, { loud = false, ...rest } = {}) => ({ hooks: [{ type: "command", command: hookCommand(ONE, `hooks/${file}`, { loud }), statusMessage: "Tidying", ...rest }] });
+const on = (event, ...groups) => (m) => ({ ...m, hooks: { ...m.hooks, [event]: [...(m.hooks[event] ?? []), ...groups] } });
+const modules = (...list) => (m) => ({ ...m, modules: [...(m.modules ?? []), ...list] });
 
 test("a hook on a known event that points inside the plugin passes", (t) => {
-  const result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs")] }, modules: ["./start.mjs"] })));
+  const result = validate(tree(t, mapped((m) => modules("./start.mjs")(on("PreToolUse", command("start.mjs"))(m)))));
   assert.equal(result.status, 0, result.stdout);
 });
 
 test("an unknown hook event and a command that points at nothing both fail", (t) => {
-  const result = validate(tree(t, hooks({ hooks: { SessionStarted: [command("missing.mjs")] } })));
+  const result = validate(tree(t, mapped(on("SessionStarted", command("missing.mjs")))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: "SessionStarted" is not a known hook event/m);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json points at hooks\/missing\.mjs, which is not in the plugin/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: "SessionStarted" is not a known hook event`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE} points at hooks/missing\\.mjs, which is not in the plugin`, "m"));
 });
 
 test("a hooks module that is missing, outside the plugin, or not .mjs fails", (t) => {
-  const result = validate(tree(t, hooks({ modules: ["./missing.mjs", "../../code-diet/README.md", "./pane.tsx"] })));
+  const result = validate(tree(t, mapped(modules("./missing.mjs", "../../code-diet/README.md", "./pane.tsx"))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: module \.\/missing\.mjs does not exist/m);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: module \.\.\/\.\.\/code-diet\/README\.md is outside the plugin/m);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: module \.\/pane\.tsx is not a \.mjs or \.js file/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\./missing\\.mjs does not exist`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\.\\./\\.\\./code-diet/README\\.md is outside the plugin`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\./pane\\.tsx is not a \\.mjs or \\.js file`, "m"));
 });
 
 test("an absolute machine path in a tracked file fails", (t) => {
   const home = ["", "Users", "someone", "checkout"].join("/");
-  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/README.md": (s) => `${s}\nInstall from ${home}.\n` } }));
+  const file = `${HOME}/skills/code-diet/README.md`;
+  const result = validate(tree(t, { text: { [file]: (s) => `${s}\nInstall from ${home}.\n` } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/code-diet\/README\.md carries an absolute machine path/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${file.replace(".", "\\.")} carries an absolute machine path`, "m"));
 });
 
 test("a Node file that calls process.exit fails, a test's one-line command included, and a comment does not", (t) => {
   const call = ["process", "exit(1)"].join(".");
-  const result = validate(tree(t, withTidy({
-    "plugins/tidy/skills/sweep/sweep.mjs": `console.log("swept");\n${call};\n`,
-    "plugins/tidy/skills/sweep/note.mjs": `// never ${call}: set the exit code\nprocess.exitCode = 1;\n`,
+  const result = validate(tree(t, { write: {
+    [`${HOME}/skills/code-diet/scripts/sweep.mjs`]: `console.log("swept");\n${call};\n`,
+    [`${HOME}/skills/code-diet/scripts/note.mjs`]: `// never ${call}: set the exit code\nprocess.exitCode = 1;\n`,
     "scripts/test-hooks/unit/tidy.test.mjs": `const FAILING = 'node -e "${call}"';\n`,
-  })));
+  } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: plugins\/tidy\/skills\/sweep\/sweep\.mjs:2 calls process\.exit: set process\.exitCode and let Node unwind/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HOME}/skills/code-diet/scripts/sweep\\.mjs:2 calls process\\.exit: set process\\.exitCode and let Node unwind`, "m"));
   assert.match(result.stdout, /^FAIL: scripts\/test-hooks\/unit\/tidy\.test\.mjs:1 calls process\.exit/m);
   assert.doesNotMatch(result.stdout, /note\.mjs/);
   assert.equal(result.stdout.match(/^FAIL: /gm).length, 2, result.stdout);
@@ -175,32 +221,37 @@ test("a hub that is gone, or a CLAUDE.md that is its own file, fails", (t) => {
 
 // A Node hook sits behind a guard, so a machine without Node hears about it
 // once, at session start, instead of failing on every event.
-test("a Node hook with no guard, a quiet one at session start, or no status message fails", (t) => {
+test("a Node hook with no guard, a session start where none tells the person, or no status message fails", (t) => {
   const bare = { hooks: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.mjs"', statusMessage: "Tidying" }] };
-  let result = validate(tree(t, hooks({ hooks: { PreToolUse: [bare] } })));
+  let result = validate(tree(t, mapped(on("PreToolUse", bare))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the PreToolUse command for hooks\/start\.mjs has no guard for a machine without Node/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: the PreToolUse command for hooks/start\\.mjs has no guard for a machine without Node`, "m"));
 
-  result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs", { loud: false, statusMessage: undefined })] } })));
+  // Every SessionStart command made quiet, and one more with nothing to show while it runs.
+  const quiet = (h) => {
+    const parsed = parseHookCommand(h.command, ONE);
+    return parsed?.guard === "loud" ? { ...h, command: hookCommand(ONE, parsed.script, { loud: false }) } : h;
+  };
+  const hushed = (m) => on("SessionStart", command("start.mjs", { statusMessage: undefined }))({ ...m, hooks: { ...m.hooks, SessionStart: m.hooks.SessionStart.map((g) => ({ ...g, hooks: g.hooks.map(quiet) })) } });
+  result = validate(tree(t, mapped(hushed)));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: .*the SessionStart command for hooks\/start\.mjs must use the guard that tells the person Node is missing/m);
+  assert.match(result.stdout, /^FAIL: .*the SessionStart command for hooks\/session-start\.mjs must use the guard that tells the person Node is missing/m);
   assert.match(result.stdout, /^FAIL: .*the SessionStart command for hooks\/start\.mjs has no statusMessage/m);
 
-  result = validate(tree(t, hooks({ hooks: { PreToolUse: [command("start.mjs", { loud: false })], Stop: [{ hooks: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.mjs" && echo done' }] }] } })));
+  result = validate(tree(t, mapped((m) => on("Stop", { hooks: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/start.mjs" && echo done' }] })(on("PreToolUse", command("start.mjs"))(m)))));
   assert.equal(result.status, 1);
   assert.doesNotMatch(result.stdout, /PreToolUse/, "the quiet guard is enough off session start");
   assert.match(result.stdout, /^FAIL: .*the Stop command is not a guard followed by node/m);
 });
 
 test("one SessionStart command tells the person Node is missing: a second loud one, or a loud one on another event, fails", (t) => {
-  const files = { "plugins/tidy/hooks/second.mjs": "process.exitCode = 0;\n" };
-  let result = validate(tree(t, { ...hooks({ hooks: { SessionStart: [command("start.mjs"), command("second.mjs")] } }), write: { ...hooks({}).write, ...files, "plugins/tidy/hooks/hooks.json": `${JSON.stringify({ hooks: { SessionStart: [command("start.mjs"), command("second.mjs")] } })}\n` } }));
+  let result = validate(tree(t, mapped(on("SessionStart", command("start.mjs", { loud: true })))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the SessionStart command for hooks\/second\.mjs repeats the guard that tells the person Node is missing; hooks\/start\.mjs says it, and the rest stay quiet/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: the SessionStart command for hooks/start\\.mjs repeats the guard that tells the person Node is missing; hooks/session-start\\.mjs says it, and the rest stay quiet`, "m"));
 
-  result = validate(tree(t, hooks({ hooks: { SessionStart: [command("start.mjs")], Stop: [command("start.mjs")] } })));
+  result = validate(tree(t, mapped(on("Stop", command("start.mjs", { loud: true })))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: tidy\/hooks\/hooks\.json: the Stop command for hooks\/start\.mjs uses the guard that tells the person Node is missing; only a SessionStart command does/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: the Stop command for hooks/start\\.mjs uses the guard that tells the person Node is missing; only a SessionStart command does`, "m"));
 });
 
 // Shared files: what several areas use sits once, in the one plugin's lib/,
@@ -234,7 +285,6 @@ test("the copy a route puts in a user's repo is held equal to the one in lib/", 
 // The session hooks: one helper, each area's lines as data under its cap, and
 // a hook map that runs the lines once per event and the briefing once.
 const HELPER = `plugins/${ONE}/hooks/critical-context.mjs`;
-const MAP = `plugins/${ONE}/hooks/hooks.json`;
 const line = (text, extra = {}) => ({ for: "all", mode: "any", text, ...extra });
 const lines = (name, data) => ({ [AREA(name, "hooks/critical.json")]: `${JSON.stringify({ area: name, ...data }, null, 2)}\n` });
 const where = (name) => `FAIL: plugins/${ONE}/skills/${name}/hooks/critical\\.json: `;
@@ -341,14 +391,16 @@ test("a hook map that runs the lines other than once per event, or the briefing 
 const entryData = (fn) => ({ json: { [ENTRY_DATA]: fn } });
 const area = (name, fn) => (d) => ({ ...d, areas: { ...d.areas, [name]: fn(d.areas[name]) } });
 
-test("a plugin the entry skill never asks about fails, and so does one it asks about that is not there", (t) => {
-  const unasked = validate(tree(t, { json: { [CATALOG]: listTidy }, write: TIDY }));
+test("an area the entry skill never asks about fails, and so does one it asks about that is not there; a stub is never asked about", (t) => {
+  const unasked = validate(tree(t, { ...withArea(), json: {} }));
   assert.equal(unasked.status, 1);
   assert.match(unasked.stdout, /^FAIL: .*start-here\.json: no group asks about tidy, so a person is never offered it/m);
-  const gone = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, areas: [...g.areas.slice(1), "no-such-plugin"] })) }))));
-  assert.match(gone.stdout, /^FAIL: .*a group names no-such-plugin, which is not a plugin of this catalog/m);
+  const gone = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, areas: [...g.areas.slice(1), "no-such-area"] })) }))));
+  assert.match(gone.stdout, new RegExp(`^FAIL: .*a group names no-such-area, which is not an area of ${ONE}`, "m"));
   assert.match(gone.stdout, /^FAIL: .*no group asks about but-first-planning/m);
   assert.match(gone.stdout, /^FAIL: .*an entry for but-first-planning, which no group names/m);
+  // The two stubs whose plugin was renamed before it moved in are old names for an area, not something to offer.
+  assert.doesNotMatch(validate(tree(t)).stdout, /no group asks about (marvelous-miro|animated-storytelling)/);
 });
 
 test("the entry skill's data is held to what a question can offer", (t) => {
@@ -362,18 +414,18 @@ test("the entry skill's data is held to what a question can offer", (t) => {
   assert.match(label.stdout, /^FAIL: .*"Plan and run work" needs a header of 1 to 12 characters/m);
 });
 
-test("a use of the entry skill names a skill that is there, and says so when only a person can start it", (t) => {
-  const result = validate(tree(t, entryData((d) => area("agentic-teamwork", (a) => ({ ...a, uses: [{ want: "a thing nobody ships", to: "no-such-skill" }, { want: "set a repo up", to: "bootstrap" }, { want: "ship it", to: "ship", starts: "person" }] }))(d))));
+test("a use of the entry skill names a route that is there, and says so when only a person can start it", (t) => {
+  const result = validate(tree(t, entryData((d) => area("agentic-teamwork", (a) => ({ ...a, uses: [{ want: "a thing nobody ships", to: "no-such-route" }, { want: "set a repo up", to: "bootstrap" }, { want: "ship it", to: "ship", starts: "person" }] }))(d))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: .*agentic-teamwork hands off to no-such-skill, which is not one of its skills/m);
-  assert.match(result.stdout, /^FAIL: .*\/agentic-teamwork:bootstrap is one only a person can start, so its use says "starts": "person"/m);
-  assert.match(result.stdout, /^FAIL: .*\/agentic-teamwork:ship can be started by an agent, so its use carries no "starts": "person"/m);
+  assert.match(result.stdout, /^FAIL: .*agentic-teamwork hands off to no-such-route, which is not one of its routes/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:agentic-teamwork bootstrap is one only a person can start, so its use says "starts": "person"`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:agentic-teamwork ship can be started by an agent, so its use carries no "starts": "person"`, "m"));
 });
 
 test("an entry skill whose areas section is stale, or that a person could not type, fails", (t) => {
   // The data moved and the skill was not regenerated.
   const dir = tree(t, entryData(area("code-diet", (a) => ({ ...a, cue: "cut what the code does not need" }))));
-  assert.match(gate(dir).stdout, /^FAIL: plugins\/agentcraft\/skills\/start-here\/SKILL\.md is stale: node scripts\/gen-guide\.mjs --write/m);
+  assert.match(gate(dir).stdout, new RegExp(`^FAIL: ${ENTRY_FILE.replace(".", "\\.")} is stale: node scripts/gen-guide\\.mjs --write`, "m"));
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
   assert.match(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8"), /\| `code-diet` \| cut what the code does not need \|/);
@@ -386,81 +438,45 @@ test("an entry skill whose areas section is stale, or that a person could not ty
 });
 
 // The guide is generated, so a copy that differs from a fresh one is stale.
+// It lists the plugin with its one version, each area with its routes as an
+// agent's addresses, and each stub with the area it became: never a stub's
+// alias, which is an address nothing should be sent to.
 test("a plugin guide that is missing or stale fails, and gen-guide --write repairs it", (t) => {
-  const dir = tree(t, { json: { "plugins/code-diet/.claude-plugin/plugin.json": (m) => ({ ...m, version: "9.9.9" }) }, text: { "plugins/agentcraft/skills/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a bump the guide has not seen.\n") } });
+  const dir = tree(t, { json: { [MANIFEST]: (m) => ({ ...m, version: "9.9.9" }) }, text: { [`${HOME}/CHANGELOG.md`]: (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a bump the guide has not seen.\n") } });
   assert.match(gate(dir).stdout, /^FAIL: docs\/plugins\.md is stale: node scripts\/gen-guide\.mjs --write/m);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
-  assert.match(fs.readFileSync(path.join(dir, "docs/plugins.md"), "utf8"), /\| \[code-diet\]\(#code-diet\) \| 9\.9\.9 \|/);
+  const guide = fs.readFileSync(path.join(dir, "docs/plugins.md"), "utf8");
+  assert.match(guide, /^Version 9\.9\.9\. /m);
+  assert.match(guide, new RegExp(`^Install it with \`/plugin install ${ONE}@agentic-engineering\``, "m"));
+  assert.match(guide, /^\| marvelous-miro \| \d+\.\d+\.\d+ \| the \[system-map\]\(#system-map\) area \|$/m);
+  assert.doesNotMatch(guide, /plan-decompose` \| by the agent \| Moved/, "a stub's alias is not listed as a skill");
   assert.equal(gate(dir).status, 0);
   fs.rmSync(path.join(dir, "docs/plugins.md"));
   assert.match(gate(dir).stdout, /^FAIL: docs\/plugins\.md is missing/m);
 });
 
-// A tag releases one plugin: it names the version that plugin's plugin.json carries.
-test("--tag passes on the plugin.json version and fails on any other", (t) => {
-  const dir = tree(t, withTidy());
-  const good = validate(dir, "--tag", "tidy/v0.1.0");
+// One version, so one tag form: the plugin's name and the version its plugin.json carries.
+test("--tag passes on the plugin's version and fails on any other, a stub's tag included", (t) => {
+  const dir = tree(t);
+  const good = gate(dir, "--tag", `${ONE}/v${VERSION}`);
   assert.equal(good.status, 0, good.stdout);
   for (const [tag, finding] of [
-    ["tidy/v0.2.0", /^FAIL: tag "tidy\/v0\.2\.0" says 0\.2\.0, but .* is at 0\.1\.0/m],
-    ["untidy/v0.1.0", /^FAIL: tag "untidy\/v0\.1\.0" names plugins\/untidy, which does not exist/m],
-    ["v0.1.0", /^FAIL: tag "v0\.1\.0" is not <plugin>\/v<version>/m],
+    [`${ONE}/v99.0.0`, new RegExp(`^FAIL: tag "${ONE}/v99\\.0\\.0" says 99\\.0\\.0, but .* is at ${VERSION.replaceAll(".", "\\.")}`, "m")],
+    ["code-diet/v2.0.0", new RegExp(`^FAIL: tag "code-diet/v2\\.0\\.0" names code-diet; the one release tag is ${ONE}/v<version>, and a stub is never tagged`, "m")],
+    ["v0.1.0", new RegExp(`^FAIL: tag "v0\\.1\\.0" is not ${ONE}/v<version>`, "m")],
   ]) {
-    const bad = validate(dir, "--tag", tag);
+    const bad = gate(dir, "--tag", tag);
     assert.equal(bad.status, 1, tag);
     assert.match(bad.stdout, finding);
   }
 });
 
-// ---- one plugin of areas ---------------------------------------------------
-// The plugins are becoming areas of one plugin, and until they have the gate
-// takes both shapes. A plugin that moved in is an area there, a skill
-// directory that holds routes/, and what is left under its old name is a stub.
-// The one plugin's name is never written beside a colon here: an address
-// under it is held to what it ships, in this file as in any other.
-const HOME = `plugins/${ONE}`;
-// Nor is the stub's name written beside a colon or an @: in a tree where it is
-// a stub, this file's own lines would be read as its old addresses.
-const STUB = "tidy";
-const TIDY_AREA = `${HOME}/skills/tidy`;
-const SWEEP = `${TIDY_AREA}/routes/sweep/ROUTE.md`;
-const route = (name, body = `# ${name}\n\nDo it.\n`, extra = "") => `---\nname: ${name}\ndescription: "Does ${name}. Use when ${name} is wanted."\n${extra}---\n\n${body}`;
-const TIDY_STUB = { name: "tidy", version: "1.0.0", description: `Moved: tidy is an area of ${ONE} now.`, dependencies: [ONE] };
-const TIDY_DOOR = { lead: "Keeps the floor clean.", default: "sweep", routes: { sweep: { cue: "sweep the floor" } } };
-const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
-// Once a tree holds an area, every address in it is held to what its plugin
-// ships. These files name addresses that are not there, as fixtures and as
-// examples, and are rewritten by hand when the plugins move; until then a
-// tree with an area leaves them out.
-const UNHELD = ["docs/known-limits.md", "scripts/test-hooks/unit/agent-works-common.test.mjs", "scripts/test-hooks/unit/live-lane.test.mjs", "scripts/test-hooks/unit/perceptual-loop-hooks.test.mjs", "scripts/test-hooks/unit/plugin-workbench-context-lens.test.mjs"];
-const moved = ({ stub = TIDY_STUB, door = TIDY_DOOR, write = {}, text = {} } = {}) => ({
-  json: { [CATALOG]: listTidy, [ENTRY_DATA]: askTidy },
-  text,
-  write: {
-    "plugins/tidy/.claude-plugin/plugin.json": json(stub),
-    "plugins/tidy/README.md": `# tidy\n\nMoved into ${ONE}, as its tidy area.\n`,
-    "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **1.0.0**: moved in as the tidy area.\n",
-    [`${TIDY_AREA}/door.json`]: json(door),
-    [SWEEP]: route("sweep"),
-    ...write,
-  },
-  remove: UNHELD,
-});
-
-test("a tree that holds one area and the stub it left behind passes, each held to its own rules", (t) => {
-  const result = validate(tree(t, moved()));
-  assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^ok: 1 area: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
-  assert.match(result.stdout, /^ok: 1 stub: each depends on the plugin it moved into/m);
-  assert.match(result.stdout, /^ok: \d+ addresses resolve \(.*\), [1-9]\d* of them on through an area to its route$/m);
-  assert.match(result.stdout, /^ok: the entry skill offers 13 areas/m);
-});
-
+// ---- an area, a stub, and what names them --------------------------------
 // One tree with a thing wrong for every rule the shape brings, judged once:
 // a copy of the checkout and a run of the gate are what these cases cost.
-// A plugin of this checkout is moved in by the script as well, since the
-// aliases a stub owes are listed by plugin.
+// The one plugin's name is never written beside a colon here: an address
+// under it is held to what it ships, in this file as in any other.
 const PLANNING = ["but-first", "planning"].join("-");
 const ROUTE_STEPS = [
   "# sweep",
@@ -471,6 +487,7 @@ const ROUTE_STEPS = [
   "Unquoted: node W/scripts/pan.mjs --now",
   "Filled in by nothing: `node \"${CLAUDE_PLUGIN_ROOT}/skills/tidy/scripts/pan.mjs\"`.",
   "Copied from another route: `node \"R/scripts/pan.mjs\"`.",
+  "What it swept is kept in `${CLAUDE_PLUGIN_DATA}/tidy`.",
   "",
 ].join("\n");
 const PAGE = [`Run /${STUB}:sweep.`, `Or /${ONE}:brush.`, `Or \`/${ONE}:tidy mop\`.`, `Or /${ONE}:nothing.`, `This works: \`/${ONE}:tidy sweep\`, and so does /${ONE}:tidy.`].join("\n");
@@ -485,7 +502,7 @@ const broken = () => (brokenOnce ??= (() => {
     stub: { name: "tidy", version: "1.0.0", description: "A plugin with nothing to waive.", hooks: "./hooks/hooks.json" },
     door: { lead: "", default: "mop", routes: { sweep: { cue: "" }, wipe: { cue: "wipe the table", starts: "nobody" } } },
     write: {
-      "plugins/tidy/skills/sweep/SKILL.md": TIDY["plugins/tidy/skills/sweep/SKILL.md"],
+      "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\n---\n\n# sweep\n",
       "plugins/tidy/CHANGELOG.md": `# Changelog\n\n- **1.0.0**: moved in as the tidy area; /${STUB}:sweep is history.\n`,
       [SWEEP]: route("sweep", ROUTE_STEPS),
       [`${TIDY_AREA}/scripts/pan.mjs`]: "export {};\n",
@@ -495,28 +512,21 @@ const broken = () => (brokenOnce ??= (() => {
       [`${TIDY_AREA}/routes/empty/notes.md`]: "No route here.\n",
       [`${HOME}/skills/polish/SKILL.md`]: "---\nname: polish\ndescription: Use when the brass needs polishing.\n---\n\n# polish\n",
       "docs/moved.md": `${PAGE}\n`,
+      // One alias as it should be, and one with everything an alias may not be.
+      [`plugins/${PLANNING}/skills/plan-decompose/SKILL.md`]: alias("plan-decompose", `\`/${ONE}:${PLANNING} plan-decompose\``),
+      [`plugins/${PLANNING}/skills/spec-open/SKILL.md`]: alias("spec-open", `a route of the planning area. ${"It says far too much. ".repeat(40)}`, "disable-model-invocation: true\n"),
     },
     text: {
       "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${STUB}@agentic-engineering\`.\n`,
-      "plugins/agentcraft/hooks/critical-context.mjs": (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
-      "plugins/agentcraft/skills/agent-works/hooks/kanban/register.mjs": (s) => s.replaceAll("mcp__agent-works__", "mcp__kanban__"),
+      [`${HOME}/hooks/critical-context.mjs`]: (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
+      [`${HOME}/skills/agent-works/hooks/kanban/register.mjs`]: (s) => s.replaceAll(`mcp__${ONE}__`, "mcp__kanban__"),
     },
   }));
-  const moving = runNode("scripts/door-plugin.mjs", [PLANNING, "--root", dir, "--write"]);
-  assert.equal(moving.status, 0, moving.stdout + moving.stderr);
-  // One alias as it should be, and one with everything an alias may not be.
-  const at = (rel) => path.join(dir, rel);
-  for (const [name, text] of [
-    ["plan-decompose", alias("plan-decompose", `\`/${ONE}:${PLANNING} plan-decompose\``)],
-    ["spec-open", alias("spec-open", `a route of the planning area. ${"It says far too much. ".repeat(40)}`, "disable-model-invocation: true\n")],
-  ]) {
-    fs.mkdirSync(at(`plugins/${PLANNING}/skills/${name}`), { recursive: true });
-    fs.writeFileSync(at(`plugins/${PLANNING}/skills/${name}/SKILL.md`), text);
-  }
   runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]);
   // The area as the generator wrote it, then made hidden, and its block doubled.
-  const area = fs.readFileSync(at(`${TIDY_AREA}/SKILL.md`), "utf8");
-  fs.writeFileSync(at(`${TIDY_AREA}/SKILL.md`), `${area.replace("user-invocable: false\n", "disable-model-invocation: true\n")}\n${area.slice(area.indexOf("## Route"))}`);
+  const file = path.join(dir, `${TIDY_AREA}/SKILL.md`);
+  const text = fs.readFileSync(file, "utf8");
+  fs.writeFileSync(file, `${text.replace("user-invocable: false\n", "disable-model-invocation: true\n")}\n${text.slice(text.indexOf("## Route"))}`);
   execFileSync("git", ["-C", dir, "add", "-A"], { stdio: "pipe" });
   return gate(dir).stdout;
 })());
@@ -534,7 +544,7 @@ test("an area's data, its routes, and what sits beside it are held to the shape"
     /^FAIL: \S+\/tidy: routes\/brush\/ROUTE\.md's frontmatter name is "bristle"/m,
     /^FAIL: \S+\/tidy: routes\/brush\/ROUTE\.md's frontmatter key "disable-model-invocation" is not one a route carries \(name, description, argument-hint\)/m,
     /^FAIL: plugins\/\S+\/skills\/tidy\/routes\/brush\/SKILL\.md is a SKILL\.md below the tidy area/m,
-    /^FAIL: \S+\/polish: a skill of a plugin that holds areas is start-here or an area; this one is neither/m,
+    /^FAIL: \S+\/polish: a skill of \S+ is start-here or an area; this one is neither/m,
   ]) assert.match(broken(), finding);
 });
 
@@ -566,7 +576,7 @@ test("a stub's alias gives the route's new address and nothing else, callable an
   assert.match(bad[3], /^an alias gives the new address, \//);
 });
 
-test("an address resolves once the tree holds an area: an old plugin name, a route named as a skill, and a word that is no route each fail with what to write", () => {
+test("an address resolves to what the plugin ships: an old plugin name, a route named as a skill, and a word that is no route each fail with what to write", () => {
   const found = findings("docs/moved.md").map((l) => l.slice(0, l.lastIndexOf(" (")));
   assert.deepEqual(found, [
     `FAIL: docs/moved.md:1: /${STUB}:sweep names tidy as a plugin, and it is an area of ${ONE}; write /${ONE}:tidy sweep`,
@@ -577,13 +587,14 @@ test("an address resolves once the tree holds an area: an old plugin name, a rou
   assert.deepEqual(findings("plugins/tidy/CHANGELOG.md"), [], "history keeps what it says");
 });
 
-test("a route names its directories from its own file and writes no root variable, and a plugin-root path in an area's markdown is in the plugin", () => {
+test("a route names its directories from its own file and writes neither variable the host fills in, and a plugin-root path in an area's markdown is in the plugin", () => {
   const found = findings(SWEEP).map((l) => l.slice(`FAIL: ${SWEEP}:`.length));
-  assert.equal(found.length, 4, found.join("\n"));
+  assert.equal(found.length, 5, found.join("\n"));
   assert.match(found[0], /^10: W\/scripts\/broom\.mjs is not there/);
   assert.match(found[1], /^11: W\/scripts\/pan\.mjs is not quoted; write "W\/scripts\/pan\.mjs" in a command/);
   assert.match(found[2], /^12: a route writes no \$\{CLAUDE_PLUGIN_ROOT\}: read by path it is not filled in/);
   assert.match(found[3], /^13: R\/scripts\/pan\.mjs is under `R`, which this file does not declare/);
+  assert.match(found[4], /^14: a route writes no \$\{CLAUDE_PLUGIN_DATA\}: read by path it is not filled in; the area's SKILL\.md, which the host does fill in, names the data directory/);
   const readme = findings(`${TIDY_AREA}/README.md`);
   assert.equal(readme.length, 1, readme.join("\n"));
   assert.match(readme[0], /README\.md:3: \$\{CLAUDE_PLUGIN_ROOT\}\/skills\/tidy\/scripts\/mop\.mjs is not in plugins\/\w+/);
@@ -591,8 +602,8 @@ test("a route names its directories from its own file and writes no root variabl
 
 // Two lists that stop matching without a word when a name moves: the agents
 // the session hook says nothing to, and the prefix the host gives a mod's tools.
-test("a DENYLIST entry names an agent its plugin ships, and the mod's tools carry the prefix of the plugin that loads it", () => {
-  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: plugins/agentcraft/agents/nobody\\.md is not there`, "m"));
+test("a DENYLIST entry names an agent the plugin ships, and the mod's tools carry the plugin's prefix", () => {
+  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: ${HOME}/agents/nobody\\.md is not there`, "m"));
   assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${WAS}" names an agent by the plugin it was in; tidy is an area of ${ONE}, so the host names it ${ONE}:critic`, "m"));
-  assert.match(broken(), /^FAIL: plugins\/agent-works\/hooks\/kanban\/register\.mjs answers mcp__kanban__\w+; the mod's tools are mcp__agent-works__<tool>/m);
+  assert.match(broken(), new RegExp(`^FAIL: ${HOME}/skills/agent-works/hooks/kanban/register\\.mjs answers mcp__kanban__\\w+; the mod's tools are mcp__${ONE}__<tool>`, "m"));
 });
