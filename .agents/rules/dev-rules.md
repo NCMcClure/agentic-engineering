@@ -51,6 +51,49 @@ When a rule changes, change the check in the same commit.
 - No `.DS_Store`, `node_modules/`, build artifacts, or caches in the tree. LF
   line endings everywhere.
 
+## One plugin of areas
+
+The plugins are becoming areas of one plugin, `agentcraft`. Until the cutover the
+gate takes both shapes: a plugin with its own skills, held to everything above,
+and an area of `agentcraft`, held to what follows. None of it finds anything to
+judge in a tree with no area and no stub.
+
+- An area is a skill directory that holds `routes/`:
+  `plugins/agentcraft/skills/<area>/`. Its data is `door.json` beside its
+  `SKILL.md`: `lead` (one sentence, one line), `default` (one of its routes), and
+  `routes` in table order, each with a `cue` of 1 to 60 characters and
+  `"starts": "person"` where only a person starts it. `npm run guide` writes the
+  area's frontmatter and its `## Route` block, through the end marker; the text on
+  either side is the author's. An area carries `user-invocable: false` and stays
+  callable by a model. Its description is capped at 1,536 characters, its body at
+  8,000.
+- A route is a document, `routes/<route>/ROUTE.md`, which no host lists. Its
+  frontmatter carries only `name` (the directory's), `description`, and
+  `argument-hint`. It is read by path, so it never writes
+  `${CLAUDE_PLUGIN_ROOT}`: it names a directory from its own file ("`W` below is
+  `../..` from the directory this file is in") and writes each path under it,
+  quoted in a command and in a code span of its own in prose. No `SKILL.md` sits
+  below an area, and a plugin that holds areas lists areas and `start-here`, and
+  nothing else.
+- A stub is what stays under a plugin's old name once it has moved in: its
+  manifest, with `"dependencies": ["agentcraft"]` and a description that names
+  `agentcraft`, a `README.md`, a `CHANGELOG.md`, and whatever `ALIASES` and
+  `STUB_EXTRAS` in `scripts/validate.mjs` list for it. An alias answers an address
+  a copied file still prints: callable, `user-invocable: false`, 600 characters at
+  most, and it gives the route's new address. No install line names a stub.
+- A route's address is its area, then the route as the first argument:
+  `/agentcraft:<area> <route>`. Once the tree holds an area, every address in a
+  tracked file resolves to a skill, an agent, or an MCP server its plugin ships,
+  and the word after an area is one of its routes. A route named as a skill and
+  an area named as a plugin each fail with what to write. A `CHANGELOG.md`, a
+  recording, and a template copy keep what they say.
+- An agent and an MCP server are named by the plugin that ships them, and so is
+  a mod's tool prefix: a `DENYLIST` entry and `mcp__<plugin>__<tool>` follow a
+  plugin that moves.
+- `node scripts/door-plugin.mjs <plugin> --write` moves one plugin in, and
+  `scripts/door-plugin.checklist.md` lists what a hand finishes after it. Both
+  are deleted with the cutover.
+
 ## Shared files
 
 - `scripts/shared/` holds the files several plugins ship unchanged, since a plugin

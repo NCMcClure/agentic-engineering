@@ -83,7 +83,9 @@ and for skills a session can call and those only a person can start
 - `fixtures.mjs` - the fixture repos both lanes use, written as static trees.
 - `hooks.test.mjs`, `cases/` - the hook cases.
 - `unit/` - tests of the repo's own tooling (the validator and the installer,
-  each run against a throwaway copy) and one suite per file in `scripts/shared/`.
+  each run against a throwaway copy; the generator and the script that moves a
+  plugin into the one plugin, each on a fixture marketplace) and one suite per
+  file in `scripts/shared/`.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
   `reach.mjs` what counts as reaching a skill. The transcript reader is

@@ -4,8 +4,8 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
-import { test } from "node:test";
-import { hookCommand } from "../../lib.mjs";
+import { after, test } from "node:test";
+import { AREA_PLUGIN as ONE, hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tree } from "./helpers.mjs";
 
 const CATALOG = ".claude-plugin/marketplace.json";
@@ -374,4 +374,188 @@ test("--tag passes on the plugin.json version and fails on any other", (t) => {
     assert.equal(bad.status, 1, tag);
     assert.match(bad.stdout, finding);
   }
+});
+
+// ---- one plugin of areas ---------------------------------------------------
+// The plugins are becoming areas of one plugin, and until they have the gate
+// takes both shapes. A plugin that moved in is an area there, a skill
+// directory that holds routes/, and what is left under its old name is a stub.
+// The one plugin's name is never written beside a colon here: an address
+// under it is held to what it ships, in this file as in any other.
+const HOME = `plugins/${ONE}`;
+// Nor is the stub's name written beside a colon or an @: in a tree where it is
+// a stub, this file's own lines would be read as its old addresses.
+const STUB = "tidy";
+const TIDY_AREA = `${HOME}/skills/tidy`;
+const SWEEP = `${TIDY_AREA}/routes/sweep/ROUTE.md`;
+const route = (name, body = `# ${name}\n\nDo it.\n`, extra = "") => `---\nname: ${name}\ndescription: "Does ${name}. Use when ${name} is wanted."\n${extra}---\n\n${body}`;
+const TIDY_STUB = { name: "tidy", version: "1.0.0", description: `Moved: tidy is an area of ${ONE} now.`, dependencies: [ONE] };
+const TIDY_DOOR = { lead: "Keeps the floor clean.", default: "sweep", routes: { sweep: { cue: "sweep the floor" } } };
+const json = (value) => `${JSON.stringify(value, null, 2)}\n`;
+// Once a tree holds an area, every address in it is held to what its plugin
+// ships. These files name addresses that are not there, as fixtures and as
+// examples, and are rewritten by hand when the plugins move; until then a
+// tree with an area leaves them out.
+const UNHELD = ["docs/known-limits.md", "scripts/test-hooks/unit/agent-works-common.test.mjs", "scripts/test-hooks/unit/live-lane.test.mjs", "scripts/test-hooks/unit/perceptual-loop-hooks.test.mjs", "scripts/test-hooks/unit/plugin-workbench-context-lens.test.mjs"];
+const moved = ({ stub = TIDY_STUB, door = TIDY_DOOR, write = {}, text = {} } = {}) => ({
+  json: { [CATALOG]: listTidy, [ENTRY_DATA]: askTidy },
+  text,
+  write: {
+    "plugins/tidy/.claude-plugin/plugin.json": json(stub),
+    "plugins/tidy/README.md": `# tidy\n\nMoved into ${ONE}, as its tidy area.\n`,
+    "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **1.0.0**: moved in as the tidy area.\n",
+    [`${TIDY_AREA}/door.json`]: json(door),
+    [SWEEP]: route("sweep"),
+    ...write,
+  },
+  remove: UNHELD,
+});
+
+test("a tree that holds one area and the stub it left behind passes, each held to its own rules", (t) => {
+  const result = validate(tree(t, moved()));
+  assert.equal(result.status, 0, result.stdout);
+  assert.match(result.stdout, /^ok: 1 area: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
+  assert.match(result.stdout, /^ok: 1 stub: each depends on the plugin it moved into/m);
+  assert.match(result.stdout, /^ok: \d+ addresses resolve \(.*\), [1-9]\d* of them on through an area to its route$/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 13 areas/m);
+});
+
+// One tree with a thing wrong for every rule the shape brings, judged once:
+// a copy of the checkout and a run of the gate are what these cases cost.
+// A plugin of this checkout is moved in by the script as well, since the
+// aliases a stub owes are listed by plugin.
+const PLANNING = ["but-first", "planning"].join("-");
+const ROUTE_STEPS = [
+  "# sweep",
+  "",
+  "`W` below is `../..` from the directory this file is in.",
+  "",
+  "Run `node \"W/scripts/pan.mjs\"`, which is there, then `node \"W/scripts/broom.mjs\"`, which is not.",
+  "Unquoted: node W/scripts/pan.mjs --now",
+  "Filled in by nothing: `node \"${CLAUDE_PLUGIN_ROOT}/skills/tidy/scripts/pan.mjs\"`.",
+  "Copied from another route: `node \"R/scripts/pan.mjs\"`.",
+  "",
+].join("\n");
+const PAGE = [`Run /${STUB}:sweep.`, `Or /${ONE}:brush.`, `Or \`/${ONE}:tidy mop\`.`, `Or /${ONE}:nothing.`, `This works: \`/${ONE}:tidy sweep\`, and so does /${ONE}:tidy.`].join("\n");
+// Built, never written out: an entry here is an address to this file's own gate.
+const GONE = ["code-diet", "nobody"].join(":"), WAS = [STUB, "critic"].join(":");
+const alias = (name, to, extra = "user-invocable: false\n") => `---\nname: ${name}\ndescription: Use when a file still prints the old address of ${name}.\n${extra}---\n\nMoved: this is ${to} now.\n`;
+const cleanups = [];
+after(() => { for (const fn of cleanups) fn(); });
+let brokenOnce;
+const broken = () => (brokenOnce ??= (() => {
+  const dir = tree({ after: (fn) => cleanups.push(fn) }, moved({
+    stub: { name: "tidy", version: "1.0.0", description: "A plugin with nothing to waive.", hooks: "./hooks/hooks.json" },
+    door: { lead: "", default: "mop", routes: { sweep: { cue: "" }, wipe: { cue: "wipe the table", starts: "nobody" } } },
+    write: {
+      "plugins/tidy/skills/sweep/SKILL.md": TIDY["plugins/tidy/skills/sweep/SKILL.md"],
+      "plugins/tidy/CHANGELOG.md": `# Changelog\n\n- **1.0.0**: moved in as the tidy area; /${STUB}:sweep is history.\n`,
+      [SWEEP]: route("sweep", ROUTE_STEPS),
+      [`${TIDY_AREA}/scripts/pan.mjs`]: "export {};\n",
+      [`${TIDY_AREA}/README.md`]: "# tidy\n\nThe pan is `${CLAUDE_PLUGIN_ROOT}/skills/tidy/scripts/pan.mjs`, and the mop is `${CLAUDE_PLUGIN_ROOT}/skills/tidy/scripts/mop.mjs`.\n",
+      [`${TIDY_AREA}/routes/brush/ROUTE.md`]: route("bristle", undefined, "disable-model-invocation: true\n"),
+      [`${TIDY_AREA}/routes/brush/SKILL.md`]: "---\nname: brush\ndescription: Use when the floor needs brushing.\n---\n\n# brush\n",
+      [`${TIDY_AREA}/routes/empty/notes.md`]: "No route here.\n",
+      [`${HOME}/skills/polish/SKILL.md`]: "---\nname: polish\ndescription: Use when the brass needs polishing.\n---\n\n# polish\n",
+      "docs/moved.md": `${PAGE}\n`,
+    },
+    text: {
+      "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${STUB}@agentic-engineering\`.\n`,
+      "scripts/shared/critical-context.mjs": (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
+      "plugins/agent-works/hooks/kanban/register.mjs": (s) => s.replaceAll("mcp__agent-works__", "mcp__kanban__"),
+    },
+  }));
+  const moving = runNode("scripts/door-plugin.mjs", [PLANNING, "--root", dir, "--write"]);
+  assert.equal(moving.status, 0, moving.stdout + moving.stderr);
+  // One alias as it should be, and one with everything an alias may not be.
+  const at = (rel) => path.join(dir, rel);
+  for (const [name, text] of [
+    ["plan-decompose", alias("plan-decompose", `\`/${ONE}:${PLANNING} plan-decompose\``)],
+    ["spec-open", alias("spec-open", `a route of the planning area. ${"It says far too much. ".repeat(40)}`, "disable-model-invocation: true\n")],
+  ]) {
+    fs.mkdirSync(at(`plugins/${PLANNING}/skills/${name}`), { recursive: true });
+    fs.writeFileSync(at(`plugins/${PLANNING}/skills/${name}/SKILL.md`), text);
+  }
+  runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]);
+  // The area as the generator wrote it, then made hidden, and its block doubled.
+  const area = fs.readFileSync(at(`${TIDY_AREA}/SKILL.md`), "utf8");
+  fs.writeFileSync(at(`${TIDY_AREA}/SKILL.md`), `${area.replace("user-invocable: false\n", "disable-model-invocation: true\n")}\n${area.slice(area.indexOf("## Route"))}`);
+  execFileSync("git", ["-C", dir, "add", "-A"], { stdio: "pipe" });
+  return gate(dir).stdout;
+})());
+const findings = (file) => broken().split("\n").filter((l) => l.startsWith(`FAIL: ${file}`));
+
+test("an area's data, its routes, and what sits beside it are held to the shape", () => {
+  for (const finding of [
+    /^FAIL: \S+\/tidy: the area has no lead; door\.json's lead is one sentence/m,
+    /^FAIL: \S+\/tidy: the area has no default route: "mop" is not one of its routes/m,
+    /^FAIL: \S+\/tidy: the cue for sweep is 0 characters; a cue is 1 to 60/m,
+    /^FAIL: \S+\/tidy: route wipe is started by "nobody"; it is "agent" or "person"/m,
+    /^FAIL: \S+\/tidy: the area routes wipe, and routes\/wipe\/ROUTE\.md is not there/m,
+    /^FAIL: \S+\/tidy: route brush is not in the area's Route table; give it a cue in door\.json/m,
+    /^FAIL: \S+\/tidy: routes\/empty has no ROUTE\.md/m,
+    /^FAIL: \S+\/tidy: routes\/brush\/ROUTE\.md's frontmatter name is "bristle"/m,
+    /^FAIL: \S+\/tidy: routes\/brush\/ROUTE\.md's frontmatter key "disable-model-invocation" is not one a route carries \(name, description, argument-hint\)/m,
+    /^FAIL: plugins\/\S+\/skills\/tidy\/routes\/brush\/SKILL\.md is a SKILL\.md below the tidy area/m,
+    /^FAIL: \S+\/polish: a skill of a plugin that holds areas is start-here or an area; this one is neither/m,
+  ]) assert.match(broken(), finding);
+});
+
+test("an area the generator did not write is stale, and one made hidden or given a second block is refused", () => {
+  assert.match(broken(), /^FAIL: plugins\/\S+\/skills\/tidy\/SKILL\.md is stale or missing; run node scripts\/gen-guide\.mjs --write/m);
+  assert.match(broken(), /^FAIL: \S+\/tidy: an area carries user-invocable: false/m);
+  assert.match(broken(), /^FAIL: \S+\/tidy: an area stays callable: disable-model-invocation: true hides it from the model/m);
+  assert.match(broken(), /^FAIL: \S+\/tidy: the area holds 2 end markers and 2 Route table headers; one generated block has one of each/m);
+});
+
+test("a stub depends on the plugin it moved into, ships nothing of its own, and no install line names it", () => {
+  for (const finding of [
+    /^FAIL: tidy: a stub's plugin\.json carries "dependencies": \["\w+"\], so an install of the old name brings the plugin it moved into/m,
+    /^FAIL: tidy: a stub's description says where it moved: it names \w+/m,
+    /^FAIL: tidy: a stub's plugin\.json names hooks, and a stub ships none/m,
+    /^FAIL: plugins\/tidy\/skills\/sweep\/SKILL\.md: a stub holds its manifest, a README\.md, a CHANGELOG\.md, and nothing else; this belongs in plugins\/\w+\/skills\/tidy\//m,
+    new RegExp(`^FAIL: README\\.md:\\d+: tells its reader to install ${STUB}@agentic-engineering, a stub; the plugin to install is ${ONE}@agentic-engineering`, "m"),
+  ]) assert.match(broken(), finding);
+});
+
+test("a stub's alias gives the route's new address and nothing else, callable and out of the slash menu", () => {
+  const of = (name) => broken().split("\n").filter((l) => l.startsWith(`FAIL: ${PLANNING}/${name}: `)).map((l) => l.slice(`FAIL: ${PLANNING}/${name}: `.length));
+  assert.deepEqual(of("plan-decompose"), [], "an alias that only says where to go");
+  const bad = of("spec-open");
+  assert.equal(bad.length, 4, bad.join("\n"));
+  assert.match(bad[0], /^an alias stays callable by a model: hidden, the host refuses the old address/);
+  assert.match(bad[1], /^an alias carries user-invocable: false/);
+  assert.match(bad[2], /^an alias says where the route moved and nothing else; its body is \d+ characters, over 600/);
+  assert.match(bad[3], /^an alias gives the new address, \//);
+});
+
+test("an address resolves once the tree holds an area: an old plugin name, a route named as a skill, and a word that is no route each fail with what to write", () => {
+  const found = findings("docs/moved.md").map((l) => l.slice(0, l.lastIndexOf(" (")));
+  assert.deepEqual(found, [
+    `FAIL: docs/moved.md:1: /${STUB}:sweep names tidy as a plugin, and it is an area of ${ONE}; write /${ONE}:tidy sweep`,
+    `FAIL: docs/moved.md:2: /${ONE}:brush names a route of the tidy area directly; write /${ONE}:tidy brush`,
+    `FAIL: docs/moved.md:3: /${ONE}:tidy mop: mop is not a route of the tidy area; an area named alone is followed by punctuation or the end of its code span`,
+    `FAIL: docs/moved.md:4: /${ONE}:nothing is not a skill, agent, or MCP server of ${ONE}`,
+  ]);
+  assert.deepEqual(findings("plugins/tidy/CHANGELOG.md"), [], "history keeps what it says");
+});
+
+test("a route names its directories from its own file and writes no root variable, and a plugin-root path in an area's markdown is in the plugin", () => {
+  const found = findings(SWEEP).map((l) => l.slice(`FAIL: ${SWEEP}:`.length));
+  assert.equal(found.length, 4, found.join("\n"));
+  assert.match(found[0], /^10: W\/scripts\/broom\.mjs is not there/);
+  assert.match(found[1], /^11: W\/scripts\/pan\.mjs is not quoted; write "W\/scripts\/pan\.mjs" in a command/);
+  assert.match(found[2], /^12: a route writes no \$\{CLAUDE_PLUGIN_ROOT\}: read by path it is not filled in/);
+  assert.match(found[3], /^13: R\/scripts\/pan\.mjs is under `R`, which this file does not declare/);
+  const readme = findings(`${TIDY_AREA}/README.md`);
+  assert.equal(readme.length, 1, readme.join("\n"));
+  assert.match(readme[0], /README\.md:3: \$\{CLAUDE_PLUGIN_ROOT\}\/skills\/tidy\/scripts\/mop\.mjs is not in plugins\/\w+/);
+});
+
+// Two lists that stop matching without a word when a name moves: the agents
+// the session hook says nothing to, and the prefix the host gives a mod's tools.
+test("a DENYLIST entry names an agent its plugin ships, and the mod's tools carry the prefix of the plugin that loads it", () => {
+  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: plugins/code-diet/agents/nobody\\.md is not there`, "m"));
+  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${WAS}" names an agent by the plugin it was in; tidy is an area of ${ONE}, so the host names it ${ONE}:critic`, "m"));
+  assert.match(broken(), /^FAIL: plugins\/agent-works\/hooks\/kanban\/register\.mjs answers mcp__kanban__\w+; the mod's tools are mcp__agent-works__<tool>/m);
 });

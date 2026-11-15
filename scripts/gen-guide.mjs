@@ -12,6 +12,11 @@
 // whether only a person can start it, is read from the tree. The rest of that
 // skill is written by hand and never touched.
 //
+// And, once a plugin holds areas, each area's frontmatter and "## Route" table,
+// from door.json beside its SKILL.md and each route document's frontmatter.
+// An area is a skill directory that holds routes/; the plugins are becoming
+// areas of one plugin, and there is none in the tree until they do.
+//
 // Usage: node scripts/gen-guide.mjs [--write] [--root <dir>]
 //
 // Without --write it says whether each file is current and exits 1 if one is
@@ -19,7 +24,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { parseFrontmatter, readJson } from "./lib.mjs";
+import { AREA_PLUGIN, ENTRY_SKILL as ENTRY, parseFrontmatter, readJson, skillBody } from "./lib.mjs";
 
 export const GUIDE = "docs/plugins.md";
 
@@ -32,7 +37,7 @@ function skillsOf(dir) {
   return fs.readdirSync(skills, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort().flatMap((name) => {
     const file = path.join(skills, name, "SKILL.md");
     const fm = fs.existsSync(file) ? parseFrontmatter(fs.readFileSync(file, "utf8")) : null;
-    return fm ? [{ name, hint: fm["argument-hint"] ?? "", byHand: String(fm["disable-model-invocation"]) === "true", description: fm.description ?? "" }] : [];
+    return fm ? [{ name, hint: fm["argument-hint"] ?? "", byHand: String(fm["disable-model-invocation"]) === "true", agentOnly: String(fm["user-invocable"]) === "false", area: fs.existsSync(path.join(skills, name, "routes")), description: fm.description ?? "" }] : [];
   });
 }
 
@@ -59,14 +64,196 @@ export function guide(root) {
     out.push("", `## ${entry.name}`, "", `${cell(entry.description)}`, "", `Version ${manifest.version}. [README](../plugins/${entry.name}/README.md), [changelog](../plugins/${entry.name}/CHANGELOG.md).`);
     if (!skills.length) continue;
     out.push("", "| Skill | Started | When |", "|---|---|---|");
-    for (const s of skills) out.push(`| \`/${entry.name}:${s.name}${s.hint ? ` ${cell(s.hint)}` : ""}\` | ${s.byHand ? "by hand" : "by the agent, or by hand"} | ${cell(s.description)} |`);
+    for (const s of skills) {
+      out.push(`| \`/${entry.name}:${s.name}${s.hint ? ` ${cell(s.hint)}` : ""}\` | ${s.byHand ? "by hand" : s.agentOnly ? "by the agent" : "by the agent, or by hand"} | ${cell(s.description)} |`);
+      if (!s.area) continue;
+      // An area's routes, by the address that reaches each: the area, then the route as its first argument.
+      for (const r of routesOf(root, entry.name, s.name)) out.push(`| \`/${entry.name}:${s.name} ${r.name}${r.hint ? ` ${cell(r.hint)}` : ""}\` | ${r.person ? "when you ask for it" : "by the agent"} | ${cell(r.description)} |`);
+    }
   }
   return `${out.join("\n")}\n`;
 }
 
+// ---- an area's routes ----------------------------------------------------
+// An area's data is door.json beside its SKILL.md:
+//
+//   { "lead": "<what the area is for, one sentence>",
+//     "default": "<the route a bare invocation falls to>",
+//     "routes": { "<route>": { "cue": "<60 characters at most>", "starts": "person" } } }
+//
+// Routes print in the file's order, each with its cue as the row's "In short"
+// cell, and `starts` is "agent" unless it says "person". The data sits beside
+// the skill because no host parses it: a cue in a SKILL.md's frontmatter would
+// be a key the host has to tolerate.
+//
+// In the SKILL.md the generated block runs from the `## Route` heading through
+// ROUTE_END. Text on either side of it is the author's and is never touched.
+export const ROUTE_END = "<!-- end of the generated Route section -->";
+export const ROUTE_TABLE_HEAD = "| Route | In short | Use when | Arguments | Starts it |";
+
+// Sentences end where a full stop, question mark, or exclamation mark meets a
+// space or the end of the text, and not after `e.g` or `i.e`: the dot in
+// `.agents` or `CLAUDE.md` ends nothing.
+const sentences = (text) => String(text ?? "").replace(/\s+/g, " ").trim().match(/.+?(?<!\b(?:e\.g|i\.e))[.!?](?=\s|$)|.+$/g)?.map((s) => s.trim()) ?? [];
+
+// An area's data joined to its route documents: `names` is what is there to
+// route, and `fileOf` where a name's frontmatter is read. A route's key is
+// the name of one of the area's route directories; any other key names no
+// route and its `fm` is null. A lead or a cue that is missing, blank, or not
+// a string reads as "", which validate fails.
+function readRoutes(dataFile, names, fileOf) {
+  const data = readJson(dataFile);
+  const routes = Object.entries(data.routes ?? {}).map(([name, route]) => ({
+    name,
+    cue: typeof route?.cue === "string" ? route.cue.trim() : "",
+    starts: route?.starts ?? "agent",
+    fm: names.includes(name) ? parseFrontmatter(fs.readFileSync(fileOf(name), "utf8")) ?? {} : null,
+  }));
+  const routed = new Set(routes.map((r) => r.name));
+  return {
+    lead: typeof data.lead === "string" ? data.lead.trim() : "",
+    default: typeof data.default === "string" ? data.default : "",
+    routes,
+    unrouted: names.filter((s) => !routed.has(s)),
+  };
+}
+
+// When to take a route: the description's first sentence that starts with
+// "Use", or all of it when none does.
+const useWhen = (description) => {
+  const all = sentences(description);
+  return all.find((s) => /^Use /.test(s)) ?? all.join(" ");
+};
+const pipes = (text) => String(text ?? "").replace(/\|/g, "\\|");
+
+function routeSection(door) {
+  const rows = door.routes.map((r) =>
+    `| \`${r.name}\` | ${pipes(r.cue)} | ${pipes(useWhen(r.fm?.description))} | ${r.fm?.["argument-hint"] ? `\`${pipes(r.fm["argument-hint"])}\`` : ""} | ${r.starts === "person" ? "person" : "agent"} |`);
+  const fallback = `Take the route whose row fits the task${door.default ? `, and when none plainly does, the default, \`${door.default}\`` : ""}.`;
+  const table = [ROUTE_TABLE_HEAD, "| --- | --- | --- | --- | --- |", ...rows].join("\n");
+  const person = door.routes.some((r) => r.starts === "person") ? [`A \`person\` route runs when the person asks for it, by name or by what it does; never start one on your own. That holds when its name is the first word of the arguments too: read it only where the person in this session asked, or the arguments say they did (\`${ENTRY}\` says so when it hands one over). In a child session, a headless run, or a subagent, say that it needs a person, name it, and do not do its work another way.`] : [];
+  // An area's routes sit below its own file, so it names no plugin root, and
+  // a route is a document no host lists as a skill, so nothing is refused.
+  return [
+    "## Route",
+    "A route is `routes/<route>/ROUTE.md` under the directory this file is in, which the host names when it loads this skill.",
+    `The arguments are the text this skill was invoked with. Their first word is the route: read that route's \`ROUTE.md\` and follow it, with the rest as its arguments. If the first word is not a route, the arguments are the task; with no arguments, the task is the one at hand. ${fallback}`,
+    "A route is a document to read, never a skill to call: no skill is named after one.",
+    table,
+    ...person,
+    "After a compaction, read your route's `ROUTE.md` again before going on: the host re-attaches this skill, not a file read by path.",
+    ROUTE_END,
+  ].join("\n\n") + "\n";
+}
+
+// Where the generated block sits in a skill's body, as [start, end) offsets:
+// from the last `## Route` heading before the end marker through that marker,
+// neither of them inside a code fence. The last heading, because one above it
+// is the author's own, or sits in a comment. A heading with no marker after
+// it opens a section someone wrote by hand, so the heading line alone is the
+// block and what follows it is kept, below the generated one.
+//
+// A fence that never closes hides the rest of the body, the block included,
+// and a block would be appended on every run. That file is refused: the
+// error carries the line of the body the fence opens on.
+function routeBlock(body, heading = "## Route", end = ROUTE_END) {
+  let fence = "", fenceLine = 0, start = -1, headingEnd = -1, at = 0, n = 0;
+  for (const line of body.split("\n")) {
+    n++;
+    const next = at + line.length + 1;
+    const mark = /^ {0,3}(`{3,}|~{3,})/.exec(line)?.[1] ?? "";
+    if (fence) { if (mark.startsWith(fence)) fence = ""; }
+    else if (mark) { fence = mark; fenceLine = n; }
+    else if (line.replace(/[ \t]+$/, "") === heading) { start = at; headingEnd = next; }
+    else if (start !== -1 && line.trim() === end) return [start, next];
+    at = next;
+  }
+  if (fence) throw Object.assign(new Error("a code fence is never closed"), { fenceLine });
+  return start === -1 ? null : [start, headingEnd];
+}
+
+// The body with its generated block replaced; a body without one gets it at
+// the end. No line outside the block is dropped.
+function withRoute(body, section, heading, end) {
+  const block = routeBlock(body, heading, end);
+  return block ? body.slice(0, block[0]) + section + body.slice(block[1]) : `${body.trimEnd()}\n\n${section}`;
+}
+
+// The same, for a file's whole text, with the refusal of an unclosed fence
+// naming the file and the line of it the fence opens on.
+function inPlace(rel, have, body, section, heading, end) {
+  try { return withRoute(body, section, heading, end); } catch (e) {
+    if (!e.fenceLine) throw e;
+    const line = (have ?? "").slice(0, (have ?? body).length - body.length).split("\n").length - 1 + e.fenceLine;
+    throw new Error(`${rel} has a code fence, opened on line ${line}, that is never closed; close it, then run node scripts/gen-guide.mjs --write`);
+  }
+}
+
+// ---- areas ---------------------------------------------------------------
+// An area is a skill directory that holds `routes/`. Each route is a
+// document, `routes/<route>/ROUTE.md`, which no host lists or refuses, and
+// whose frontmatter is the table's data. Of the area's SKILL.md the generator
+// writes the frontmatter and the `## Route` block: the description is the
+// lead and then the routes as the area's arguments, and
+// `user-invocable: false` keeps the area out of the slash menu while a model
+// can still call it.
+const areaDir = (plugin, area) => `plugins/${plugin}/skills/${area}`;
+export const areaFile = (plugin, area) => `${areaDir(plugin, area)}/SKILL.md`;
+export const areaData = (plugin, area) => `${areaDir(plugin, area)}/door.json`;
+export const routeFile = (plugin, area, route) => `${areaDir(plugin, area)}/routes/${route}/ROUTE.md`;
+const dirsIn = (dir) => { try { return fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort(); } catch { return []; } };
+const isArea = (root, plugin, skill) => dirsIn(path.join(root, areaDir(plugin, skill))).includes("routes");
+
+/** The areas in the tree, `{ plugin, area }` each, by plugin and then by name. */
+export const areas = (root) =>
+  dirsIn(path.join(root, "plugins")).flatMap((plugin) => dirsIn(path.join(root, "plugins", plugin, "skills")).filter((skill) => isArea(root, plugin, skill)).map((area) => ({ plugin, area })));
+
+/** The route documents an area holds, by name: each directory under `routes/` with a ROUTE.md. */
+export const routeNames = (root, plugin, area) =>
+  dirsIn(path.join(root, areaDir(plugin, area), "routes")).filter((route) => fs.existsSync(path.join(root, routeFile(plugin, area, route))));
+
+/** An area's data joined to its route documents. Throws only when door.json is missing or does not parse. */
+export const readArea = (root, plugin, area) =>
+  readRoutes(path.join(root, areaData(plugin, area)), routeNames(root, plugin, area), (route) => path.join(root, routeFile(plugin, area, route)));
+
+/** An area's routes for the guide, in its data's order where that reads, else by name: `{ name, hint, person, description }`. */
+function routesOf(root, plugin, area) {
+  const names = routeNames(root, plugin, area);
+  let door = null;
+  try { door = readArea(root, plugin, area); } catch { /* the gate says what is wrong with the data */ }
+  const order = door ? [...door.routes.filter((r) => r.fm).map((r) => r.name), ...door.unrouted] : names;
+  const person = new Set((door?.routes ?? []).filter((r) => r.starts === "person").map((r) => r.name));
+  return order.map((name) => {
+    const fm = parseFrontmatter(fs.readFileSync(path.join(root, routeFile(plugin, area, name)), "utf8")) ?? {};
+    return { name, hint: fm["argument-hint"] ?? "", person: person.has(name), description: fm.description ?? "" };
+  });
+}
+
+/** The area's SKILL.md as it should read: generated frontmatter and Route block around the text already there. */
+export function renderArea(root, plugin, area) {
+  const door = readArea(root, plugin, area);
+  const rel = areaFile(plugin, area);
+  const have = fs.existsSync(path.join(root, rel)) ? fs.readFileSync(path.join(root, rel), "utf8") : null;
+  const body = have === null ? `\n# ${area}\n\n${door.lead}\n` : skillBody(have);
+  // The lead, then each route as an argument of the area, `<route> (<cue>)`,
+  // and the sentence says so. Where descriptions show, this is the only place
+  // a task's own word ("ship", "readme") can be seen. `<route>: <cue>` is the
+  // skill listing's own shape, and a model that reads it there calls
+  // `<plugin>:<route>` as a skill, which names nothing.
+  const routes = door.routes.map((r) => `${r.name} (${r.cue})`).join("; ");
+  const description = [door.lead, routes ? `Routes are its arguments, not skills: ${routes}.` : ""].filter(Boolean).join(" ");
+  return `---
+name: ${area}
+description: ${JSON.stringify(description)}
+user-invocable: false
+argument-hint: "[route] [the route's arguments]"
+---
+${inPlace(rel, have, body, routeSection(door))}`;
+}
+
 // ---- the entry skill -----------------------------------------------------
-export const ENTRY_PLUGIN = "agentcraft";
-export const ENTRY_SKILL = "start-here";
+export const ENTRY_PLUGIN = AREA_PLUGIN;
+export const ENTRY_SKILL = ENTRY;
 export const ENTRY_FILE = `plugins/${ENTRY_PLUGIN}/skills/${ENTRY_SKILL}/SKILL.md`;
 export const ENTRY_DATA = `plugins/${ENTRY_PLUGIN}/skills/${ENTRY_SKILL}/${ENTRY_SKILL}.json`;
 export const AREAS_HEADING = "## The areas";
@@ -90,9 +277,23 @@ export function readEntry(root) {
   const text = (value) => (typeof value === "string" ? value.trim() : "");
   const groups = (Array.isArray(data?.groups) ? data.groups : []).map((g) => ({ title: text(g?.title), header: text(g?.header), areas: (Array.isArray(g?.areas) ? g.areas : []).map(String) }));
   const order = groups.flatMap((g) => g.areas);
-  const areas = order.map((name) => {
+  const ownAreas = new Set(areas(root).filter((a) => a.plugin === ENTRY_PLUGIN).map((a) => a.area));
+  const listed = order.map((name) => {
     const own = data?.areas?.[name];
-    const byHand = new Map(skillsOf(path.join(root, "plugins", name)).map((s) => [s.name, s.byHand]));
+    // What a use may name, with whether only a person starts it, and the
+    // address that reaches it. An area of the one plugin: its routes, and the
+    // area itself, named alone, which then picks its own route. A plugin, as
+    // every area is until it moves in: its skills.
+    let reach, address;
+    if (ownAreas.has(name)) {
+      let way = { routes: [] };
+      try { way = readArea(root, ENTRY_PLUGIN, name); } catch { /* the gate fails the area's data */ }
+      reach = new Map([[name, false], ...way.routes.filter((r) => r.fm).map((r) => [r.name, r.starts === "person"])]);
+      address = (to) => `/${ENTRY_PLUGIN}:${name}${to === name ? "" : ` ${to}`}`;
+    } else {
+      reach = new Map(skillsOf(path.join(root, "plugins", name)).map((s) => [s.name, s.byHand]));
+      address = (to) => `/${name}:${to}`;
+    }
     return {
       name,
       listed: own !== null && typeof own === "object",
@@ -100,11 +301,11 @@ export function readEntry(root) {
       how: text(own?.how),
       uses: (Array.isArray(own?.uses) ? own.uses : []).map((use) => {
         const to = text(use?.to);
-        return { want: text(use?.want), to, starts: use?.starts ?? "agent", found: byHand.has(to), person: byHand.get(to) === true, address: `/${name}:${to}` };
+        return { want: text(use?.want), to, starts: use?.starts ?? "agent", found: reach.has(to), person: reach.get(to) === true, address: address(to) };
       }),
     };
   });
-  return { groups, areas, unknown: Object.keys(data?.areas ?? {}).filter((name) => !order.includes(name)) };
+  return { groups, areas: listed, unknown: Object.keys(data?.areas ?? {}).filter((name) => !order.includes(name)) };
 }
 
 function areasSection(entry) {
@@ -140,21 +341,44 @@ export function renderEntry(root) {
 /** Whether this checkout has an entry skill to generate for. */
 export const hasEntry = (root) => fs.existsSync(path.join(root, ENTRY_DATA));
 
-function main(argv) {
-  const root = path.resolve(argv.includes("--root") ? argv[argv.indexOf("--root") + 1] : path.join(import.meta.dirname, ".."));
-  const targets = [{ rel: GUIDE, render: () => guide(root) }, ...(hasEntry(root) ? [{ rel: ENTRY_FILE, render: () => renderEntry(root) }] : [])];
-  let stale = 0;
-  for (const { rel, render } of targets) {
+/**
+ * Every generated file held against what it should be: one
+ * `{ label, rel, state, message }` each, `state` being "current", "stale",
+ * "missing", or "failed" (the generator refuses it, and `message` says why).
+ * With `write`, a file that is not current is written and its state is
+ * "wrote". The areas first, then the entry skill, which reads their data,
+ * then the guide, which reads what both now say.
+ */
+export function generate(root, { write = false } = {}) {
+  const targets = [
+    ...areas(root).map(({ plugin, area }) => ({ label: `area ${plugin}/${area}`, rel: areaFile(plugin, area), render: () => renderArea(root, plugin, area) })),
+    ...(hasEntry(root) ? [{ label: "the entry skill", rel: ENTRY_FILE, render: () => renderEntry(root) }] : []),
+    { label: "the guide", rel: GUIDE, render: () => guide(root) },
+  ];
+  return targets.map(({ label, rel, render }) => {
     const file = path.join(root, rel);
-    const want = render();
+    let want;
+    try { want = render(); } catch (e) { return { label, rel, state: "failed", message: e.message }; }
     const have = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null;
-    if (have === want) { console.log(`${rel} is current`); continue; }
-    if (!argv.includes("--write")) { console.log(`${rel} is ${have === null ? "missing" : "stale"}: node scripts/gen-guide.mjs --write`); stale += 1; continue; }
+    if (have === want) return { label, rel, state: "current" };
+    if (!write) return { label, rel, state: have === null ? "missing" : "stale" };
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, want);
-    console.log(`wrote ${rel}`);
-  }
-  return stale ? 1 : 0;
+    return { label, rel, state: "wrote" };
+  });
+}
+
+/** What a run of the generator did with one file, as the command prints it. */
+export const generated = ({ rel, state, message }) =>
+  state === "failed" ? `${rel} could not be generated: ${message}`
+    : state === "wrote" ? `wrote ${rel}`
+      : state === "current" ? `${rel} is current` : `${rel} is ${state}: node scripts/gen-guide.mjs --write`;
+
+function main(argv) {
+  const root = path.resolve(argv.includes("--root") ? argv[argv.indexOf("--root") + 1] : path.join(import.meta.dirname, ".."));
+  const results = generate(root, { write: argv.includes("--write") });
+  for (const result of results) console.log(generated(result));
+  return results.some((r) => r.state === "failed" || r.state === "stale" || r.state === "missing") ? 1 : 0;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(fs.realpathSync.native(process.argv[1])).href) process.exitCode = main(process.argv.slice(2));
