@@ -1,23 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "agentic-teamwork",
-  "version": "1.0.2",
-  "description": "Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.",
+  "version": "2.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agentic-teamwork area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agentic-teamwork <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "license": "MIT",
-  "keywords": [
-    "git",
-    "guardrails",
-    "hooks",
-    "pre-commit",
-    "branch-protection",
-    "secrets",
-    "teamwork",
-    "github",
-    "gitlab",
-    "ci",
-    "tdd"
+  "dependencies": [
+    "agentcraft"
   ]
 }

@@ -2,23 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "plugin-workbench",
   "displayName": "Plugin Workbench",
-  "version": "2.1.0",
-  "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.",
+  "version": "3.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the plugin-workbench area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:plugin-workbench <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": [
-    "plugin",
-    "skill",
-    "authoring",
-    "scaffold",
-    "evaluation",
-    "scoring",
-    "rubric",
-    "improvement",
-    "context-window",
-    "quality",
-    "marketplace"
+  "dependencies": [
+    "agentcraft"
   ]
 }

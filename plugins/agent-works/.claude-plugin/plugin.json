@@ -2,19 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "agent-works",
   "displayName": "Agent Works",
-  "version": "1.0.3",
-  "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.",
+  "version": "2.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agent-works area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agent-works <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["agent-works", "agents-md", "memory", "kanban", "orchestration", "coordination", "guard", "worktrees", "setup"],
-  "userConfig": {
-    "syncIntervalSeconds": {
-      "type": "number",
-      "title": "Remote sync interval",
-      "description": "Seconds between runs of `aw board remote sync` while the /kanban pane is open on a board with remote sync on (30 at least).",
-      "default": 120
-    }
-  }
+  "dependencies": [
+    "agentcraft"
+  ]
 }
