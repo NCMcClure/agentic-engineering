@@ -1,0 +1,64 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "autopilot": {
+      "cue": "",
+      "starts": "person"
+    },
+    "build-assess-drift": {
+      "cue": ""
+    },
+    "build-audit": {
+      "cue": "",
+      "starts": "person"
+    },
+    "build-improve-architecture": {
+      "cue": ""
+    },
+    "build-next-issue": {
+      "cue": ""
+    },
+    "build-rubber-duck": {
+      "cue": ""
+    },
+    "build-sprint": {
+      "cue": ""
+    },
+    "build-tdd": {
+      "cue": ""
+    },
+    "build-user-docs": {
+      "cue": ""
+    },
+    "grill": {
+      "cue": ""
+    },
+    "plan-decompose": {
+      "cue": ""
+    },
+    "plan-publish": {
+      "cue": ""
+    },
+    "spec-architect": {
+      "cue": ""
+    },
+    "spec-edit": {
+      "cue": ""
+    },
+    "spec-grill": {
+      "cue": ""
+    },
+    "spec-init": {
+      "cue": "",
+      "starts": "person"
+    },
+    "spec-open": {
+      "cue": "",
+      "starts": "person"
+    },
+    "spec-write": {
+      "cue": ""
+    }
+  }
+}

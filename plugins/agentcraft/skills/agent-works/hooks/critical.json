@@ -11,7 +11,7 @@
   ],
   "chains": [
     {"partner": "perceptual-loop", "for": "main", "mode": "any", "text": "A card judged by eye or ear gets `--labels look` (or motion, sound), so its child loads /perceptual-loop:perceptual-loop and that plugin's agent brief."},
-    {"partner": "but-first-planning", "for": "main", "mode": "any", "text": "A goal that is not fully specified is grilled with /but-first-planning:grill before it goes on the board."},
+    {"partner": "but-first-planning", "for": "main", "mode": "any", "text": "A goal that is not fully specified is grilled with /agentcraft:but-first-planning grill before it goes on the board."},
     {"partner": "agentic-teamwork", "for": "main", "mode": "full", "text": "A child ships with /agentic-teamwork:ship; you land each pull or merge request on green with /agentic-teamwork:land."}
   ]
 }

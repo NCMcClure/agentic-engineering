@@ -44,7 +44,7 @@ reporting `blocked`.
 
 - Write the failing test, make it pass, commit at each green step with a subject that says what changed. Where
   agentic-teamwork is installed, `/agentic-teamwork:tdd` is that cadence; a plan card built with
-  but-first-planning follows `/but-first-planning:build-tdd`.
+  but-first-planning follows `/agentcraft:but-first-planning build-tdd`.
 - A task judged by eye or ear (a `look`, `motion` or `sound` label): where perceptual-loop is installed, load its
   skills before the first test.
 - Anything only one session can use at a time (a port, a simulator, a database, a timing run) goes through

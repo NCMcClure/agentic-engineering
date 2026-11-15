@@ -13,7 +13,7 @@ import { hookCommand } from "../../lib.mjs";
 import { CONFIG_KEY } from "../../shared/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "but-first-planning");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
 const META = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "plugins", "but-first-planning.json"), "utf8"));

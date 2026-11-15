@@ -8,7 +8,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO } from "./helpers.mjs";
 
-const ASSETS = path.join(REPO, "plugins", "but-first-planning", "skills", "spec-init", "assets");
+const ASSETS = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "assets");
 const {
   BOARD_STATUS, EPIC_COLORS, STATUS_LABEL, agrees, createTicket, epicLabel, milestoneTitle, providerFor, readTracker, rebuildTicket,
   refNumber, syncStatus, ticketLabels, trackerState,

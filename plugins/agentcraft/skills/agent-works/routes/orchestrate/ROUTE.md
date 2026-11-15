@@ -50,7 +50,7 @@ not settle or archive them yourself. When the briefing says cards in flight have
 ## Step 1: Cut the tasks, and put them on the board
 
 Share intent, done criteria, out of scope, risks, likely files and checks with the person first (where
-but-first-planning is installed, `/but-first-planning:grill`). A child cannot ask what you meant, so a card goes
+but-first-planning is installed, `/agentcraft:but-first-planning grill`). A child cannot ask what you meant, so a card goes
 out only with done criteria a stranger could check; `aw board brief` refuses one without.
 
 For each candidate task, list what it needs that only one agent can have at a time: files and modules, the main

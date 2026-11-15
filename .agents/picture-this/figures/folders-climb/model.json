@@ -11,7 +11,7 @@
       "label": "plan-status set",
       "kind": "command",
       "note": "the only writer",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:280"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:280"
     },
     {
       "id": "issue",
@@ -19,7 +19,7 @@
       "kind": "file",
       "note": "Status field, criteria boxes",
       "parent": "sprint",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:290"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:290"
     },
     {
       "id": "siblings",
@@ -28,7 +28,7 @@
       "note": "already done",
       "parent": "sprint",
       "repeat": 2,
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:131"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:131"
     },
     {
       "id": "sprint",
@@ -36,7 +36,7 @@
       "kind": "file",
       "note": "Issues table, own Status",
       "parent": "epic",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:293"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:293"
     },
     {
       "id": "epic",
@@ -44,14 +44,14 @@
       "kind": "file",
       "note": "Sprints table, own Status",
       "parent": "index",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:286"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:286"
     },
     {
       "id": "index",
       "label": "plan/index.md",
       "kind": "file",
       "note": "Epics table",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:49"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:49"
     },
     {
       "id": "ledger",
@@ -59,14 +59,14 @@
       "kind": "file",
       "note": "progress/completed/<epic>.md",
       "born": "ledger",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:243"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:243"
     },
     {
       "id": "ticket",
       "label": "Ticket #42",
       "kind": "ticket",
       "note": "GitHub or GitLab",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/tracker.mjs:162"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/tracker.mjs:162"
     }
   ],
   "flows": [
@@ -76,7 +76,7 @@
       "to": "issue",
       "kind": "write",
       "label": "done",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:290"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:290"
     },
     {
       "id": "row",
@@ -84,7 +84,7 @@
       "to": "sprint",
       "kind": "write",
       "label": "row",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:297"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:297"
     },
     {
       "id": "tally",
@@ -92,7 +92,7 @@
       "to": "sprint",
       "kind": "read",
       "label": "rollup",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:298"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:298"
     },
     {
       "id": "up-epic",
@@ -100,7 +100,7 @@
       "to": "epic",
       "kind": "write",
       "label": "row",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:309"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:309"
     },
     {
       "id": "up-index",
@@ -108,7 +108,7 @@
       "to": "index",
       "kind": "write",
       "label": "row",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:320"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:320"
     },
     {
       "id": "record",
@@ -116,7 +116,7 @@
       "to": "ledger",
       "kind": "write",
       "label": "evidence",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:326"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:326"
     },
     {
       "id": "close",
@@ -124,7 +124,7 @@
       "to": "ticket",
       "kind": "event",
       "label": "close",
-      "source": "plugins/but-first-planning/skills/spec-init/assets/plan-status.mjs:332"
+      "source": "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/plan-status.mjs:332"
     }
   ],
   "quantities": [

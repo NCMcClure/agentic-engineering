@@ -147,10 +147,10 @@ Three phases, each leaving files under `.agents/plan/`: write and sharpen a spec
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| be questioned on a goal until nothing about it is left unsaid | `/but-first-planning:grill` | agent |
-| write or extend the spec for a project or a feature | `/but-first-planning:spec-write` | agent |
-| break a finished spec into epics, sprints, and issues | `/but-first-planning:plan-decompose` | agent |
-| find the next unblocked issue of the plan | `/but-first-planning:build-next-issue` | agent |
+| be questioned on a goal until nothing about it is left unsaid | `/agentcraft:but-first-planning grill` | agent |
+| write or extend the spec for a project or a feature | `/agentcraft:but-first-planning spec-write` | agent |
+| break a finished spec into epics, sprints, and issues | `/agentcraft:but-first-planning plan-decompose` | agent |
+| find the next unblocked issue of the plan | `/agentcraft:but-first-planning build-next-issue` | agent |
 
 ### agent-works
 

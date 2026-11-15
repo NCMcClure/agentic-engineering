@@ -8,6 +8,6 @@
   ],
   "chains": [
     {"partner": "agent-works", "for": "all", "mode": "any", "text": "An owed full run or a stale baseline becomes a gate card (`aw board owe`), and a render only one session may run at a time goes under /agentcraft:agent-works resource-locks."},
-    {"partner": "but-first-planning", "for": "all", "mode": "any", "when": ".agents/plan", "text": "A ruling with reach (how every sky should look) becomes a decision record through /but-first-planning:spec-edit."}
+    {"partner": "but-first-planning", "for": "all", "mode": "any", "when": ".agents/plan", "text": "A ruling with reach (how every sky should look) becomes a decision record through /agentcraft:but-first-planning spec-edit."}
   ]
 }

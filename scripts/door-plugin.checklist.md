@@ -128,7 +128,7 @@ on the copy and are still wrong:
 - `plugins/agentcraft/bin/aw.cmd` still runs `..\scripts\aw.mjs`: a Windows path
   no pass reads. It is `..\skills\agent-works\scripts\aw.mjs` now. `bin/aw` was
   rewritten.
-- `plugins/but-first-planning/install.mjs` moved with its plugin. The stub
+- `plugins/agentcraft/skills/but-first-planning/install.mjs` moved with its plugin. The stub
   keeps a file at that path (the README publishes a curl to it) that says where
   to go.
 - Versions and history. `agentcraft`'s `plugin.json` version and `CHANGELOG.md`

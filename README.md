@@ -26,7 +26,7 @@ Then install whichever plugins you want:
 /plugin install but-first-planning@agentic-engineering
 ```
 
-Skills arrive namespaced: `/but-first-planning:spec-init`,
+Skills arrive namespaced: `/agentcraft:but-first-planning spec-init`,
 `/agentic-teamwork:bootstrap`, and so on.
 
 Not sure which one a job needs? Install `agentcraft` and type
@@ -78,23 +78,23 @@ loop of coordinated TDD agents, all landing in one `.agents/plan/` workspace,
 with an autopilot that runs the whole graph hands-off. The backlog publishes
 to GitHub or GitLab, and one script owns every status change so the plan and
 the tracker cannot disagree quietly.
-[Read more →](plugins/but-first-planning/README.md)
+[Read more →](plugins/agentcraft/skills/but-first-planning/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/figures/folders-climb.dark.gif">
-  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="plugins/but-first-planning/assets/figures/folders-climb.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/but-first-planning/assets/figures/folders-climb.dark.gif">
+  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="plugins/agentcraft/skills/but-first-planning/assets/figures/folders-climb.gif" width="720">
 </picture>
 
 <sub>A status is set in one place and derived everywhere else.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/screens/spec-site.dark.png">
-  <img alt="A page of the spec site: navigation, prose, a diagram and a callout." src="plugins/but-first-planning/assets/screens/spec-site.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/but-first-planning/assets/screens/spec-site.dark.png">
+  <img alt="A page of the spec site: navigation, prose, a diagram and a callout." src="plugins/agentcraft/skills/but-first-planning/assets/screens/spec-site.light.png" width="720">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/but-first-planning/assets/screens/plan-view.dark.png">
-  <img alt="The plan view: epics and their issues as cards, each in its state." src="plugins/but-first-planning/assets/screens/plan-view.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/but-first-planning/assets/screens/plan-view.dark.png">
+  <img alt="The plan view: epics and their issues as cards, each in its state." src="plugins/agentcraft/skills/but-first-planning/assets/screens/plan-view.light.png" width="720">
 </picture>
 
 <sub>The spec site and its plan view.</sub>

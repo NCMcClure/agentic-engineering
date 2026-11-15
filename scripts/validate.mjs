@@ -36,7 +36,7 @@ const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "
 // a model download, which no stdlib rewrite replaces; the third fronts a
 // MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
-  "plugins/but-first-planning/skills/spec-init/assets/comments-server.py",
+  "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/comments-server.py",
   "plugins/perceptual-loop/scripts/keypoints.py",
   "plugins/perceptual-loop/scripts/semantic.py",
 ]);

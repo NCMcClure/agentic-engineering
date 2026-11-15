@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "but-first-planning");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 const EXPECTED = [
