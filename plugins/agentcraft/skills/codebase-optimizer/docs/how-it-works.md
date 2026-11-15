@@ -2,8 +2,8 @@
 
 The engine is a dynamic Workflow that fans out many subagents. It is
 self-contained: the methodology files it reads at runtime, the two organize
-sub-workflows, and the three scripts are all bundled and resolved through
-`${CLAUDE_PLUGIN_ROOT}`. In a session without the Workflow tool the skills run
+sub-workflows, and the three scripts are all bundled in the area, and each
+route names them from its own directory. In a session without the Workflow tool the skills run
 the same phases with plain subagents, and without those, one unit at a time;
 `references/subagent-fallback.md` is the contract for both.
 

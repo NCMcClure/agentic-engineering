@@ -17,10 +17,10 @@ funnel records the result.
 **The loop is the agentic-teamwork area's `tdd` route**
 (`/agentcraft:agentic-teamwork tdd`): red, green, refactor, the repo's test lanes and
 their commands, what to mock and what to run for real, and the refactor
-candidates. Read that skill and run its loop; come back here for the
+candidates. Take that route and run its loop; come back here for the
 plan-issue contract around it.
 
-**If it is not, this is the loop:**
+**The loop in short, for the contract below:**
 
 1. **Red.** Write the one smallest test for the next criterion. Run it and
    read the failure: a test that fails on a typo or a missing import has

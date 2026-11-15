@@ -130,7 +130,8 @@ test("but-first-planning routes: the ten bundled workflow scripts parse, and eac
 test("but-first-planning routes: build-tdd names agentic-teamwork's loop and carries its own, with no references of its own", () => {
   const tdd = AREA.route("build-tdd");
   assert.match(tdd.body, /\*\*The loop is the agentic-teamwork area's `tdd` route\*\*\s+\(`\/agentcraft:agentic-teamwork tdd`\)/);
-  assert.match(tdd.body, /this is the loop/);
+  // Both areas ship together, so the loop here is a short form of the other's, not a fallback for when it is missing.
+  assert.match(tdd.body, /\*\*The loop in short, for the contract below:\*\*/);
   for (const step of ["**Red.**", "**Green.**", "**Refactor.**"]) assert.ok(tdd.body.includes(step), step);
   assert.deepEqual(fs.readdirSync(tdd.dir), ["ROUTE.md"]);
 });

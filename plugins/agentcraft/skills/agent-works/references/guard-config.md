@@ -164,12 +164,13 @@ project's own `guard.rules` always read them: a rule may be about `rm`.
 asked of the owner by this guard: only the forced push is, because it destroys work. Branch protection, secrets and
 failing tests as a team policy belong to the agentic-teamwork area.
 
-See what the guard would say, without running anything and without logging:
+See what the guard would say, without running anything and without logging
+(`G` below is `..` from the directory this file is in: the agent-works area):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/guard.mjs" --explain 'git add -A'            # add --cwd DIR, --json
-node "${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/guard.mjs" --explain --file src/gen/layout.h   # an Edit of a path
-node "${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/guard.mjs" --explain Edit '{"file_path": "src/gen/layout.h"}'   # <Tool>, then the command or the tool input as JSON
+node "G/hooks/guard.mjs" --explain 'git add -A'            # add --cwd DIR, --json
+node "G/hooks/guard.mjs" --explain --file src/gen/layout.h   # an Edit of a path
+node "G/hooks/guard.mjs" --explain Edit '{"file_path": "src/gen/layout.h"}'   # <Tool>, then the command or the tool input as JSON
 ```
 
 ## A project's own rules: `guard.rules`
