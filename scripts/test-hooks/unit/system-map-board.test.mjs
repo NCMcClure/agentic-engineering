@@ -18,7 +18,7 @@ import { report } from "../../../plugins/agentcraft/skills/system-map/routes/bro
 import { REPO, runNode, tempDir } from "./helpers.mjs";
 
 const PLUGIN = join(REPO, "plugins", "agentcraft", "skills", "system-map");
-const plugin = join(PLUGIN, "skills");
+const plugin = join(PLUGIN, "routes");
 const S = join(plugin, "miro-board", "scripts");
 const setup = join(plugin, "browser-setup", "scripts", "check-setup.mjs");
 const BOARD = "https://miro.com/app/board/uXjTEST=/";
@@ -538,11 +538,14 @@ test("the browser server is one pinned package with a profile of its own, and .m
   assert.ok(ARGS.includes(PACKAGE) && ARGS.includes(`--userDataDir=${PROFILE}`) && ARGS.includes("--no-usage-statistics"));
   assert.ok(PROFILE.startsWith(os.homedir()));
   assert.equal(PROFILE, profile());
-  const servers = JSON.parse(readFileSync(join(PLUGIN, ".mcp.json"), "utf8")).mcpServers;
+  // The plugin has one MCP config, at its root, and the server it starts is this area's.
+  const root = join(PLUGIN, "..", "..");
+  const servers = JSON.parse(readFileSync(join(root, ".mcp.json"), "utf8")).mcpServers;
   assert.deepEqual(Object.keys(servers), ["miro-browser"]);
   const [script] = servers["miro-browser"].args;
   assert.equal(servers["miro-browser"].command, "node");
-  assert.ok(existsSync(join(PLUGIN, script.replace("${CLAUDE_PLUGIN_ROOT}/", ""))), script);
+  assert.ok(existsSync(join(root, script.replace("${CLAUDE_PLUGIN_ROOT}/", ""))), script);
+  assert.ok(script.startsWith("${CLAUDE_PLUGIN_ROOT}/skills/system-map/routes/browser-setup/"), script);
 });
 
 test("the profile is named for the plugin, and one made under the plugin's old name is still used", (t) => {

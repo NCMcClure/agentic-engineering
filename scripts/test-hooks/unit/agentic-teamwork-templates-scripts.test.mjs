@@ -70,7 +70,9 @@ test("no lane named, an unknown lane, and no marker are usage errors", (t) => {
 // ---------------------------------------------------------------------------
 // plugin-check.mjs
 
-const PLUGIN = "agentic-teamwork@agentic-engineering";
+const PLUGIN = "agentcraft@agentic-engineering";
+// The id the conventions shipped under before they became an area of agentcraft.
+const EARLIER = "agentic-teamwork@agentic-engineering";
 const OFFER = "Tell the person once";
 
 /** A repo carrying the script, and a config dir with these settings and install records. */
@@ -103,12 +105,21 @@ test("silent when the plugin is installed and enabled", (t) => {
   assert.equal(check(fixture(t, { enabled: { [PLUGIN]: true }, installed: [PLUGIN] })), null);
 });
 
+test("silent where only the plugin's earlier id is enabled: that machine has the conventions too", (t) => {
+  assert.equal(check(fixture(t, { enabled: { [EARLIER]: true }, installed: [EARLIER] })), null);
+  // Installed under the earlier id and turned off is not the plugin running, and the one offered is agentcraft.
+  const line = check(fixture(t, { enabled: { [EARLIER]: false }, installed: [EARLIER] }));
+  assert.ok(line.includes(OFFER));
+  assert.ok(line.includes(`/plugin install ${PLUGIN} `), "the offer names agentcraft, never the earlier id");
+  assert.equal(line.includes(EARLIER), false);
+});
+
 test("not installed: one line that reaches the model, with the two commands and the way to say no", (t) => {
   const line = check(fixture(t));
   assert.ok(line, "an offer");
   assert.equal(line.includes("\n"), false, "one line");
   assert.ok(line.includes(OFFER));
-  assert.match(line, /It is not installed: they type \/plugin marketplace add \S+ and then \/plugin install agentic-teamwork@agentic-engineering themselves/);
+  assert.match(line, /It is not installed: they type \/plugin marketplace add \S+ and then \/plugin install agentcraft@agentic-engineering themselves/);
   assert.match(line, /git config --local agentic-engineering\.plugins "off Test \d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z"/);
 });
 

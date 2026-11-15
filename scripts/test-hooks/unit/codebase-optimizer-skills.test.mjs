@@ -1,64 +1,51 @@
-// codebase-optimizer's skills, read as an agent's listing reads them: a name
-// that matches its folder, the four frontmatter keys and no others, a
-// description that says when to reach for it, and no path, link, script flag or
+// The codebase-optimizer area's routes, read as an agent reads them: a name
+// that matches its folder, a route's frontmatter keys and no others, a
+// description that says when to take it, and no path, link, script flag or
 // workflow argument in a body that does not exist. Then the ask-first guard
 // itself: the two workflows that change a repo, started without approval.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { parseFrontmatter, walk } from "../../lib.mjs";
-import { REPO } from "./helpers.mjs";
+import { walk } from "../../lib.mjs";
+import { AGENTCRAFT, area, routeBasics } from "./area-routes.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "codebase-optimizer");
-const SKILLS = path.join(PLUGIN, "skills");
-const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
-const SCRIPTS = "skills/codebase-organizer/scripts";
+const AREA = area("codebase-optimizer");
+const PLUGIN = AREA.dir;
+const ROUTES = path.join(PLUGIN, "routes");
+const SCRIPTS = "routes/codebase-organizer/scripts";
 const WORKFLOWS = {
-  plan: "skills/codebase-organizer/workflows/organize-plan.js",
-  apply: "skills/codebase-organizer/workflows/organize-apply.js",
-  engine: "skills/optimize-codebase/workflows/optimize-codebase.js",
+  plan: "routes/codebase-organizer/workflows/organize-plan.js",
+  apply: "routes/codebase-organizer/workflows/organize-apply.js",
+  engine: "routes/optimize-codebase/workflows/optimize-codebase.js",
 };
 const read = (rel) => fs.readFileSync(path.join(PLUGIN, ...rel.split("/")), "utf8");
 
-const names = fs.readdirSync(SKILLS, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
-const skills = names.map((name) => {
-  const file = path.join(SKILLS, name, "SKILL.md");
-  const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
-  return { name, dir: path.join(SKILLS, name), text, frontmatter: parseFrontmatter(text) };
-});
-/** Every markdown file the plugin ships, as [plugin-relative path, text]. */
+const routes = AREA.routes;
+const names = routes.map((r) => r.name);
+/** Every markdown file the area ships, as [area-relative path, text]. */
 const pages = walk(PLUGIN).filter((f) => f.endsWith(".md")).map((f) => [f.split(path.sep).join("/"), fs.readFileSync(path.join(PLUGIN, f), "utf8")]);
 
-test("the plugin ships exactly its three skills", () => {
+test("codebase-optimizer routes: the area ships exactly its three", () => {
   assert.deepEqual(names, ["codebase-organizer", "improve-codebase-architecture", "optimize-codebase"]);
+  assert.deepEqual(names.filter((name) => AREA.starts(name) === "person"), [], "all three are picked by the model; the gate is the approval, not who starts it");
 });
 
-for (const skill of skills) {
-  test(`${skill.name}: the frontmatter names the skill and carries only the allowed keys`, () => {
-    assert.ok(skill.frontmatter, "SKILL.md starts with a frontmatter block");
-    assert.equal(skill.frontmatter.name, skill.name, "the name is the folder's");
-    for (const key of Object.keys(skill.frontmatter)) assert.ok(ALLOWED_KEYS.includes(key), `frontmatter key "${key}"`);
-    assert.notEqual(skill.frontmatter["disable-model-invocation"], "true", "all three are picked by the model; the gate is the approval, not the listing");
+routeBasics(test, AREA, { when: /\bUse (when|on)\b/, cap: 700 });
+
+for (const route of routes) {
+  test(`codebase-optimizer routes: ${route.name} is told apart from its neighbours, and a workflow it runs is named under the area's directory`, () => {
+    const description = route.fields.description ?? "";
+    assert.ok(description.length >= 80, "long enough to tell this route from its neighbours");
+    assert.doesNotMatch(description, /\/[a-z-]+:[a-z-]+/, "a description does not send the model to another skill");
+    const found = [...route.text.matchAll(/"W\/([A-Za-z0-9_./-]+)"/g)].map((m) => m[1]);
+    for (const rel of found) assert.ok(fs.existsSync(path.join(PLUGIN, rel)), `W/${rel}`);
+    if (route.name !== "improve-codebase-architecture") assert.ok(found.length > 0, "a route that runs a workflow names it under the directory it named");
   });
 
-  test(`${skill.name}: the description says when to trigger`, () => {
-    const description = skill.frontmatter?.description ?? "";
-    assert.ok(description.length >= 80, "long enough to tell this skill from its neighbours");
-    assert.ok(description.length <= 700, `${description.length} characters: a listing pays for every one`);
-    assert.match(description, /\bUse (when|on)\b/, "it says when to use it, not only what it is");
-    assert.doesNotMatch(description, /\/[a-z-]+:[a-z-]+/, "a listing does not send the model to another plugin's skill");
-  });
-
-  test(`${skill.name}: every plugin-root path it names exists`, () => {
-    const found = [...skill.text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+)/g)].map((m) => m[1].replace(/[.,;:]+$/, ""));
-    for (const rel of found) assert.ok(fs.existsSync(path.join(PLUGIN, rel)), `\${CLAUDE_PLUGIN_ROOT}/${rel}`);
-    if (skill.name !== "improve-codebase-architecture") assert.ok(found.length > 0, "a skill that runs a workflow names it by plugin-root path");
-  });
-
-  test(`${skill.name}: every file it mentions by a skill-relative path exists`, () => {
-    for (const m of skill.text.matchAll(/`((?:references|scripts|workflows|assets)\/[A-Za-z0-9_.-]+)`/g)) {
-      assert.ok(fs.existsSync(path.join(skill.dir, m[1])) || fs.existsSync(path.join(SKILLS, "codebase-organizer", m[1])), m[1]);
+  test(`codebase-optimizer routes: every file ${route.name} mentions by a route-relative path exists`, () => {
+    for (const m of route.text.matchAll(/`((?:references|scripts|workflows|assets)\/[A-Za-z0-9_.-]+)`/g)) {
+      assert.ok(fs.existsSync(path.join(route.dir, m[1])) || fs.existsSync(path.join(ROUTES, "codebase-organizer", m[1])), m[1]);
     }
   });
 }
@@ -78,9 +65,9 @@ test("every relative markdown link in the plugin lands on a file inside the plug
   assert.ok(links >= 10, "the links were found at all");
 });
 
-test("the two workflow-bearing skills and the fan-out in the third point at the fallback reference", () => {
+test("the two workflow-bearing routes and the fan-out in the third point at the fallback reference", () => {
   assert.ok(fs.existsSync(path.join(PLUGIN, "references", "subagent-fallback.md")));
-  for (const rel of ["skills/codebase-organizer/SKILL.md", "skills/optimize-codebase/SKILL.md", "skills/improve-codebase-architecture/SKILL.md", "skills/improve-codebase-architecture/INTERFACE-DESIGN.md"]) {
+  for (const rel of ["routes/codebase-organizer/ROUTE.md", "routes/optimize-codebase/ROUTE.md", "routes/improve-codebase-architecture/ROUTE.md", "routes/improve-codebase-architecture/INTERFACE-DESIGN.md"]) {
     assert.match(read(rel), /\]\(\.\.\/\.\.\/references\/subagent-fallback\.md\)/, rel);
   }
 });
@@ -111,7 +98,8 @@ test("every flag a page or a workflow passes a script is one the script takes", 
     "verify-structure.mjs": ["--subtree", "--flat-max", "--module-max", "--exclude", "--strict", "--json"],
   };
   for (const [script, known] of Object.entries(flags)) {
-    const source = read(`${SCRIPTS}/${script}`);
+    // The hub checker beside the other two hands over to the plugin's one copy, which is where its flags are read.
+    const source = script === "verify-hubs.mjs" ? fs.readFileSync(path.join(AGENTCRAFT, "lib", script), "utf8") : read(`${SCRIPTS}/${script}`);
     for (const flag of known) assert.ok(source.includes(`"${flag}"`), `${script} takes ${flag}`);
   }
   const sources = [...pages.filter(([rel]) => rel !== "CHANGELOG.md"), ...Object.values(WORKFLOWS).map((rel) => [rel, read(rel)])];
@@ -130,11 +118,11 @@ test("every flag a page or a workflow passes a script is one the script takes", 
   assert.ok(seen >= 8, `the commands were found at all (${seen})`);
 });
 
-test("every argument a skill passes a workflow is one the workflow reads", () => {
+test("every argument a route passes a workflow is one the workflow reads", () => {
   const calls = [
-    ["skills/codebase-organizer/SKILL.md", "organize-plan.js", WORKFLOWS.plan],
-    ["skills/codebase-organizer/SKILL.md", "organize-apply.js", WORKFLOWS.apply],
-    ["skills/optimize-codebase/SKILL.md", "optimize-codebase.js", WORKFLOWS.engine],
+    ["routes/codebase-organizer/ROUTE.md", "organize-plan.js", WORKFLOWS.plan],
+    ["routes/codebase-organizer/ROUTE.md", "organize-apply.js", WORKFLOWS.apply],
+    ["routes/optimize-codebase/ROUTE.md", "optimize-codebase.js", WORKFLOWS.engine],
   ];
   for (const [page, script, workflow] of calls) {
     const text = read(page);
@@ -207,7 +195,7 @@ test("ask first: approved, the apply workflow starts with its preflight and stop
 });
 
 test("ask first: the engine changes nothing until it is told the run plan was approved", async () => {
-  const args = { projectDir: "/repo", dateToday: "2026-01-01", skillDir: "/plugin/skills/improve-codebase-architecture" };
+  const args = { projectDir: "/repo", dateToday: "2026-01-01", skillDir: "/plugin/routes/improve-codebase-architecture" };
   const { result, calls } = await runWorkflow(WORKFLOWS.engine, args);
   assert.match(result.error, /^not approved, nothing was changed/);
   assert.deepEqual(calls, []);
@@ -228,9 +216,9 @@ test("the planning workflow needs no approval: it is read-only, and says so to e
 // its verification was green.
 const ENGINE_ARGS = {
   projectDir: "/repo", dateToday: "2026-01-01", approved: true, ecosystem: "python", testCmdPrefix: "pytest",
-  skillDir: "/plugin/skills/improve-codebase-architecture", organizerSkillDir: "/plugin/skills/codebase-organizer",
-  structVerifier: "/plugin/skills/codebase-organizer/scripts/verify-structure.mjs",
-  scanScript: "/plugin/skills/codebase-organizer/scripts/repo-scan.mjs",
+  skillDir: "/plugin/routes/improve-codebase-architecture", organizerSkillDir: "/plugin/routes/codebase-organizer",
+  structVerifier: "/plugin/routes/codebase-organizer/scripts/verify-structure.mjs",
+  scanScript: "/plugin/routes/codebase-organizer/scripts/repo-scan.mjs",
 };
 function engineRun(args, { green }) {
   const given = [];

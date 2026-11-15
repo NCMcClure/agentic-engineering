@@ -110,7 +110,10 @@ test("a missing ignore block is a `gitignore-fence` finding", (t) => {
 });
 
 test("on GitHub, some workflow has to run the check", (t) => {
-  finding(t, { [WORKFLOW]: null }, /^ci-gate: no workflow under \.github\/workflows\/ runs verify-standard\.mjs; \/agentic-teamwork:init-project --upgrade writes it$/m);
+  // The copy in a repo prints the address the route had when the plugin was its own, which the stub's alias
+  // still answers. Built from its parts: nothing ships there now.
+  const earlier = ["\\/agentic-teamwork", "init-project"].join(":");
+  finding(t, { [WORKFLOW]: null }, new RegExp(`^ci-gate: no workflow under \\.github\\/workflows\\/ runs verify-standard\\.mjs; ${earlier} --upgrade writes it$`, "m"));
   finding(t, { [WORKFLOW]: "jobs:\n  test:\n    steps:\n      - run: npm test\n" }, /^ci-gate: /m);
   // Where the gate lives is the repo's business.
   const moved = repo(t, { [WORKFLOW]: null, ".github/workflows/ci.yaml": "steps:\n  - run: node .agents/scripts/verify-standard.mjs\n" });

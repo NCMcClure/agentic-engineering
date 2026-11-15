@@ -53,7 +53,7 @@ test("a fresh scaffold writes the marker, the hub and its link, the scripts, the
   const m = marker(dir);
   assert.deepEqual(Object.keys(m), ["standard", "standard_version", "project", "description", "template", "default_branch", "forge", "lanes", "owned"]);
   assert.deepEqual({ ...m, owned: null }, {
-    standard: "agentic-engineering", standard_version: 1, project: "zz-fresh", description: "A scaffold for the tests.",
+    standard: "agentic-engineering", standard_version: 2, project: "zz-fresh", description: "A scaffold for the tests.",
     template: "library", default_branch: "main", forge: "github",
     lanes: {
       unit: "npm test",
@@ -184,7 +184,7 @@ test("--json prints one object on stdout and the progress on stderr", (t) => {
   const out = JSON.parse(run.stdout);
   assert.deepEqual({ ...out, written: null }, {
     ok: true, target: dir, project: "zz-fresh", template: "library", forge: "github", default_branch: "main",
-    standard_version: 1, written: null, kept: [], removed: [], unchanged: false,
+    standard_version: 2, written: null, kept: [], removed: [], unchanged: false,
   });
   assert.ok(out.written.includes(".agents/scripts/lane.mjs"));
   assert.match(run.stderr, /write AGENTS\.md/);
@@ -322,7 +322,7 @@ test("a second --upgrade changes nothing", (t) => {
   git("commit", "-q", "-m", "the conventions");
   const second = upgrade(dir);
   assert.equal(second.status, 0, both(second));
-  assert.match(second.stdout, /nothing to do: already on conventions v1, 1 file\(s\) kept as they are/);
+  assert.match(second.stdout, /nothing to do: already on conventions v2, 1 file\(s\) kept as they are/);
   assert.match(second.stdout, /verify-standard\.mjs: conventions ok/);
   assert.equal(git("status", "--porcelain"), "");
 
@@ -331,7 +331,7 @@ test("a second --upgrade changes nothing", (t) => {
   const before = marker(made.dir);
   const again = upgrade(made.dir);
   assert.equal(again.status, 0, both(again));
-  assert.match(again.stdout, /nothing to do: already on conventions v1$/m);
+  assert.match(again.stdout, /nothing to do: already on conventions v2$/m);
   assert.deepEqual(marker(made.dir), before);
 });
 

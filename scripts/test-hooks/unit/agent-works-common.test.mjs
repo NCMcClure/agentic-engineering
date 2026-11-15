@@ -710,8 +710,10 @@ test("agent-works common: withPluginsBlock puts the block in, or brings it up to
   assert.equal(withPluginsBlock(`# P\n\n${old}## Two\n${second}`, fresh), `# P\n\n${fresh}## Two\n${second}`);
   assert.equal(withPluginsBlock(`# P\n\n${old}## Two\n`, ""), "# P\n\n## Two\n");
   // A marker of another name is not the block: the block goes in as if none were there.
-  const other = "# P\n\n<!-- agent-works:pluginsX old -->\nold\n<!-- /agent-works:plugins -->\n## One\n## Two\n";
-  assert.equal(withPluginsBlock(other, "BLOCK\n"), "# P\n\n<!-- agent-works:pluginsX old -->\nold\n<!-- /agent-works:plugins -->\n## One\nBLOCK\n\n## Two\n");
+  // Built from its parts: the marker is one nothing writes, which is the point of it.
+  const stray = ["agent-works", "pluginsX"].join(":");
+  const other = `# P\n\n<!-- ${stray} old -->\nold\n<!-- /agent-works:plugins -->\n## One\n## Two\n`;
+  assert.equal(withPluginsBlock(other, "BLOCK\n"), `# P\n\n<!-- ${stray} old -->\nold\n<!-- /agent-works:plugins -->\n## One\nBLOCK\n\n## Two\n`);
   const once = withPluginsBlock("# P\n\n## One\n\n## Two\n", block);
   assert.equal(withPluginsBlock(once, block), once);
 });

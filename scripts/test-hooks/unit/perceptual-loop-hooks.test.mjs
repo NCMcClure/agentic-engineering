@@ -143,7 +143,8 @@ test("the note lists every value that names the old folder, a render line that n
     budget: { free: 3, match: ["npm run render", String.raw`iterate\.py`] },
   });
   write(dir, ".gitignore", "node_modules/\n.perceptual-loop/shots/\n");
-  write(dir, "AGENTS.md", "# App\n\nRun `/perceptual-loop:build-harness` once.\n");
+  // The repo's own file, naming a skill by an address it had before. Built from its parts: nothing ships there now.
+  write(dir, "AGENTS.md", `# App\n\nRun \`${["/perceptual-loop", "build-harness"].join(":")}\` once.\n`);
   write(dir, "README.md", "# App\n\nUses the perceptual-loop plugin.\n");
   const { context } = session(dir);
   assert.match(context, /replace \.perceptual-loop with \.agents\/perceptual in shotsDir; render\.candidate; render\.reference\[2\]\./);

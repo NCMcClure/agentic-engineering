@@ -518,7 +518,7 @@ test("the script imports nothing but Node's own modules, so one file copied into
 });
 
 test("the config template diagrams-init copies parses, and turns nothing on by itself", () => {
-  const template = JSON.parse(fs.readFileSync(path.join(PLUGIN, "skills", "diagrams-init", "assets", "system-map.json"), "utf8"));
+  const template = JSON.parse(fs.readFileSync(path.join(PLUGIN, "routes", "diagrams-init", "assets", "system-map.json"), "utf8"));
   assert.deepEqual([template.board, template.requireClassification, template.classification, template.publishedHash], [null, null, null, null]);
   assert.deepEqual([template.map, template.exclude, template.accept], ["diagrams/system-map.json", [".agents/**"], []]);
   assert.match(publishBlocker(template), /no board recorded/);
@@ -528,10 +528,10 @@ test("the config template diagrams-init copies parses, and turns nothing on by i
 
 test("a repo's one-line generator draws the committed map through the build, with nothing imported from the plugin", (t) => {
   const { dir } = project(t);
-  const S = path.join(PLUGIN, "skills", "miro-board", "scripts");
+  const S = path.join(PLUGIN, "routes", "miro-board", "scripts");
   const init = runNode(path.join(S, "init.mjs"), ["diagrams", "--board", BOARD], { cwd: dir });
   assert.equal(init.status, 0, init.stderr);
-  const generator = fs.readFileSync(path.join(PLUGIN, "skills", "diagrams-init", "assets", "gen-system.mjs"), "utf8");
+  const generator = fs.readFileSync(path.join(PLUGIN, "routes", "diagrams-init", "assets", "gen-system.mjs"), "utf8");
   assert.doesNotMatch(generator, /^import\b/m, "the generator a repo commits imports nothing");
   write(dir, "diagrams/src/gen-system.mjs", generator);
   fs.rmSync(path.join(dir, "diagrams", "src", "gen-example.mjs"));

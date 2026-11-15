@@ -1,4 +1,4 @@
-// plugin-workbench's context-lens: a Claude Code transcript read back into
+// The context-doctor area's lens: a Claude Code transcript read back into
 // what entered the model's context, from which plugin, and whether it
 // survived a compaction. The fixture is built from the shapes real
 // transcripts carry (Claude Code 2.1.30x), trimmed to the fields the reader
@@ -15,6 +15,11 @@ import { renderReport } from "../../../plugins/agentcraft/skills/context-doctor/
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
 const CLI = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor", "scripts", "context-lens.mjs");
+
+// A session recorded before the plugins became areas names a skill by its
+// old address, and the lens still has to read it. Nothing ships at one now,
+// so a fixture builds it from its parts.
+const old = (plugin, skill) => [plugin, skill].join(":");
 
 const hooksJson = (map) => JSON.stringify({ hooks: map });
 const command = (script) => `node "\${CLAUDE_PLUGIN_ROOT}/hooks/${script}"`;
@@ -87,10 +92,10 @@ const skills = () => ({
     type: "skill_listing",
     content: [
       "- browser-tools: Drive a real browser from the shell.",
-      "- agentic-teamwork:ship: Land the current work: branch if needed, commit,",
+      `- ${old("agentic-teamwork", "ship")}: Land the current work: branch if needed, commit,`,
       "  and open the merge request.",
-      "- agentic-teamwork:ladder",
-      "- agent-works:board: Use for anything on the kanban board.",
+      `- ${old("agentic-teamwork", "ladder")}`,
+      `- ${old("agent-works", "board")}: Use for anything on the kanban board.`,
     ].join("\n"),
   },
   rendered: reminder("The following skills are available for use with the Skill tool:\n\n- browser-tools ..."),
@@ -396,7 +401,7 @@ test("a listing entry that names an area is that area's, and the skill a person 
     "- agentcraft:agentic-teamwork: Use for the team's git conventions.",
     "  Routes are its arguments, not skills: ship (open the request).",
     "- agentcraft:docs-parity",
-    "- agent-works:board: Use for the board.",
+    `- ${old("agent-works", "board")}: Use for the board.`,
   ];
   const parts = splitListing(lines.join("\n"), sources);
   assert.deepEqual(parts.map((p) => [p.plugin, p.area ?? null, p.count, p.bare]),
@@ -441,17 +446,17 @@ const toolResult = (id, extra = {}) => ({ type: "user", timestamp: at(), message
 test("the session records each call on the Skill tool and each read of a skill's or a route's file, with how it went", () => {
   const entries = [
     prompt("Set this repo up."),
-    toolUse("t1", "Skill", { skill: "agentic-teamwork:bootstrap" }), toolResult("t1", { is_error: true, content: "This skill can only be started by the user." }),
-    toolUse("t2", "Skill", { skill: "agentic-teamwork:tdd" }), toolResult("t2"),
+    toolUse("t1", "Skill", { skill: old("agentic-teamwork", "bootstrap") }), toolResult("t1", { is_error: true, content: "This skill can only be started by the user." }),
+    toolUse("t2", "Skill", { skill: old("agentic-teamwork", "tdd") }), toolResult("t2"),
     toolUse("t3", "Read", { file_path: "/srv/plugins/agentcraft/skills/agentic-teamwork/routes/ship/ROUTE.md" }), toolResult("t3"),
     toolUse("t4", "Read", { file_path: "/srv/demo/README.md" }), toolResult("t4"),
-    toolUse("t5", "Read", { file_path: "/srv/plugins/agentcraft/skills/agent-works/routes/board/ROUTE.md" }),
+    toolUse("t5", "Read", { file_path: "/srv/plugins/agentcraft/skills/agent-works/SKILL.md" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "calls", ...e }));
   const session = buildSession(entries);
   // A call the host refused is a call that did not go through.
-  assert.deepEqual(session.skillCalls, [{ skill: "agentic-teamwork:bootstrap", segment: 0, turn: 1, ok: false }, { skill: "agentic-teamwork:tdd", segment: 0, turn: 1, ok: true }]);
+  assert.deepEqual(session.skillCalls, [{ skill: old("agentic-teamwork", "bootstrap"), segment: 0, turn: 1, ok: false }, { skill: old("agentic-teamwork", "tdd"), segment: 0, turn: 1, ok: true }]);
   // A README is not a skill's instructions; a read the transcript holds no result for is neither way.
-  assert.deepEqual(session.reads.map((r) => [r.file.split("/").slice(-3).join("/"), r.ok]), [["routes/ship/ROUTE.md", true], ["skills/board/SKILL.md", null]]);
+  assert.deepEqual(session.reads.map((r) => [r.file.split("/").slice(-3).join("/"), r.ok]), [["routes/ship/ROUTE.md", true], ["skills/agent-works/SKILL.md", null]]);
 });
 
 test("a session of plugins with no areas reads as it did before areas: no area, no blocks, the listing split by plugin", (t) => {

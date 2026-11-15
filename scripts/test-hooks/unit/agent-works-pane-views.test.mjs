@@ -214,7 +214,7 @@ test("closing a sprint is previewed the way the CLI closes it", () => {
 });
 
 test("a task's card: its fields to edit, each change handed on as one patch", () => {
-  const { tree, calls } = draw(fixture(), { view: { kind: "card", id: "0002" }, skills: ["agent-works:board", "code-diet:ladder"] });
+  const { tree, calls } = draw(fixture(), { view: { kind: "card", id: "0002" }, skills: ["agentcraft:agent-works", "agentcraft:code-diet"] });
   assert.deepEqual(keys(tree, "Select"), ["status", "kind", "epic", "sprint", "priority", "skill-pick"]);
   assert.deepEqual(keys(tree, "Input"), ["title", "owner", "labels", "skill-type", "note"]);
   assert.deepEqual(need(tree, "epic", "Select").props.options.map((o) => o.value), ["none", "0001"]);
@@ -230,22 +230,22 @@ test("a task's card: its fields to edit, each change handed on as one patch", ()
   need(tree, "priority", "Select").props.onSelect("high");
   need(tree, "owner", "Input").props.onSubmit("sam");
   need(tree, "labels", "Input").props.onSubmit("ui, , pane");
-  need(tree, "skill-pick", "Select").props.onSelect("code-diet:ladder");
-  need(tree, "skill-type", "Input").props.onSubmit("/agent-works:board");
+  need(tree, "skill-pick", "Select").props.onSelect("agentcraft:code-diet");
+  need(tree, "skill-type", "Input").props.onSubmit("/agentcraft:agent-works");
   need(tree, "note", "Input").props.onSubmit("half done");
   need(tree, "archive").props.onPress();
   need(tree, "start").props.onPress();
   assert.deepEqual(calls, [
     ["patch", "0002", { title: "Cache every listing" }], ["place", "0002", "review"], ["patch", "0002", { kind: "gate" }], ["patch", "0002", { epic: "none" }],
     ["patch", "0002", { sprint: "s3" }], ["patch", "0002", { priority: "high" }], ["patch", "0002", { owner: "sam" }], ["patch", "0002", { labels: ["ui", "pane"] }],
-    ["patch", "0002", { skills: ["code-diet:ladder"] }], ["patch", "0002", { skills: ["agent-works:board"] }], ["note", "0002", "half done"], ["archive", "0002"], ["start", "0002"],
+    ["patch", "0002", { skills: ["agentcraft:code-diet"] }], ["patch", "0002", { skills: ["agentcraft:agent-works"] }], ["note", "0002", "half done"], ["archive", "0002"], ["start", "0002"],
   ]);
 
   const nudged = fixture();
-  nudged.cards[1].skills = ["code-diet:ladder"];
-  const again = draw(nudged, { view: { kind: "card", id: "0002" }, skills: ["code-diet:ladder"] });
+  nudged.cards[1].skills = ["agentcraft:code-diet"];
+  const again = draw(nudged, { view: { kind: "card", id: "0002" }, skills: ["agentcraft:code-diet"] });
   assert.equal(find(again.tree, "skill-pick", "Select"), null, "nothing left to offer");
-  need(again.tree, "skill-code-diet:ladder").props.onPress();
+  need(again.tree, "skill-agentcraft:code-diet").props.onPress();
   assert.deepEqual(again.calls, [["patch", "0002", { skills: [] }]]);
 });
 

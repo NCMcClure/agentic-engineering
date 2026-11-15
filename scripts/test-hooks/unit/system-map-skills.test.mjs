@@ -1,113 +1,91 @@
-// system-map's skills, read as an agent's listing reads them: a name that
-// matches its folder, a description that says when to reach for it, the four
-// frontmatter keys and no others, and no path, script, flag, or skill named
-// in a body that does not exist.
+// The system-map area's routes, read as an agent reads them: a name that
+// matches its folder, a description that says when to take it, a route's
+// frontmatter keys and no others, and no reference, script, flag, or route
+// named in a body that does not exist.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { parseFrontmatter } from "../../lib.mjs";
-import { REPO } from "./helpers.mjs";
+import { area, routeBasics } from "./area-routes.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
-const SKILLS = path.join(PLUGIN, "skills");
-const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
-// Run by a person, once per machine or once per repo: never picked by the model on its own.
+const AREA = area("system-map");
+const routes = AREA.routes;
+const names = routes.map((r) => r.name);
+// Started by a person, once per machine or once per repo: never picked by the model on its own.
 const BY_HAND = ["browser-setup", "diagrams-init"];
 
-const names = fs.readdirSync(SKILLS, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
-const skills = names.map((name) => {
-  const file = path.join(SKILLS, name, "SKILL.md");
-  const text = fs.existsSync(file) ? fs.readFileSync(file, "utf8") : "";
-  return { name, dir: path.join(SKILLS, name), text, frontmatter: parseFrontmatter(text), body: text.replace(/^---\n[\s\S]*?\n---\n/, "") };
-});
-/** Every Markdown file a skill ships: its SKILL.md and its references. */
-const pages = (skill) => [path.join(skill.dir, "SKILL.md"), ...(fs.existsSync(path.join(skill.dir, "references"))
-  ? fs.readdirSync(path.join(skill.dir, "references")).filter((f) => f.endsWith(".md")).map((f) => path.join(skill.dir, "references", f)) : [])];
+/** Every Markdown file a route ships: its ROUTE.md and its references. */
+const pages = (route) => [route.file, ...(fs.existsSync(path.join(route.dir, "references"))
+  ? fs.readdirSync(path.join(route.dir, "references")).filter((f) => f.endsWith(".md")).map((f) => path.join(route.dir, "references", f)) : [])];
 /** The flags a script takes, read from its own source. */
-const flagsOf = (script) => new Set([...fs.readFileSync(path.join(PLUGIN, script), "utf8").matchAll(/"(--[a-z][a-z-]*)"/g)].map((m) => m[1]));
+const flagsOf = (script) => new Set([...fs.readFileSync(path.join(AREA.dir, script), "utf8").matchAll(/"(--[a-z][a-z-]*)"/g)].map((m) => m[1]));
 
-test("the plugin ships exactly its four skills", () => {
+test("system-map routes: the area ships exactly its four", () => {
   assert.deepEqual(names, ["browser-setup", "diagrams-init", "diagrams-sync", "miro-board"]);
+  assert.deepEqual(names.filter((name) => AREA.starts(name) === "person"), BY_HAND, "set up by hand, everything else by the model");
 });
 
-for (const skill of skills) {
-  test(`${skill.name}: the frontmatter names the skill and carries only the allowed keys`, () => {
-    assert.ok(skill.frontmatter, "SKILL.md starts with a frontmatter block");
-    assert.equal(skill.frontmatter.name, skill.name, "the name is the folder's");
-    for (const key of Object.keys(skill.frontmatter)) assert.ok(ALLOWED_KEYS.includes(key), `frontmatter key "${key}"`);
-    assert.equal(skill.frontmatter["disable-model-invocation"] === "true", BY_HAND.includes(skill.name), "set up by hand, everything else by the model");
-  });
+routeBasics(test, AREA, { when: /\bUse (it )?when\b/, cap: 700 });
 
-  test(`${skill.name}: the description says when to trigger`, () => {
-    const description = skill.frontmatter?.description ?? "";
-    assert.ok(description.length >= 80, "long enough to tell this skill from its neighbours");
-    assert.ok(description.length <= 700, `${description.length} characters: a listing pays for every one`);
-    assert.match(description, /\bUse (it )?when\b/, "it says when to use it, not only what it is");
-  });
-
-  test(`${skill.name}: every path, reference, and script it names exists`, () => {
-    for (const m of skill.text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+)/g)) {
-      assert.ok(fs.existsSync(path.join(PLUGIN, m[1])), `\${CLAUDE_PLUGIN_ROOT}/${m[1]}`);
+for (const route of routes) {
+  test(`system-map routes: every reference and script ${route.name} names exists`, () => {
+    for (const m of route.text.matchAll(/\]\(((?:references|workflows|assets|scripts)\/[A-Za-z0-9_./-]+)\)/g)) {
+      assert.ok(fs.existsSync(path.join(route.dir, m[1])), `${route.name} links ${m[1]}`);
     }
-    for (const m of skill.text.matchAll(/\]\(((?:references|workflows|assets|scripts)\/[A-Za-z0-9_./-]+)\)/g)) {
-      assert.ok(fs.existsSync(path.join(skill.dir, m[1])), `${skill.name} links ${m[1]}`);
-    }
-    // `S` stands for the skill's own scripts directory wherever a body uses it.
-    for (const m of skill.body.matchAll(/\bnode S\/([a-z-]+\.mjs)/g)) {
-      assert.ok(fs.existsSync(path.join(skill.dir, "scripts", m[1])), `${skill.name} runs S/${m[1]}`);
-      assert.match(skill.body, /`S` below is `\$\{CLAUDE_PLUGIN_ROOT\}\/skills\/[a-z-]+\/scripts`/, "S is defined before it is used");
+    // `S` stands for the route's own scripts directory wherever a body uses it.
+    for (const m of route.body.matchAll(/\bnode S\/([a-z-]+\.mjs)/g)) {
+      assert.ok(fs.existsSync(path.join(route.dir, "scripts", m[1])), `${route.name} runs S/${m[1]}`);
+      assert.ok(route.body.includes(`\`S\` below is \`W/routes/${route.name}/scripts\``), "S is defined before it is used, under the directory the route named");
     }
   });
 
-  test(`${skill.name}: a path the host fills in appears only where the host fills it in`, () => {
-    // The host substitutes the plugin root in a SKILL.md. A reference is read as a plain file, where it would stay a literal.
-    for (const page of pages(skill).filter((p) => path.basename(p) !== "SKILL.md")) {
-      assert.doesNotMatch(fs.readFileSync(page, "utf8"), /\$\{CLAUDE_PLUGIN_ROOT\}/, path.relative(PLUGIN, page));
-    }
+  test(`system-map routes: no page of ${route.name} writes a path the host would have to fill in`, () => {
+    // A route and its references are read as plain files, where the plugin's root would stay a literal.
+    for (const page of pages(route)) assert.doesNotMatch(fs.readFileSync(page, "utf8"), /\$\{CLAUDE_PLUGIN_ROOT\}/, path.relative(AREA.dir, page));
   });
 
-  test(`${skill.name}: every flag it passes a script is one the script takes`, () => {
+  test(`system-map routes: every flag ${route.name} passes a script is one the script takes`, () => {
     const scripts = {
       "system-map.mjs": flagsOf("scripts/system-map.mjs"),
       "map-sweep.mjs": flagsOf("scripts/map-sweep.mjs"),
-      "check-setup.mjs": flagsOf("skills/browser-setup/scripts/check-setup.mjs"),
-      "build.mjs": flagsOf("skills/miro-board/scripts/build.mjs"),
-      "init.mjs": flagsOf("skills/miro-board/scripts/init.mjs"),
-      "pull.mjs": new Set([...flagsOf("skills/miro-board/scripts/pull.mjs"), ...flagsOf("skills/miro-board/scripts/project.mjs")]),
-      "live.mjs": flagsOf("skills/miro-board/scripts/live.mjs"),
+      "check-setup.mjs": flagsOf("routes/browser-setup/scripts/check-setup.mjs"),
+      "build.mjs": flagsOf("routes/miro-board/scripts/build.mjs"),
+      "init.mjs": flagsOf("routes/miro-board/scripts/init.mjs"),
+      "pull.mjs": new Set([...flagsOf("routes/miro-board/scripts/pull.mjs"), ...flagsOf("routes/miro-board/scripts/project.mjs")]),
+      "live.mjs": flagsOf("routes/miro-board/scripts/live.mjs"),
     };
     for (const [script, known] of Object.entries(scripts)) assert.ok(known.size >= 1, `${script} declares its flags`);
     const used = (line, name) => [...line.matchAll(/(?<![\w-])(--[a-z][a-z-]*)/g)].map((f) => [name, f[1]]);
     const passed = [];
-    for (const page of pages(skill)) {
+    for (const page of pages(route)) {
       const text = fs.readFileSync(page, "utf8");
-      // A command in backticks or a code block that names the script, or the MAP and SWEEP shorthands for the two at the plugin root.
+      // A command in backticks or a code block that names the script, or the MAP and SWEEP shorthands for the two at the area's root.
       for (const m of text.matchAll(/`([^`\n]*?(?<![\w-])([a-z-]+\.mjs)\b[^`\n]*)`/g)) if (scripts[m[2]]) passed.push(...used(m[1], m[2]));
       for (const m of text.matchAll(/^.*\bnode\s+\S*\/([a-z-]+\.mjs)\S*(.*)$/gm)) if (scripts[m[1]]) passed.push(...used(m[2], m[1]));
       for (const m of text.matchAll(/`MAP( [^`\n]*)`/g)) passed.push(...used(m[1], "system-map.mjs"));
       for (const m of text.matchAll(/`SWEEP( [^`\n]*)`/g)) passed.push(...used(m[1], "map-sweep.mjs"));
     }
-    assert.ok(passed.length >= 2, "the skill's commands were found");
+    assert.ok(passed.length >= 2, "the route's commands were found");
     for (const [script, flag] of passed) assert.ok(scripts[script].has(flag), `${script} has no ${flag}`);
   });
 
-  test(`${skill.name}: every skill it points at is one the plugin ships, and a hand-run one is asked for`, () => {
-    for (const page of pages(skill)) {
+  test(`system-map routes: every route ${route.name} points at is one the area ships, and a hand-run one is asked for`, () => {
+    for (const page of pages(route)) {
       const text = fs.readFileSync(page, "utf8");
-      for (const m of text.matchAll(/(?<![\w/.-])\/([a-z][a-z-]*):([a-z][a-z-]*)\b/g)) {
-        assert.equal(m[1], "system-map", `/${m[1]}:${m[2]} belongs to another plugin`);
-        assert.ok(names.includes(m[2]), `/system-map:${m[2]}`);
+      for (const m of text.matchAll(/(?<![\w/.-])\/agentcraft:([a-z][a-z-]*) ([a-z][a-z-]*)\b/g)) {
+        assert.equal(m[1], "system-map", `${m[0]} belongs to another area`);
+        assert.ok(names.includes(m[2]), m[0]);
       }
-      // A skill only a person can run is never something the model is told to use or load.
-      for (const hand of BY_HAND.filter((h) => h !== skill.name)) {
-        assert.doesNotMatch(text, new RegExp(`\\b(use|run|load|invoke|follow) the ${hand} skill`, "i"), `${path.basename(page)} sends the model to ${hand}`);
+      assert.doesNotMatch(text, /(?<![\w/.-])\/(system-map|marvelous-miro):[a-z]/, `${path.basename(page)}: an address under an old plugin name`);
+      // A route only a person can start is never something the model is told to use or load.
+      for (const hand of BY_HAND.filter((h) => h !== route.name)) {
+        assert.doesNotMatch(text, new RegExp(`\\b(use|run|load|invoke|follow) the ${hand} (skill|route)`, "i"), `${path.basename(page)} sends the model to ${hand}`);
       }
     }
   });
 
-  test(`${skill.name}: nothing assumes whose Miro it is`, () => {
-    for (const page of pages(skill)) {
+  test(`system-map routes: nothing in ${route.name} assumes whose Miro it is`, () => {
+    for (const page of pages(route)) {
       const text = fs.readFileSync(page, "utf8");
       assert.doesNotMatch(text, /parent_space_url\b.*\b[0-9A-Za-z]{20,}/, "a space id is baked in");
       assert.doesNotMatch(text, /\b\d{15,}\b/, "a Miro id is baked in");
@@ -116,21 +94,20 @@ for (const skill of skills) {
   });
 }
 
-test("the skills that touch a sign-in say whose it is", () => {
+test("system-map routes: the routes that touch a sign-in say whose it is", () => {
   for (const name of ["miro-board", "browser-setup"]) {
-    const { body } = skills.find((s) => s.name === name);
-    assert.match(body, /never type(s)? (a password|credentials)/i, `${name} says the agent types no credentials`);
+    assert.match(AREA.route(name).body, /never type(s)? (a password|credentials)/i, `${name} says the agent types no credentials`);
   }
-  const init = skills.find((s) => s.name === "diagrams-init").body;
+  const init = AREA.route("diagrams-init").body;
   assert.match(init, /Ask the person which board/);
   assert.match(init, /on their yes call `board_create`/);
 });
 
-test("every file a skill tells a repo to copy is in the plugin, and the workflow it launches parses", () => {
-  for (const asset of ["skills/diagrams-init/assets/system-map.json", "skills/diagrams-init/assets/gen-system.mjs", "skills/miro-board/assets/miro.config.mjs", "skills/miro-board/assets/gen-example.mjs", "skills/miro-board/assets/board-dump.js", "scripts/system-map.mjs"]) {
-    assert.ok(fs.existsSync(path.join(PLUGIN, asset)), asset);
+test("system-map routes: every file a route tells a repo to copy is in the area, and the workflow it launches parses", () => {
+  for (const asset of ["routes/diagrams-init/assets/system-map.json", "routes/diagrams-init/assets/gen-system.mjs", "routes/miro-board/assets/miro.config.mjs", "routes/miro-board/assets/gen-example.mjs", "routes/miro-board/assets/board-dump.js", "scripts/system-map.mjs"]) {
+    assert.ok(fs.existsSync(path.join(AREA.dir, asset)), asset);
   }
-  const workflow = fs.readFileSync(path.join(SKILLS, "diagrams-sync", "workflows", "sweep.js"), "utf8");
+  const workflow = fs.readFileSync(path.join(AREA.dir, "routes", "diagrams-sync", "workflows", "sweep.js"), "utf8");
   const AsyncFunction = (async () => {}).constructor;
   assert.doesNotThrow(() => new AsyncFunction("args", "agent", "parallel", "pipeline", "phase", "log", "budget", workflow.replace(/^export const meta/m, "const meta")));
 });

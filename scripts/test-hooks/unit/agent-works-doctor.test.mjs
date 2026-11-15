@@ -445,7 +445,7 @@ test("agent-works doctor: --machine checks the machine instead of the repository
   const doc = JSON.parse(out);
   assert.equal(err, "");
   assert.deepEqual(Object.keys(doc), ["ok", "checks"]);
-  assert.deepEqual(doc.checks.map((c) => c.id), ["node", "git", "forge"]);
+  assert.deepEqual(doc.checks.map((c) => c.id), ["node", "git", "forge", "claude", "deps"]);
   assert.equal(code, doc.ok ? 0 : 1);
   assert.deepEqual(doc.checks[0], { id: "node", hard: true, status: "ok", detail: `Node ${process.versions.node}` });
   const [, text] = await p.aw("doctor", "--machine");

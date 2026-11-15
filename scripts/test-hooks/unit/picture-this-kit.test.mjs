@@ -39,9 +39,11 @@ async function quiet(fn) {
 }
 const actions = (p) => Object.fromEntries(p.files.filter((f) => f.action !== "same").map((f) => [f.rel, f.action]));
 
-test("the kit carries the plugin's version and the files a figure draws with", () => {
-  const manifest = JSON.parse(read(PLUGIN, ".claude-plugin", "plugin.json"));
-  assert.equal(kitVersion(KIT), manifest.version, "kit/kit.json and plugin.json move together");
+test("the kit carries a version of its own and the files a figure draws with", () => {
+  // The plugin has one version, which moves with every area. The kit's says whether a repo's copy is behind,
+  // so it moves only when a file a repo copies does.
+  assert.match(kitVersion(KIT), /^\d+\.\d+\.\d+$/);
+  assert.equal(fs.existsSync(path.join(PLUGIN, ".claude-plugin")), false, "an area has no manifest");
   const files = kitFiles(KIT);
   for (const rel of ["stage.tsx", "timeline.ts", "model.ts", "kit.css", "label.tsx", "term.tsx", "iso/project.ts", "iso/shapes.tsx", "iso/wire.tsx"]) assert.ok(files.includes(rel), rel);
   assert.equal(files.includes("kit.json"), false, "the marker is written by the install, not copied");

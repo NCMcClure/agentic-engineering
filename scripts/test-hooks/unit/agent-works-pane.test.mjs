@@ -54,10 +54,10 @@ test("hooks.json loads the pane as a module, and the tools' names are written ou
 test("surface_task files a suggestion once: the same title again names the first card", async (t) => {
   const r = repo(t);
   const m = await mount(r.dir);
-  const first = await m.tool("surface_task", { title: "Fix the flaky lock test", details: "It races on a slow runner.", kind: "bug", files: ["scripts/locks.mjs"], priority: "high", skills: ["agent-works:board"] });
+  const first = await m.tool("surface_task", { title: "Fix the flaky lock test", details: "It races on a slow runner.", kind: "bug", files: ["scripts/locks.mjs"], priority: "high", skills: ["agentcraft:agent-works"] });
   assert.equal(first.result, "Added card 0001 [suggested]: Fix the flaky lock test");
   const card = boardOf(r.dir).card("0001");
-  assert.deepEqual([card.status, card.source, card.priority, card.labels, card.files, card.skills, card.body], ["suggested", "claude", "high", ["bug"], ["scripts/locks.mjs"], ["agent-works:board"], "It races on a slow runner."]);
+  assert.deepEqual([card.status, card.source, card.priority, card.labels, card.files, card.skills, card.body], ["suggested", "claude", "high", ["bug"], ["scripts/locks.mjs"], ["agentcraft:agent-works"], "It races on a slow runner."]);
   assert.match(m.seen.toasts.at(-1), /^Claude suggested a task on the kanban board: Fix the flaky lock test\./);
 
   const again = await m.tool("surface_task", { title: "fix the FLAKY lock test!", details: "again" });
@@ -337,13 +337,13 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "priority", "high");
   await m.type(await draw(), "owner", "sam");
   await m.type(await draw(), "labels", "ui, pane");
-  await m.type(await draw(), "skill-type", "/code-diet:ladder");
+  await m.type(await draw(), "skill-type", "/agentcraft:code-diet");
   await m.pick(await draw(), "skill-pick", AREA);
   await m.type(await draw(), "note", "The lanes draw; the cards do not yet.");
   let card = boardOf(r.dir).card("0001");
   assert.deepEqual(
     [card.title, card.kind, card.ref, card.needs, card.epic, card.sprint, card.priority, card.owner, card.labels, card.skills],
-    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["code-diet:ladder", AREA]],
+    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["agentcraft:code-diet", AREA]],
   );
   assert.match(card.body, /^- \S+: The lanes draw; the cards do not yet\.$/m);
   assert.match(cardText(r.kanban, "0001"), /^estimate: 3$/m, "the line the pane does not know is still there");
@@ -355,7 +355,7 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "sprint", "none");
   await m.type(await draw(), "labels", "");
   card = boardOf(r.dir).card("0001");
-  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["code-diet:ladder"], "", "", []]);
+  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["agentcraft:code-diet"], "", "", []]);
   assert.ok(writes(m).every((a) => a[0] === "edit" || a[0] === "note"), "every change was an edit or a note");
   assert.equal(writes(m).length, 17);
 });
