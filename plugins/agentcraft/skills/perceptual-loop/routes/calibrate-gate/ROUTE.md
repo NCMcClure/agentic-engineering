@@ -5,9 +5,11 @@ description: "Use when a perceptual gate fails on something untouched, numbers w
 
 # calibrate-gate
 
-A gate is only as good as its tolerances. Too tight, and agents learn to accept failures; too loose, and it catches nothing. Tolerances are **measured**, never chosen. Shapes: `${CLAUDE_PLUGIN_ROOT}/references/contract.md`, the baseline.json section.
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`.
+A gate is only as good as its tolerances. Too tight, and agents learn to accept failures; too loose, and it catches nothing. Tolerances are **measured**, never chosen. Shapes: `W/references/contract.md`, the baseline.json section.
+
+`P` below is `node "W/scripts/pl.mjs"`.
 
 ## Step 1: Measure the spread
 
@@ -22,7 +24,7 @@ It prints, per metric class (`<source>/frame.ssim`, `<source>/region.*.edgeF1`, 
 
 A tolerance measured while another job ran is too wide. Look at the processor and GPU load before the runs, wait if another job is running, and write what you saw beside the numbers.
 
-A large spread everywhere is not a tolerance problem; it is a determinism problem. Go back to `shot-harness` step 2 (`${CLAUDE_PLUGIN_ROOT}/skills/shot-harness/SKILL.md`) before widening anything.
+A large spread everywhere is not a tolerance problem; it is a determinism problem. Go back to `shot-harness` step 2 (`W/routes/shot-harness/ROUTE.md`) before widening anything.
 
 *Done when: calibrate printed a largest spread and a proposed tolerance for every metric class, from at least three runs, and no class's spread exceeds the smallest change the gate must catch (else: `shot-harness` step 2).*
 

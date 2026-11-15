@@ -5,9 +5,11 @@ description: "Use when a difference in a picture needs a verdict, a finished loo
 
 # judge-and-queue
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 The agent decides defects, the owner decides taste, and nobody decides either with a bare metric. This skill gives each difference a verdict with its evidence, gets a second look from a critic who does not know what you meant, and batches the owner's questions into one page, so the owner rules on ten questions in one sitting instead of being interrupted ten times.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`. The verdicts are the table in `${CLAUDE_PLUGIN_ROOT}/references/doctrine.md` rule 2, and only there.
+`P` below is `node "W/scripts/pl.mjs"`. The verdicts are the table in `W/references/doctrine.md` rule 2, and only there.
 
 ## Step 1: Make the comparison
 
@@ -38,19 +40,19 @@ You know what you meant, so you will see it. Before you report a look change as 
    P blind --id <shot> --before <file> --after <file> [--reference <file>] --json
    ```
 
-2. Dispatch the `perceptual-loop:vision-critic` agent with only the picture paths it printed, the success file's observables phrased as questions ("is the lamp lit?"), the box to attend to, and the plugin root. Nothing about what you changed or expect, and never the key.
+2. Dispatch the `agentcraft:vision-critic` agent with only the picture paths it printed, the success file's observables phrased as questions ("is the lamp lit?"), the box to attend to, and the plugin root. Nothing about what you changed or expect, and never the key.
 3. Translate A and B back once it has answered (`aIs` in what blind printed, or `P blind reveal <id>`). Where it disagrees with you, look again; where it finds a defect you missed, that is the point of the step.
 
 For a batch of finished shots, and only when the person asked for multi-agent work, run the workflow: a critic per comparison, then a skeptic per finding. It refuses pictures whose names say which state they are, and it keeps the key in the script:
 
 ```
-Workflow({ scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/judge-and-queue/workflows/critique.js",
+Workflow({ scriptPath: "W/routes/judge-and-queue/workflows/critique.js",
   args: { pluginRoot: "<absolute path of the plugin>",
           items: [{ id: "<shot>", images: { A: "<path>", B: "<path>", R: "<path>" }, aIs: "<from blind>",
                     observables: ["<question>"], box: "x0,y0,x1,y1" }] } })
 ```
 
-It returns, per comparison, the observables for before and after, the findings that were not refuted (each `verified` or not), the differences nobody could rank, and the counts. A host without the Workflow tool follows `${CLAUDE_PLUGIN_ROOT}/references/subagent-fallback.md`.
+It returns, per comparison, the observables for before and after, the findings that were not refuted (each `verified` or not), the differences nobody could rank, and the counts. A host without the Workflow tool follows `W/references/subagent-fallback.md`.
 
 *Done when: the critic's findings sit beside your verdicts, and each disagreement is resolved or queued.*
 

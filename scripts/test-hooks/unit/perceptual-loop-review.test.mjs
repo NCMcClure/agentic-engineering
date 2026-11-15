@@ -12,8 +12,8 @@ import path from "node:path";
 import test from "node:test";
 import { PL, PLUGIN, runNode, scene, tempDir, u8, write } from "./perceptual-loop-fixtures.mjs";
 
-import { encodePng, decodePng } from "../../../plugins/perceptual-loop/scripts/lib/png.mjs";
-import { lint } from "../../../plugins/perceptual-loop/scripts/commands/lint.mjs";
+import { encodePng, decodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import { lint } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/commands/lint.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 const ENV = { PL_RUN: "", PL_DIR: "", PL_SHOTS_DIR: "" };
 
@@ -196,7 +196,7 @@ test("lint: a claim needs an artefact nearby; hedged and planned claims are left
   assert.deepEqual(rules("It works."), ["bare-claim"]);
   assert.deepEqual(rules("Verified."), ["bare-claim"]);
   assert.deepEqual(rules("Verified with `npm test`."), []);
-  assert.deepEqual(rules("The bug is fixed in plugins/perceptual-loop/scripts/lib/jpeg.mjs."), []);
+  assert.deepEqual(rules("The bug is fixed in plugins/agentcraft/skills/perceptual-loop/scripts/lib/jpeg.mjs."), []);
   assert.deepEqual(rules("It works. See `runs/iterate/sky_0/sheet.candidate.png`."), [], "the artefact in the next sentence");
   assert.deepEqual(rules("The gate passes:\n\n- 12 of 12 entries ok"), [], "the artefact under a line ending in a colon");
   assert.deepEqual(rules("The tests should pass once merged."), []);

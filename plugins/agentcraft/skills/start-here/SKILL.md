@@ -232,10 +232,10 @@ The session writes down what will prove a change, renders a few reproducible sho
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| start any change to how something looks, moves, or sounds | `/perceptual-loop:perceptual-loop` | agent |
-| set a project up so it can render a shot on command | `/perceptual-loop:shot-harness` | person |
-| check an animation, a transition, or a clip | `/perceptual-loop:check-motion` | agent |
-| check a sound, or a sound against its picture | `/perceptual-loop:check-audio` | agent |
+| start any change to how something looks, moves, or sounds | `/agentcraft:perceptual-loop` | agent |
+| set a project up so it can render a shot on command | `/agentcraft:perceptual-loop shot-harness` | person |
+| check an animation, a transition, or a clip | `/agentcraft:perceptual-loop check-motion` | agent |
+| check a sound, or a sound against its picture | `/agentcraft:perceptual-loop check-audio` | agent |
 
 ### write-like-me
 

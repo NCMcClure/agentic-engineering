@@ -5,9 +5,11 @@ description: "Use for animation, transitions, smoothness, latency, or any clip, 
 
 # check-motion
 
-A still shows only its instant (doctrine rule 7, `${CLAUDE_PLUGIN_ROOT}/references/doctrine.md`). A pop in a fade, a flicker, a stutter, a motion going the wrong way, or a transition that differs from the reference is in no single frame, so a sheet of stills does not find it and a person scrubbing a clip finds it once. This skill makes the sequence reproducible and measures it with numbers made for sequences, then points the eyes at the frames the numbers name.
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`. Every command takes `--help`, which says what its numbers mean and what they cannot tell. A clip is a folder of frames (no ffmpeg needed) or a video file (ffmpeg, the one external tool), or a shot's clip: `frames/<source>/` or `<source>.mp4` in the shot folder, read with `--shot NAME --source ID`.
+A still shows only its instant (doctrine rule 7, `W/references/doctrine.md`). A pop in a fade, a flicker, a stutter, a motion going the wrong way, or a transition that differs from the reference is in no single frame, so a sheet of stills does not find it and a person scrubbing a clip finds it once. This skill makes the sequence reproducible and measures it with numbers made for sequences, then points the eyes at the frames the numbers name.
+
+`P` below is `node "W/scripts/pl.mjs"`. Every command takes `--help`, which says what its numbers mean and what they cannot tell. A clip is a folder of frames (no ffmpeg needed) or a video file (ffmpeg, the one external tool), or a shot's clip: `frames/<source>/` or `<source>.mp4` in the shot folder, read with `--shot NAME --source ID`.
 
 | The question | Measurement | Command |
 | --- | --- | --- |

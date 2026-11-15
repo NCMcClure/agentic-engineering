@@ -11,14 +11,14 @@
       "label": "Reference",
       "kind": "picture",
       "note": "another renderer, a design export",
-      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:72"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:72"
     },
     {
       "id": "candidate",
       "label": "Candidate render",
       "kind": "picture",
       "note": "your renderer, one shot",
-      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:98"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/iterate.mjs:98"
     },
     {
       "id": "runs",
@@ -26,14 +26,14 @@
       "kind": "run",
       "note": "same shot, nothing changed",
       "repeat": 6,
-      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:188"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/iterate.mjs:188"
     },
     {
       "id": "baseline",
       "label": "baseline.json",
       "kind": "store",
       "note": "its own accepted numbers",
-      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:17"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs:17"
     },
     {
       "id": "tolerance",
@@ -41,14 +41,14 @@
       "kind": "band",
       "note": "2.5 x the widest wobble",
       "parent": "baseline",
-      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:205"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs:205"
     },
     {
       "id": "gate",
       "label": "Gate",
       "kind": "check",
       "note": "ok, beyond, new, missing",
-      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:66"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs:66"
     },
     {
       "id": "sheet",
@@ -56,14 +56,14 @@
       "kind": "picture",
       "note": "reference, before, after",
       "born": "look",
-      "source": "plugins/perceptual-loop/scripts/commands/sheet.mjs:65"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sheet.mjs:65"
     },
     {
       "id": "agent",
       "label": "Agent's look",
       "kind": "person",
       "note": "one of six verdicts",
-      "source": "plugins/perceptual-loop/references/doctrine.md:13"
+      "source": "plugins/agentcraft/skills/perceptual-loop/references/doctrine.md:13"
     }
   ],
   "flows": [
@@ -73,7 +73,7 @@
       "to": "candidate",
       "kind": "query",
       "label": "ssim vs reference",
-      "source": "plugins/perceptual-loop/scripts/commands/compare.mjs:82"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:82"
     },
     {
       "id": "spread",
@@ -81,7 +81,7 @@
       "to": "tolerance",
       "kind": "write",
       "label": "spread x 2.5",
-      "source": "plugins/perceptual-loop/scripts/commands/calibrate.mjs:52"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/calibrate.mjs:52"
     },
     {
       "id": "now",
@@ -89,7 +89,7 @@
       "to": "gate",
       "kind": "event",
       "label": "this run",
-      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:111"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/iterate.mjs:111"
     },
     {
       "id": "before",
@@ -97,7 +97,7 @@
       "to": "gate",
       "kind": "read",
       "label": "accepted",
-      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:59"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs:59"
     },
     {
       "id": "band",
@@ -105,7 +105,7 @@
       "to": "gate",
       "kind": "read",
       "label": "+/- tolerance",
-      "source": "plugins/perceptual-loop/scripts/lib/gate.mjs:64"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs:64"
     },
     {
       "id": "open",
@@ -113,7 +113,7 @@
       "to": "sheet",
       "kind": "event",
       "label": "open the sheets",
-      "source": "plugins/perceptual-loop/scripts/commands/iterate.mjs:163"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/iterate.mjs:163"
     },
     {
       "id": "look",
@@ -121,7 +121,7 @@
       "to": "agent",
       "kind": "query",
       "label": "look",
-      "source": "plugins/perceptual-loop/skills/iterate-shots/SKILL.md:38"
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/iterate-shots/ROUTE.md:38"
     },
     {
       "id": "accept",
@@ -129,7 +129,7 @@
       "to": "baseline",
       "kind": "write",
       "label": "baseline update",
-      "source": "plugins/perceptual-loop/scripts/commands/baseline.mjs:71"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/baseline.mjs:71"
     }
   ],
   "quantities": [

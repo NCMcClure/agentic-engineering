@@ -1,0 +1,31 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "calibrate-gate": {
+      "cue": ""
+    },
+    "check-audio": {
+      "cue": ""
+    },
+    "check-motion": {
+      "cue": ""
+    },
+    "define-success": {
+      "cue": ""
+    },
+    "iterate-shots": {
+      "cue": ""
+    },
+    "judge-and-queue": {
+      "cue": ""
+    },
+    "probe-the-source": {
+      "cue": ""
+    },
+    "shot-harness": {
+      "cue": "",
+      "starts": "person"
+    }
+  }
+}

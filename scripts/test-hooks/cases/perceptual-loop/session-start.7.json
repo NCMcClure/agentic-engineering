@@ -4,7 +4,7 @@
   "fixture": "standard",
   "stdin": {
     "hook_event_name": "SubagentStart",
-    "agent_type": "perceptual-loop:vision-critic",
+    "agent_type": "agentcraft:vision-critic",
     "session_id": "pl-s7",
     "cwd": "{{REPO}}"
   },

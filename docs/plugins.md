@@ -6,7 +6,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 11 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 12 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
@@ -16,7 +16,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [write-like-me](#write-like-me) | 1.0.1 | 0 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 0 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 2.1.0 | 0 | authoring |
-| [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
+| [perceptual-loop](#perceptual-loop) | 1.0.4 | 0 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
 | [system-map](#system-map) | 0.3.0 | 4 | documentation |
 
@@ -81,6 +81,15 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:codebase-optimizer optimize-codebase` | by the agent | The whole sweep and the entry point for the other two skills here: organize the tree, split god-files, deepen shallow modules, each stage on a branch behind the repo's own tests with revert on red. Use when the ask is a multi-stage refactor over a repository that has accreted ("optimize this codebase", "decompose these huge files"). Nothing starts until the person has seen the run plan and said yes. For the tree alone use codebase-organizer; for seams alone use improve-codebase-architecture. |
 | `/agentcraft:context-doctor [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: lens (). |
 | `/agentcraft:context-doctor lens [report\|serve] [session id or transcript path]` | by the agent | Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw. |
+| `/agentcraft:perceptual-loop [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: calibrate-gate (); check-audio (); check-motion (); define-success (); iterate-shots (); judge-and-queue (); probe-the-source (); shot-harness (). |
+| `/agentcraft:perceptual-loop calibrate-gate` | by the agent | Use when a perceptual gate fails on something untouched, numbers wobble between identical runs, or a baseline is about to be accepted. Measures noise into tolerances. |
+| `/agentcraft:perceptual-loop check-audio` | by the agent | Use when a task produces or changes sound, or sound must stay in sync with a picture. Measures loudness, silence and clipping, pitch, onsets, lag, spectra, and draws spectrograms. |
+| `/agentcraft:perceptual-loop check-motion` | by the agent | Use for animation, transitions, smoothness, latency, or any clip, where a still cannot show it. Measures over time: jumps, flicker, judder, flow direction, clip against clip, contact sheets. |
+| `/agentcraft:perceptual-loop define-success <task in a sentence>` | by the agent | Use before changing how something looks, moves, or sounds, or when a brief only says make it look right. Writes the success file naming what will prove the change. |
+| `/agentcraft:perceptual-loop iterate-shots <shot> [<shot> <shot>] \| --group <g> --match <glob>` | by the agent | Use for every change and check on a picture or render, and when tempted to run the whole suite: a few proving shots, before and after, the gate. |
+| `/agentcraft:perceptual-loop judge-and-queue` | by the agent | Use when a difference in a picture needs a verdict, a finished look change needs a blind second look, or taste questions wait for the owner: one review page. |
+| `/agentcraft:perceptual-loop probe-the-source` | by the agent | Use when a colour, brightness, shape, or timing differs from the reference and the cause is unknown, or before implementing a rule guessed from pictures. |
+| `/agentcraft:perceptual-loop shot-harness [what the project renders, and what the reference is]` | when you ask for it | Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it. |
 | `/agentcraft:picture-this [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: export-stills (); visualize (). |
 | `/agentcraft:picture-this export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
 | `/agentcraft:picture-this visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
@@ -156,18 +165,6 @@ Version 2.1.0. [README](../plugins/plugin-workbench/README.md), [changelog](../p
 An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.
 
 Version 1.0.4. [README](../plugins/perceptual-loop/README.md), [changelog](../plugins/perceptual-loop/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/perceptual-loop:calibrate-gate` | by the agent, or by hand | Use when a perceptual gate fails on something untouched, numbers wobble between identical runs, or a baseline is about to be accepted. Measures noise into tolerances. |
-| `/perceptual-loop:check-audio` | by the agent, or by hand | Use when a task produces or changes sound, or sound must stay in sync with a picture. Measures loudness, silence and clipping, pitch, onsets, lag, spectra, and draws spectrograms. |
-| `/perceptual-loop:check-motion` | by the agent, or by hand | Use for animation, transitions, smoothness, latency, or any clip, where a still cannot show it. Measures over time: jumps, flicker, judder, flow direction, clip against clip, contact sheets. |
-| `/perceptual-loop:define-success <task in a sentence>` | by the agent, or by hand | Use before changing how something looks, moves, or sounds, or when a brief only says make it look right. Writes the success file naming what will prove the change. |
-| `/perceptual-loop:iterate-shots <shot> [<shot> <shot>] \| --group <g> --match <glob>` | by the agent, or by hand | Use for every change and check on a picture or render, and when tempted to run the whole suite: a few proving shots, before and after, the gate. |
-| `/perceptual-loop:judge-and-queue` | by the agent, or by hand | Use when a difference in a picture needs a verdict, a finished look change needs a blind second look, or taste questions wait for the owner: one review page. |
-| `/perceptual-loop:perceptual-loop` | by the agent, or by hand | Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound. Routes to the skill for each step. |
-| `/perceptual-loop:probe-the-source` | by the agent, or by hand | Use when a colour, brightness, shape, or timing differs from the reference and the cause is unknown, or before implementing a rule guessed from pictures. |
-| `/perceptual-loop:shot-harness [what the project renders, and what the reference is]` | by hand | Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it. |
 
 ## docs-parity
 

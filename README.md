@@ -259,32 +259,32 @@ sheets the agent opens with its own vision, and one review page that batches
 the taste questions for you. One Node CLI does the measuring, a hook keeps
 runs small, and a blind critic judges a picture without being told what it was
 meant to be. It measures looks and does not coordinate agents: locks, leases
-and machine load are agent-works' job. [Read more →](plugins/perceptual-loop/README.md)
+and machine load are agent-works' job. [Read more →](plugins/agentcraft/skills/perceptual-loop/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/toward-a-reference.dark.gif">
-  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="plugins/perceptual-loop/assets/figures/toward-a-reference.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/perceptual-loop/assets/figures/toward-a-reference.dark.gif">
+  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="plugins/agentcraft/skills/perceptual-loop/assets/figures/toward-a-reference.gif" width="720">
 </picture>
 
 <sub>A still against its reference: where they differ, drawn as a map, and the marked place enlarged and scored by itself.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/motion-between-frames.dark.gif">
-  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="plugins/perceptual-loop/assets/figures/motion-between-frames.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/perceptual-loop/assets/figures/motion-between-frames.dark.gif">
+  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="plugins/agentcraft/skills/perceptual-loop/assets/figures/motion-between-frames.gif" width="720">
 </picture>
 
 <sub>Motion: the frame whose step stands out, the frames round it, and which way things moved between them.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/figures/sound-you-can-see.dark.gif">
-  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="plugins/perceptual-loop/assets/figures/sound-you-can-see.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/perceptual-loop/assets/figures/sound-you-can-see.dark.gif">
+  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="plugins/agentcraft/skills/perceptual-loop/assets/figures/sound-you-can-see.gif" width="720">
 </picture>
 
 <sub>Sound: a click the agent cannot hear, standing as a tall line in the picture and named by its time.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/perceptual-loop/assets/screens/review.dark.png">
-  <img alt="The review page: the taste questions batched for a person, each with its pictures." src="plugins/perceptual-loop/assets/screens/review.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/perceptual-loop/assets/screens/review.dark.png">
+  <img alt="The review page: the taste questions batched for a person, each with its pictures." src="plugins/agentcraft/skills/perceptual-loop/assets/screens/review.light.png" width="720">
 </picture>
 
 <sub>The review page.</sub>

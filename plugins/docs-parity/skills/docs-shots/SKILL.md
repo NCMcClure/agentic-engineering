@@ -32,7 +32,7 @@ the harness is a second consumer of the same seams, not a fork of them.
 ## Step 2: Make it deterministic before making it pretty
 
 The determinism list is in the contract. Prove it: run one group twice with no change in between and compare
-the two runs. With perceptual-loop installed, `/perceptual-loop:calibrate-gate` prints the largest run-to-run
+the two runs. With perceptual-loop installed, `/agentcraft:perceptual-loop calibrate-gate` prints the largest run-to-run
 spread per metric; without it, decode both runs and diff the pixels in the harness's own language. Bytes are
 the wrong test, because an encoder can change them without changing a pixel. A spread larger than the
 smallest change a reader would notice is a determinism problem to fix here, not a tolerance to widen; a value

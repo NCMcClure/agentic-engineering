@@ -6,13 +6,15 @@ argument-hint: "<shot> [<shot> <shot>] | --group <g> --match <glob>"
 
 # iterate-shots
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 One command renders the chosen shots, compares them, gates them against the baseline, draws a sheet per shot to open, and says where the time went. The discipline is in what you choose and what you do with the result.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`.
+`P` below is `node "W/scripts/pl.mjs"`.
 
 ## Step 1: Choose the shots before touching anything
 
-Take them from the task's success file (`.agents/perceptual/success/<task>.md`); when there is none, run `define-success` first. As few shots as show the thing (doctrine rule 6, `${CLAUDE_PLUGIN_ROOT}/references/doctrine.md`); the config's `budget.free` is the ceiling. Name them in your plan.
+Take them from the task's success file (`.agents/perceptual/success/<task>.md`); when there is none, run `define-success` first. As few shots as show the thing (doctrine rule 6, `W/references/doctrine.md`); the config's `budget.free` is the ceiling. Name them in your plan.
 
 ```
 P iterate <shot> [<shot> <shot>] --dry-run

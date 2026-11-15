@@ -90,7 +90,7 @@ test("a shared path always holds: two cards in one plugin both bump its version 
   const b = board([
     card("0001", { files: ["plugins/agentcraft/skills/agent-works/hooks/kanban/"] }),
     card("0002", { files: ["plugins/agentcraft/skills/agent-works/lib/conflicts.mjs"] }),
-    card("0003", { files: ["plugins/perceptual-loop/lib/motion.mjs"] }),
+    card("0003", { files: ["plugins/agentcraft/skills/perceptual-loop/lib/motion.mjs"] }),
   ]);
   const p = propose(b, { config: REPO_CONFIG, max: 3 });
   assert.deepEqual(ran(p), ["0001", "0003"]);

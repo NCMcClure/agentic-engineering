@@ -37,8 +37,8 @@ const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "
 // MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
   "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/comments-server.py",
-  "plugins/perceptual-loop/scripts/keypoints.py",
-  "plugins/perceptual-loop/scripts/semantic.py",
+  "plugins/agentcraft/skills/perceptual-loop/scripts/keypoints.py",
+  "plugins/agentcraft/skills/perceptual-loop/scripts/semantic.py",
 ]);
 const NON_NODE_EXT = /\.(py|sh|bash|zsh|ps1|rb|pl)$/;
 // A vendored app tree carries its toolchain's own files; path rules skip it.

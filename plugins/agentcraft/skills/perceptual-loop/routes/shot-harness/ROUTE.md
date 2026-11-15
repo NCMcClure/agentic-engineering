@@ -1,15 +1,16 @@
 ---
 name: shot-harness
 description: "Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it."
-disable-model-invocation: true
 argument-hint: "[what the project renders, and what the reference is]"
 ---
 
 # shot-harness
 
-The loop needs one thing from a project: a command that writes a shot's outputs into its folder, one for the **reference** and one for each **candidate**. Everything else (the metrics, the baseline, groups, the budget) is the plugin's. Shapes and names: `${CLAUDE_PLUGIN_ROOT}/references/contract.md`.
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`.
+The loop needs one thing from a project: a command that writes a shot's outputs into its folder, one for the **reference** and one for each **candidate**. Everything else (the metrics, the baseline, groups, the budget) is the plugin's. Shapes and names: `W/references/contract.md`.
+
+`P` below is `node "W/scripts/pl.mjs"`.
 
 ## Step 1: Scaffold
 

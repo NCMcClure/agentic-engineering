@@ -5,9 +5,11 @@ description: "Use when a colour, brightness, shape, or timing differs from the r
 
 # probe-the-source
 
-This skill prevents two failures: fixing the candidate to match a flaw of the reference, and implementing a rule fitted to a few pictures that breaks on the next one. It applies doctrine rules 3 and 4 (`${CLAUDE_PLUGIN_ROOT}/references/doctrine.md`): find what is true before deciding which picture is wrong.
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`.
+This skill prevents two failures: fixing the candidate to match a flaw of the reference, and implementing a rule fitted to a few pictures that breaks on the next one. It applies doctrine rules 3 and 4 (`W/references/doctrine.md`): find what is true before deciding which picture is wrong.
+
+`P` below is `node "W/scripts/pl.mjs"`.
 
 ## Step 1: Ask about one thing
 

@@ -1,11 +1,11 @@
 # The blind second look without the Workflow tool
 
-`skills/judge-and-queue/workflows/critique.js` runs a critic per comparison and a skeptic per finding, and keeps the key in the script. A host without the Workflow tool does the same steps by hand. What must not change is the blinding: the critic sees the neutral pictures and the observables, and nothing about what was changed, what was meant, or which letter is which.
+`routes/judge-and-queue/workflows/critique.js` runs a critic per comparison and a skeptic per finding, and keeps the key in the script. A host without the Workflow tool does the same steps by hand. What must not change is the blinding: the critic sees the neutral pictures and the observables, and nothing about what was changed, what was meant, or which letter is which.
 
 ## With a subagent tool (the Agent tool in Claude Code)
 
 1. **Blind each comparison.** `node "<plugin root>/scripts/pl.mjs" blind --id <shot> --before <file> --after <file> [--reference <file>] --json`. Keep the printed `aIs` to yourself.
-2. **One critic per comparison.** Dispatch the `perceptual-loop:vision-critic` agent with a prompt that holds only:
+2. **One critic per comparison.** Dispatch the `agentcraft:vision-critic` agent with a prompt that holds only:
    - the picture paths, labelled `A`, `B`, and `R`;
    - the observables from the success file, as questions;
    - the box to attend to, if any;

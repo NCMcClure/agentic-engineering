@@ -11,7 +11,7 @@
       "label": "The clip",
       "kind": "clip",
       "note": "24 frames, a ball rolling right",
-      "source": "plugins/perceptual-loop/scripts/lib/sequence.mjs:59"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/sequence.mjs:59"
     },
     {
       "id": "still",
@@ -19,42 +19,42 @@
       "kind": "picture",
       "note": "all a model is handed",
       "parent": "clip",
-      "source": "plugins/perceptual-loop/references/doctrine.md:45"
+      "source": "plugins/agentcraft/skills/perceptual-loop/references/doctrine.md:45"
     },
     {
       "id": "trace",
       "label": "Step per frame",
       "kind": "plot",
       "note": "how far it moved, frame by frame",
-      "source": "plugins/perceptual-loop/scripts/commands/sweep.mjs:328"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:328"
     },
     {
       "id": "burst",
       "label": "Burst",
       "kind": "sheet",
       "note": "the frames round frame 13",
-      "source": "plugins/perceptual-loop/scripts/commands/video.mjs:185"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/video.mjs:185"
     },
     {
       "id": "arrows",
       "label": "Flow sheet",
       "kind": "sheet",
       "note": "which way and how far, per pair",
-      "source": "plugins/perceptual-loop/scripts/commands/flow.mjs:154"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:154"
     },
     {
       "id": "numbers",
       "label": "The numbers",
       "kind": "report",
       "note": "judder, dropped frames, speed",
-      "source": "plugins/perceptual-loop/scripts/commands/sweep.mjs:229"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:229"
     },
     {
       "id": "agent",
       "label": "The agent",
       "kind": "person",
       "note": "a model: it is handed stills",
-      "source": "plugins/perceptual-loop/skills/check-motion/SKILL.md:65"
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:65"
     }
   ],
   "flows": [
@@ -64,7 +64,7 @@
       "to": "agent",
       "kind": "query",
       "label": "looks fine",
-      "source": "plugins/perceptual-loop/skills/check-motion/SKILL.md:8"
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:8"
     },
     {
       "id": "track",
@@ -72,7 +72,7 @@
       "to": "trace",
       "kind": "query",
       "label": "pl sweep --track",
-      "source": "plugins/perceptual-loop/scripts/commands/sweep.mjs:162"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:162"
     },
     {
       "id": "flagged",
@@ -80,7 +80,7 @@
       "to": "numbers",
       "kind": "event",
       "label": "dropped 13",
-      "source": "plugins/perceptual-loop/scripts/commands/sweep.mjs:239"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:239"
     },
     {
       "id": "around",
@@ -88,7 +88,7 @@
       "to": "burst",
       "kind": "query",
       "label": "pl video burst --frame 13",
-      "source": "plugins/perceptual-loop/scripts/commands/video.mjs:193"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/video.mjs:193"
     },
     {
       "id": "between",
@@ -96,7 +96,7 @@
       "to": "arrows",
       "kind": "query",
       "label": "pl flow",
-      "source": "plugins/perceptual-loop/scripts/commands/flow.mjs:118"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:118"
     },
     {
       "id": "speed",
@@ -104,7 +104,7 @@
       "to": "numbers",
       "kind": "event",
       "label": "16 px into 13",
-      "source": "plugins/perceptual-loop/scripts/commands/flow.mjs:87"
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:87"
     },
     {
       "id": "worklist",
@@ -112,7 +112,7 @@
       "to": "agent",
       "kind": "event",
       "label": "frame 13, the ball",
-      "source": "plugins/perceptual-loop/skills/check-motion/SKILL.md:42"
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:42"
     },
     {
       "id": "fix",
@@ -120,7 +120,7 @@
       "to": "clip",
       "kind": "write",
       "label": "fixes the step",
-      "source": "plugins/perceptual-loop/skills/check-motion/SKILL.md:42"
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:42"
     }
   ],
   "quantities": [

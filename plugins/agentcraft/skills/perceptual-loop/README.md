@@ -118,7 +118,7 @@ or in `config.json` as an array that names the shell (`["bash", "-c", "..."]`).
 
 Requires Node 22 or newer. `ffmpeg` only for what is listed above (`PL_FFMPEG` and `PL_FFPROBE` name it when
 it is not on `PATH`). In a project, ask for the task as usual: `define-success` writes what will prove it,
-`/perceptual-loop:shot-harness` wires the project's render command into `.agents/perceptual/config.json`, and
+`/agentcraft:perceptual-loop shot-harness` wires the project's render command into `.agents/perceptual/config.json`, and
 `iterate-shots` is the loop.
 
 Four lines of the doctrine stay in the agent's context where the repo has opted in to the agentic-engineering
@@ -149,7 +149,7 @@ they are edited. Each `<command>.py` is now `pl.mjs <command>` (`evidence_lint.p
 | `check-motion` | Anything a still cannot show: an animation, a transition, smoothness, latency, a clip against a clip |
 | `check-audio` | A task produces or changes sound, or sound must stay in sync with a picture |
 
-Plus the **vision-critic** agent (`perceptual-loop:vision-critic`: it sees only pictures and neutral questions,
+Plus the **vision-critic** agent (`agentcraft:vision-critic`: it sees only pictures and neutral questions,
 never the builder's intent) and the **perceptual-critique** workflow (a blind critic per comparison, a skeptic
 per finding). Where the host has no workflow tool or no subagents, `references/subagent-fallback.md` gives the
 same steps by hand. A session handing look work to other agents appends `references/agent-brief.md` to each

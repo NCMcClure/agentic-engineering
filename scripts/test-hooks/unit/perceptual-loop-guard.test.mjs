@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import * as rules from "../../../plugins/perceptual-loop/scripts/lib/guard-rules.mjs";
+import * as rules from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/guard-rules.mjs";
 import { PLUGIN, runNode, tempDir, write } from "./perceptual-loop-fixtures.mjs";
 
 const HOOK = path.join(PLUGIN, "hooks", "guard.mjs");
@@ -17,8 +17,8 @@ const SHOTS = [...Array.from({ length: 6 }, (_, i) => `sky_${i}`), "cockpit_a", 
 const GROUPS = { sky: ["sky_*"], smoke: ["sky_0", "cockpit_a", "road_top"], cabins: ["cockpit_*"], most: ["*", "!road_*"] };
 const CONFIG = { budget: { free: 3, match: ["shot-render", "npm run render", String.raw`pl\.mjs["']?\s+iterate\b`] } };
 // the CLI as a skill writes it, and as the log shows it once a shell has taken the quotes off
-const CLI = 'node "/opt/plugins/perceptual-loop/scripts/pl.mjs"';
-const CLI_WORDS = "node /opt/plugins/perceptual-loop/scripts/pl.mjs";
+const CLI = 'node "/opt/plugins/agentcraft/skills/perceptual-loop/scripts/pl.mjs"';
+const CLI_WORDS = "node /opt/plugins/agentcraft/skills/perceptual-loop/scripts/pl.mjs";
 
 function project(config = CONFIG, dir = ".agents/perceptual") {
   const root = tempDir("pl-guard-");

@@ -5,9 +5,11 @@ description: "Use when a task produces or changes sound, or sound must stay in s
 
 # check-audio
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 An agent cannot listen, so "does it sound right?" becomes either a guess or a person asked after every change. It can measure, though, and it can look: a spectrogram is a picture of a sound, and reading one is a vision task. This skill makes the sound reproducible, measures it with numbers that carry tolerances, and draws the spectrogram the eyes check those numbers against.
 
-`P` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/pl.mjs"`. `P audio --help` says what each number means and what it cannot tell. A sound is a WAV file (read directly), anything ffmpeg reads (a FLAC, an MP3, a video's sound track), or a shot's sound, `<source>.wav` in the shot folder, read with `--shot NAME --source ID`.
+`P` below is `node "W/scripts/pl.mjs"`. `P audio --help` says what each number means and what it cannot tell. A sound is a WAV file (read directly), anything ffmpeg reads (a FLAC, an MP3, a video's sound track), or a shot's sound, `<source>.wav` in the shot folder, read with `--shot NAME --source ID`.
 
 ## Step 1: Capture without a device
 

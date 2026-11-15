@@ -6,7 +6,7 @@ Before the round, give each task its own success file (`define-success`) naming 
 
 ```markdown
 ## Perceptual work: how to judge
-- Load `/perceptual-loop:perceptual-loop` first and read its doctrine (nine rules).
+- Load `/agentcraft:perceptual-loop` first and read its doctrine (nine rules).
 - Your success file is `.agents/perceptual/success/<task>.md`. Read it first, and keep to its proving shots.
 - The reference is a reference, not the target: match what the scene is, and never tune a number toward it.
 - A metric that moved is not a verdict. Open the sheet `iterate` drew, say what the picture shows, and give it
