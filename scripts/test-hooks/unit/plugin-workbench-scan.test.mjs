@@ -283,6 +283,43 @@ test("MH3 is 2 while the README still carries a Changelog section, and 0 when th
   assert.equal(grade(t, "MH3", { "README.md": `${README}\n### Changelog format\n\nOne line per release.\n` }).grade, 4);
 });
 
+test("SQ7: a link written inside a fenced block or a code span is text to copy, not a link of the file's", (t) => {
+  const skill = (body) => runScan(demo(t, { "skills/demo/SKILL.md": `${SKILL}\n${body}\n` })).skills[0];
+  // A line for a project's own file, quoted whole; a fenced template; a plain span.
+  const copied = skill("Add this to the index:\n``- [`notes/`](notes/index.md) - the notes.``\n\n```markdown\n[the plan](plan/index.md)\n```\n\nWrite `[x](gone.md)` as is.");
+  assert.deepEqual([copied.broken_links, copied.md_links], [[], []]);
+  // A real link that goes nowhere is still one, and so is a link whose label is code.
+  const real = skill("See [the notes](notes/index.md) and [`run.mjs`](scripts/run.mjs).");
+  assert.deepEqual(real.broken_links, ["notes/index.md", "scripts/run.mjs"]);
+  assert.equal(grade(t, "SQ7", { "skills/demo/SKILL.md": `${SKILL}\nSee [the notes](notes/index.md).\n` }).grade, 2);
+});
+
+test("CS3: an agent is reached by its address, so one a file names that way is no orphan, and one nothing names is", (t) => {
+  const agent = "---\nname: critic\ndescription: Judges a picture blind.\n---\n\nJudge it.\n";
+  const named = runScan(demo(t, { "agents/critic.md": agent, "skills/demo/SKILL.md": `${SKILL}\nStart the \`demo:critic\` agent on each picture.\n` }));
+  assert.deepEqual([named.orphans, named.mechanical_grades.CS3.grade], [[], 4]);
+  assert.deepEqual(runScan(demo(t, { "agents/critic.md": agent })).orphans, ["agents/critic.md"]);
+  // Another plugin's address is not this one's, and its own text naming itself does not count.
+  const other = runScan(demo(t, { "agents/critic.md": `${agent}\nI am demo:critic.\n`, "skills/demo/SKILL.md": `${SKILL}\nStart the \`elsewhere:critic\` agent.\n` }));
+  assert.deepEqual(other.orphans, ["agents/critic.md"]);
+  // The address is for an agent the host registers: a file deeper under agents/ is not one.
+  assert.deepEqual(runScan(demo(t, { "agents/notes/critic.md": agent, "skills/demo/SKILL.md": `${SKILL}\nStart \`demo:critic\`.\n` })).orphans, ["agents/notes/critic.md"]);
+});
+
+test("CS3: a templates tree a scaffold copies whole is reached through its directory, where a file outside it names that", (t) => {
+  const tree = { "skills/demo/templates/service/db/001_init.sql": "create table t (id int);\n", "skills/demo/templates/service/test/smoke.test.mjs": "// a smoke test\n" };
+  const copies = "import path from \"node:path\";\nexport const TEMPLATES = path.join(import.meta.dirname, \"..\", \"templates\");\n";
+  const walked = runScan(demo(t, { ...tree, "skills/demo/scripts/init.mjs": copies, "skills/demo/SKILL.md": `${SKILL}\nRun \`scripts/init.mjs\`.\n` }));
+  assert.deepEqual([walked.orphans, walked.mechanical_grades.CS3.grade], [[], 4]);
+  // Nothing outside the tree names it: its files are what they look like.
+  assert.deepEqual(runScan(demo(t, tree)).orphans, Object.keys(tree).sort());
+  // A file in the tree naming its own directory does not make the tree reached.
+  assert.deepEqual(runScan(demo(t, { ...tree, "skills/demo/templates/service/README.md": "Everything under templates/ is copied.\n" })).orphans, Object.keys(tree).sort());
+  // The word in prose is not the directory, and no other directory gets the same pass.
+  assert.deepEqual(runScan(demo(t, { ...tree, "skills/demo/SKILL.md": `${SKILL}\nIt ships two templates for a service.\n` })).orphans, Object.keys(tree).sort());
+  assert.deepEqual(runScan(demo(t, { "skills/demo/assets/old/a.txt": "a\n", "skills/demo/SKILL.md": `${SKILL}\nSee \`assets/\`.\n` })).orphans, ["skills/demo/assets/old/a.txt"]);
+});
+
 test("CS3: CHANGELOG.md is structural like README.md; one or two orphans grade 2, three grade 0", (t) => {
   assert.deepEqual(runScan(demo(t)).orphans, []);
   const two = runScan(demo(t, { "notes/a.txt": "a\n", "notes/b.txt": "b\n" }));
@@ -427,11 +464,10 @@ test("MH5 judges a file with no extension by its shebang, and leaves workflows a
 
 // The workbench is an area now, so the plugin it is scored as is the one it
 // ships in. What that plugin is short of is listed, so a new shortfall fails
-// here and one that is fixed has to leave the list:
-//   SQ7  one relative link in a route that is a template for a project's own file
-//   CS3  the two agents, which a route names by address and never by path, and
-//        three template files a route copies as a tree
-const SHORT = { SQ7: 2, CS3: 0 };
+// here and one that is fixed has to leave the list. It is short of nothing:
+// the two it was once listed for were the scanner's own misreadings, pinned
+// under SQ7 and CS3 below.
+const SHORT = {};
 
 test("the plugin the workbench ships in passes the mechanical checks it applies to others, bar the ones listed", () => {
   const scan = runScan(path.join(REPO, "plugins", "agentcraft"));
@@ -445,7 +481,9 @@ test("the plugin the workbench ships in passes the mechanical checks it applies 
   assert.ok(scan.components.routes >= 70, `${scan.components.routes} routes`);
   // An area is callable and a route is a document, so the plugin hides nothing a file could send an agent to call.
   assert.deepEqual(scan.hidden_mentions, []);
-  assert.deepEqual(scan.orphans.filter((file) => !file.startsWith("agents/") && !file.includes("/templates/")), []);
+  // Its agents are named by address and its template trees by directory, so neither is an orphan.
+  assert.deepEqual(scan.orphans, []);
+  assert.ok(fs.existsSync(path.join(REPO, "plugins", "agentcraft", "agents", "vision-critic.md")));
 });
 
 // ---- areas and routes ----------------------------------------------------

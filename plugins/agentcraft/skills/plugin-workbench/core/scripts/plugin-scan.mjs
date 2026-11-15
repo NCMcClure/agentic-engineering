@@ -343,6 +343,13 @@ function findSkillFiles(root) {
 }
 
 const MD_LINK_RE = /\[[^\]]*\]\(([^)#\s]+)\)/g;
+/**
+ * The text a reader follows links in: a fenced block and a code span are
+ * text to copy, often a line for a project's own file, so a link written
+ * inside one is not a link of this file's. A link whose label is code
+ * (`[\`x\`](y)`) keeps its target: only the label is a span.
+ */
+const withoutCode = (text) => text.replace(/^[ \t]*```[\s\S]*?^[ \t]*```/gm, "").replace(/``[^\n]*?``/g, "").replace(/`[^`\n]*`/g, "");
 
 function scanSkill(root, file) {
   const text = readText(file) ?? "";
@@ -365,7 +372,7 @@ function scanSkill(root, file) {
   const head = text.startsWith("---") ? splitN(text, "\n---", 1)[0] : "";
 
   const links = [], broken = [];
-  for (const target of findAll(text, MD_LINK_RE)) {
+  for (const target of findAll(withoutCode(text), MD_LINK_RE)) {
     if (/^(https?:\/\/|mailto:|\$\{|\/)/.test(target)) continue;
     links.push(target);
     const resolved = path.resolve(skillDir, target);
@@ -954,11 +961,20 @@ function buildFootprint(skills, agentsPassive, components, plugin) {
   };
 }
 
-function scanOrphans(root, allFiles) {
+/** A directory named as a path segment: quoted on its own, or with a slash on either side. */
+const namesDir = (text, dir) => new RegExp(`(?:["'\`/]${dir}["'\`/])`).test(text);
+
+function scanOrphans(root, allFiles, plugin) {
   // A support file is orphaned when no OTHER text file in the plugin mentions
   // its basename or (for code) its module stem. Structural files are exempt:
   // CHANGELOG.md is the history MH3 requires, read by people and the grader,
   // not reached through a link.
+  //
+  // Two kinds of file are reached some other way, and count as referenced:
+  //   - an agent, which the host registers and a session starts by its
+  //     address, `<plugin>:<name>`, never by its file's name;
+  //   - a file in a `templates/` tree, which a scaffold copies whole, where a
+  //     file outside the tree names that directory.
   const texts = new Map();
   for (const file of allFiles) {
     if (TEXT_EXTS.has(path.extname(file))) texts.set(file, readText(file) ?? "");
@@ -975,6 +991,17 @@ function scanOrphans(root, allFiles) {
     if (countOf(corpus, base) - countOf(own, base) > 0) continue;
     const ext = path.extname(base);
     const stem = base.slice(0, base.length - ext.length);
+    const parts = rel(root, file).split("/");
+    if (parts.length === 2 && parts[0] === "agents" && ext === ".md") {
+      const address = `${plugin}:${stem}`;
+      if (countOf(corpus, address) - countOf(own, address) > 0) continue;
+    }
+    const tree = parts.lastIndexOf("templates", parts.length - 2);
+    if (tree !== -1) {
+      const inside = `${parts.slice(0, tree + 1).join("/")}/`;
+      const named = [...texts].some(([other, text]) => !rel(root, other).startsWith(inside) && namesDir(text, "templates"));
+      if (named) continue;
+    }
     // Code modules are commonly referenced by stem: extensionless imports,
     // shell sourcing, package imports. Match the stem.
     if ([".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".sh", ".css"].includes(ext)) {
@@ -1221,7 +1248,7 @@ export function runScan(target) {
     tree: scanTree(root, allFiles),
     readme: scanReadme(root),
     changelog: scanChangelog(root, manifest.version),
-    orphans: scanOrphans(root, allFiles),
+    orphans: scanOrphans(root, allFiles, manifest.name ?? path.basename(root)),
   };
   scan.na = computeNa(scan);
   const naDims = new Set(scan.na.dimensions), naChecks = new Set(scan.na.checks);

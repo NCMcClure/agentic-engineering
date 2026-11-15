@@ -167,7 +167,9 @@ Hunt duplication, sediment, sprawl, and no-ops line by line.
 
 ### SQ7 · Links resolve (mechanical)
 
-Graded by the script from `broken_links`.
+Graded by the script from `broken_links`. A link inside a fenced block or a
+code span is text to copy, often a line for a project's own file, and is not
+counted.
 
 ### SQ8 · Frontmatter keys (mechanical)
 
@@ -228,7 +230,10 @@ that narrates mechanical loops. Signals locate; you judge.
 ### CS3 · No orphans (mechanical)
 
 Graded by the script from `orphans`: files nothing in the plugin references.
-`README.md` and `CHANGELOG.md` are structural and never count.
+`README.md` and `CHANGELOG.md` are structural and never count. Two kinds of
+file are reached without their name being written: an agent, by its address
+(`<plugin>:<name>`), and a file in a `templates/` tree a scaffold copies
+whole, where a file outside the tree names that directory.
 
 ### CS4 · Commands/agents/MCP coherence (N/A when none present)
 
