@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "workflow-studio");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "workflow-studio");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 

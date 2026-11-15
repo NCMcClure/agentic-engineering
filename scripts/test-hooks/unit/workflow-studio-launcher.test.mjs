@@ -8,10 +8,10 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { test } from "node:test";
-import { findOnPath, lockHash, main, prerequisites, runningPort } from "../../../plugins/workflow-studio/scripts/launch-studio.mjs";
+import { findOnPath, lockHash, main, prerequisites, runningPort } from "../../../plugins/agentcraft/skills/workflow-studio/scripts/launch-studio.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "workflow-studio");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "workflow-studio");
 const APP = path.join(PLUGIN, "app");
 const SCRIPT = path.join(PLUGIN, "scripts", "launch-studio.mjs");
 const USAGE = "Usage: node launch-studio.mjs <plugin-root> <studio-root> <data-dir>";

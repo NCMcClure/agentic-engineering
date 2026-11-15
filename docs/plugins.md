@@ -6,12 +6,12 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 5 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 6 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
 | [agentic-teamwork](#agentic-teamwork) | 1.0.2 | 0 | collaboration |
-| [workflow-studio](#workflow-studio) | 1.0.2 | 2 | workflow |
+| [workflow-studio](#workflow-studio) | 1.0.2 | 0 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 2 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 4 | writing |
 | [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
@@ -74,6 +74,8 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:codebase-optimizer improve-codebase-architecture` | by the agent | Find deepening opportunities in code that already exists: shallow modules, leaky seams, missing adapters, proposed against the project's glossary and its decision records under .agents/. Use when the ask is about architecture ("improve the architecture", consolidate tightly-coupled modules, make this testable) or a seam worth extracting has been spotted. For the file tree use codebase-organizer; to apply deepenings autonomously behind revert on red use optimize-codebase. |
 | `/agentcraft:codebase-optimizer optimize-codebase` | by the agent | The whole sweep and the entry point for the other two skills here: organize the tree, split god-files, deepen shallow modules, each stage on a branch behind the repo's own tests with revert on red. Use when the ask is a multi-stage refactor over a repository that has accreted ("optimize this codebase", "decompose these huge files"). Nothing starts until the person has seen the run plan and said yes. For the tree alone use codebase-organizer; for seams alone use improve-codebase-architecture. |
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
+| `/agentcraft:workflow-studio [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: author-workflow (). |
+| `/agentcraft:workflow-studio author-workflow` | by the agent | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
 
 ## agent-works
 
@@ -104,11 +106,6 @@ Version 1.0.2. [README](../plugins/agentic-teamwork/README.md), [changelog](../p
 Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.
 
 Version 1.0.2. [README](../plugins/workflow-studio/README.md), [changelog](../plugins/workflow-studio/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/workflow-studio:author-workflow` | by the agent, or by hand | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
-| `/workflow-studio:workflow-studio` | by the agent, or by hand | Launch the Workflow Studio — a visual, Unreal-Blueprint-style node editor for Claude Code dynamic workflows — in the browser (a local Vite dev server). Use when the user wants to open the studio, visually build or edit a workflow graph, or asks to "open the canvas". |
 
 ## picture-this
 

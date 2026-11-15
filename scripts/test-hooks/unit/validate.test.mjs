@@ -198,8 +198,8 @@ const KERNEL = fs.readFileSync(path.join(REPO, "scripts/shared/critical-context.
 const shares = (name, list) => ({ [`scripts/plugins/${name}.json`]: `${JSON.stringify({ shared: list })}\n` });
 
 test("a shared copy that is missing or has drifted fails, and sync-shared --write repairs both", (t) => {
-  const dir = tree(t, { write: { ...shares("write-like-me", ["hooks/critical-context.mjs"]), "plugins/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
-  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/workflow-studio.json"), `${JSON.stringify({ shared })}\n`);
+  const dir = tree(t, { write: { ...shares("write-like-me", ["hooks/critical-context.mjs"]), "plugins/agentcraft/skills/workflow-studio/hooks/critical-context.mjs": `${KERNEL}// edited here\n` } });
+  const data = (shared) => fs.writeFileSync(path.join(dir, "scripts/plugins/agentcraft/skills/workflow-studio.json"), `${JSON.stringify({ shared })}\n`);
   data(["hooks/critical-context.mjs", "lib/no-such-file.mjs"]);
   const result = validate(dir);
   assert.equal(result.status, 1);

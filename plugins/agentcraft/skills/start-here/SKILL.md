@@ -254,8 +254,8 @@ A node editor in the browser for dynamic workflows, and the rules for writing th
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| open the visual editor | `/workflow-studio:workflow-studio` | agent |
-| write or change a workflow script or its graph directly | `/workflow-studio:author-workflow` | agent |
+| open the visual editor | `/agentcraft:workflow-studio` | agent |
+| write or change a workflow script or its graph directly | `/agentcraft:workflow-studio author-workflow` | agent |
 
 ### plugin-workbench
 

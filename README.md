@@ -148,18 +148,18 @@ ever pushed. It writes the hubs and checks that each one names its children.
 Claude Code dynamic workflows are programs; you should be able to see them.
 An Unreal-Blueprint-style node canvas that compiles graphs to runnable
 `.claude/workflows/*.js` and round-trips them back, plus a skill for
-hand-authoring without the GUI. [Read more →](plugins/workflow-studio/README.md)
+hand-authoring without the GUI. [Read more →](plugins/agentcraft/skills/workflow-studio/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/workflow-studio/assets/figures/two-folders.dark.gif">
-  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="plugins/workflow-studio/assets/figures/two-folders.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/workflow-studio/assets/figures/two-folders.dark.gif">
+  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="plugins/agentcraft/skills/workflow-studio/assets/figures/two-folders.gif" width="720">
 </picture>
 
 <sub>The graph file is the one truth, and nothing Claude Code runs changes until you publish.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/workflow-studio/assets/screens/canvas.dark.png">
-  <img alt="The workflow canvas: nodes wired together, one selected, its fields in the details panel." src="plugins/workflow-studio/assets/screens/canvas.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/workflow-studio/assets/screens/canvas.dark.png">
+  <img alt="The workflow canvas: nodes wired together, one selected, its fields in the details panel." src="plugins/agentcraft/skills/workflow-studio/assets/screens/canvas.light.png" width="720">
 </picture>
 
 <sub>The canvas.</sub>

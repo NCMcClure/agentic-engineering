@@ -10,6 +10,8 @@ description: >-
 
 # Author Workflow (no GUI)
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Hand-author Claude Code dynamic workflows and their Blueprint-style graphs.
 The full protocol lives in the vendored docs — read them progressively; do not
 guess node names or pin semantics from memory.
@@ -18,20 +20,20 @@ guess node names or pin semantics from memory.
 
 Read only what the task needs, in this order:
 
-1. `${CLAUDE_PLUGIN_ROOT}/app/docs/primitive-vocabulary.md` — read this FIRST
+1. `W/app/docs/primitive-vocabulary.md` — read this FIRST
    when choosing nodes: the node/pin vocabulary and what each primitive does.
-2. `${CLAUDE_PLUGIN_ROOT}/app/docs/mapping-guide.md` — rules for mapping
+2. `W/app/docs/mapping-guide.md` — rules for mapping
    existing JS to a graph (js → graph direction).
-3. `${CLAUDE_PLUGIN_ROOT}/app/docs/diagram-schema.md` — the exact
+3. `W/app/docs/diagram-schema.md` — the exact
    `diagram.json` v2 shape, when you need field-level precision.
-4. `${CLAUDE_PLUGIN_ROOT}/app/docs/AUTHORING.md` — the full authoring protocol,
+4. `W/app/docs/AUTHORING.md` — the full authoring protocol,
    when generating a graph from scratch.
 
 Ground truth and examples:
 
-- TypeScript source of truth: `${CLAUDE_PLUGIN_ROOT}/app/src/types.ts` and
-  `${CLAUDE_PLUGIN_ROOT}/app/src/catalog.ts`.
-- Worked example graph: `${CLAUDE_PLUGIN_ROOT}/app/src/diagram.json`.
+- TypeScript source of truth: `W/app/src/types.ts` and
+  `W/app/src/catalog.ts`.
+- Worked example graph: `W/app/src/diagram.json`.
 
 ## Hard rules
 
