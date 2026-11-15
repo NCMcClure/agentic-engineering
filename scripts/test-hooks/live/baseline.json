@@ -1380,5 +1380,813 @@
         }
       }
     }
+  },
+  "skills": {
+    "claudeCodeVersion": "2.1.325",
+    "date": "2026-11-15",
+    "model": "claude-haiku-5-5",
+    "pluginsTree": "006979c420025f2c3aa6a7e0f1894d7d66c6c761",
+    "passes": 3,
+    "sessions": 183,
+    "costUsd": 0.8745,
+    "windows": {
+      "default": 1000000,
+      "200k": 200000
+    },
+    "listing": {
+      "default": {
+        "agent-works": {
+          "skills": 14,
+          "described": 14,
+          "characters": 2560
+        },
+        "agentic-teamwork": {
+          "skills": 4,
+          "described": 4,
+          "characters": 1910
+        },
+        "but-first-planning": {
+          "skills": 14,
+          "described": 14,
+          "characters": 3586
+        },
+        "code-diet": {
+          "skills": 5,
+          "described": 5,
+          "characters": 2170
+        },
+        "codebase-optimizer": {
+          "skills": 3,
+          "described": 3,
+          "characters": 1544
+        },
+        "docs-parity": {
+          "skills": 5,
+          "described": 5,
+          "characters": 2423
+        },
+        "perceptual-loop": {
+          "skills": 8,
+          "described": 8,
+          "characters": 1549
+        },
+        "picture-this": {
+          "skills": 2,
+          "described": 2,
+          "characters": 912
+        },
+        "plugin-workbench": {
+          "skills": 3,
+          "described": 3,
+          "characters": 1211
+        },
+        "system-map": {
+          "skills": 2,
+          "described": 2,
+          "characters": 1052
+        },
+        "workflow-studio": {
+          "skills": 2,
+          "described": 2,
+          "characters": 624
+        },
+        "write-like-me": {
+          "skills": 2,
+          "described": 2,
+          "characters": 745
+        }
+      },
+      "200k": {
+        "agent-works": {
+          "skills": 14,
+          "described": 0,
+          "characters": 315
+        },
+        "agentic-teamwork": {
+          "skills": 4,
+          "described": 0,
+          "characters": 100
+        },
+        "but-first-planning": {
+          "skills": 14,
+          "described": 0,
+          "characters": 481
+        },
+        "code-diet": {
+          "skills": 5,
+          "described": 0,
+          "characters": 108
+        },
+        "codebase-optimizer": {
+          "skills": 3,
+          "described": 0,
+          "characters": 127
+        },
+        "docs-parity": {
+          "skills": 5,
+          "described": 0,
+          "characters": 116
+        },
+        "perceptual-loop": {
+          "skills": 8,
+          "described": 0,
+          "characters": 254
+        },
+        "picture-this": {
+          "skills": 2,
+          "described": 0,
+          "characters": 52
+        },
+        "plugin-workbench": {
+          "skills": 3,
+          "described": 0,
+          "characters": 96
+        },
+        "system-map": {
+          "skills": 2,
+          "described": 0,
+          "characters": 49
+        },
+        "workflow-studio": {
+          "skills": 2,
+          "described": 0,
+          "characters": 66
+        },
+        "write-like-me": {
+          "skills": 2,
+          "described": 0,
+          "characters": 50
+        }
+      }
+    },
+    "triggers": {
+      "audit": {
+        "skill": "write-like-me audit",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "author-workflow": {
+        "skill": "workflow-studio author-workflow",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "board": {
+        "skill": "agent-works board",
+        "fixture": "standard",
+        "named": true,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "skill",
+            "skill"
+          ]
+        }
+      },
+      "bootstrap": {
+        "skill": "agentic-teamwork bootstrap",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "browser-setup": {
+        "skill": "system-map browser-setup",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "build-tdd": {
+        "skill": "but-first-planning build-tdd",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "calibrate": {
+        "skill": "write-like-me calibrate",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "context-lens": {
+        "skill": "plugin-workbench context-lens",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "diagrams-init": {
+        "skill": "system-map diagrams-init",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "diagrams-sync": {
+        "skill": "system-map diagrams-sync",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "docs-init": {
+        "skill": "docs-parity docs-init",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "docs-sync": {
+        "skill": "docs-parity docs-sync",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "grill": {
+        "skill": "but-first-planning grill",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "skill",
+            "skill"
+          ]
+        }
+      },
+      "init-project": {
+        "skill": "agentic-teamwork init-project",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "ladder": {
+        "skill": "code-diet ladder",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "land": {
+        "skill": "agentic-teamwork land",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "miro-board": {
+        "skill": "system-map miro-board",
+        "fixture": "standard",
+        "named": true,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "miss",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "skill",
+            "skill"
+          ]
+        }
+      },
+      "optimize-codebase": {
+        "skill": "codebase-optimizer optimize-codebase",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "skill"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "orchestrate": {
+        "skill": "agent-works orchestrate",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "perceptual-loop": {
+        "skill": "perceptual-loop",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "skill",
+            "skill"
+          ]
+        }
+      },
+      "readme": {
+        "skill": "docs-parity readme",
+        "fixture": "standard",
+        "named": true,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "resource-locks": {
+        "skill": "agent-works resource-locks",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "miss",
+            "skill"
+          ]
+        }
+      },
+      "reuse-first": {
+        "skill": "code-diet reuse-first",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "review": {
+        "skill": "write-like-me review",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "setup": {
+        "skill": "agent-works setup",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "ship": {
+        "skill": "agentic-teamwork ship",
+        "fixture": "standard",
+        "named": true,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "skill",
+            "skill",
+            "skill"
+          ]
+        }
+      },
+      "spec-init": {
+        "skill": "but-first-planning spec-init",
+        "fixture": "portable",
+        "named": false,
+        "person": true,
+        "listing": {
+          "default": "absent",
+          "200k": "absent"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "tdd": {
+        "skill": "agentic-teamwork tdd",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "visualize": {
+        "skill": "picture-this visualize",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "miss",
+            "miss",
+            "miss"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      },
+      "work-card": {
+        "skill": "agent-works work-card",
+        "fixture": "standard",
+        "named": false,
+        "person": false,
+        "listing": {
+          "default": "described",
+          "200k": "name"
+        },
+        "reached": {
+          "default": [
+            "skill",
+            "skill",
+            "skill"
+          ],
+          "200k": [
+            "miss",
+            "miss",
+            "miss"
+          ]
+        }
+      }
+    },
+    "compaction": {
+      "skill": "agentic-teamwork tdd",
+      "compacted": true,
+      "before": "skill",
+      "after": "reattached",
+      "kept": true
+    }
   }
 }

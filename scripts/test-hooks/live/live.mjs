@@ -40,8 +40,10 @@
 // runs it twice more before the check may fail it. These sessions are given
 // four read-only tools and no MCP server (session.mjs SKILL_SESSION_ARGS), and
 // run a few at a time. A session that was cut off or errored before it reached
-// anything is run once more; if that one is cut off too the cell is not
-// measured, which is not a miss, and no baseline is written from such a run.
+// anything is run again, three sessions in all; if every one is cut off the
+// cell is not measured, which is not a miss, and no baseline is written from
+// such a run. (One retry was not enough: about one cell in thirty is cut off,
+// one retry in five is too, and a recording is 180 cells.)
 // None is written either from a run where a prompt the old baseline reached in
 // every pass was reached in none: the new one would hold those misses, and the
 // check could never fail that prompt again. Every session that did not reach
@@ -67,6 +69,7 @@ import { COMPACTION, TRIGGERS, labelOf } from "./triggers.mjs";
 const BASELINE = path.join(import.meta.dirname, "baseline.json");
 const BASELINE_PASSES = 3; // over the trigger prompts, when the skills part is recorded
 const AT_ONCE = 4; // trigger sessions running together
+const ATTEMPTS = 3; // sessions a cell may take before it is left not measured
 const argv = process.argv.slice(2);
 const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
 
@@ -82,8 +85,8 @@ function partsToWrite() {
 
 /**
  * One trigger cell: the prompt's session at one window, read back before the
- * transcripts are collected. A session that was not measured is run once
- * more. Never throws.
+ * transcripts are collected. A session that was not measured is run again,
+ * up to ATTEMPTS in all. Never throws.
  */
 async function triggerCell(dir, row, window, tally) {
   for (let attempt = 1; ; attempt += 1) {
@@ -96,7 +99,7 @@ async function triggerCell(dir, row, window, tally) {
     const entries = session.id ? sessionEntries(dir, session.id) : null;
     tally.listing[window] ??= entries ? listingSizes(entries) : null;
     const cell = measureCell(row, entries, stopOf(session.result));
-    if (isMeasured(cell.outcome) || attempt === 2) return cell;
+    if (isMeasured(cell.outcome) || attempt === ATTEMPTS) return cell;
   }
 }
 
