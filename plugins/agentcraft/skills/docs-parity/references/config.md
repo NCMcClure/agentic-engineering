@@ -45,7 +45,7 @@ and a reported refactor teaches everyone to write `Docs: none` without reading.
 
 ## Modes and exit codes
 
-The skills run the plugin's copy, `node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs"`; CI runs the copy a
+The skills run the plugin's copy, `node "${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/scripts/docs-check.mjs"`; CI runs the copy a
 repo keeps at `.agents/scripts/docs-check.mjs`. The flags are the same:
 
 ```bash

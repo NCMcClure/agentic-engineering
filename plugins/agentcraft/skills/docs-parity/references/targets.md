@@ -105,7 +105,7 @@ holds it to 800 words and standard-readme's sections, and the `readme` skill rew
 ## CI, whatever the target
 
 CI has no plugin installed, so it runs a copy of the checker kept in the repository:
-`.agents/scripts/docs-check.mjs`, one file with no dependencies, which `/docs-parity:docs-init` copies in on
+`.agents/scripts/docs-check.mjs`, one file with no dependencies, which `/agentcraft:docs-parity docs-init` copies in on
 request. Refresh the copy when the plugin updates.
 
 ```yaml

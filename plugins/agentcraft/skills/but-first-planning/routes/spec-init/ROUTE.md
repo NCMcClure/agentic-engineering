@@ -134,7 +134,7 @@ Ask only what you cannot infer. A few questions, one at a time:
   posture) and the **screenshots posture** (`themed-pair` for a product with
   light and dark themes, `single`, or `none` for a library or API; default:
   `themed-pair` unless ADR-0002 says there is no UI). If docs-parity is
-  installed, these are the answers `/docs-parity:docs-init` writes into
+  installed, these are the answers `/agentcraft:docs-parity docs-init` writes into
   `.agents/docs-parity.json`; run it once the code has a first surface.
 
   It shapes `spec-write`'s mandatory `user-docs-plan.md` page

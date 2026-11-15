@@ -11,13 +11,15 @@ description: >
 
 # docs-sync
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 The in-loop pass. It runs on the change in front of you, not on the whole docs set (that is `docs-audit`),
 and it finishes before the commit, so the docs are reviewed in the same pull request as the code.
 
 ## Step 1: What moved
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs" --changed HEAD --json
+node "W/scripts/docs-check.mjs" --changed HEAD --json
 ```
 
 `--changed HEAD` compares the working tree (untracked files included) with the last commit; use
@@ -59,7 +61,7 @@ screen, and you have looked at each.*
 ## Step 4: Check and record
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs" --changed HEAD
+node "W/scripts/docs-check.mjs" --changed HEAD
 ```
 
 Fix every warning on a file you touched. Derived copies (a handbook generated from the docs, a reference page
@@ -82,4 +84,4 @@ The checker exits 0 on `--changed`, or every remaining finding is accepted with 
 grounded against the built product; every affected shot was retaken and looked at; and the `Docs:` line is in
 the commit or the pull request.
 
-The references named above are in `${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/`.
+The references named above are in `W/references`.

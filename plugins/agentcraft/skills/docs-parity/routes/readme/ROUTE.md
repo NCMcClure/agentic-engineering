@@ -5,6 +5,8 @@ description: "Rewrite a README so it tells a person what the project is, why to 
 
 # readme
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 A README is the first thing a person reads to learn what a project is, why they would use it, and how. In a
 repo agents build, it grows into agent context: pasted prompts, rule restatements, build plumbing, and
 history. `readme-check.mjs` holds the line mechanically, and this skill does the rewrite that gets a README
@@ -17,7 +19,7 @@ The root `README.md` always. Any other README only when the repo opts it in: the
 its directory. Run the check to see the list and the findings:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/readme-check.mjs"          # or --json
+node "W/scripts/readme-check.mjs"          # or --json
 ```
 
 It needs no config: with none, it checks the root README and names it for the repository. The Stop hook runs
@@ -36,7 +38,7 @@ Read the whole README and sort every section and paragraph into one of five pile
 4. **AGENTS.md or `.agents/rules/`**: anything written for an agent, prompts included.
 5. **CHANGELOG.md**: history.
 
-The full map, with the edge cases, is in `${CLAUDE_PLUGIN_ROOT}/skills/readme/references/content-map.md`.
+The full map, with the edge cases, is in `W/routes/readme/references/content-map.md`.
 Nothing is deleted: each sentence leaves for a pile or stays.
 
 *Done when: every paragraph of the old README has a pile.*
@@ -45,11 +47,11 @@ Nothing is deleted: each sentence leaves for a pile or stays.
 
 Title, one-liner, why paragraph, Install, Usage, the repo's own sections, Contributing, License when a LICENSE
 sits beside it. The exact rules (word count, title form, section names and order) are in
-`${CLAUDE_PLUGIN_ROOT}/skills/readme/references/skeleton.md`. Write the why paragraph from what the project
+`W/routes/readme/references/skeleton.md`. Write the why paragraph from what the project
 solves, not what it contains. The Contributing section becomes one to three lines pointing at CONTRIBUTING.md.
 
 When the repo carries `.agents/docs-parity.json`, a page moved to `docs/` follows the audiences and the page
-shape (`audiences.md` and `page-shape.md` in `${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/`); a page
+shape (`audiences.md` and `page-shape.md` in `W/references`); a page
 the README links to replaces the depth it used to carry.
 
 *Done when: the README is the skeleton and every moved section exists in its new home.*
@@ -64,7 +66,7 @@ the sentence; an accept is for the mention a person cannot do without.
 ## Step 4: Check, and land it with the change
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/readme-check.mjs"
+node "W/scripts/readme-check.mjs"
 wc -w README.md
 ```
 

@@ -201,10 +201,10 @@ Pages, screenshots, and the nav move in the same change as the code they describ
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| bring the docs level with a change before it is committed | `/docs-parity:docs-sync` | agent |
-| find out whether the whole docs set is current | `/docs-parity:docs-audit` | agent |
-| cut a README down to what a newcomer needs | `/docs-parity:readme` | agent |
-| adopt the docs checks in a repo | `/docs-parity:docs-init` | person |
+| bring the docs level with a change before it is committed | `/agentcraft:docs-parity docs-sync` | agent |
+| find out whether the whole docs set is current | `/agentcraft:docs-parity docs-audit` | agent |
+| cut a README down to what a newcomer needs | `/agentcraft:docs-parity readme` | agent |
+| adopt the docs checks in a repo | `/agentcraft:docs-parity docs-init` | person |
 
 ### system-map
 

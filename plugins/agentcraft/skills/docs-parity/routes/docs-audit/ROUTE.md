@@ -6,6 +6,8 @@ argument-hint: "[root or page glob to limit the audit]"
 
 # docs-audit
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 `docs-sync` keeps one change honest. This audit catches what slipped between changes: a page nobody touched
 while its screen changed three times, a flag removed two releases ago, a shot from before a redesign. It
 reports; fixing is a `docs-sync` pass the user starts.
@@ -13,7 +15,7 @@ reports; fixing is a `docs-sync` pass the user starts.
 ## Step 1: The mechanical pass
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs" --stale --json
+node "W/scripts/docs-check.mjs" --stale --json
 ```
 
 Group the findings by page. `SHOT_STALE` is a heuristic (code in the surface changed after the picture was
@@ -31,7 +33,7 @@ the contract `.agents/docs-contract.md`):
 3. Coverage the other way: list the surfaces a reader meets (routes, commands, endpoints, config keys) and
    name the ones no page covers.
 4. The audience rules and the page shape (`audiences.md` and `page-shape.md` in
-   `${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/`).
+   `W/references`).
 
 ## Step 3: Report
 

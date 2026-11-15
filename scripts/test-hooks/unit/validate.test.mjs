@@ -275,7 +275,7 @@ test("critical lines over the plugin's cap, or with a bad audience, mode or part
 test("critical lines with no kernel copy listed, no cap, the wrong name, or no subagent hook fail", (t) => {
   const result = validate(tree(t, {
     ...speaks("docs-parity", { plugin: "docs", lines: [line("Docs change with the code.")] }, { shared: [], events: ["SessionStart"] }),
-    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/docs-parity.json": () => ({}) },
+    json: { ...speaks("docs-parity", {}, { shared: [], events: ["SessionStart"] }).json, "scripts/plugins/agentcraft/skills/docs-parity.json": () => ({}) },
   }));
   assert.equal(result.status, 1);
   const where = "FAIL: plugins\\/docs-parity\\/hooks\\/critical\\.json: ";

@@ -9,7 +9,7 @@ import { after, test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "docs-parity");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "docs-parity");
 const SESSION = path.join(PLUGIN, "hooks", "session-start.mjs");
 const STOP = path.join(PLUGIN, "hooks", "stop-check.mjs");
 const CONFIG = ".agents/docs-parity.json";

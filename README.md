@@ -299,11 +299,11 @@ deterministically, for web, desktop, CLI, Unreal, Qt or mobile. One checker
 maps code to pages and finds missing, stale and broken docs, telling the
 agent in session and failing in CI, for a site, a `docs/` folder, a wiki or a
 README. A README check keeps the front page written for people.
-[Read more →](plugins/docs-parity/README.md)
+[Read more →](plugins/agentcraft/skills/docs-parity/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/docs-parity/assets/figures/docs-move-with-code.dark.gif">
-  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="plugins/docs-parity/assets/figures/docs-move-with-code.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/docs-parity/assets/figures/docs-move-with-code.dark.gif">
+  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="plugins/agentcraft/skills/docs-parity/assets/figures/docs-move-with-code.gif" width="720">
 </picture>
 
 <sub>The code changes, so the page is rewritten and the screenshot retaken, in the same change.</sub>

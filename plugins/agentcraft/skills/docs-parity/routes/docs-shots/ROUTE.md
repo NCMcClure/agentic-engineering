@@ -12,10 +12,12 @@ description: >
 
 # docs-shots
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 A screenshot in the docs is code output: a named shot, declared in the harness, made from a built artifact in
 a state the harness sets up. That is what lets a change retake exactly the pictures it made wrong, and lets
 two runs make the same picture. The contract every harness meets, in any language:
-`${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/shot-contract.md`. Read it first.
+`W/references/shot-contract.md`. Read it first.
 
 ## Step 1: Find or pick the harness
 
@@ -23,7 +25,7 @@ Look for an existing one before writing anything: a `capture/` or `screenshots/`
 Playwright project named for docs, an engine automation test that writes images, a `capture` command in
 `.agents/docs-parity.json`. Extend what exists.
 
-None exists: open `${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/capture-recipes.md` and take the recipe for the
+None exists: open `W/references/capture-recipes.md` and take the recipe for the
 stack. Reuse the project's end-to-end setup when it has one (its server start, its test users, its fixtures):
 the harness is a second consumer of the same seams, not a fork of them.
 
@@ -52,7 +54,7 @@ that flips between two levels needs a third run to show.
 Run only the group you touched, on its own port or instance. Open every image written, every theme. Check:
 the state the text describes, no real names, emails, tokens or internal features on screen, no loading
 spinner, toast, focus ring or cursor that the text does not mention. Then embed it the target's way
-(`${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/references/targets.md`), with alt text that says what the picture
+(`W/references/targets.md`), with alt text that says what the picture
 shows.
 
 If the harness writes a shots manifest (`images.manifest` in the config), the run updates it, so
@@ -61,5 +63,5 @@ If the harness writes a shots manifest (`images.manifest` in the config), the ru
 ## Done when
 
 The shot is declared in the harness, a rerun of its group writes the same picture, both themes were looked at,
-the page embeds it the target's way, and `node "${CLAUDE_PLUGIN_ROOT}/scripts/docs-check.mjs"` reports no
+the page embeds it the target's way, and `node "W/scripts/docs-check.mjs"` reports no
 `IMAGE_*` finding for it.

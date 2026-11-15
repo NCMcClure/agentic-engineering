@@ -40,7 +40,7 @@ One short section restating the posture concretely: generator and theme (or
 "README only", or a wiki whose source lives under `wiki/` and CI publishes),
 where the config lives, where pages live, how the site is served/published if
 that's decided, and the screenshots posture from ADR-0003 with the capture
-harness that will make them (if docs-parity is installed, `/docs-parity:docs-shots` has a recipe per
+harness that will make them (if docs-parity is installed, `/agentcraft:docs-parity docs-shots` has a recipe per
 stack). Nothing here is prose about documentation
 philosophy, it's the answer to "what files exist and what builds them".
 

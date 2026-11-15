@@ -62,7 +62,7 @@ README a turn changed only where the config carries a `readme` block.
 /plugin install docs-parity@agentic-engineering
 ```
 
-Then, in a project: `/docs-parity:docs-init`. Node 22 or newer is the only requirement; nothing is installed
+Then, in a project: `/agentcraft:docs-parity docs-init`. Node 22 or newer is the only requirement; nothing is installed
 into the project but the config and the contract, and a copy of the checker if you want it in CI.
 
 Coming from 0.1: the config is read as it is. The writer contract moves from `.agents/contracts/docs.md` to

@@ -1,0 +1,22 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "docs-audit": {
+      "cue": ""
+    },
+    "docs-init": {
+      "cue": "",
+      "starts": "person"
+    },
+    "docs-shots": {
+      "cue": ""
+    },
+    "docs-sync": {
+      "cue": ""
+    },
+    "readme": {
+      "cue": ""
+    }
+  }
+}

@@ -124,7 +124,7 @@ Every acceptance criterion maps to a named passing test; the issue's
 testing-checkpoint command exits 0; the tests that cover the change were run
 and named; the hubs your change touched are current; an issue whose
 `**User-facing**` line says `yes` changed its end-user pages and retook its
-screenshots in this same change (`/docs-parity:docs-sync` if docs-parity is
+screenshots in this same change (`/agentcraft:docs-parity docs-sync` if docs-parity is
 installed, by hand per the spec's `user-docs-plan.md` otherwise), or the
 commit says `Docs: none, <why>`; status was flipped through the funnel
 without `--evidence`; and control is back with `build-next-issue`.
