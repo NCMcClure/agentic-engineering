@@ -18,7 +18,7 @@ Version 1.0.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | [code-diet](#code-diet) | 5 | Use on any coding task to build at the simplest rung that holds, and to check what already exists before building, hunt over-engineering in a diff, inventory deferred shortcuts, or note what this work built that another project could use. |
 | [codebase-optimizer](#codebase-optimizer) | 3 | Restructures a repository that has already accreted, in stages behind its own tests with revert on red: use for a sprawling file tree, god-files, or shallow, tightly coupled modules. |
 | [context-doctor](#context-doctor) | 1 | Use when a session ignored a rule, lost its instructions after a compaction, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, when, and from where. |
-| [docs-parity](#docs-parity) | 5 | Use whenever a change touches something a user, integrator, or operator sees or depends on, and when asked whether the docs are current: pages, screenshots, and the nav move in the same change as the code. |
+| [docs-parity](#docs-parity) | 5 | Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code. |
 | [perceptual-loop](#perceptual-loop) | 8 | Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound. |
 | [picture-this](#picture-this) | 2 | Use when asked to visualize, diagram, illustrate, or animate how a system, a feature, a mechanism, or an idea works, or when a README needs a picture of a figure that already exists. |
 | [plugin-workbench](#plugin-workbench) | 4 | Makes, scores, and fixes plugins against one rubric: use when making or improving a plugin or its skills, or when the person asks for a plugin to be scored or a marketplace checkout to be reinstalled. |
@@ -135,7 +135,7 @@ Use when a session ignored a rule, lost its instructions after a compaction, or 
 
 ## docs-parity
 
-Use whenever a change touches something a user, integrator, or operator sees or depends on, and when asked whether the docs are current: pages, screenshots, and the nav move in the same change as the code.
+Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code.
 
 [README](../plugins/agentcraft/skills/docs-parity/README.md), [changelog](../plugins/agentcraft/skills/docs-parity/CHANGELOG.md).
 

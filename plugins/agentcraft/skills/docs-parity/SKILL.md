@@ -1,6 +1,6 @@
 ---
 name: docs-parity
-description: "Use whenever a change touches something a user, integrator, or operator sees or depends on, and when asked whether the docs are current: pages, screenshots, and the nav move in the same change as the code. Routes are its arguments, not skills: docs-sync (bring user docs level with a diff before it is committed); docs-audit (are the user docs current: report only); docs-shots (the docs screenshot harness: add, retake, repair a shot); readme (write or cut down a README); docs-init (adopt the user-docs checks in a repo)."
+description: "Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code. Routes are its arguments, not skills: docs-sync (bring user docs level with a diff before it is committed); docs-audit (are the user docs current: report only); docs-shots (the docs screenshot harness: add, retake, repair a shot); readme (write or cut down a README); docs-init (adopt the user-docs checks in a repo)."
 user-invocable: false
 argument-hint: "[route] [the route's arguments]"
 ---

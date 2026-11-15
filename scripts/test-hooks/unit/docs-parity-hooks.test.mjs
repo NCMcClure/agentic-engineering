@@ -66,7 +66,7 @@ function repo(t, { config = SURFACES, files = {}, answer } = {}) {
 
 test("the rule is one line, for every agent that acts, in any mode, only where the config is", () => {
   const data = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-  assert.deepEqual([data.area, data.lines.length, "chains" in data], ["docs-parity", 1, false]);
+  assert.deepEqual([data.area, data.lines.length, "chains" in data], ["docs-parity", 2, false]);
   assert.deepEqual([line.for, line.mode, line.when], ["all", "any", CONFIG]);
   assert.ok(!line.text.includes("\n"));
 });
@@ -77,10 +77,19 @@ test("the line says what the rule asks: same change, the harness, the Docs: line
   }
 });
 
-test("the line as printed fits the area's cap", () => {
+test("a second line sends a README to its route, in the main session, only where the config is", () => {
+  // At the default window the live lane reached the readme route 0 of 3 without it and 3 of 3 with it.
+  const readme = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8")).lines[1];
+  assert.deepEqual([readme.for, readme.mode, readme.when], ["main", "any", CONFIG]);
+  assert.ok(readme.text.includes("/agentcraft:docs-parity readme"));
+  assert.ok(!readme.text.includes("\n"));
+});
+
+test("the lines as printed fit the area's cap", () => {
   // The cap is CRITICAL_CAPS in scripts/validate.mjs.
   const cap = 450;
-  const printed = "Critical, from docs-parity:".length + line.text.length + 3;
+  const { lines } = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
+  const printed = "Critical, from docs-parity:".length + lines.reduce((n, l) => n + l.text.length + 3, 0);
   assert.ok(printed <= cap, `${printed} characters, cap ${cap}`);
 });
 

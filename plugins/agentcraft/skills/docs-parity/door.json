@@ -1,5 +1,5 @@
 {
-  "lead": "Use whenever a change touches something a user, integrator, or operator sees or depends on, and when asked whether the docs are current: pages, screenshots, and the nav move in the same change as the code.",
+  "lead": "Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code.",
   "default": "docs-sync",
   "routes": {
     "docs-sync": {

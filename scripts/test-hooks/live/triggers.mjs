@@ -72,8 +72,9 @@ export const TRIGGERS = [
   // A known miss, 0 of 6 in the baseline: the fixture plan holds no issues, and every session looked for issue 3 and stopped there.
   row("but-first-planning", "build-tdd", "Issue 3 of our plan is next. Implement it, with what it says counts as done driving the tests."),
   row("but-first-planning", "grill", "I want some kind of caching in this app, and I have not thought it through. Help me work out what I actually want before we plan anything."),
-  // A known miss, 0 of 6 in the baseline: every session went straight to writing the function, which its tools refused.
-  row("code-diet", "ladder", "I need a function that turns a title into a URL slug. No frameworks, nothing clever: the plainest thing that does the job."),
+  // A known miss, 0 of 6 in the baseline: every session went straight to writing the function. It asks for the
+  // function in the reply because a session has no tool to write a file with, and one that kept trying ran out of turns.
+  row("code-diet", "ladder", "I need a function that turns a title into a URL slug. No frameworks, nothing clever: the plainest thing that does the job. Paste it in your reply and I'll place it myself."),
   // A known miss, 0 of 6 in the baseline: every session searched the repo for a date parser itself.
   row("code-diet", "reuse-first", "I am about to write a date-parsing helper for this app. Find out first whether we already have one somewhere."),
   row("codebase-optimizer", "optimize-codebase", "This repo has grown for years without a cleanup: thousand-line files and a directory tree nobody can navigate. Take it apart and put it back in order, in safe steps."),
