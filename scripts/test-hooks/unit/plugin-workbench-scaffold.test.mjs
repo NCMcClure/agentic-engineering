@@ -125,8 +125,14 @@ test("the script stub is a Node script that runs as written", (t) => {
 
 // The structural gate, on a copy of this checkout with the skeleton added and
 // a catalog entry for it: exactly what adding a new plugin here means.
+// A plugin of this marketplace is an area the entry skill offers a person, so adding one means adding it there too.
+const ENTRY_DATA = "plugins/agentcraft/skills/start-here/start-here.json";
+const offered = (d) => ({
+  groups: d.groups.map((g, i) => (i === d.groups.length - 1 ? { ...g, areas: [...g.areas, NAME] } : g)),
+  areas: { ...d.areas, [NAME]: { cue: "keep a kit fresh", how: "It counts what is stale and says so.", uses: [{ want: "know what in the kit is stale", to: "check-kit" }, { want: "restock a shelf", to: "restock", starts: "person" }] } },
+});
 const added = (dir, extra = {}) => ({
-  json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: NAME, source: `./plugins/${NAME}`, description: SPEC.description, category: "testing" }] }) },
+  json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: NAME, source: `./plugins/${NAME}`, description: SPEC.description, category: "testing" }] }), [ENTRY_DATA]: offered },
   write: { ...Object.fromEntries(files(dir).map((rel) => [`plugins/${NAME}/${rel}`, read(dir, rel)])), ...extra },
 });
 const failures = (stdout) => stdout.split("\n").filter((line) => line.startsWith("FAIL:"));

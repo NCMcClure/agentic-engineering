@@ -288,6 +288,59 @@ async function validate() {
     else ok(`${GUIDE} matches the catalog, the manifests and the skills`);
   } catch (e) { fail(`the plugin guide could not be generated (${e.message})`, "scripts/gen-guide.mjs"); }
 
+  // ---- the entry skill ----------------------------------------------------
+  // The one skill a person types. Its flow is written by hand; its area
+  // tables are generated from start-here.json and the tree, so every address
+  // a person is handed is one that exists, and every area is asked about.
+  try {
+    const entry = await import(pathToFileURL(at("scripts", "gen-guide.mjs")).href);
+    if (entry.hasEntry(ROOT)) {
+      const before = failures();
+      const data = entry.ENTRY_DATA, file = entry.ENTRY_FILE;
+      const front = entry.readEntry(ROOT);
+      // Every plugin the catalog ships from this tree is an area, bar the entry skill's own.
+      const areas = catalog.plugins.filter((p) => typeof p.source === "string" && p.name !== entry.ENTRY_PLUGIN).map((p) => p.name);
+      const asked = front.groups.flatMap((g) => g.areas);
+      for (const name of areas) if (!asked.includes(name)) fail(`${data}: no group asks about ${name}, so a person is never offered it`, data);
+      for (const name of asked) {
+        if (!areas.includes(name)) fail(`${data}: a group names ${name}, which is not a plugin of this catalog`, data);
+        if (asked.indexOf(name) !== asked.lastIndexOf(name)) fail(`${data}: ${name} is in two groups`, data);
+      }
+      for (const name of front.unknown) fail(`${data}: an entry for ${name}, which no group names`, data);
+      // A question takes two to four options and a call four questions; the last group carries "Learn more" too.
+      if (front.groups.length < 1 || front.groups.length > 4) fail(`${data}: ${front.groups.length} groups; a call takes one to four questions`, data);
+      front.groups.forEach((g, i) => {
+        const options = g.areas.length + (i === front.groups.length - 1 ? 1 : 0);
+        const label = g.title || `group ${i + 1}`;
+        if (!g.title) fail(`${data}: group ${i + 1} has no title, which is the question a person is asked`, data);
+        if (!g.header || g.header.length > 12) fail(`${data}: "${label}" needs a header of 1 to 12 characters, the question's short label`, data);
+        if (options < 2 || options > 4) fail(`${data}: "${label}" offers ${options} option${options === 1 ? "" : "s"}; a question takes two to four`, data);
+      });
+      for (const a of front.areas) {
+        if (!a.listed) { fail(`${data}: ${a.name} has no entry`, data); continue; }
+        if (!a.cue || a.cue.length > 60) fail(`${data}: ${a.name} needs a cue of 1 to 60 characters, what a person picks it to do`, data);
+        if (!a.how || a.how.includes("\n")) fail(`${data}: ${a.name} needs a one-line how`, data);
+        if (a.uses.length < 1 || a.uses.length > 4) fail(`${data}: ${a.name} has ${a.uses.length} uses; a question takes one to four`, data);
+        for (const u of a.uses) {
+          if (!u.want) fail(`${data}: a use of ${a.name} says nothing a person would want`, data);
+          if (!u.found) { fail(`${data}: ${a.name} hands off to ${u.to || "nothing"}, which is not one of its skills`, data); continue; }
+          if (u.starts !== "agent" && u.starts !== "person") fail(`${data}: ${u.address} starts by ${JSON.stringify(u.starts)}; it is agent or person`, data);
+          else if (u.person !== (u.starts === "person")) fail(`${data}: ${u.address} ${u.person ? "is one only a person can start, so its use says \"starts\": \"person\"" : "can be started by an agent, so its use carries no \"starts\": \"person\""}`, data);
+        }
+      }
+      const text = exists(at(file)) ? fs.readFileSync(at(file), "utf8") : null;
+      if (text === null) fail(`${file} is missing: ${data} is there, and the skill it belongs to is written by hand`, file);
+      else {
+        const fm = parseFrontmatter(text) ?? {};
+        if (String(fm["disable-model-invocation"]) === "true" || String(fm["user-invocable"]) === "false") fail(`${file}: the entry skill is the one a person types and an agent may be sent to; it carries neither disable-model-invocation nor user-invocable: false`, file);
+        const count = (needle) => text.split(needle).length - 1;
+        if (count(entry.AREAS_END) !== 1 || count(entry.AREAS_TABLE_HEAD) !== 1) fail(`${file}: it holds one generated areas section, from "${entry.AREAS_HEADING}" to its end marker`, file);
+        else if (text !== entry.renderEntry(ROOT)) fail(`${file} is stale: node scripts/gen-guide.mjs --write`, file);
+      }
+      if (failures() === before) ok(`the entry skill offers ${front.areas.length} areas in ${front.groups.length} questions, and every hand-off names a skill that is there`);
+    }
+  } catch (e) { fail(`the entry skill could not be read (${e.message})`, "scripts/gen-guide.mjs"); }
+
   // ---- tree-wide -------------------------------------------------------
   let text = 0, crlf = 0, abs = 0, junk = 0, exits = 0;
   for (const f of tracked) {

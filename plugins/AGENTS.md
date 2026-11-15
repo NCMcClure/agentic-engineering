@@ -9,6 +9,10 @@ A plugin installs as `<name>@agentic-engineering`.
 
 ## Layout
 
+- `agentcraft/` - the way in for a person: one skill, `start-here`, that asks
+  what they want, explains the area, and hands off to another plugin's skill
+  by its address. Its area tables are generated from `start-here.json`.
+  Descend to change what a person is asked or where a use hands off.
 - `agent-works/` - one home per kind of agent-facing fact under `.agents/`, a
   kanban board that runs a goal as child sessions, a guard, and machine-wide
   locks and leases through the `aw` CLI. Descend to change a check, the card format, the

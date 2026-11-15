@@ -517,13 +517,23 @@ test("the prompt table covers every skill the tree refers to five times or more,
   const skills = new Set(TRIGGERS.map((t) => t.skill));
   assert.equal(MOST_REFERENCED.length, 18);
   for (const skill of MOST_REFERENCED) assert.ok(skills.has(skill), `no prompt for ${skill}`);
-  const plugins = [...new Set(TRIGGERS.map((t) => t.plugin))];
+  const plugins = [...new Set(TRIGGERS.filter((t) => t.skill !== "start-here").map((t) => t.plugin))];
   assert.equal(plugins.length, 12);
   for (const plugin of plugins) {
     assert.ok(TRIGGERS.some((t) => t.plugin === plugin && !MOST_REFERENCED.includes(t.skill)), `${plugin} has no prompt beyond the most-referenced`);
   }
-  // The rows the bar is read on.
-  assert.equal(TRIGGERS.length, 30);
+  // The rows the bar is read on: every one but the entry skill's, which the first baseline does not hold.
+  assert.ok(skills.has("start-here"));
+  assert.equal(TRIGGERS.filter((t) => t.skill !== "start-here").length, 30);
+});
+
+test("the entry skill is reached by its own name in the one plugin, called or read", () => {
+  const entry = { plugin: "start-here", skill: "start-here" };
+  assert.equal(reached(invoke(old(MERGED, "start-here")), entry), "skill");
+  assert.equal(reached(read(`${CHECKOUT}/${MERGED}/skills/start-here/SKILL.md`), entry), "read");
+  // Reaching the entry skill is not reaching a skill it would hand off to.
+  assert.equal(reached(invoke(old(MERGED, "start-here")), { plugin: "agentic-teamwork", skill: "ship" }), null);
+  assert.equal(labelOf(entry), "start-here");
 });
 
 test("the compaction scenario works inside a real skill, named outright, with a prompt on each side of the compaction", () => {

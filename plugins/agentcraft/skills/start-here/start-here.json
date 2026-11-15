@@ -1,0 +1,125 @@
+{
+  "groups": [
+    { "title": "Plan and run work", "header": "Plan & run", "areas": ["but-first-planning", "agent-works", "agentic-teamwork", "code-diet"] },
+    { "title": "Shape the code and its docs", "header": "Code & docs", "areas": ["codebase-optimizer", "docs-parity", "system-map", "picture-this"] },
+    { "title": "Judge the result, and write", "header": "Judge, write", "areas": ["perceptual-loop", "write-like-me", "workflow-studio"] },
+    { "title": "Make plugins", "header": "Plugins", "areas": ["plugin-workbench"] }
+  ],
+  "areas": {
+    "but-first-planning": {
+      "cue": "turn an idea into a spec, a backlog, and built issues",
+      "how": "Three phases, each leaving files under `.agents/plan/`: write and sharpen a spec, decompose it into a backlog, then build that backlog one issue at a time, test-first. `spec-init` scaffolds the workspace the first time.",
+      "uses": [
+        { "want": "be questioned on a goal until nothing about it is left unsaid", "to": "grill" },
+        { "want": "write or extend the spec for a project or a feature", "to": "spec-write" },
+        { "want": "break a finished spec into epics, sprints, and issues", "to": "plan-decompose" },
+        { "want": "find the next unblocked issue of the plan", "to": "build-next-issue" }
+      ]
+    },
+    "agent-works": {
+      "cue": "run several tasks at once, each in its own session",
+      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, runs each card as a child session in its own worktree, and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.",
+      "uses": [
+        { "want": "build a goal bigger than one change, or resume a round", "to": "orchestrate" },
+        { "want": "see what is on the board, add to it, or move a card", "to": "board" },
+        { "want": "set a repository up for agent work", "to": "setup", "starts": "person" },
+        { "want": "find out why agent files have bloated, or what the machine lacks", "to": "doctor" }
+      ]
+    },
+    "agentic-teamwork": {
+      "cue": "set up, check, or ship a repo the team's way",
+      "how": "Most of it runs unasked: hooks judge commits and pushes against the team's git conventions. What a person starts by name is the setup, the audit, and the two ends of landing work.",
+      "uses": [
+        { "want": "put a new repo on the team conventions before any code is written", "to": "bootstrap", "starts": "person" },
+        { "want": "check the repo against the conventions and repair what drifted", "to": "audit-project" },
+        { "want": "commit the work in hand and open its pull or merge request", "to": "ship" },
+        { "want": "merge a reviewed request once its checks are green", "to": "land" }
+      ]
+    },
+    "code-diet": {
+      "cue": "keep new code small, and cut what is not needed",
+      "how": "On any coding task the agent takes the simplest rung that works, checks what already exists before building, and marks what it defers as debt. A person asks for the review or the debt inventory.",
+      "uses": [
+        { "want": "hunt over-engineering in the working diff before a request", "to": "review-diet" },
+        { "want": "check what already exists before building something", "to": "reuse-first" },
+        { "want": "list every deferred shortcut and whether it still holds", "to": "debt" },
+        { "want": "note what this work built that another project could use", "to": "capture-reusable" }
+      ]
+    },
+    "codebase-optimizer": {
+      "cue": "restructure a codebase that has grown messy",
+      "how": "It works in stages on a branch, each one checked by the repo's own tests and reverted when they go red: organize the tree, split the god-files, deepen shallow modules.",
+      "uses": [
+        { "want": "the whole sweep, stage by stage", "to": "optimize-codebase" },
+        { "want": "reorganize a sprawling file tree and nothing else", "to": "codebase-organizer" },
+        { "want": "find shallow modules and leaky seams and nothing else", "to": "improve-codebase-architecture" }
+      ]
+    },
+    "docs-parity": {
+      "cue": "keep user docs level with the code",
+      "how": "Pages, screenshots, and the nav move in the same change as the code they describe; a Stop check and CI say when they did not.",
+      "uses": [
+        { "want": "bring the docs level with a change before it is committed", "to": "docs-sync" },
+        { "want": "find out whether the whole docs set is current", "to": "docs-audit" },
+        { "want": "cut a README down to what a newcomer needs", "to": "readme" },
+        { "want": "adopt the docs checks in a repo", "to": "docs-init", "starts": "person" }
+      ]
+    },
+    "system-map": {
+      "cue": "keep a diagram of the system that the code checks",
+      "how": "`@system` annotations in the code become a committed map that is checked against the imports and drawn as a frame on a Miro board, with a lint before publishing and a live check after.",
+      "uses": [
+        { "want": "give a repo a system map generated from its code", "to": "diagrams-init", "starts": "person" },
+        { "want": "bring the map and its board level with a code change", "to": "diagrams-sync" },
+        { "want": "draw or update a diagram on Miro", "to": "miro-board" },
+        { "want": "set up the browser the live Miro check drives", "to": "browser-setup", "starts": "person" }
+      ]
+    },
+    "picture-this": {
+      "cue": "draw how something works as an animated figure",
+      "how": "From a description or a feature in a codebase it finds the lens, models the subject, drafts three views, refines one, and delivers a React component plus stills for a README.",
+      "uses": [
+        { "want": "turn a system, a mechanism, or an idea into a figure", "to": "visualize" },
+        { "want": "retake a figure's stills, strip, or GIF for a README", "to": "export-stills" }
+      ]
+    },
+    "perceptual-loop": {
+      "cue": "check work judged by eye or ear",
+      "how": "The session writes down what will prove a change, renders a few reproducible shots before and after, gates the numbers against the last accepted run, and looks at the picture before calling it done. Questions of taste wait for the person on one review page.",
+      "uses": [
+        { "want": "start any change to how something looks, moves, or sounds", "to": "perceptual-loop" },
+        { "want": "set a project up so it can render a shot on command", "to": "shot-harness", "starts": "person" },
+        { "want": "check an animation, a transition, or a clip", "to": "check-motion" },
+        { "want": "check a sound, or a sound against its picture", "to": "check-audio" }
+      ]
+    },
+    "write-like-me": {
+      "cue": "write in your own voice, and catch AI tells",
+      "how": "A calibrated profile of how the person writes, applied to prose a human will read, with hooks that learn from style feedback.",
+      "uses": [
+        { "want": "build or rebuild the voice profile", "to": "calibrate", "starts": "person" },
+        { "want": "draft something in their voice", "to": "write-like-me" },
+        { "want": "check a draft for AI-writing tells", "to": "audit" },
+        { "want": "see or undo what the learning loop changed", "to": "review", "starts": "person" }
+      ]
+    },
+    "workflow-studio": {
+      "cue": "build a Claude Code workflow, by canvas or by hand",
+      "how": "A node editor in the browser for dynamic workflows, and the rules for writing the same scripts and graphs by hand.",
+      "uses": [
+        { "want": "open the visual editor", "to": "workflow-studio" },
+        { "want": "write or change a workflow script or its graph directly", "to": "author-workflow" }
+      ]
+    },
+    "plugin-workbench": {
+      "cue": "make, score, or fix a plugin or its skills",
+      "how": "One rubric serves all of it: a new plugin is scaffolded against it, an existing one is scored into a scorecard with a verdict, and the fixes are applied in the order of the points each is worth. It also reads a session's transcript for what each plugin put in the agent's context.",
+      "uses": [
+        { "want": "make a new plugin, or wrap skills and scripts they already have", "to": "create-plugin" },
+        { "want": "raise an existing plugin's score", "to": "improve-plugin" },
+        { "want": "score a plugin and get a scorecard with a verdict", "to": "evaluate-plugin", "starts": "person" },
+        { "want": "see what entered an agent's context, and from which plugin", "to": "context-lens" }
+      ]
+    }
+  }
+}

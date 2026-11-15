@@ -49,6 +49,8 @@ const row = (plugin, skill, prompt, { fixture = "standard", person = false } = {
 const PERSON = { fixture: "portable", person: true };
 
 export const TRIGGERS = [
+  // The skill a person types, in no baseline before the one it was added with. The plugins are its areas, so it carries its one name twice.
+  row("start-here", "start-here", "These plugins got installed for me and I have no idea what any of them are for. Show me around."),
   row("agentic-teamwork", "bootstrap", "I am about to start coding in this folder and it has none of our team scaffolding yet. Get it set up the way our repos are, before I write anything.", PERSON),
   row("agentic-teamwork", "init-project", "Scaffold a brand new team repo here from the node-service template and call it billing-sync.", PERSON),
   // A known miss, 0 of 6 in the baseline: every session read the marker and the source and set about answering it itself.

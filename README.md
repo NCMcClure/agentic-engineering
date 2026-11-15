@@ -29,7 +29,18 @@ Then install whichever plugins you want:
 Skills arrive namespaced: `/but-first-planning:spec-init`,
 `/agentic-teamwork:bootstrap`, and so on.
 
+Not sure which one a job needs? Install `agentcraft` and type
+`/agentcraft:start-here`.
+
 ## The plugins
+
+### agentcraft
+
+Twelve plugins hold about eighty skills, and a job does not say which one it
+needs. `agentcraft` is the one thing to remember: `/agentcraft:start-here`
+asks what you want to do, explains the area that does it, and hands off to
+the skill that does the work. Given a task, or run where nobody can answer,
+it asks nothing and names the skill that fits.
 
 ### agent-works
 

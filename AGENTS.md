@@ -1,8 +1,9 @@
 # agentic-engineering: a Claude Code plugin marketplace
 
 Twelve plugins, each a fix for a problem that keeps turning up when engineering
-with agents. Nothing here runs in production; it runs in the agents, so a
-mistake ships to every session that has the plugin installed.
+with agents, and `agentcraft`, the one skill a person types to find the right
+one. Nothing here runs in production; it runs in the agents, so a mistake
+ships to every session that has the plugin installed.
 
 Read the rules below before editing anything under `plugins/` or the catalog.
 They are the maintenance contract, and they name what `scripts/validate.mjs`

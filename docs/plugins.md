@@ -6,6 +6,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
+| [agentcraft](#agentcraft) | 0.1.0 | 1 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 15 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 18 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 3 | refactoring |
@@ -18,6 +19,16 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
 | [system-map](#system-map) | 0.3.0 | 4 | documentation |
+
+## agentcraft
+
+Twelve plugins hold more skills than anyone should have to remember, so one skill a person types asks what they want to do, explains the area that does it, and hands off to the skill that does the work.
+
+Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
+
+| Skill | Started | When |
+|---|---|---|
+| `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
 
 ## agent-works
 

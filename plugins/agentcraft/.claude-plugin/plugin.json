@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "agentcraft",
+  "displayName": "Agentcraft",
+  "version": "0.1.0",
+  "description": "Twelve plugins hold more skills than anyone should have to remember, so one skill a person types asks what they want to do, explains the area that does it, and hands off to the skill that does the work.",
+  "author": {
+    "name": "Nicholas McClure",
+    "email": "contact@protospatial.com"
+  },
+  "keywords": [
+    "start",
+    "guide",
+    "router",
+    "onboarding",
+    "skills",
+    "marketplace"
+  ]
+}

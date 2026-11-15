@@ -25,8 +25,17 @@ const TIDY = {
   "plugins/tidy/CHANGELOG.md": "# Changelog\n\n- **0.1.0**: first release.\n",
   "plugins/tidy/skills/sweep/SKILL.md": "---\nname: sweep\ndescription: Use when the floor needs sweeping.\n---\n\n# sweep\n",
 };
+const listTidy = (m) => ({ ...m, plugins: [...m.plugins, { name: "tidy", source: "./plugins/tidy", description: "Nothing to waive.", category: "testing" }] });
+// A plugin is an area a person is offered, so a new one joins a group of the
+// entry skill's data, with what it is picked for and a skill to hand off to.
+const ENTRY_DATA = "plugins/agentcraft/skills/start-here/start-here.json";
+const ENTRY_FILE = "plugins/agentcraft/skills/start-here/SKILL.md";
+const askTidy = (d) => ({
+  groups: d.groups.map((g, i) => (i === d.groups.length - 1 ? { ...g, areas: [...g.areas, "tidy"] } : g)),
+  areas: { ...d.areas, tidy: { cue: "sweep the floor", how: "It sweeps.", uses: [{ want: "a clean floor", to: "sweep" }] } },
+});
 const withTidy = (extra = {}) => ({
-  json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: "tidy", source: "./plugins/tidy", description: "Nothing to waive.", category: "testing" }] }) },
+  json: { [CATALOG]: listTidy, [ENTRY_DATA]: askTidy },
   write: { ...TIDY, ...extra },
 });
 
@@ -288,6 +297,55 @@ test("critical lines from a plugin the kernel's ORDER does not name fail", (t) =
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/tidy\/hooks\/critical\.json: tidy is not in ORDER in scripts\/shared\/critical-context\.mjs/m);
   assert.equal(result.stdout.match(/^FAIL:/gm).length, 1, result.stdout);
+});
+
+// The entry skill is the one a person types. Its area tables are generated,
+// and the gate holds its data to what a question can offer and to the tree.
+const entryData = (fn) => ({ json: { [ENTRY_DATA]: fn } });
+const area = (name, fn) => (d) => ({ ...d, areas: { ...d.areas, [name]: fn(d.areas[name]) } });
+
+test("a plugin the entry skill never asks about fails, and so does one it asks about that is not there", (t) => {
+  const unasked = validate(tree(t, { json: { [CATALOG]: listTidy }, write: TIDY }));
+  assert.equal(unasked.status, 1);
+  assert.match(unasked.stdout, /^FAIL: .*start-here\.json: no group asks about tidy, so a person is never offered it/m);
+  const gone = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, areas: [...g.areas.slice(1), "no-such-plugin"] })) }))));
+  assert.match(gone.stdout, /^FAIL: .*a group names no-such-plugin, which is not a plugin of this catalog/m);
+  assert.match(gone.stdout, /^FAIL: .*no group asks about but-first-planning/m);
+  assert.match(gone.stdout, /^FAIL: .*an entry for but-first-planning, which no group names/m);
+});
+
+test("the entry skill's data is held to what a question can offer", (t) => {
+  // Five areas in one group is five options, and the last group carries "Learn more" as well.
+  const wide = validate(tree(t, entryData((d) => ({ ...d, groups: [{ ...d.groups[0], areas: [...d.groups[0].areas, d.groups[1].areas[0]] }, { ...d.groups[1], areas: d.groups[1].areas.slice(1) }, ...d.groups.slice(2)] }))));
+  assert.match(wide.stdout, /^FAIL: .*"Plan and run work" offers 5 options; a question takes two to four/m);
+  const long = validate(tree(t, entryData(area("code-diet", (a) => ({ ...a, cue: "x".repeat(61), uses: [...a.uses, { want: "a fifth thing", to: "ladder" }] })))));
+  assert.match(long.stdout, /^FAIL: .*code-diet needs a cue of 1 to 60 characters/m);
+  assert.match(long.stdout, /^FAIL: .*code-diet has 5 uses; a question takes one to four/m);
+  const label = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, header: "A label far too long" })) }))));
+  assert.match(label.stdout, /^FAIL: .*"Plan and run work" needs a header of 1 to 12 characters/m);
+});
+
+test("a use of the entry skill names a skill that is there, and says so when only a person can start it", (t) => {
+  const result = validate(tree(t, entryData((d) => area("agentic-teamwork", (a) => ({ ...a, uses: [{ want: "a thing nobody ships", to: "no-such-skill" }, { want: "set a repo up", to: "bootstrap" }, { want: "ship it", to: "ship", starts: "person" }] }))(d))));
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /^FAIL: .*agentic-teamwork hands off to no-such-skill, which is not one of its skills/m);
+  assert.match(result.stdout, /^FAIL: .*\/agentic-teamwork:bootstrap is one only a person can start, so its use says "starts": "person"/m);
+  assert.match(result.stdout, /^FAIL: .*\/agentic-teamwork:ship can be started by an agent, so its use carries no "starts": "person"/m);
+});
+
+test("an entry skill whose areas section is stale, or that a person could not type, fails", (t) => {
+  // The data moved and the skill was not regenerated.
+  const dir = tree(t, entryData(area("code-diet", (a) => ({ ...a, cue: "cut what the code does not need" }))));
+  assert.match(gate(dir).stdout, /^FAIL: plugins\/agentcraft\/skills\/start-here\/SKILL\.md is stale: node scripts\/gen-guide\.mjs --write/m);
+  assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
+  assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
+  assert.match(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8"), /\| `code-diet` \| cut what the code does not need \|/);
+  assert.equal(gate(dir).status, 0);
+  // What is written by hand is kept, and the generated section stays the last thing in the file.
+  assert.ok(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8").trimEnd().endsWith("<!-- end of the generated areas section -->"));
+  assert.match(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8"), /^## Which mode$/m);
+  const hidden = validate(tree(t, { text: { [ENTRY_FILE]: (s) => s.replace("argument-hint:", "disable-model-invocation: true\nargument-hint:") } }));
+  assert.match(hidden.stdout, /^FAIL: .*the entry skill is the one a person types and an agent may be sent to/m);
 });
 
 // The guide is generated, so a copy that differs from a fresh one is stale.
