@@ -6,7 +6,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 8 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 9 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
@@ -14,7 +14,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [workflow-studio](#workflow-studio) | 1.0.2 | 0 | workflow |
 | [picture-this](#picture-this) | 0.3.0 | 0 | creative |
 | [write-like-me](#write-like-me) | 1.0.1 | 0 | writing |
-| [code-diet](#code-diet) | 1.0.3 | 5 | code-quality |
+| [code-diet](#code-diet) | 1.0.3 | 0 | code-quality |
 | [plugin-workbench](#plugin-workbench) | 2.1.0 | 5 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 9 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 6 | documentation |
@@ -69,6 +69,12 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:but-first-planning spec-init [--refresh]` | when you ask for it | Scaffolds the `.agents/plan/` workspace: spec site, empty plan tree, glossary and ADRs, tracker config, status scripts. Run once per project, when the user wants to spec or plan it and no workspace exists; `--refresh` updates a workspace's scripts. |
 | `/agentcraft:but-first-planning spec-open` | when you ask for it | Serves the `.agents/plan/` spec site locally (reusing a running server) and opens it in the browser, with inline comments and the live Plan page. Run when the user wants to read, review, or comment on the spec. |
 | `/agentcraft:but-first-planning spec-write` | by the agent | Authors or extends the spec as a progressive-disclosure docs site under `.agents/plan/spec/`. Use when the user wants to write or grow a spec ("spec this out", "document the design"). Needs `.agents/plan/`. |
+| `/agentcraft:code-diet [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: capture-reusable (); debt (); ladder (); reuse-first (); review-diet (). |
+| `/agentcraft:code-diet capture-reusable` | by the agent | At the end of a session, find what this work built that another project would want: a component, a repo-agnostic utility, a script, or a pattern worth a plugin. Writes a row in .agents/reuse-opportunities.md for each. Use when wrapping up work that produced something general; reuse-first is the same question pointed the other way. |
+| `/agentcraft:code-diet debt [--write <file>]` | by the agent | Inventory every `debt:` marker in the repo with scripts/debt.mjs, judge whether each deferral still holds, and flag trigger-less markers as rot risk. Use when auditing shortcuts already in the tree, before a release, or when the user asks what debt this repo carries; the ladder skill is what writes new markers. |
+| `/agentcraft:code-diet ladder` | by the agent | Build at the first rung that holds: YAGNI, reuse what the repo already has, stdlib, native platform, installed dependency, one line, the minimum that works. Use on any coding task (writing, adding, refactoring, fixing, choosing a dependency) and whenever the user asks for the simplest solution or complains about bloat, boilerplate, or over-engineering. To check what already exists before building use reuse-first; to audit shortcuts already in the tree use debt. Not for prose. |
+| `/agentcraft:code-diet reuse-first <the thing, in plain words>` | by the agent | Before building a component, a utility, a parser, a client, or anything else that sounds like it might already exist, check what this repo and the other checkouts the person has listed already have. Use whenever a task would add a dependency, a UI component, or a capability another module plausibly has, and whenever the ladder reaches rung 2. To offer something back the other way use capture-reusable. |
+| `/agentcraft:code-diet review-diet [repo] [--base <ref>] [--apply]` | by the agent | Hunt over-engineering in the working diff (pass `repo` to widen to the whole tree): review-scan.mjs locates cut candidates deterministically, you judge only the flagged spots, one line per finding with file:line, the cut, and the replacement; `--apply` lands each confirmed cut as its own commit behind validate-or-revert. Use before opening a pull or merge request, or when a diff feels bloated. Correctness bugs and security holes are out of scope here; the ladder is what stops the bloat being written in the first place. |
 | `/agentcraft:codebase-optimizer [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: codebase-organizer (); improve-codebase-architecture (); optimize-codebase (). |
 | `/agentcraft:codebase-optimizer codebase-organizer` | by the agent | Reorganize a sprawling file tree into a progressive-disclosure layout: plan, history-preserving git mv, reference rewriting, AGENTS.md hubs, verified by the repo's own build. Use when the ask is about the tree alone (the root is a mess, too many top-level files, organize the folder structure, add AGENTS.md hubs to this repo). Nothing moves until the person has approved the plan. To split god-files in the same pass use optimize-codebase. |
 | `/agentcraft:codebase-optimizer improve-codebase-architecture` | by the agent | Find deepening opportunities in code that already exists: shallow modules, leaky seams, missing adapters, proposed against the project's glossary and its decision records under .agents/. Use when the ask is about architecture ("improve the architecture", consolidate tightly-coupled modules, make this testable) or a seam worth extracting has been spotted. For the file tree use codebase-organizer; to apply deepenings autonomously behind revert on red use optimize-codebase. |
@@ -131,14 +137,6 @@ Version 1.0.1. [README](../plugins/write-like-me/README.md), [changelog](../plug
 Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.
 
 Version 1.0.3. [README](../plugins/code-diet/README.md), [changelog](../plugins/code-diet/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/code-diet:capture-reusable` | by the agent, or by hand | At the end of a session, find what this work built that another project would want: a component, a repo-agnostic utility, a script, or a pattern worth a plugin. Writes a row in .agents/reuse-opportunities.md for each. Use when wrapping up work that produced something general; reuse-first is the same question pointed the other way. |
-| `/code-diet:debt [--write <file>]` | by the agent, or by hand | Inventory every `debt:` marker in the repo with scripts/debt.mjs, judge whether each deferral still holds, and flag trigger-less markers as rot risk. Use when auditing shortcuts already in the tree, before a release, or when the user asks what debt this repo carries; the ladder skill is what writes new markers. |
-| `/code-diet:ladder` | by the agent, or by hand | Build at the first rung that holds: YAGNI, reuse what the repo already has, stdlib, native platform, installed dependency, one line, the minimum that works. Use on any coding task (writing, adding, refactoring, fixing, choosing a dependency) and whenever the user asks for the simplest solution or complains about bloat, boilerplate, or over-engineering. To check what already exists before building use reuse-first; to audit shortcuts already in the tree use debt. Not for prose. |
-| `/code-diet:reuse-first <the thing, in plain words>` | by the agent, or by hand | Before building a component, a utility, a parser, a client, or anything else that sounds like it might already exist, check what this repo and the other checkouts the person has listed already have. Use whenever a task would add a dependency, a UI component, or a capability another module plausibly has, and whenever the ladder reaches rung 2. To offer something back the other way use capture-reusable. |
-| `/code-diet:review-diet [repo] [--base <ref>] [--apply]` | by the agent, or by hand | Hunt over-engineering in the working diff (pass `repo` to widen to the whole tree): review-scan.mjs locates cut candidates deterministically, you judge only the flagged spots, one line per finding with file:line, the cut, and the replacement; `--apply` lands each confirmed cut as its own commit behind validate-or-revert. Use before opening a pull or merge request, or when a diff feels bloated. Correctness bugs and security holes are out of scope here; the ladder is what stops the bloat being written in the first place. |
 
 ## plugin-workbench
 

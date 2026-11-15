@@ -21,6 +21,16 @@
             "timeout": 15
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/code-diet/hooks/debt-nudge.mjs\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -89,6 +99,17 @@
             "statusMessage": "Checking for a writing profile"
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agentcraft hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/skills/code-diet/hooks/session-start.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Loading the code-diet ladder"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -145,6 +166,15 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/session-start.mjs\"",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/code-diet/hooks/session-start.mjs\"",
+            "timeout": 5
           }
         ]
       }

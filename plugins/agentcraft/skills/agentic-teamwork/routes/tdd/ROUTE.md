@@ -15,7 +15,7 @@ One loop, four lanes, and a rule about which lane a check belongs in. The lane c
 ## The loop
 
 1. **Red.** Write the smallest test that fails for the right reason. Run it and read the failure: a test that fails because of a typo or a missing import has proved nothing. The failure message is the first thing the test is judged on.
-2. **Green.** The least code that passes. If code-diet is installed, `/code-diet:ladder` says how little that is.
+2. **Green.** The least code that passes. If code-diet is installed, `/agentcraft:code-diet ladder` says how little that is.
 3. **Refactor.** Only with the lane green. Structure the code, not the behavior; the tests do not change in this step. `references/refactoring.md` lists what to look for.
 
 Repeat per behavior, not per file: one test, one implementation, then the next. Writing every test first and every implementation after tests the shape you imagined, not the behavior you found. One logical assertion per test.

@@ -10,7 +10,7 @@ import { hookCommand } from "../../lib.mjs";
 import { CONFIG_KEY, SHARED_LINE } from "../../shared/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "code-diet");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
 const LADDER = CRITICAL.lines[0].text;

@@ -17,7 +17,7 @@ rung 2 with a tool: `scripts/reuse-index.mjs` searches this repo, and any other
 checkout you list, for a file whose name, opening comment, or definitions
 cover the thing about to be built.
 
-**At review.** `/code-diet:review-diet` has `scripts/review-scan.mjs` locate
+**At review.** `/agentcraft:code-diet review-diet` has `scripts/review-scan.mjs` locate
 cut candidates deterministically (single-caller wrappers, abstractions with
 one implementation, dependencies that duplicate the platform, dead flags,
 uncalled symbols). The model judges only the flagged spots and reports one
@@ -32,7 +32,7 @@ possible.
 </picture>
 
 **In every later session.** A deliberate shortcut carries a comment
-`debt: <ceiling>, <trigger>`. `/code-diet:debt` inventories the markers and
+`debt: <ceiling>, <trigger>`. `/agentcraft:code-diet debt` inventories the markers and
 re-judges each, so a deferral expires on its trigger instead of rotting. A
 hook after each edit nudges the agent, and never blocks it, when a marker it
 just wrote names a ceiling and no trigger. The grammar lives in one file,
@@ -70,9 +70,9 @@ The skills work in any repo, opted in or not.
 | Skill | Invocation | Does |
 |---|---|---|
 | `ladder` | model-invoked | The build discipline: understand the flow, climb the seven rungs, mark debt, leave one runnable check, output code first. |
-| `reuse-first` | model-invoked, or `/code-diet:reuse-first <thing>` | Searches this repo and your listed checkouts for something that already covers the thing; verdict adopt, adapt, or build. |
-| `review-diet` | `/code-diet:review-diet [repo] [--base <ref>] [--apply]` | Over-engineering review: the script locates, the model judges, one line per finding; `--apply` lands each cut as its own commit behind validate-or-revert. |
-| `debt` | `/code-diet:debt [--write <file>]` | The debt-marker ledger: which deferrals still hold, which triggers have tripped, which markers have none. |
+| `reuse-first` | model-invoked, or `/agentcraft:code-diet reuse-first <thing>` | Searches this repo and your listed checkouts for something that already covers the thing; verdict adopt, adapt, or build. |
+| `review-diet` | `/agentcraft:code-diet review-diet [repo] [--base <ref>] [--apply]` | Over-engineering review: the script locates, the model judges, one line per finding; `--apply` lands each cut as its own commit behind validate-or-revert. |
+| `debt` | `/agentcraft:code-diet debt [--write <file>]` | The debt-marker ledger: which deferrals still hold, which triggers have tripped, which markers have none. |
 | `capture-reusable` | model-invoked at wrap-up | Finds what this work built that another project would want and records it in `.agents/reuse-opportunities.md`. |
 
 ## Pointing it at your other code
@@ -107,4 +107,4 @@ green.
 The discipline is evolved from the MIT-licensed
 [ponytail plugin](https://github.com/DietrichGebert/ponytail). What was
 inherited and what changed is recorded in
-`skills/ladder/references/provenance.md`. Borrowed stays labeled as borrowed.
+`routes/ladder/references/provenance.md`. Borrowed stays labeled as borrowed.

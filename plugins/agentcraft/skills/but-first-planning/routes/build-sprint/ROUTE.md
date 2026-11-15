@@ -114,7 +114,7 @@ commit lands on the still-open sprint PR, so docs are reviewed with the code, be
   `build-tdd` for its slice: the issue's acceptance criteria and spec anchors
   drive its tests. A subagent loads no skill you do not name, so name the
   ones this session has: `/agentcraft:agentic-teamwork tdd` (the loop and the lane
-  commands) and `/code-diet:ladder` (the shape of the production code) when
+  commands) and `/agentcraft:code-diet ladder` (the shape of the production code) when
   those plugins are installed, and the `AGENTS.md` duty it owes in the same
   commit. The full briefing checklist is in [ORCHESTRATION.md](ORCHESTRATION.md).
 

@@ -12,6 +12,8 @@ description: >
 
 # ladder
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 The discipline: price every line at generation time and stop climbing the moment a rung holds. The always-on form is the one ladder line in `hooks/critical.json`, which the session hook keeps in context; this skill is the full procedure.
 
 ## Step 1: Understand first
@@ -25,7 +27,7 @@ The ladder shortens the solution, never the reading. Trace the real flow end to 
 Stop at the first rung that holds.
 
 1. **YAGNI.** Does this need to exist at all? Speculative need means skip it and say so in one line.
-2. **Reuse.** A helper, type, or pattern a few files over in this repo, then the other checkouts the person has listed (a shared component library, a sibling service). Run `/code-diet:reuse-first <thing>` when you are not sure; re-implementing what already exists is the expensive kind of slop, because it also has to be maintained.
+2. **Reuse.** A helper, type, or pattern a few files over in this repo, then the other checkouts the person has listed (a shared component library, a sibling service). Run `/agentcraft:code-diet reuse-first <thing>` when you are not sure; re-implementing what already exists is the expensive kind of slop, because it also has to be maintained.
 3. **Stdlib.** The standard library does it, use it.
 4. **Native platform.** A date input over a picker library, CSS over JS, a database constraint over application code.
 5. **Installed dependency.** Something already in the manifest solves it. Never add a dependency for what a few lines cover.
@@ -44,7 +46,7 @@ No unrequested abstractions: no interface with one implementation, no factory fo
 
 ## Step 4: Mark the debt
 
-Every deliberate shortcut with a known ceiling gets a comment `debt: <ceiling>, <trigger>`, where the trigger is an observable condition: `# debt: global lock, per-account locks if throughput matters`. The grammar has one home, `${CLAUDE_PLUGIN_ROOT}/scripts/debt.mjs`; do not restate the regex.
+Every deliberate shortcut with a known ceiling gets a comment `debt: <ceiling>, <trigger>`, where the trigger is an observable condition: `# debt: global lock, per-account locks if throughput matters`. The grammar has one home, `W/scripts/debt.mjs`; do not restate the regex.
 
 *Done when: every known ceiling in the diff carries a marker whose trigger names something you could observe.*
 

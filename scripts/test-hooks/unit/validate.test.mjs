@@ -70,19 +70,19 @@ test("an external entry passes as a github object and fails as an unknown kind",
 // History has one home: CHANGELOG.md inside the plugin, newest first, its top
 // entry the version plugin.json carries. A README keeps no changelog.
 test("a plugin with no CHANGELOG.md fails", (t) => {
-  const result = validate(tree(t, { remove: ["plugins/code-diet/CHANGELOG.md"] }));
+  const result = validate(tree(t, { remove: ["plugins/agentcraft/skills/code-diet/CHANGELOG.md"] }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: code-diet: missing CHANGELOG\.md/m);
 });
 
 test("a CHANGELOG.md whose top entry is not the plugin.json version fails", (t) => {
-  const result = validate(tree(t, { text: { "plugins/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a version plugin.json does not carry.\n") } }));
+  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a version plugin.json does not carry.\n") } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: code-diet: CHANGELOG\.md top entry is 9\.9\.9, plugin\.json is /m);
 });
 
 test("a README that still carries a ## Changelog section fails", (t) => {
-  const result = validate(tree(t, { text: { "plugins/code-diet/README.md": (s) => `${s}\n## Changelog\n\n- 0.0.1: history kept in the wrong place.\n` } }));
+  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/README.md": (s) => `${s}\n## Changelog\n\n- 0.0.1: history kept in the wrong place.\n` } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: code-diet: README carries a "## Changelog" section/m);
 });
@@ -147,7 +147,7 @@ test("a hooks module that is missing, outside the plugin, or not .mjs fails", (t
 
 test("an absolute machine path in a tracked file fails", (t) => {
   const home = ["", "Users", "someone", "checkout"].join("/");
-  const result = validate(tree(t, { text: { "plugins/code-diet/README.md": (s) => `${s}\nInstall from ${home}.\n` } }));
+  const result = validate(tree(t, { text: { "plugins/agentcraft/skills/code-diet/README.md": (s) => `${s}\nInstall from ${home}.\n` } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: plugins\/code-diet\/README\.md carries an absolute machine path/m);
 });
@@ -350,7 +350,7 @@ test("an entry skill whose areas section is stale, or that a person could not ty
 
 // The guide is generated, so a copy that differs from a fresh one is stale.
 test("a plugin guide that is missing or stale fails, and gen-guide --write repairs it", (t) => {
-  const dir = tree(t, { json: { "plugins/code-diet/.claude-plugin/plugin.json": (m) => ({ ...m, version: "9.9.9" }) }, text: { "plugins/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a bump the guide has not seen.\n") } });
+  const dir = tree(t, { json: { "plugins/code-diet/.claude-plugin/plugin.json": (m) => ({ ...m, version: "9.9.9" }) }, text: { "plugins/agentcraft/skills/code-diet/CHANGELOG.md": (s) => s.replace("# Changelog\n\n", "# Changelog\n\n- **9.9.9**: a bump the guide has not seen.\n") } });
   assert.match(gate(dir).stdout, /^FAIL: docs\/plugins\.md is stale: node scripts\/gen-guide\.mjs --write/m);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
@@ -555,7 +555,7 @@ test("a route names its directories from its own file and writes no root variabl
 // Two lists that stop matching without a word when a name moves: the agents
 // the session hook says nothing to, and the prefix the host gives a mod's tools.
 test("a DENYLIST entry names an agent its plugin ships, and the mod's tools carry the prefix of the plugin that loads it", () => {
-  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: plugins/code-diet/agents/nobody\\.md is not there`, "m"));
+  assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: plugins/agentcraft/agents/nobody\\.md is not there`, "m"));
   assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${WAS}" names an agent by the plugin it was in; tidy is an area of ${ONE}, so the host names it ${ONE}:critic`, "m"));
   assert.match(broken(), /^FAIL: plugins\/agent-works\/hooks\/kanban\/register\.mjs answers mcp__kanban__\w+; the mod's tools are mcp__agent-works__<tool>/m);
 });

@@ -35,7 +35,7 @@ git diff --stat origin/<base>...origin/<branch>
   that sees only the done criteria and the diff, never the child's report or your own view. Without subagents,
   `W/routes/orchestrate/references/subagent-fallback.md` says what to do instead.
 - **Run it.** A smoke test from a scratch repository, or render the picture and look at it, as far as the risk
-  calls for. Where code-diet is installed, `/code-diet:review-diet` in the child's worktree.
+  calls for. Where code-diet is installed, `/agentcraft:code-diet review-diet` in the child's worktree.
 
 ## Step 3: Send findings back
 

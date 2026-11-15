@@ -6,6 +6,8 @@ argument-hint: "[--write <file>]"
 
 # debt
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 A `debt:` marker records a deliberate shortcut: `debt: <ceiling>, <trigger>`. The ceiling is the limit the code accepts, the trigger is the observable condition that should make someone upgrade past it. This skill inventories every marker, then judges each: does the deferral still hold, has its trigger tripped, or is it rotting toward permanent?
 
 The scan and every count live in `scripts/debt.mjs`, the single home of the grammar. Never grep for markers yourself and never recount in prose. Judgment is the only thing asked of you here.
@@ -13,7 +15,7 @@ The scan and every count live in `scripts/debt.mjs`, the single home of the gram
 ## Step 1: Scan
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/debt.mjs" --root . [--write <file>]
+node "W/scripts/debt.mjs" --root . [--write <file>]
 ```
 
 It walks the tree (skipping `.git`, `node_modules`, and build output), matches every `debt:` comment, and splits each into ceiling and trigger. Parse the JSON: `{count, no_trigger_count, markers[]}`, each marker carrying `file`, `line`, `ceiling`, `trigger` (or null), and `no_trigger`.

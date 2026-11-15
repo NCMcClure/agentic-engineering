@@ -12,12 +12,14 @@ argument-hint: "<the thing, in plain words>"
 
 # reuse-first
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Rung 2 of the ladder, widened past the file you are in. Re-implementing what already exists costs twice: once to write it, then forever to keep the two in step.
 
 ## Step 1: Ask the index
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/reuse-index.mjs" "<the thing in plain words>" --json
+node "W/scripts/reuse-index.mjs" "<the thing in plain words>" --json
 ```
 
 It searches this repo, then every directory the person has listed under `code-diet.reuse` in git config: a shared component library, a sibling service, a utilities repo. A candidate is a file: its path, its opening comment, and the names it defines. `searched` says where it looked. A listed directory it could not read is named in `skipped`, never dropped, and means "unknown", not "nothing".
@@ -52,6 +54,6 @@ On **build**, append one line to `.agents/reuse-opportunities.md` (create it if 
 - <date> <what you built>. Closest existing: <candidate or "nothing">. Why it did not fit: <one clause>.
 ```
 
-That file is the input to `/code-diet:capture-reusable` at the end of a session. Without it, the second project that needs the same thing has no way to know the first one already built it.
+That file is the input to `/agentcraft:code-diet capture-reusable` at the end of a session. Without it, the second project that needs the same thing has no way to know the first one already built it.
 
 *Done when: the line exists, or the verdict was adopt or adapt.*

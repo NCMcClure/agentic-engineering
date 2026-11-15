@@ -6,11 +6,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { STDLIB_DUPES, ended, extract, langOf, shouldSkip } from "../../../plugins/code-diet/scripts/review-scan.mjs";
+import { STDLIB_DUPES, ended, extract, langOf, shouldSkip } from "../../../plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const SCAN = path.join(REPO, "plugins", "code-diet", "scripts", "review-scan.mjs");
-const WORKFLOW = path.join(REPO, "plugins", "code-diet", "skills", "review-diet", "workflows", "review.js");
+const SCAN = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet", "scripts", "review-scan.mjs");
+const WORKFLOW = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet", "routes", "review-diet", "workflows", "review.js");
 
 const APP_PY = `import requests
 import os

@@ -6,6 +6,8 @@ argument-hint: "[repo] [--base <ref>] [--apply]"
 
 # review-diet
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 One question: can this get shorter without losing anything? Correctness bugs and security holes are a different pass; if you find one, note it and keep the verdict separate.
 
 ## Step 1: Scope and scan
@@ -13,7 +15,7 @@ One question: can this get shorter without losing anything? Correctness bugs and
 Default scope is the working diff: staged, unstaged, and untracked, against HEAD. `--base <ref>` measures against another commit instead (the branch point, when the work is already committed). The argument `repo` widens it to the whole tree. Note whether `--apply` was passed.
 
 ```
-node "${CLAUDE_PLUGIN_ROOT}/scripts/review-scan.mjs" --scope diff|repo [--base <ref>]
+node "W/scripts/review-scan.mjs" --scope diff|repo [--base <ref>]
 ```
 
 Parse the JSON: `candidates` are locators, `diff` the change's stats, `counts` the tally per kind. Signals locate; you judge. Never re-derive a count, a diff stat, or the net-lines math in prose: the numbers are the script's.
@@ -55,14 +57,14 @@ Each confirmed cut lands as its own commit, checked while it is the only change 
 With a workflow tool in the session, dispatch the workflow and let it own the protocol:
 
 ```
-${CLAUDE_PLUGIN_ROOT}/skills/review-diet/workflows/review.js
+"W/routes/review-diet/workflows/review.js"
 ```
 
-Its args: `{root, scan, findings: [{file, line, tag, cut, replacement, spanLines}], scope, predictedNet}`, where `scan` is the absolute path of `${CLAUDE_PLUGIN_ROOT}/scripts/review-scan.mjs` and `spanLines` is the candidate's `span`.
+Its args: `{root, scan, findings: [{file, line, tag, cut, replacement, spanLines}], scope, predictedNet}`, where `scan` is the absolute path of `W/scripts/review-scan.mjs` and `spanLines` is the candidate's `span`.
 
 Without one, run the same protocol by hand, from the repo root:
 
-1. `node "${CLAUDE_PLUGIN_ROOT}/scripts/review-scan.mjs" --apply begin` prints the base commit and the untracked files nothing may touch. It exits 1 while tracked files carry uncommitted changes, because a cut landed over them would carry them into its commit: ask the person to commit or stash, then continue from here. The findings from step 3 still stand.
+1. `node "W/scripts/review-scan.mjs" --apply begin` prints the base commit and the untracked files nothing may touch. It exits 1 while tracked files carry uncommitted changes, because a cut landed over them would carry them into its commit: ask the person to commit or stash, then continue from here. The findings from step 3 still stand.
 2. Find the repo's own checks: the `unit` lane in `.agents/manifest.json` when the repo has one, otherwise the test and lint commands its manifests name. Run each once before any cut. One that is red now cannot judge a cut: leave it out and say so.
 3. Per confirmed cut, in order: make the one edit, then `--apply check <file>... --check "<command>"...`. On `green`, `git add` those files only and commit `code-diet: <tag> <what> (<file>)`. On red, read the `tail`, try one surgical repair (an import the cut orphaned, a caller it left dangling) and check again; still red, `--apply revert <file>...` and move to the next cut.
 4. `--apply report --base <the base from 1>` prints the realized totals.

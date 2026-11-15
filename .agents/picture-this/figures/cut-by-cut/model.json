@@ -12,21 +12,21 @@
       "kind": "queue",
       "note": "judged, waiting their turn",
       "repeat": 3,
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:30"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:30"
     },
     {
       "id": "tree",
       "label": "Working tree",
       "kind": "store",
       "note": "holds one cut at a time",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:375"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:375"
     },
     {
       "id": "checks",
       "label": "Repo's own checks",
       "kind": "service",
       "note": "only the ones green before",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:83"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:83"
     },
     {
       "id": "repair",
@@ -34,21 +34,21 @@
       "kind": "worker",
       "note": "one surgical fix",
       "born": "red",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:140"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:140"
     },
     {
       "id": "branch",
       "label": "Branch",
       "kind": "store",
       "note": "one commit per cut",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:354"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:354"
     },
     {
       "id": "report",
       "label": "Report",
       "kind": "ledger",
       "note": "realized beside predicted",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:403"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:403"
     }
   ],
   "flows": [
@@ -58,7 +58,7 @@
       "to": "report",
       "kind": "read",
       "label": "base",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:358"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:358"
     },
     {
       "id": "take",
@@ -66,7 +66,7 @@
       "to": "tree",
       "kind": "write",
       "label": "one cut",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:124"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:124"
     },
     {
       "id": "check",
@@ -74,7 +74,7 @@
       "to": "checks",
       "kind": "read",
       "label": "check",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:382"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:382"
     },
     {
       "id": "commit",
@@ -82,7 +82,7 @@
       "to": "branch",
       "kind": "write",
       "label": "commit",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:110"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:110"
     },
     {
       "id": "tail",
@@ -90,7 +90,7 @@
       "to": "repair",
       "kind": "event",
       "label": "tail",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:141"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:141"
     },
     {
       "id": "fix",
@@ -98,7 +98,7 @@
       "to": "tree",
       "kind": "write",
       "label": "fix",
-      "source": "plugins/code-diet/skills/review-diet/workflows/review.js:142"
+      "source": "plugins/agentcraft/skills/code-diet/routes/review-diet/workflows/review.js:142"
     },
     {
       "id": "putback",
@@ -106,7 +106,7 @@
       "to": "tree",
       "kind": "write",
       "label": "put back",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:395"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:395"
     },
     {
       "id": "tally",
@@ -114,7 +114,7 @@
       "to": "report",
       "kind": "read",
       "label": "net",
-      "source": "plugins/code-diet/scripts/review-scan.mjs:402"
+      "source": "plugins/agentcraft/skills/code-diet/scripts/review-scan.mjs:402"
     }
   ],
   "quantities": [

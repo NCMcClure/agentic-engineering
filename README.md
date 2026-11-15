@@ -208,11 +208,11 @@ checks what already exists before building, reviews diffs with script-located
 candidates and cuts applied behind validate-or-revert, and tracks every
 deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved from
 the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
-[Read more →](plugins/code-diet/README.md)
+[Read more →](plugins/agentcraft/skills/code-diet/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/code-diet/assets/figures/cut-by-cut.dark.gif">
-  <img alt="How review-diet lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="plugins/code-diet/assets/figures/cut-by-cut.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/code-diet/assets/figures/cut-by-cut.dark.gif">
+  <img alt="How review-diet lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="plugins/agentcraft/skills/code-diet/assets/figures/cut-by-cut.gif" width="720">
 </picture>
 
 <sub>A cut that turns a check red costs only itself, and the report counts the lines that landed.</sub>

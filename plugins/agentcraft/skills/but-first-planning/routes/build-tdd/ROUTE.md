@@ -73,7 +73,7 @@ named as next) is the test plan:
   it.
 
 Build the first thing that satisfies the criterion and nothing speculative
-beside it (if code-diet is installed, `/code-diet:ladder` is that
+beside it (if code-diet is installed, `/agentcraft:code-diet ladder` is that
 discipline). The architecture vocabulary for a deep module is in
 [spec-architect's LANGUAGE.md](../spec-architect/LANGUAGE.md).
 

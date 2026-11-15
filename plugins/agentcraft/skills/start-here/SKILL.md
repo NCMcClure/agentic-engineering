@@ -180,10 +180,10 @@ On any coding task the agent takes the simplest rung that works, checks what alr
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| hunt over-engineering in the working diff before a request | `/code-diet:review-diet` | agent |
-| check what already exists before building something | `/code-diet:reuse-first` | agent |
-| list every deferred shortcut and whether it still holds | `/code-diet:debt` | agent |
-| note what this work built that another project could use | `/code-diet:capture-reusable` | agent |
+| hunt over-engineering in the working diff before a request | `/agentcraft:code-diet review-diet` | agent |
+| check what already exists before building something | `/agentcraft:code-diet reuse-first` | agent |
+| list every deferred shortcut and whether it still holds | `/agentcraft:code-diet debt` | agent |
+| note what this work built that another project could use | `/agentcraft:code-diet capture-reusable` | agent |
 
 ### codebase-optimizer
 
