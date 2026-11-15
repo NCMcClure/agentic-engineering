@@ -57,7 +57,7 @@ When the change works on its own shots, run one group, with the reason in the co
 PL_RUN="verify: <what already works; what this run checks>" P iterate --group <topic-or-smoke>
 ```
 
-Then, **once, when the work is finished**, the full run if the success file says the change can reach everything: `PL_RUN="full: <what is finished>" P iterate --all`. If that run cannot happen in this session, owe it where the next session finds it: a line at the top of the report, or the task board if agent-works is installed. Accepting the new numbers, and sorting out entries beyond tolerance in shots your work cannot have reached (noise, not ready, stale), is `calibrate-gate` steps 3 and 4: follow them, then run `smoke` once more.
+Then, **once, when the work is finished**, the full run if the success file says the change can reach everything: `PL_RUN="full: <what is finished>" P iterate --all`. If that run cannot happen in this session, owe it where the next session finds it: a line at the top of the report, or the task board where the repo keeps one. Accepting the new numbers, and sorting out entries beyond tolerance in shots your work cannot have reached (noise, not ready, stale), is `calibrate-gate` steps 3 and 4: follow them, then run `smoke` once more.
 
 Before you report the change as done, it gets a blind second look and its taste questions go to the owner: `judge-and-queue` steps 3 to 5.
 

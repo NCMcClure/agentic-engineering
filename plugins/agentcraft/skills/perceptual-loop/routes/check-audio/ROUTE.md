@@ -56,7 +56,7 @@ Open the PNG it prints. The panels share one time scale and one level scale, so 
 
 ## Owed work
 
-When a full pass over every sound is owed and this session will not run it, owe it where the next session finds it: a line at the top of the report, or the task board if agent-works is installed, so it is not lost when the session ends.
+When a full pass over every sound is owed and this session will not run it, owe it where the next session finds it: a line at the top of the report, or the task board where the repo keeps one, so it is not lost when the session ends.
 
 ## What stays the owner's
 

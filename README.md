@@ -1,46 +1,44 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/banner.dark.gif">
-  <img alt="Nick McClure. I build superpowers, creative bridges, for tomorrow. Agentic Engineering: twelve plugins for Claude Code." src="docs/assets/banner.gif" width="100%">
+  <img alt="Nick McClure. I build superpowers, creative bridges, for tomorrow. Agentic Engineering: one plugin of thirteen areas for Claude Code." src="docs/assets/banner.gif" width="100%">
 </picture>
 
 # Agentic Engineering
 
-A personal marketplace of Claude Code plugins. Each one solves a problem
-I kept hitting while engineering with agents, from code getting written
-before the spec was settled to drafts that ship in someone else's voice.
+A personal marketplace for Claude Code, and one plugin in it: `agentcraft`.
+Each of its thirteen areas solves a problem I kept hitting while engineering
+with agents, from code getting written before the spec was settled to drafts
+that ship in someone else's voice.
 
 > The premise: agents didn't make the fundamentals optional.
 > They made them enforceable.
 
 ## Install
 
-Add the marketplace once:
-
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-Then install whichever plugins you want:
+Then type `/agentcraft:start-here`, or just ask for the work in words.
 
-```text
-/plugin install but-first-planning@agentic-engineering
-```
+Coming from the separate plugins? Each old name is now a stub that brings
+`agentcraft` in when it updates (Claude Code 2.1.321 or later). Install
+`agentcraft` by name as well, so it stays when the stubs are retired.
 
-Skills arrive namespaced: `/agentcraft:but-first-planning spec-init`,
-`/agentcraft:agentic-teamwork bootstrap`, and so on.
+## The areas
 
-Not sure which one a job needs? Install `agentcraft` and type
-`/agentcraft:start-here`.
+There used to be twelve plugins here, listing about eighty skills between
+them, and a job does not say which one it needs. Now there is one thing to
+remember. `/agentcraft:start-here` asks what you want to do, explains the
+area that does it, and hands off to the route that does the work. Given a
+task, or run where nobody can answer, it asks nothing and names the route
+that fits.
 
-## The plugins
-
-### agentcraft
-
-Twelve plugins hold about eighty skills, and a job does not say which one it
-needs. `agentcraft` is the one thing to remember: `/agentcraft:start-here`
-asks what you want to do, explains the area that does it, and hands off to
-the skill that does the work. Given a task, or run where nobody can answer,
-it asks nothing and names the skill that fits.
+It is the only entry in the slash menu. An area is something an agent calls,
+with a route as the first word of its arguments, and a route is a document
+the area reads, so it costs the skill listing nothing until it is taken. You
+ask for the work in words and the agent picks the area.
 
 ### agent-works
 
@@ -49,11 +47,11 @@ gets stated four times, task status lives in six places, and two sessions on
 one machine never learn the other exists. agent-works gives every kind of fact
 one home under `.agents/` with a size budget and checks them all with
 `aw doctor`. Tasks and owed gates live on a kanban board every worktree
-shares; `/agentcraft:agent-works orchestrate` runs a large goal from it as child sessions
+shares; its `orchestrate` route runs a large goal from it as child sessions
 in their own worktrees, each approved by you, reviewed, and landed on green. A
 guard stops the mistakes agents repeat, and locks, leases, notes and learnings
 let sessions across projects share one machine. Node 22, nothing else. It is
-the foundation the plugins below lean on; each still runs without it.
+the foundation the areas below lean on.
 [Read more →](plugins/agentcraft/skills/agent-works/README.md)
 
 <picture>
@@ -147,7 +145,7 @@ ever pushed. It writes the hubs and checks that each one names its children.
 
 Claude Code dynamic workflows are programs; you should be able to see them.
 An Unreal-Blueprint-style node canvas that compiles graphs to runnable
-`.claude/workflows/*.js` and round-trips them back, plus a skill for
+`.claude/workflows/*.js` and round-trips them back, plus a route for
 hand-authoring without the GUI. [Read more →](plugins/agentcraft/skills/workflow-studio/README.md)
 
 <picture>
@@ -171,7 +169,7 @@ picture. Describe how something works, or point at a feature in your
 codebase, and get three rough animated drafts to choose from, each a
 different picture designed from that subject and not from a template. The one you pick becomes a React component that embeds in MDX,
 with light and dark stills for a plain README. It replaces
-`animated-storytelling`: uninstall that one and install this.
+`animated-storytelling`, which is now a stub that brings `agentcraft` in.
 [Read more →](plugins/agentcraft/skills/picture-this/README.md)
 
 <picture>
@@ -179,7 +177,7 @@ with light and dark stills for a plain README. It replaces
   <img alt="How an upload becomes a thumbnail. The API answers before the slow work starts, so an upload never waits on it." src="docs/assets/iso-flow.gif" width="720">
 </picture>
 
-<sub>The plugin's worked example, filmed by the plugin. Every other figure on this page was drawn with it, and so was the banner.</sub>
+<sub>The area's worked example, filmed by the area. Every other figure on this page was drawn with it, and so was the banner.</sub>
 
 ### write-like-me
 
@@ -226,9 +224,7 @@ layout, and authors against the six evaluation dimensions; evaluate-plugin
 scores any path or git URL into an HTML scorecard with an adopt/rework
 verdict; improve-plugin applies the fixes ranked by how many points each one
 buys back; refresh-marketplace reinstalls a checkout's plugins so you can try
-them. context-lens then checks the result against reality: it reads a
-session's transcript and shows what each plugin put in the agent's context,
-who saw it, and what a compaction threw away.
+them.
 [Read more →](plugins/agentcraft/skills/plugin-workbench/README.md)
 
 <picture>
@@ -243,12 +239,25 @@ who saw it, and what a compaction threw away.
   <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/agentcraft/skills/plugin-workbench/assets/screens/scorecard.light.png" width="720">
 </picture>
 
+<sub>A scorecard for picture-this.</sub>
+
+### context-doctor
+
+A score says what a plugin should cost. This says what it did. Hooks are
+invisible from both ends: you never see a session-start briefing, and the
+agent cannot tell which of its context came from where, or what came back
+after a compaction. Claude Code records all of it in the session transcript,
+and the lens reads it back: each hook's output and who saw it, which skills
+kept their description in the listing, the size of every request, and what a
+compaction threw away. It used to live in plugin-workbench.
+[Read more →](plugins/agentcraft/skills/context-doctor/README.md)
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/plugin-workbench/assets/screens/context-lens.dark.png">
-  <img alt="context-lens: what each plugin put into a session's context, and what a compaction dropped." src="plugins/agentcraft/skills/plugin-workbench/assets/screens/context-lens.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/context-doctor/assets/screens/context-lens.dark.png">
+  <img alt="The context lens: what was put into a session's context, and what a compaction dropped." src="plugins/agentcraft/skills/context-doctor/assets/screens/context-lens.light.png" width="720">
 </picture>
 
-<sub>A scorecard for picture-this, and context-lens reading a synthetic session.</sub>
+<sub>The lens reading a synthetic session.</sub>
 
 ### perceptual-loop
 
@@ -331,12 +340,12 @@ goes through the Miro MCP you connect.
 
 <sub>A comment line draws a box or an arrow. An import nobody declared fails the check until the map is brought level.</sub>
 
-Every plugin, version and skill on one page: [docs/plugins.md](docs/plugins.md).
+Every area and route on one page: [docs/plugins.md](docs/plugins.md).
 
 ## Working in this repo
 
 The contribution contract (layout invariants, the versioning rule, how to
-add or update a plugin) lives in [.agents/rules/dev-rules.md](.agents/rules/dev-rules.md).
+add or change an area or a route) lives in [.agents/rules/dev-rules.md](.agents/rules/dev-rules.md).
 `npm run validate` checks the enforceable parts and `npm test` runs every hook;
 CI runs both on every push. Agents maintaining this repo read the same rules
 you do, and [CONTRIBUTING.md](CONTRIBUTING.md) has the dev loop.

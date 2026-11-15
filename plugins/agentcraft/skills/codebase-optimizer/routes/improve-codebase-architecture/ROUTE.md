@@ -37,7 +37,7 @@ This route is _informed_ by the project's domain model. The domain language give
 
 **Where they live.** The glossary is `.agents/CONTEXT.md` and decision records are `.agents/decisions/NNNN-slug.md`; when `.agents/agent-works.json` exists, its `paths.glossary` and `paths.decisions` name the homes instead. Never `./docs` (that folder is for user-facing documentation) and never a `CONTEXT.md` at the repo root. Below, "the glossary" and "a decision record" mean these files.
 
-If the agent-works plugin is installed, keeping decision records and the glossary is its job: use it. Without it, write them by hand in the formats of [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md) and [ADR-FORMAT.md](ADR-FORMAT.md).
+Keeping decision records and the glossary is the agent-works area's job (`/agentcraft:agent-works decisions`): use it. In a repo that has not adopted it, write them by hand in the formats of [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md) and [ADR-FORMAT.md](ADR-FORMAT.md).
 
 ## Process
 

@@ -113,12 +113,12 @@ or in `config.json` as an array that names the shell (`["bash", "-c", "..."]`).
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install perceptual-loop@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
 Requires Node 22 or newer. `ffmpeg` only for what is listed above (`PL_FFMPEG` and `PL_FFPROBE` name it when
 it is not on `PATH`). In a project, ask for the task as usual: `define-success` writes what will prove it,
-`/agentcraft:perceptual-loop shot-harness` wires the project's render command into `.agents/perceptual/config.json`, and
+the `shot-harness` route, which you ask for, wires the project's render command into `.agents/perceptual/config.json`, and
 `iterate-shots` is the loop.
 
 Four lines of the doctrine stay in the agent's context where the repo has opted in to the agentic-engineering
@@ -135,11 +135,16 @@ they are edited. Each `<command>.py` is now `pl.mjs <command>` (`evidence_lint.p
 `review_page.py` is `pl.mjs review`), and `uv` is no longer needed. A render command that relied on a shell
 (`cd app && ...`, a pipe, a `$VARIABLE`) is refused with the fix.
 
-## Skills
+## Routes
 
-| Skill | Use it when |
+What was a skill here is a route of the `perceptual-loop` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:perceptual-loop <route>`.
+
+| Route | Use it when |
 |---|---|
-| `perceptual-loop` | Starting any work judged by eye or ear; it routes to the rest |
+| the area, with no route | Starting any work judged by eye or ear; it picks the route |
 | `define-success` | Before the work: whether it can be measured, the observables, the proving shots |
 | `shot-harness` (you start it) | The project cannot yet render a shot on command, or needs a new shot, pass or reference |
 | `iterate-shots` | Every change and check |

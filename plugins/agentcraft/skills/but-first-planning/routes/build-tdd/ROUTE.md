@@ -14,7 +14,7 @@ funnel records the result.
 
 ## The loop
 
-**If agentic-teamwork is installed, the loop is its `tdd` route**
+**The loop is the agentic-teamwork area's `tdd` route**
 (`/agentcraft:agentic-teamwork tdd`): red, green, refactor, the repo's test lanes and
 their commands, what to mock and what to run for real, and the refactor
 candidates. Read that skill and run its loop; come back here for the
@@ -67,14 +67,13 @@ named as next) is the test plan:
   **ADRs** (`.agents/plan/spec/reference/adr/`) set the names. A test whose
   vocabulary disagrees with the glossary is a rename waiting to happen.
 - A criterion about how something **looks or sounds** is not a unit assertion
-  on bytes or a threshold picked by hand. If perceptual-loop is installed, use
-  it to prove the criterion on the few shots that show it; otherwise capture
-  the surface, look at the capture, and say that a person still has to judge
-  it.
+  on bytes or a threshold picked by hand. Use
+  `/agentcraft:perceptual-loop` to prove the criterion on the few shots that
+  show it; where the project cannot render a shot on command, capture the
+  surface, look at the capture, and say that a person still has to judge it.
 
 Build the first thing that satisfies the criterion and nothing speculative
-beside it (if code-diet is installed, `/agentcraft:code-diet ladder` is that
-discipline). The architecture vocabulary for a deep module is in
+beside it (`/agentcraft:code-diet ladder` is that discipline). The architecture vocabulary for a deep module is in
 [spec-architect's LANGUAGE.md](../spec-architect/LANGUAGE.md).
 
 If the spec turns out to be wrong or ambiguous mid-implementation, stop and
@@ -90,8 +89,8 @@ hub updated in the same change, not as follow-up. No source file lands beside
 an `AGENTS.md`. Where the root has a `CLAUDE.md` that imports `AGENTS.md`, a
 new hub gets the same sibling (a `CLAUDE.md` whose whole content is
 `@AGENTS.md`). The rules are in
-[spec-write's CODEBASE-LAYOUT.md](../spec-write/CODEBASE-LAYOUT.md); if
-agent-works is installed, its hub check verifies them.
+[spec-write's CODEBASE-LAYOUT.md](../spec-write/CODEBASE-LAYOUT.md); the
+agent-works area's hub check verifies them.
 
 ## Recording the result
 

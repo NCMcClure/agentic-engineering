@@ -28,7 +28,10 @@ was run, so "typed by a person" below means a prompt that opens with a slash.
 The scratch plugin `agentcraft` held `bin/probe`, an area `skills/area/`
 (`user-invocable: false`, with `routes/go/ROUTE.md`), a plain skill
 `skills/start/`, a `SessionStart` hook that writes down its environment, and
-the `userConfig` key agent-works declares, `syncIntervalSeconds`.
+the `userConfig` key agent-works declares, `syncIntervalSeconds`. Where a
+finding below quotes an address in it, the area is written `<area>`, its route
+`<route>`, and the plain skill `<entry>`, so nothing here reads as an address
+in the real plugin.
 
 1. **A plugin's `bin/` is on the Bash tool's PATH, and a launcher there can
    import a script under `skills/`.** `bin/probe` was the three lines
@@ -44,10 +47,10 @@ the `userConfig` key agent-works declares, `syncIntervalSeconds`.
 
 2. **An area's `SKILL.md` gets `${CLAUDE_PLUGIN_ROOT}` and
    `${CLAUDE_PLUGIN_DATA}` filled in; a route read by path gets neither.** A
-   scripted `Skill` call of `agentcraft:area` with `go 0042` answered
-   `Launching skill: agentcraft:area`, and the body the model was sent read
+   scripted `Skill` call of `agentcraft:<area>` with `<route> 0042` answered
+   `Launching skill: agentcraft:<area>`, and the body the model was sent read
    `root=[<config>/plugins/cache/spike-mkt/agentcraft/1.0.0]
-   data=[<config>/plugins/data/agentcraft-spike-mkt] args=[go 0042]`, under
+   data=[<config>/plugins/data/agentcraft-spike-mkt] args=[<route> 0042]`, under
    `Base directory for this skill: <that root>/skills/area`. A scripted `Read`
    of `routes/go/ROUTE.md` returned the file as written, `${CLAUDE_PLUGIN_ROOT}`,
    `${CLAUDE_PLUGIN_DATA}`, and `$ARGUMENTS` included. So a route that needs
@@ -58,19 +61,19 @@ the `userConfig` key agent-works declares, `syncIntervalSeconds`.
    default in the manifest notwithstanding.
 
 3. **A person cannot type an area: the host refuses it, and names the skill.**
-   The session's init event listed `agentcraft:start` under `skills` and
-   `slash_commands` and `agentcraft:area` under neither. Each of these was the
+   The session's init event listed `agentcraft:<entry>` under `skills` and
+   `slash_commands` and `agentcraft:<area>` under neither. Each of these was the
    whole prompt:
-   - `/agentcraft:start hello there`: run as a command. The model was sent
-     `<command-name>/agentcraft:start</command-name>`, the arguments, and the
+   - `/agentcraft:<entry> hello there`: run as a command. The model was sent
+     `<command-name>/agentcraft:<entry></command-name>`, the arguments, and the
      skill's body.
-   - `/agentcraft:area go 0042`: refused with no request to the model. The
+   - `/agentcraft:<area> <route> 0042`: refused with no request to the model. The
      result was `This skill can only be invoked by Claude, not directly by
-     users. Ask Claude to use the "agentcraft:area" skill for you.`
+     users. Ask Claude to use the "agentcraft:<area>" skill for you.`
    - `/old-a:thing now`, where the stub `old-a` kept an alias skill `thing`
      that is `user-invocable: false`: the same refusal, naming `old-a:thing`.
    - `/old-a:thing now` once the alias was gone, `/old-a:nothing now`, and
-     `/agentcraft:go 0042` (a route written as if it were a skill): no
+     `/agentcraft:<route> 0042` (a route written as if it were a skill): no
      refusal and no command. The text went to the model as an ordinary prompt.
 
    So `/agentcraft:<area> <route>` is an address for an agent, a brief, or a

@@ -35,7 +35,7 @@ git diff --stat origin/<base>...origin/<branch>
   that sees only the done criteria and the diff, never the child's report or your own view. Without subagents,
   `W/routes/orchestrate/references/subagent-fallback.md` says what to do instead.
 - **Run it.** A smoke test from a scratch repository, or render the picture and look at it, as far as the risk
-  calls for. Where code-diet is installed, `/agentcraft:code-diet review-diet` in the child's worktree.
+  calls for. `/agentcraft:code-diet review-diet` in the child's worktree.
 
 ## Step 3: Send findings back
 
@@ -47,7 +47,7 @@ for the next report and review again from Step 1.
 ## Step 4: Land it
 
 Merge only the head you reviewed, after its checks are green: `gh pr merge <number>` or `glab mr merge <number>`,
-or `/agentcraft:agentic-teamwork land <number>` where that plugin is installed. A red pipeline goes back to the child with
+or `/agentcraft:agentic-teamwork land <number>`. A red pipeline goes back to the child with
 the failed jobs; a conflict tells the child to sync.
 
 Requests that share files merge one at a time. Compare each one's `git diff --stat` with what merged since its

@@ -29,12 +29,12 @@ In a session the same cards are reachable through six tools, each one run of the
 
 | Tool | The same as |
 |---|---|
-| `mcp__agent-works__surface_task` | `aw board add "<title>" --suggest` |
-| `mcp__agent-works__list_tasks` | `aw board list` |
-| `mcp__agent-works__move_task` | `aw board move <id> <column>` |
-| `mcp__agent-works__plan_task` | `aw board plan <id> --epic <id> --sprint <id\|active\|none>` |
-| `mcp__agent-works__owe_gate` | `aw board owe "<title>" --ref <ref> --needs "<what>"` |
-| `mcp__agent-works__settle_gate` | `aw board settle <id> --evidence "<what ran, what it showed>"` |
+| `mcp__agentcraft__surface_task` | `aw board add "<title>" --suggest` |
+| `mcp__agentcraft__list_tasks` | `aw board list` |
+| `mcp__agentcraft__move_task` | `aw board move <id> <column>` |
+| `mcp__agentcraft__plan_task` | `aw board plan <id> --epic <id> --sprint <id\|active\|none>` |
+| `mcp__agentcraft__owe_gate` | `aw board owe "<title>" --ref <ref> --needs "<what>"` |
+| `mcp__agentcraft__settle_gate` | `aw board settle <id> --evidence "<what ran, what it showed>"` |
 
 | Action | What it does |
 |---|---|

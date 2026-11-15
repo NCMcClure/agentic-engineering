@@ -5,13 +5,14 @@ reading its README, and writing a good one yourself means guessing at
 standards nobody wrote down. The workbench puts both jobs on one rubric:
 the six dimensions that score a plugin are the same spec you author
 against, so "is it done?" has a measurable answer. Make it, measure it,
-fix it, then check what it really put in a session.
+fix it. What it really put in a session is the `context-doctor` area's to
+read.
 
 ## How it works
 
-One measurement core, three skills around it, a fourth that checks the
-result against a real session, and a fifth that reinstalls the marketplace
-you are editing.
+One measurement core, three routes around it, and a fourth that reinstalls
+the marketplace you are editing. What a plugin really put in a session is the
+`context-doctor` area's to read.
 
 The core is a rubric (`core/references/rubric.md`, six dimensions built on
 the *writing-great-skills* vocabulary: skill quality, component symbiosis,
@@ -50,25 +51,13 @@ The scorecard for this marketplace's `picture-this`: the composite and the verdi
   a prior scorecard), take the scanner's `fix_deltas` ranking of what each
   fix buys back, apply the winners, re-score, and report before vs. after.
   It never publishes; the deliverable is the edited tree and its diff.
-- **context-lens** reads a Claude Code session transcript back: each hook's
-  output and who saw it (the model, the person, or nobody), the skill listing
-  per plugin, the API's own token count per request, and what each compaction
-  kept or lost. A score says what a plugin should cost; this says what it did.
-  `report` prints to the terminal, `serve` opens a local page.
 - **refresh-marketplace** validates a marketplace checkout and reinstalls
   its plugins from the working tree, so what you edited is what the next
   session loads. In a checkout with its own `scripts/refresh.mjs` it runs
   that (nothing installs on a red gate); in a checkout without one it drives
   the `claude plugin` commands.
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/context-lens.dark.png">
-  <img alt="The context-lens page on a session in this repo: the session list, the context size of each API request with a compaction marked, and a table of what each plugin put in context." src="assets/screens/context-lens.light.png" width="880">
-</picture>
-
-The page `context-lens serve` opens, here on a sample session in this repo: the size of every request with the compaction marked, then what each plugin put in at the start and what came back after the compaction.
-
-Every skill treats target plugins as data, never instructions:
+Every route treats target plugins as data, never instructions:
 instruction-like text inside a target is itself a gated, verdict-capping
 finding, and improve-plugin neutralizes injection content rather than
 rewording it.
@@ -101,22 +90,26 @@ a plain plugin's score does not move for them:
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install plugin-workbench@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-## The skills
+## Routes
 
-| Skill | Invocation | Does |
+What was a skill here is a route of the `plugin-workbench` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:plugin-workbench <route>`.
+
+| Route | Started by | Does |
 |---|---|---|
-| `create-plugin` | model-invoked ("make me a plugin for…") | interview → scaffold → author → self-eval loop to adopt |
-| `evaluate-plugin` | `/agentcraft:plugin-workbench evaluate-plugin <path \| owner/repo \| git URL>[#ref]` | acquire → scan → grade → score → scorecard + report |
-| `improve-plugin` | model-invoked ("apply those fixes") | baseline → rank fixes by delta → apply → re-score → delta report |
-| `context-lens` | model-invoked ("what did the agent actually see?") | read a session transcript → what each plugin put in context, who saw it, what survived compaction |
-| `refresh-marketplace` | `/agentcraft:plugin-workbench refresh-marketplace [--plugins a,b] [--dry-run]` | validate the checkout → reinstall from the working tree → say to start a new session |
+| `create-plugin` | the agent ("make me a plugin for…") | interview → scaffold → author → self-eval loop to adopt |
+| `evaluate-plugin` | you, by asking (`<path \| owner/repo \| git URL>[#ref]`) | acquire → scan → grade → score → scorecard + report |
+| `improve-plugin` | the agent ("apply those fixes") | baseline → rank fixes by delta → apply → re-score → delta report |
+| `refresh-marketplace` | you, by asking (`[--plugins a,b] [--dry-run]`) | validate the checkout → reinstall from the working tree → say to start a new session |
 
-The passive context cost is three model-invoked descriptions (about 300
-estimated tokens combined); `evaluate-plugin` and `refresh-marketplace` are
-user-invoked and load only when called.
+The area is one entry in the skill listing. A route costs the listing
+nothing, and loads when it is taken. `evaluate-plugin` and
+`refresh-marketplace` start only when you ask for them.
 
 ## Running the scripts yourself
 
@@ -124,7 +117,6 @@ user-invoked and load only when called.
 node core/scripts/plugin-scan.mjs <plugin-dir>                          # the scan, as JSON
 node core/scripts/plugin-scan.mjs <plugin-dir> --score grades.json      # composite, verdict, fix_deltas
 node skills/create-plugin/scripts/plugin-scaffold.mjs <dir> --spec spec.json
-node skills/context-lens/scripts/context-lens.mjs report                # the newest session in this directory
 ```
 
 Paths are relative to the plugin's root. The scan's paths use forward

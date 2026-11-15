@@ -47,7 +47,7 @@ If the reference is a running system and the question is how it decides (when a 
 
 Write the probe as a small tool the project keeps (it will be needed again), record what it measured (the inputs, the outputs, how many samples, over what range), and implement **the rule it shows**, shared by every candidate. Where the system gives no rule and you choose one, say plainly that it is yours, name its constants, and queue it for the owner (`judge-and-queue`).
 
-A probe that only reads files costs least: write those first. A probe that launches the reference application takes its turn like any render. When only one session may run it at a time (an editor, a GPU, a simulator), check by hand that no other session is using it, or take it under a resource lock if agent-works is installed, and never start a second instance beside the owner's own.
+A probe that only reads files costs least: write those first. A probe that launches the reference application takes its turn like any render. When only one session may run it at a time (an editor, a GPU, a simulator), check by hand that no other session is using it, or take it under a resource lock (`/agentcraft:agent-works resource-locks`), and never start a second instance beside the owner's own.
 
 *Done when: the rule is stated with its inputs and constants, each marked measured (with the probe's numbers) or chosen, and a test holds it.*
 

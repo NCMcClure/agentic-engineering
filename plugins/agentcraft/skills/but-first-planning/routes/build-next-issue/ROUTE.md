@@ -103,7 +103,7 @@ One next issue tells a person where to start; a *parallel build* needs the whole
 parallel-safe frontier. Derive the set of issues that can be built **now,
 concurrently, without colliding**, plus the dependency edges and file-overlaps
 among the rest, so whatever builds the sprint (`build-sprint`, or the
-agent-works board if that plugin is installed) can fan out without tripping
+agent-works board) can fan out without tripping
 over undeclared dependencies. The method, recovering implicit
 dependencies (the `Blocked by: None` that lies), file-overlap batching, the
 per-sprint human-gate (HITL/REVIEW) map, and the wave-ordered output shape, is in
@@ -113,8 +113,7 @@ per-sprint human-gate (HITL/REVIEW) map, and the wave-ordered output shape, is i
 A dependency this step recovered that the issue's `Blocked by` does not
 declare is a plan defect: route it through `spec-edit` so the plan says it,
 rather than leaving it only in the dispatch plan. Anything that orders work
-from the issue files alone (a person, or the agent-works board where that
-plugin is installed) would otherwise start the dependent issue too early.
+from the issue files alone (a person, or the agent-works board) would otherwise start the dependent issue too early.
 
 ### 5. Report
 
@@ -126,8 +125,8 @@ Give the user a tight status read:
 - **On deck**: the 1–3 issues that unlock after the next one, so the path is visible.
 - **Dispatch plan** *(parallel builds)*, the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
 - **Human gates**: the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
-- **Docs freshness**: one line: verified sprints (in `completed/`) with no row in `.agents/plan/progress/docs.md` have undocumented user-facing work, recommend `build-user-docs`. If docs-parity is installed and `.agents/docs-parity.json` exists, add the counts from a read-only run of its checker, `docs-check.mjs --changed <base>..HEAD --stale --json` (`PARITY_MISSING`, `SHOT_STALE`, and any critical finding), and recommend `/agentcraft:docs-parity docs-sync` for them. Skip the line when everything verified is documented and the checker is clean (or nothing is verified yet).
-- **Codebase hubs** - one line, only if agent-works is installed: its hub check's exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it is clean.
+- **Docs freshness**: one line: verified sprints (in `completed/`) with no row in `.agents/plan/progress/docs.md` have undocumented user-facing work, recommend `build-user-docs`. Where `.agents/docs-parity.json` exists, add the counts from a read-only run of its checker, `docs-check.mjs --changed <base>..HEAD --stale --json` (`PARITY_MISSING`, `SHOT_STALE`, and any critical finding), and recommend `/agentcraft:docs-parity docs-sync` for them. Skip the line when everything verified is documented and the checker is clean (or nothing is verified yet).
+- **Codebase hubs** - one line, where the repo keeps `AGENTS.md` hubs: the agent-works area's hub check's exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it is clean.
 - **Checkpoint health**: any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures, route them to `spec-edit`.
 
 If the next issue is `<unassigned>` (its sprint hasn't been published), note that

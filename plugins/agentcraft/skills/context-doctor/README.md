@@ -1,0 +1,65 @@
+# context-doctor
+
+A plugin's hooks are invisible from both ends. The person never sees a
+SessionStart briefing, and the agent cannot tell which of its context came
+from which area, which of it reached the person instead, or what came back
+after a compaction. Claude Code records all of it in the session transcript,
+and this area reads it back.
+
+It is the measured half of a plugin's cost. The `plugin-workbench` area
+scores what a plugin should cost from its files; this says what it did cost
+in a session.
+
+## How it works
+
+The `lens` route reads a session transcript
+(`~/.claude/projects/<slug>/<id>.jsonl`) and reports, by area and by hook:
+each hook's output and who saw it (the model, the person, or nobody), the
+skill listing and which entries kept a description, the API's own token count
+for each request, every call on the Skill tool and whether the host refused
+it, and what each compaction kept or lost. `report` prints to the terminal;
+`serve` opens a page on 127.0.0.1.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/screens/context-lens.dark.png">
+  <img alt="The context lens page on a session in this repo: the session list, the context size of each API request with a compaction marked, and a table of what each plugin put in context." src="assets/screens/context-lens.light.png" width="880">
+</picture>
+
+The page `serve` opens, here on a sample session in this repo: the size of
+every request with the compaction marked, then what was put in at the start
+and what came back after the compaction.
+
+The text is the transcript's own, and a request's size is the API's own
+count. A per-item token figure is an estimate, characters over four, and is
+said to be one. Reading changes nothing: no route here edits a plugin, a
+hook, or a transcript.
+
+## Install
+
+```text
+/plugin marketplace add NCMcClure/agentic-engineering
+/plugin install agentcraft@agentic-engineering
+```
+
+Node 22, no dependencies.
+
+## Routes
+
+Ask for one in words ("what did the agent actually see in my last session?"),
+or type `/agentcraft:start-here` and say what you want: an area cannot be
+typed. An agent reaches a route as `/agentcraft:context-doctor <route>`.
+
+| Route | Started by | Does |
+|---|---|---|
+| `lens` | the agent, or you by asking (`[report\|serve] [session id or transcript path]`) | Reads a session transcript back: what entered the context, when, from which area and hook, and what survived a compaction. |
+
+## Running the script yourself
+
+```bash
+node scripts/context-lens.mjs report                 # the newest session in this directory
+node scripts/context-lens.mjs report <session-id>     # or a transcript path
+node scripts/context-lens.mjs serve                   # the page, on 127.0.0.1
+node scripts/context-lens.mjs list                    # recent sessions on this machine
+```
+
+Paths are relative to this area's directory.

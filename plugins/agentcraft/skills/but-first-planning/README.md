@@ -145,21 +145,15 @@ The skills work in any repo.
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install but-first-planning@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-Skills are then `/agentcraft:but-first-planning spec-init` and so on.
+Its routes are then the agent's to take: `spec-init`, `spec-write`, and so on.
 
-Without the plugin system, `install.mjs` copies the skills into a project's
-`.claude/skills/` (or `--global` into `~/.claude/skills/`), where they are
-invoked without the prefix. The hooks do not come along.
-
-```bash
-node install.mjs                 # from a clone, inside plugins/agentcraft/skills/but-first-planning/
-node install.mjs /path/to/repo
-node install.mjs --global
-curl -fsSL https://raw.githubusercontent.com/NCMcClure/agentic-engineering/main/plugins/agentcraft/skills/but-first-planning/install.mjs | node --input-type=module -
-```
+The standalone installer is retired. It copied each skill into a project's
+`.claude/skills/`, and a route is a document its area reads, not a skill to
+copy. The script still at `plugins/but-first-planning/install.mjs` installs
+nothing and says where to go.
 
 ## Coming from 4.x
 
@@ -194,28 +188,33 @@ are listed for you (or the agent) to change. Issue files keep their
 | `plan-gate.py` in `.claude/settings.json` | the plugin's hook, with `"taskGate": true` |
 | `spec-open.sh`, `install.sh` | `spec-open.mjs`, `install.mjs` |
 
-## Skills
+## Routes
 
-| Skill | Invocation | Does |
+What was a skill here is a route of the `but-first-planning` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:but-first-planning <route>`.
+
+| Route | Started by | Does |
 | --- | --- | --- |
-| `grill` | model-invoked | The alignment interview: one question at a time, each with a recommended answer, until intent, done criteria, scope and risks are agreed. Reflect mode after a round of work. |
-| `spec-init` | `/agentcraft:but-first-planning spec-init` | Scaffolds `.agents/plan/`; `--refresh` updates a workspace's scripts. Once per project. |
-| `spec-write` | model-invoked | Authors or extends the spec site. |
-| `spec-grill` | model-invoked | Interrogates the spec for gaps, contradictions and unstated decisions; sharpens the glossary, records ADRs. |
-| `spec-architect` | model-invoked | Pressure-tests the design before code exists; candidates as an HTML report. |
-| `spec-edit` | model-invoked | Changes a spec or plan and keeps the plan and the published tickets in step. |
-| `spec-open` | `/agentcraft:but-first-planning spec-open` | Serves the spec site with inline comments and the live Plan page. |
-| `plan-decompose` | model-invoked | Spec to an epic, sprint, issue tree of vertical slices. |
-| `plan-publish` | model-invoked | Publishes a sprint to GitHub or GitLab and writes the refs back. |
-| `build-next-issue` | model-invoked | Reconciles and verifies; names the next issue or a dispatch plan. Builds nothing. |
-| `build-tdd` | model-invoked | Builds one plan issue test-first. Uses agentic-teamwork's `tdd` loop when that plugin is installed, its own short one when not. |
-| `build-sprint` | model-invoked | Builds a sprint with builder subagents, one pull or merge request. |
-| `build-user-docs` | model-invoked | Coherence pass over the end-user docs for verified work. Finishes with docs-parity's checker when that plugin is installed. |
-| `build-assess-drift` | model-invoked | Triages recorded drift against the live code and tickets the survivors. |
-| `build-improve-architecture` | model-invoked | Finds deepening refactors in built code. |
-| `build-rubber-duck` | model-invoked | Talks a stuck problem through, changing nothing. |
-| `build-audit` | `/agentcraft:but-first-planning build-audit` | Audits a finished plan tree for what the plan missed; the gaps become a new epic. |
-| `autopilot` | `/agentcraft:but-first-planning autopilot` | Chains every phase hands-off under one contract with one human gate. |
+| `grill` | the agent | The alignment interview: one question at a time, each with a recommended answer, until intent, done criteria, scope and risks are agreed. Reflect mode after a round of work. |
+| `spec-init` | you, by asking | Scaffolds `.agents/plan/`; `--refresh` updates a workspace's scripts. Once per project. |
+| `spec-write` | the agent | Authors or extends the spec site. |
+| `spec-grill` | the agent | Interrogates the spec for gaps, contradictions and unstated decisions; sharpens the glossary, records ADRs. |
+| `spec-architect` | the agent | Pressure-tests the design before code exists; candidates as an HTML report. |
+| `spec-edit` | the agent | Changes a spec or plan and keeps the plan and the published tickets in step. |
+| `spec-open` | you, by asking | Serves the spec site with inline comments and the live Plan page. |
+| `plan-decompose` | the agent | Spec to an epic, sprint, issue tree of vertical slices. |
+| `plan-publish` | the agent | Publishes a sprint to GitHub or GitLab and writes the refs back. |
+| `build-next-issue` | the agent | Reconciles and verifies; names the next issue or a dispatch plan. Builds nothing. |
+| `build-tdd` | the agent | Builds one plan issue test-first. Uses the agentic-teamwork area's `tdd` loop. |
+| `build-sprint` | the agent | Builds a sprint with builder subagents, one pull or merge request. |
+| `build-user-docs` | the agent | Coherence pass over the end-user docs for verified work. Finishes with the docs-parity area's checker where the repo has adopted it. |
+| `build-assess-drift` | the agent | Triages recorded drift against the live code and tickets the survivors. |
+| `build-improve-architecture` | the agent | Finds deepening refactors in built code. |
+| `build-rubber-duck` | the agent | Talks a stuck problem through, changing nothing. |
+| `build-audit` | you, by asking | Audits a finished plan tree for what the plan missed; the gaps become a new epic. |
+| `autopilot` | you, by asking | Chains every phase hands-off under one contract with one human gate. |
 
 Ten skills bundle a Claude Code Workflow script as their autonomous mode;
 [WORKFLOWS.md](WORKFLOWS.md) is the contract those scripts share, and

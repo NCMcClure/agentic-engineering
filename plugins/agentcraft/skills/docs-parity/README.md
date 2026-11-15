@@ -59,26 +59,31 @@ README a turn changed only where the config carries a `readme` block.
 
 ```
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install docs-parity@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-Then, in a project: `/agentcraft:docs-parity docs-init`. Node 22 or newer is the only requirement; nothing is installed
+Then, in a project, ask to adopt it ("set up the docs checks here"), which is the `docs-init` route. Node 22 or newer is the only requirement; nothing is installed
 into the project but the config and the contract, and a copy of the checker if you want it in CI.
 
 Coming from 0.1: the config is read as it is. The writer contract moves from `.agents/contracts/docs.md` to
 `.agents/docs-contract.md` at the next session start, and a `docs_check.py` your CI still runs keeps working
 until you swap it for the Node copy.
 
-## Skills
+## Routes
 
-| Skill | Invoked by | What it does |
+What was a skill here is a route of the `docs-parity` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:docs-parity <route>`.
+
+| Route | Started by | What it does |
 |---|---|---|
-| `docs-parity` | the model | The rule and the router: what counts as user-visible, which skill to open. |
-| `docs-init` | you | Detects the stack and the docs target, then writes the config, with a first code-to-docs surface map, and the writer contract. Copies the checker in for CI on request. |
-| `docs-sync` | the model | The in-loop pass: diff to pages and shots, rewrite, retake, check, and write the `Docs:` line. |
-| `docs-shots` | the model | Builds or extends the capture harness to the shot contract. |
-| `docs-audit` | you or the model | Reads the whole docs set against the product and reports what drifted. Edits nothing. |
-| `readme` | the model | Rewrites a README to the skeleton and moves the rest to its proper home. |
+| the area, with no route | the agent | The rule: what counts as user-visible, and which route to take. |
+| `docs-init` | you, by asking | Detects the stack and the docs target, then writes the config, with a first code-to-docs surface map, and the writer contract. Copies the checker in for CI on request. |
+| `docs-sync` | the agent | The in-loop pass: diff to pages and shots, rewrite, retake, check, and write the `Docs:` line. |
+| `docs-shots` | the agent | Builds or extends the capture harness to the shot contract. |
+| `docs-audit` | you, by asking, or the agent | Reads the whole docs set against the product and reports what drifted. Edits nothing. |
+| `readme` | the agent | Rewrites a README to the skeleton and moves the rest to its proper home. |
 
 ## Works with
 

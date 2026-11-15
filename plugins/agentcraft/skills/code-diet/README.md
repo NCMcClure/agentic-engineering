@@ -17,7 +17,7 @@ rung 2 with a tool: `scripts/reuse-index.mjs` searches this repo, and any other
 checkout you list, for a file whose name, opening comment, or definitions
 cover the thing about to be built.
 
-**At review.** `/agentcraft:code-diet review-diet` has `scripts/review-scan.mjs` locate
+**At review.** The `review-diet` route has `scripts/review-scan.mjs` locate
 cut candidates deterministically (single-caller wrappers, abstractions with
 one implementation, dependencies that duplicate the platform, dead flags,
 uncalled symbols). The model judges only the flagged spots and reports one
@@ -32,7 +32,7 @@ possible.
 </picture>
 
 **In every later session.** A deliberate shortcut carries a comment
-`debt: <ceiling>, <trigger>`. `/agentcraft:code-diet debt` inventories the markers and
+`debt: <ceiling>, <trigger>`. The `debt` route inventories the markers and
 re-judges each, so a deferral expires on its trigger instead of rotting. A
 hook after each edit nudges the agent, and never blocks it, when a marker it
 just wrote names a ceiling and no trigger. The grammar lives in one file,
@@ -62,18 +62,23 @@ The skills work in any repo, opted in or not.
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install code-diet@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-## Skills
+## Routes
 
-| Skill | Invocation | Does |
+What was a skill here is a route of the `code-diet` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:code-diet <route>`.
+
+| Route | Started by | Does |
 |---|---|---|
-| `ladder` | model-invoked | The build discipline: understand the flow, climb the seven rungs, mark debt, leave one runnable check, output code first. |
-| `reuse-first` | model-invoked, or `/agentcraft:code-diet reuse-first <thing>` | Searches this repo and your listed checkouts for something that already covers the thing; verdict adopt, adapt, or build. |
-| `review-diet` | `/agentcraft:code-diet review-diet [repo] [--base <ref>] [--apply]` | Over-engineering review: the script locates, the model judges, one line per finding; `--apply` lands each cut as its own commit behind validate-or-revert. |
-| `debt` | `/agentcraft:code-diet debt [--write <file>]` | The debt-marker ledger: which deferrals still hold, which triggers have tripped, which markers have none. |
-| `capture-reusable` | model-invoked at wrap-up | Finds what this work built that another project would want and records it in `.agents/reuse-opportunities.md`. |
+| `ladder` | the agent | The build discipline: understand the flow, climb the seven rungs, mark debt, leave one runnable check, output code first. |
+| `reuse-first` | the agent, or you by asking (`<thing>`) | Searches this repo and your listed checkouts for something that already covers the thing; verdict adopt, adapt, or build. |
+| `review-diet` | the agent, or you by asking (`[repo] [--base <ref>] [--apply]`) | Over-engineering review: the script locates, the model judges, one line per finding; `--apply` lands each cut as its own commit behind validate-or-revert. |
+| `debt` | the agent, or you by asking (`[--write <file>]`) | The debt-marker ledger: which deferrals still hold, which triggers have tripped, which markers have none. |
+| `capture-reusable` | the agent at wrap-up | Finds what this work built that another project would want and records it in `.agents/reuse-opportunities.md`. |
 
 ## Pointing it at your other code
 

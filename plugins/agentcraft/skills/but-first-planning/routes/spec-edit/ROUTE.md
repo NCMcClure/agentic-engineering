@@ -82,7 +82,7 @@ published vs unpublished ones, and how to keep anchors valid, is in
 3. **Glossary / ADR touched?** A renamed term or a reversed decision can invalidate spec prose and issue titles elsewhere, grep for the old term and reconcile.
 4. **Prototype signed off?** If the change finalizes a design prototype (the user approves it as the design), promote its capture per `spec-write`'s [UI-SPEC.md](../spec-write/UI-SPEC.md): approved image(s) → `spec/prototypes/assets/`, a `prototypes/<slug>.md` page embedding them, one index line, links from the pages it illustrates.
 5. **Docs / hubs rippled?** A change that touches `user-docs-plan.md`, a `User-facing: yes` issue, or behaviour already documented stales the end-user docs; one that touches `repository-layout.md` or moves a module boundary stales the AGENTS.md hubs. [SYNC.md](SYNC.md)'s "User-docs and AGENTS.md ripples" section says what to flag and where to route (docs rewrites go through `build-user-docs`, never written here).
-6. **Re-verify.** Run both verifiers (`verify-spec-tree.mjs`, `verify-plan-tree.mjs`) after edits (and, if agent-works is installed, its hub check when source directories or `repository-layout.md` were touched); a broken anchor link is the tripwire that catches a propagation you missed.
+6. **Re-verify.** Run both verifiers (`verify-spec-tree.mjs`, `verify-plan-tree.mjs`) after edits (and the agent-works area's hub check when source directories or `repository-layout.md` were touched); a broken anchor link is the tripwire that catches a propagation you missed.
 
 ## Autonomous mode
 

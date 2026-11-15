@@ -38,19 +38,24 @@ without Node the hooks switch themselves off and say so once per session.
 ```bash
 # from Claude Code
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install write-like-me@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-Then run `/agentcraft:write-like-me calibrate` once.
+Then ask to calibrate once ("calibrate my writing voice").
 
-## Skills
+## Routes
 
-| Skill | Invocation | Does |
+What was a skill here is a route of the `write-like-me` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:write-like-me <route>`.
+
+| Route | Started by | Does |
 |---|---|---|
-| `write-like-me` | automatic on prose tasks | drafts in your voice; self-checks against the AI-tells catalog |
-| `calibrate` | `/agentcraft:write-like-me calibrate` | builds the profile from writing samples + a short interview |
-| `audit` | `/agentcraft:write-like-me audit` or "does this sound AI?" | scans existing text for tell clusters, offers a rewrite |
-| `review` | `/agentcraft:write-like-me review` | shows/prunes/reverts the profile, pauses learning |
+| the area, with no route | the agent, on prose tasks | drafts in your voice; self-checks against the AI-tells catalog |
+| `calibrate` | you, by asking | builds the profile from writing samples + a short interview |
+| `audit` | the agent, or you by asking ("does this sound AI?") | scans existing text for tell clusters, offers a rewrite |
+| `review` | you, by asking | shows/prunes/reverts the profile, pauses learning |
 
 ## State on disk
 
@@ -58,14 +63,16 @@ Nothing mutable lives in the plugin install dir (it's replaced on update):
 
 ```
 ~/.claude/rules/write-like-me.md   the profile (single source of truth)
-${CLAUDE_PLUGIN_DATA}/             ~/.claude/plugins/data/write-like-me-agentic-engineering/
+the area's data directory          ~/.claude/plugins/data/agentcraft-agentic-engineering/write-like-me/
 ├── observations.jsonl             pending style-feedback events
 ├── changelog.md                   dated log of every profile change
 ├── samples/                       your writing samples (calibrate)
 └── state/                         cooldown timestamps, session flags
 ```
 
-The data dir survives plugin updates. Override locations with `WLM_HOME`
+The data dir survives plugin updates. What the write-like-me plugin kept in its
+own data directory is copied here once, by the first session that runs the
+area while that plugin's stub is still installed. Override locations with `WLM_HOME`
 (data dir) and `WLM_PROFILE` (profile path).
 
 ## Uninstall / cleanup

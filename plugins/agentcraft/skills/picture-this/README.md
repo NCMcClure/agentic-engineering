@@ -89,22 +89,27 @@ plugin itself is plain Node with no dependencies.
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install picture-this@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
 The first figure installs the studio: Node 20+, network access, and a headless
 browser (about 100 MB to download), once. It asks before it downloads anything.
 After an update that changes the studio's packages it asks once more.
 
-This plugin replaces `animated-storytelling`. If you had that one installed,
-uninstall it and install this one; it will not update in place.
+This area replaces `animated-storytelling`. That name is now a stub: updating
+it brings `agentcraft` in.
 
-## Skills
+## Routes
 
-| Skill | What it does |
+What was a skill here is a route of the `picture-this` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:picture-this <route>`.
+
+| Route | What it does |
 |---|---|
-| `/agentcraft:picture-this visualize` | Finds the lens, models the subject from a description or from code, drafts three views designed from it, refines the one you pick, and places the component and its model in your repo. |
-| `/agentcraft:picture-this export-stills` | Captures a figure for a README and hands back the snippet that shows it: light and dark PNGs of its hero frame, a beat strip of every step in one row, or a looping GIF. |
+| `visualize` | Finds the lens, models the subject from a description or from code, drafts three views designed from it, refines the one you pick, and places the component and its model in your repo. |
+| `export-stills` | Captures a figure for a README and hands back the snippet that shows it: light and dark PNGs of its hero frame, a beat strip of every step in one row, or a looping GIF. |
 
 Or just ask: "visualize how the job queue works", "diagram this feature for
 someone non-technical", "the README needs a picture of the sync flow".

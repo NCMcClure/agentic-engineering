@@ -15,9 +15,9 @@ it is.
 
 ## How it works
 
-The plugin bundles the studio, a Vite app, under `app/`. `/workflow-studio`
-runs `scripts/launch-studio.mjs`, which copies the app into a persistent
-install home (`~/.claude/plugins/data/workflow-studio/app`), runs `npm ci`
+The area bundles the studio, a Vite app, under `app/`. Asking to open the
+studio runs `scripts/launch-studio.mjs`, which copies the app into a persistent
+install home (`workflow-studio/app` in the `agentcraft` plugin's data directory), runs `npm ci`
 there when the lockfile has changed since the last install, and starts the dev
 server with the studio root pointed at your project. Your graphs live in the
 project, never in the install home, so they survive restarts and plugin
@@ -28,24 +28,29 @@ dependencies come from npm on first launch.
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install workflow-studio@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
 Then:
 
-1. Run `/workflow-studio`.
+1. Ask to open the workflow studio.
 2. Open the printed `Local:` URL in your browser (Vite picks the port; trust
    the printout, not 5173).
 
 The first launch installs the app: expect 30–60 seconds, Node 20+, and network
 access, once. After that, launches are near-instant and offline-friendly.
 
-## Skills
+## Routes
 
-| Skill | What it does |
+What was a skill here is a route of the `workflow-studio` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:workflow-studio <route>`.
+
+| Route | What it does |
 |---|---|
-| `/workflow-studio` | Launches the visual studio (Vite dev server) and hands you the URL. |
-| `/author-workflow` | Hand-author or edit workflows and `diagram.json` graphs: no GUI, just the protocol docs. |
+| the area, with no route | Launches the visual studio (Vite dev server) and hands you the URL. |
+| `author-workflow` | Hand-author or edit workflows and `diagram.json` graphs: no GUI, just the protocol docs. |
 
 ## Storage layout
 

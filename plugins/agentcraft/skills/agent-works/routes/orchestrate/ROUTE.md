@@ -16,7 +16,7 @@ reviews and lands each request. The board holds the round, so a compaction or a 
 `aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` route has every action
 of `aw board`.
 
-Deciding what to build and breaking a spec into a backlog is planning (but-first-planning, where it is installed).
+Deciding what to build and breaking a spec into a backlog is planning (the but-first-planning area).
 This route is who works where, on what, with which rules, and what comes back.
 
 ## The rules of the round
@@ -49,8 +49,8 @@ not settle or archive them yourself. When the briefing says cards in flight have
 
 ## Step 1: Cut the tasks, and put them on the board
 
-Share intent, done criteria, out of scope, risks, likely files and checks with the person first (where
-but-first-planning is installed, `/agentcraft:but-first-planning grill`). A child cannot ask what you meant, so a card goes
+Share intent, done criteria, out of scope, risks, likely files and checks with the person first
+(`/agentcraft:but-first-planning grill`). A child cannot ask what you meant, so a card goes
 out only with done criteria a stranger could check; `aw board brief` refuses one without.
 
 For each candidate task, list what it needs that only one agent can have at a time: files and modules, the main

@@ -90,8 +90,8 @@ its workflow leaves to prose:
    contract), and optionally `build-improve-architecture` → `deepening-hunt.js`;
    route survivors on the next loop.
 
-**If agent-works is installed** and the person wants one change request per
-issue, the build step of step 7 can go to its board instead of `build-sprint`:
+**Where the person wants one change request per issue**, the build step of
+step 7 can go to the agent-works board instead of `build-sprint`:
 each issue is built by its own session in its own worktree and lands as its
 own change. Name that choice, and any touchpoint it adds, in the contract.
 Reconcile before and after, and `build-user-docs`, are unchanged.

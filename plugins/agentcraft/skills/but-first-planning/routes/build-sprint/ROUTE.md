@@ -31,7 +31,7 @@ approves the cadence, then build.
 ## Which route builds the sprint
 
 This route builds a sprint inside one session and lands it as one pull or
-merge request. If agent-works is installed, its board is the other route: each
+merge request. The agent-works area's board is the other way: each
 issue is a card built by its own session in its own git worktree, running
 `build-tdd`, and lands as its own change request, so isolation is real by
 construction and the person can open, steer, or review any builder. Prefer
@@ -114,8 +114,8 @@ commit lands on the still-open sprint PR, so docs are reviewed with the code, be
   `build-tdd` for its slice: the issue's acceptance criteria and spec anchors
   drive its tests. A subagent loads no skill you do not name, so name the
   ones this session has: `/agentcraft:agentic-teamwork tdd` (the loop and the lane
-  commands) and `/agentcraft:code-diet ladder` (the shape of the production code) when
-  those plugins are installed, and the `AGENTS.md` duty it owes in the same
+  commands) and `/agentcraft:code-diet ladder` (the shape of the production code),
+  and the `AGENTS.md` duty it owes in the same
   commit. The full briefing checklist is in [ORCHESTRATION.md](ORCHESTRATION.md).
 
 ## Autonomous mode

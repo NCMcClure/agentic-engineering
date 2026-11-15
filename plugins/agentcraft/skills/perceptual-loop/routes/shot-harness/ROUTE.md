@@ -83,6 +83,6 @@ Write the proposed `smoke` group (every content pair and condition once) and top
 
 `budget.match` in `config.json` holds patterns of the commands that render. It starts with the pattern for `pl.mjs iterate`; add the project's own render commands when an agent might run them directly. The guard then refuses a render above `budget.free` shots that states no reason.
 
-An application only one session may use at a time (the renderer, an editor, the GPU for a timing): nothing in this plugin enforces the turn, so name it as one session at a time in every brief. If agent-works is installed, declare it as a resource there and run the render under that plugin's lock; the guard judges the wrapped command as the command inside it, so the budget still counts.
+An application only one session may use at a time (the renderer, an editor, the GPU for a timing): nothing in this area enforces the turn, so name it as one session at a time in every brief. Declare it as a resource with the agent-works area and run the render under its lock (`/agentcraft:agent-works resource-locks`); the guard judges the wrapped command as the command inside it, so the budget still counts.
 
 *Done when: `budget.match` covers every command that renders, each scarce application is locked or named as one at a time, and a first `P iterate <shot>` exits 0 or 1 and prints the pictures to open. Next: `calibrate-gate` for the tolerances, then `iterate-shots`.*

@@ -53,7 +53,7 @@ ladder, the safety model, reviewing results, limitations) is in
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install codebase-optimizer@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
 Requirements:
@@ -66,13 +66,18 @@ Requirements:
   Without it the ORGANIZE stage and the structure checks are skipped with a
   note; DECOMPOSE and DEEPEN still run.
 
-## Skills
+## Routes
+
+What was a skill here is a route of the `codebase-optimizer` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:codebase-optimizer <route>`.
 
 Ask for what you need ("optimize this repo", "tidy the file tree", "these
 modules are too shallow"). All three are model-invoked, and none changes the
 repository without your yes.
 
-| Skill | Reach for it when |
+| Route | Reach for it when |
 |---|---|
 | `optimize-codebase` | The whole sweep: organize, decompose, deepen, in that order, on one branch (default `optimize-codebase/auto`). |
 | `codebase-organizer` | The file tree alone: plan, your approval, moves and reference rewrites, hubs, verification. Also "just add hubs to my repo". |

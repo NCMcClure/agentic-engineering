@@ -132,7 +132,7 @@ recorded as confirmed.
 
 ```text
 /plugin marketplace add NCMcClure/agentic-engineering
-/plugin install system-map@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
 Start a new session after installing. The map and its check need Node 22 and
@@ -142,7 +142,7 @@ nothing else. Drawing it on a board also needs:
 - Google Chrome, for the live check.
 - The Miro MCP connected, for publishing.
 
-`/agentcraft:system-map browser-setup` checks the machine and gets the browser
+The `browser-setup` route, which you ask for, checks the machine and gets the browser
 connected.
 
 This plugin replaces `marvelous-miro`: the same scripts and skills under a
@@ -153,14 +153,19 @@ map needs no change, and a Chrome profile you signed in to Miro with under
 for CI keeps working, and names the old slash commands in two of its messages
 until it is copied in again.
 
-## Skills
+## Routes
 
-| Skill | Invocation | Does |
+What was a skill here is a route of the `system-map` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:system-map <route>`.
+
+| Route | Started by | Does |
 |---|---|---|
-| `diagrams-init` | `/agentcraft:system-map diagrams-init [board name or URL]` | Once per repo: proposes the `@system` annotations from the import graph, writes `.agents/system-map.json` and the committed map, records the board, publishes the first frame, and on request copies the checker in for CI. |
-| `diagrams-sync` | model-invoked | Brings the map and the board level with a change: reads the checker's findings, fixes the annotations, regenerates the map, republishes. Also the whole-repo sweep, which fans out a writer and a reviewer per module in a large repo. |
-| `miro-board` | model-invoked | Starts a Miro project, then runs the build, publish, live check, and pull loop for any frame drawn from code. |
-| `browser-setup` | `/agentcraft:system-map browser-setup` | Checks Node, npx, and Chrome, connects the bundled browser server on the current surface, and waits while you sign in to Miro once. |
+| `diagrams-init` | you, by asking (`[board name or URL]`) | Once per repo: proposes the `@system` annotations from the import graph, writes `.agents/system-map.json` and the committed map, records the board, publishes the first frame, and on request copies the checker in for CI. |
+| `diagrams-sync` | the agent | Brings the map and the board level with a change: reads the checker's findings, fixes the annotations, regenerates the map, republishes. Also the whole-repo sweep, which fans out a writer and a reviewer per module in a large repo. |
+| `miro-board` | the agent | Starts a Miro project, then runs the build, publish, live check, and pull loop for any frame drawn from code. |
+| `browser-setup` | you, by asking | Checks Node, npx, and Chrome, connects the bundled browser server on the current surface, and waits while you sign in to Miro once. |
 
 ## The check, by hand and in CI
 

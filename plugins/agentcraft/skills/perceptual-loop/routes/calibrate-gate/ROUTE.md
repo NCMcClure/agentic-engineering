@@ -56,7 +56,7 @@ In this order, stopping at the first that explains it:
    P baseline stale --source <candidate> --run <run-made-on-main>
    ```
 
-   The entries it lists are `stale`: report them as such, update them in a separate, labelled step, and do not count them against your change. If that step cannot happen now, owe it where the next session finds it: a line at the top of the report, or the task board if agent-works is installed.
+   The entries it lists are `stale`: report them as such, update them in a separate, labelled step, and do not count them against your change. If that step cannot happen now, owe it where the next session finds it: a line at the top of the report, or the task board where the repo keeps one.
 4. **Otherwise it is an effect of your change** you did not intend: look at the shot (`iterate-shots` step 3).
 
 *Done when: every entry beyond tolerance is labelled noise, not ready, stale, or real, with what showed it.*

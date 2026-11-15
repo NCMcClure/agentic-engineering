@@ -89,10 +89,10 @@ P review apply <decisions.json>
 
 Each answer becomes `.agents/perceptual/decisions/<date>-<id>.md` (the question, the choice, the owner's note word for word) and leaves the queue; the command says what to do next for each. A ruling binds later work and other agents, and the note often says more than the option. A ruling of "keep it as it is" also ends the metric argument about that look: a number far from the reference does not reopen it.
 
-A ruling that reaches past this look (a rule for every sky, a format, a policy) is also written where every agent of the project reads its rules: a line in the root `AGENTS.md` that links the ruling file, or a decision record in the plan if but-first-planning is installed and the repo has `.agents/plan/`.
+A ruling that reaches past this look (a rule for every sky, a format, a policy) is also written where every agent of the project reads its rules: a line in the root `AGENTS.md` that links the ruling file, or a decision record in the plan where the repo has `.agents/plan/`.
 
 *Done when: the queue holds no decided question, each ruling's follow-up is started or listed, and any ruling with reach is written where every agent reads it.*
 
 ## Reports
 
-Lint a report or the body of a pull or merge request before sending it: `P lint <report.md>`. It flags a verdict word beside a bare metric, "verified" with no artefact, and a target set against the reference. A check you could not run is owed, not dropped: a line at the top of the report, or the task board if agent-works is installed.
+Lint a report or the body of a pull or merge request before sending it: `P lint <report.md>`. It flags a verdict word beside a bare metric, "verified" with no artefact, and a target set against the reference. A check you could not run is owed, not dropped: a line at the top of the report, or the task board where the repo keeps one.

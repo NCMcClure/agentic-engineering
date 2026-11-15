@@ -47,7 +47,8 @@ there one permission rule, `Bash(aw:*)`, covers everything an agent does outside
 `aw doctor` runs every check and exits 0, 1 or 2. Only three findings are critical (source files beside a hub, a
 config that does not parse, a status file past three times its budget), so an old repository gets a report
 instead of a wall. `aw doctor --baseline` records today's numbers; later runs print what moved.
-`aw doctor --machine` checks the machine instead: Node 22, git, and the forge's command line.
+`aw doctor --machine` checks the machine instead: Node 22, git, the forge's command line, and the two things the
+move to one plugin leans on (Claude Code 2.1.321 or newer, and `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` not set).
 
 `aw doctor --html report.html` also writes the report as one page that fetches nothing, for reading a long one
 outside the terminal:
@@ -80,7 +81,7 @@ that says what it is owed for and what running it needs, and it closes only by b
 
 ### A goal bigger than one change
 
-`/agentcraft:agent-works orchestrate` makes the session an orchestrator, and the board the record of the round, so a restart
+The `orchestrate` route makes the session an orchestrator, and the board the record of the round, so a restart
 or a compaction loses nothing.
 
 1. It puts the tasks on the board as cards, each with done criteria a stranger could check.
@@ -158,19 +159,24 @@ marker or the person said to use the plugins, and nowhere else.
 ## Install
 
 ```text
-/plugin install agent-works@agentic-engineering
+/plugin install agentcraft@agentic-engineering
 ```
 
-Requires Node 22 or newer and git. Then, in a repository, run `/agentcraft:agent-works setup`: it plans, asks a handful of
+Requires Node 22 or newer and git. Then, in a repository, ask for the setup ("set this repository up for agent work"): the `setup` route plans, asks a handful of
 questions, applies, and records a baseline. The board and the locks work without it.
 
-## Skills
+## Routes
 
-Fifteen. The model starts all but `setup`, which is yours to run (`/agentcraft:agent-works setup`).
+What was a skill here is a route of the `agent-works` area of `agentcraft`. Ask for one in
+words, or type `/agentcraft:start-here` and say what you want: the slash menu
+holds that one entry, and an area cannot be typed. An agent reaches a route as
+`/agentcraft:agent-works <route>`.
 
-| Skill | Use it when |
+Fourteen. The agent starts all but `setup`, which runs only when you ask for it.
+
+| Route | Use it when |
 |---|---|
-| `agent-works` | Unsure where something goes or which skill owns it |
+| the area, with no route | Unsure where something goes or which route owns it |
 | `setup` | A new repository, or one that already has agent files to adopt |
 | `doctor` | `AGENTS.md`, memory or status has bloated; rules repeat; agent files sit in `./docs`; the machine lacks a prerequisite |
 | `hubs` | Adding, moving or renaming a directory; writing or fixing a hub |
@@ -229,7 +235,7 @@ after that:
 | a board without a config was briefed on nowhere, and nothing could switch the hooks off | a repository with a board and no config hears the board line and card-sync once you answer the marketplace's one question with `on`; answered `off`, or not yet answered, those two hooks say nothing |
 
 The board came from the standalone **claudeban** plugin in 0.2: never enable both, and permission entries for its
-tools use the prefix `mcp__agent-works__`.
+tools use the prefix `mcp__agentcraft__` (it was `mcp__agent-works__` while this was a plugin of its own).
 
 ## Layout
 

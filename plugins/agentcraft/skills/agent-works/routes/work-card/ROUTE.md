@@ -42,11 +42,11 @@ reporting `blocked`.
 
 ## Step 4: Build test-first
 
-- Write the failing test, make it pass, commit at each green step with a subject that says what changed. Where
-  agentic-teamwork is installed, `/agentcraft:agentic-teamwork tdd` is that cadence; a plan card built with
+- Write the failing test, make it pass, commit at each green step with a subject that says what changed.
+  `/agentcraft:agentic-teamwork tdd` is that cadence; a plan card built with
   but-first-planning follows `/agentcraft:but-first-planning build-tdd`.
-- A task judged by eye or ear (a `look`, `motion` or `sound` label): where perceptual-loop is installed, load its
-  skills before the first test.
+- A task judged by eye or ear (a `look`, `motion` or `sound` label): load
+  `/agentcraft:perceptual-loop` before the first test.
 - Anything only one session can use at a time (a port, a simulator, a database, a timing run) goes through
   `/agentcraft:agent-works resource-locks`, with `--as card-<id>`.
 - A file on your brief's not-yours list belongs to another child right now. Do not edit it; if the task needs it,
@@ -68,7 +68,7 @@ git push -u origin <the card's branch>
 ```
 
 A chained command, another flag, or another refspec is not covered and asks the person. Open the pull or merge
-request (`gh pr create`, `glab mr create`, or `/agentcraft:agentic-teamwork ship` where that plugin is installed), then:
+request (`gh pr create`, `glab mr create`, or `/agentcraft:agentic-teamwork ship`), then:
 
 ```
 node "W/scripts/aw.mjs" board move <id> review --mr <number>

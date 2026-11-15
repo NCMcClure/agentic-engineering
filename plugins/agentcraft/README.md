@@ -38,8 +38,8 @@ This is the twelve as one plugin. A person remembers one thing,
 /plugin install agentcraft@agentic-engineering
 ```
 
-Each of the twelve old plugin names still installs: it is now a stub that
-depends on `agentcraft` and brings it in. Install `agentcraft` by name all the
+Each old plugin name still installs: it is now a stub that depends on
+`agentcraft` and brings it in (Claude Code 2.1.321 or later). Install `agentcraft` by name all the
 same, so it stays when the stubs are retired.
 
 ## The areas
@@ -54,7 +54,7 @@ how its routes work.
 | [but-first-planning](skills/but-first-planning/README.md) | turn an idea into a spec, a backlog, and issues built test-first |
 | [code-diet](skills/code-diet/README.md) | keep new code at the simplest rung that holds, and cut what is not needed |
 | [codebase-optimizer](skills/codebase-optimizer/README.md) | restructure a codebase that has grown messy, in stages behind its own tests |
-| context-doctor | read a session's transcript for what entered the agent's context, and from which area |
+| [context-doctor](skills/context-doctor/README.md) | read a session's transcript for what entered the agent's context, and from which area |
 | [docs-parity](skills/docs-parity/README.md) | keep user docs and their screenshots level with the code, in the same change |
 | [perceptual-loop](skills/perceptual-loop/README.md) | check work judged by eye or ear with shots, gates, and a look at the picture |
 | [picture-this](skills/picture-this/README.md) | draw how something works as an animated figure, with stills for a README |

@@ -51,7 +51,7 @@ Flow counts a pixel with nothing to measure (flat colour, a straight edge) as **
 
 Measure latency with a step, never estimate it from parts when it can be measured: inject a step into the input at a known instant through the real path, find the first output sample that differs, and report the median and the 95th and 99th percentiles over repeated steps, at each rate that matters, with the **floor** the design allows beside each number. Timestamps come from one clock, or from clocks whose relation is measured.
 
-A latency or a frame time measured on a busy machine is a number about the other job. Read the processor and GPU load yourself before the run (the process list, `nvidia-smi`), wait if another job is running, and write what you saw beside the numbers. When the check needs hardware only one session may use (a GPU, a device, a display) and agent-works is installed, run it under that plugin's resource lock; the render guard judges the wrapped command as the command inside it.
+A latency or a frame time measured on a busy machine is a number about the other job. Read the processor and GPU load yourself before the run (the process list, `nvidia-smi`), wait if another job is running, and write what you saw beside the numbers. When the check needs hardware only one session may use (a GPU, a device, a display), run it under a resource lock (`/agentcraft:agent-works resource-locks`); the render guard judges the wrapped command as the command inside it.
 
 *Done when: the table has before, after, and floor per path and rate, with the number of steps measured and the machine's load at the time.*
 
@@ -70,7 +70,7 @@ Open every sheet the commands print: the frames around each flagged step, the wo
 
 ## Owed work
 
-When the full sweep of every clip is owed (a long render, the clips of every shot) and this session will not run it, owe it where the next session finds it: a line at the top of the report, or the task board if agent-works is installed, so it is not lost when the session ends.
+When the full sweep of every clip is owed (a long render, the clips of every shot) and this session will not run it, owe it where the next session finds it: a line at the top of the report, or the task board where the repo keeps one, so it is not lost when the session ends.
 
 ## What these numbers cannot tell
 
