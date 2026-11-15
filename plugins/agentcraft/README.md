@@ -2,7 +2,7 @@
 
 The agentic-engineering plugins hold twelve areas of work and about eighty
 skills between them, and a job does not say which one it needs. A person
-either remembers that shipping is `/agentic-teamwork:ship` and a spec is
+either remembers that shipping is `/agentcraft:agentic-teamwork ship` and a spec is
 `/agentcraft:but-first-planning spec-write`, or goes without. This plugin is the one
 thing to remember: type `/agentcraft:start-here`.
 

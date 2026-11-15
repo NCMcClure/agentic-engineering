@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { audit } from "../../../plugins/agentic-teamwork/scripts/audit-project.mjs";
+import { audit } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/audit-project.mjs";
 import { runNode, tempRepo, write } from "./helpers.mjs";
 
-const AUDIT = "plugins/agentic-teamwork/scripts/audit-project.mjs";
-const INIT = "plugins/agentic-teamwork/scripts/init-project.mjs";
+const AUDIT = "plugins/agentcraft/skills/agentic-teamwork/scripts/audit-project.mjs";
+const INIT = "plugins/agentcraft/skills/agentic-teamwork/scripts/init-project.mjs";
 const UPGRADE = /init-project --upgrade/;
 
 /** A repo a fresh scaffold made, committed, with the pre-commit hook turned on. */

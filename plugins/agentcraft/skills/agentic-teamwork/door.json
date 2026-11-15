@@ -1,0 +1,26 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "audit-project": {
+      "cue": ""
+    },
+    "bootstrap": {
+      "cue": "",
+      "starts": "person"
+    },
+    "init-project": {
+      "cue": "",
+      "starts": "person"
+    },
+    "land": {
+      "cue": ""
+    },
+    "ship": {
+      "cue": ""
+    },
+    "tdd": {
+      "cue": ""
+    }
+  }
+}

@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 // Run by a person, once, to set a repo up: never picked by the model on its own.

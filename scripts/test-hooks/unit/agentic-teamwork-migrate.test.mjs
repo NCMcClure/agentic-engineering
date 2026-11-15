@@ -9,9 +9,9 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { makeFixture } from "../fixtures.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
-import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentic-teamwork/hooks/lib/config.mjs";
+import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentcraft/skills/agentic-teamwork/hooks/lib/config.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
 const HOOKS = path.join(PLUGIN, "hooks");
 const suite = { after };
 const HOME = tempDir(suite, "tw-migrate-home-");

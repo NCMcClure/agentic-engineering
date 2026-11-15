@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { judge, main } from "../../../plugins/agentic-teamwork/scripts/mr.mjs";
+import { judge, main } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/mr.mjs";
 import { runNode, tempDir, write } from "./helpers.mjs";
 
 const HEAD = "0123456789abcdef0123456789abcdef01234567";
@@ -489,11 +489,11 @@ test("judge reads one state the same way whichever forge it came from", () => {
 });
 
 test("the command line prints one line, or one object with --json, and sets the exit code", () => {
-  const usage = runNode("plugins/agentic-teamwork/scripts/mr.mjs", ["frobnicate"]);
+  const usage = runNode("plugins/agentcraft/skills/agentic-teamwork/scripts/mr.mjs", ["frobnicate"]);
   assert.equal(usage.status, 2);
   assert.equal(usage.stdout, "");
   assert.match(usage.stderr, /^mr: usage: mr\.mjs <check\|open\|status\|wait\|merge\|approve\|retry\|comment>/);
-  const json = runNode("plugins/agentic-teamwork/scripts/mr.mjs", ["wait", "seven", "--json", "--forge", "github"]);
+  const json = runNode("plugins/agentcraft/skills/agentic-teamwork/scripts/mr.mjs", ["wait", "seven", "--json", "--forge", "github"]);
   assert.equal(json.status, 2);
   assert.deepEqual(JSON.parse(json.stdout), { error: { kind: "usage", message: '"seven" is not a pull request number' } });
 });

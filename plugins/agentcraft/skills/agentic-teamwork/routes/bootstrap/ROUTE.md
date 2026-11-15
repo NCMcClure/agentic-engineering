@@ -1,16 +1,17 @@
 ---
 name: bootstrap
 description: "Put a new or not-yet-set-up repo on the team conventions before any code is written in it: three questions, one local run, and the rules, lanes and checks are live for everything written after. Use when the session briefing says the repo is not on the team conventions yet, or when starting a project in an empty folder. Nothing is created on a forge and nothing is pushed. For the full set of options use init-project; to check a repo already set up use audit-project."
-disable-model-invocation: true
 ---
 
 # bootstrap
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
 A repo is cheapest to set up before its first commit, and that is the moment everyone forgets. This is the short path: read the folder, ask what cannot be read, run `init-project.mjs` once.
 
 ## Step 0: Is there anything to do?
 
-If `.agents/manifest.json` exists, stop: the repo is set up, and `/agentic-teamwork:audit-project` checks it. Otherwise read before asking: the folder's name, any README or package manifest, its `origin` remote, and whether it has files of its own yet.
+If `.agents/manifest.json` exists, stop: the repo is set up, and `/agentcraft:agentic-teamwork audit-project` checks it. Otherwise read before asking: the folder's name, any README or package manifest, its `origin` remote, and whether it has files of its own yet.
 
 ## Step 1: Ask only what you cannot read
 
@@ -28,10 +29,10 @@ From the repo root. An empty folder (nothing but dotfiles or `.git`) takes the f
 
 ```bash
 # empty folder: the conventions plus the template's starter source
-node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs" --target . --name <name> --template <t> --description "<one line>" [--forge github|gitlab] --dry-run
+node "W/scripts/init-project.mjs" --target . --name <name> --template <t> --description "<one line>" [--forge github|gitlab] --dry-run
 
 # files already here: the conventions only, around them
-node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs" --upgrade --description "<one line>" [--forge github|gitlab] --dry-run
+node "W/scripts/init-project.mjs" --upgrade --description "<one line>" [--forge github|gitlab] --dry-run
 ```
 
 Read the plan, then drop `--dry-run`. A fresh scaffold refuses a folder that has files in it, so a wrong guess fails instead of overwriting. The run ends with the repo's own check; a finding on an upgrade is the repo's to fix, and the message names it.
@@ -42,11 +43,11 @@ Read the plan, then drop `--dry-run`. A fresh scaffold refuses a folder that has
 
 A repo with no commits yet takes its first commit on the default branch; the git guard allows exactly that one, since there is no base to branch from. A repo with history commits on a branch (`git switch -c chore/team-conventions`) and lands it like any other change.
 
-From the next session on, the working rules arrive from the plugin's session hook and the lane commands from the marker's `lanes`. Write tests first (`/agentic-teamwork:tdd`).
+From the next session on, the working rules arrive from the plugin's session hook and the lane commands from the marker's `lanes`. Write tests first (`/agentcraft:agentic-teamwork tdd`).
 
 ## Step 4: The forge, when the person asks
 
 Never push on your own. This skill creates no remote repository: the person makes one (the forge's site, or its CLI) and adds it as `origin`. Then:
 
 - If no CI gate was written because the forge was not known, run `init-project.mjs --upgrade` again; it reads the forge off the remote.
-- `/agentic-teamwork:ship` pushes the branch, after asking, and opens the change request.
+- `/agentcraft:agentic-teamwork ship` pushes the branch, after asking, and opens the change request.

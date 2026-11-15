@@ -8,7 +8,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agentic-teamwork", "hooks", "session-start.mjs");
+const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "hooks", "session-start.mjs");
 const suite = { after };
 // An empty settings dir: only this plugin is enabled, so it is the one that asks.
 const HOME = tempDir(suite, "tw-start-home-");
@@ -110,7 +110,7 @@ test("a repo's own rules are not mistaken for the plugin's", (t) => {
 // ---- the pre-commit mirror -----------------------------------------------
 
 test("a committed mirror that git would skip gets one line, and one that can run gets none", (t) => {
-  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
+  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
   const { dir, git } = marked(t, { files: { ".githooks/pre-commit": mirror } });
   git("update-index", "--chmod=-x", ".githooks/pre-commit");
   assert.match(session(dir).context, /\.githooks\/pre-commit is not executable, so git skips it and commits made in a terminal go unchecked: chmod \+x \.githooks\/pre-commit && git add --chmod=\+x \.githooks\/pre-commit\./);

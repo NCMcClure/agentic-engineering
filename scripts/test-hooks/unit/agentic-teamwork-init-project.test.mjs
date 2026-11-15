@@ -9,11 +9,11 @@ import path from "node:path";
 import { test } from "node:test";
 import {
   GATE, GITIGNORE_END, GITIGNORE_START, detectTestCommand, ensureGitlabInclude, mergeSettings, validateDescription, validateName,
-} from "../../../plugins/agentic-teamwork/scripts/init-project.mjs";
+} from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/init-project.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const INIT = "plugins/agentic-teamwork/scripts/init-project.mjs";
-const TEMPLATES = path.join(REPO, "plugins", "agentic-teamwork", "templates");
+const INIT = "plugins/agentcraft/skills/agentic-teamwork/scripts/init-project.mjs";
+const TEMPLATES = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates");
 const WINDOWS = process.platform === "win32";
 const sha = (text) => createHash("sha256").update(text).digest("hex");
 const read = (dir, rel) => fs.readFileSync(path.join(dir, rel), "utf8");

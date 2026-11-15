@@ -6,7 +6,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const GUARD = path.join(REPO, "plugins", "agentic-teamwork", "hooks", "git-guard.mjs");
+const GUARD = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "hooks", "git-guard.mjs");
 const suite = { after };
 // An empty home, so no developer setting or git config reaches a fixture, and
 // a temp directory of its own, so the session records land nowhere shared.

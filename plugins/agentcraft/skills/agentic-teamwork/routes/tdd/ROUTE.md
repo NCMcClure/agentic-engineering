@@ -29,7 +29,7 @@ Read `references/lanes.md` for the full table and for what makes a test worth ke
 - **e2e**: a browser against a built server the test runner starts itself. The one process allowed to start the server; never start it by hand for a test.
 - **live**: a real model, opt-in, structural assertions only. Needed in any repo that calls a model: `references/live-lane.md` has the pattern, including the per-turn budget and why assertions never touch wording.
 
-A repo that calls a model and has no live lane has a gap its tests cannot see. `/agentic-teamwork:audit-project` reports it.
+A repo that calls a model and has no live lane has a gap its tests cannot see. `/agentcraft:agentic-teamwork audit-project` reports it.
 
 ## What to mock
 

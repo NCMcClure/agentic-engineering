@@ -6,12 +6,14 @@ argument-hint: "<number> | --branch <b>"
 
 # land
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Everything between "the review is done" and "it is on the base branch". `ship` opens the change request; this lands it. The forge half is `scripts/mr.mjs`, which works the same on GitHub and GitLab and reads the repository off the checkout's remote, so run it from inside the repo. Every verb takes `--json`. `<n>` is the pull request number or the merge request iid.
 
 ## Step 1: Read it
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" status <n> --json
+node "W/scripts/mr.mjs" status <n> --json
 ```
 
 `--branch <b>` finds the open request from a branch instead. Note `sha`, the head. It has to be the head the review read: if commits arrived after the review, read them before going on, and take the new head as the reviewed one only once you have.
@@ -21,7 +23,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" status <n> --json
 ## Step 2: Wait, in the background
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" wait <n> --json
+node "W/scripts/mr.mjs" wait <n> --json
 ```
 
 Run it as a background command and carry on; you are told when it exits. It re-reads every 10 seconds for up to 9 minutes (`--interval`, `--timeout`), keeps waiting only while the forge is still computing the merge status or the checks are queued or running, and starts the checks itself, once, when the forge wants them and the head has none. It stops at once on a blocker no check result clears. Never poll the checks by hand, schedule wake-ups, or hand the person a page to watch.
@@ -45,7 +47,7 @@ Run it as a background command and carry on; you are told when it exits. It re-r
 ## Step 4: Merge the reviewed head
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" merge <n> --sha <full reviewed head sha> --json
+node "W/scripts/mr.mjs" merge <n> --sha <full reviewed head sha> --json
 ```
 
 It refuses unless the request is mergeable and its head is `--sha`, then merges with a merge commit, removes the source branch, and prints `mergeSha`. The sha is the full 40 characters; a forge refuses a short one. `--method squash` or `--method rebase` when the repo's own rules say so; `--keep-branch` to leave the source branch.

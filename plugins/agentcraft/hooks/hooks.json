@@ -11,6 +11,16 @@
             "timeout": 5
           }
         ]
+      },
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/edit-check.mjs\"",
+            "timeout": 15
+          }
+        ]
       }
     ],
     "PreToolUse": [
@@ -21,6 +31,16 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/guard.mjs\"",
             "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/git-guard.mjs\"",
+            "timeout": 300
           }
         ]
       }
@@ -47,6 +67,17 @@
             "statusMessage": "Reading the plan"
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agentcraft hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/session-start.mjs\"",
+            "timeout": 10,
+            "statusMessage": "Reading the team conventions"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -56,6 +87,15 @@
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/card-sync.mjs\"",
             "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/stop-gate.mjs\"",
+            "timeout": 300
           }
         ]
       }
@@ -75,6 +115,15 @@
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/but-first-planning/hooks/session-start.mjs\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/session-start.mjs\"",
             "timeout": 10
           }
         ]

@@ -47,7 +47,7 @@ for the next report and review again from Step 1.
 ## Step 4: Land it
 
 Merge only the head you reviewed, after its checks are green: `gh pr merge <number>` or `glab mr merge <number>`,
-or `/agentic-teamwork:land <number>` where that plugin is installed. A red pipeline goes back to the child with
+or `/agentcraft:agentic-teamwork land <number>` where that plugin is installed. A red pipeline goes back to the child with
 the failed jobs; a conflict tells the child to sync.
 
 Requests that share files merge one at a time. Compare each one's `git diff --stat` with what merged since its

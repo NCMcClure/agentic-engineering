@@ -6,12 +6,14 @@ argument-hint: "[--fix]"
 
 # audit-project
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 One pass over this repo, then a short report. The script finds; you judge and, with `--fix`, repair.
 
 ## Step 1: Scan
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/audit-project.mjs" --json
+node "W/scripts/audit-project.mjs" --json
 ```
 
 `{root, errors, warnings, rules_tokens, findings[]}`, each finding carrying `check`, `severity` (`error`, `warn`, `info`), `detail`, and sometimes `fix`. It exits 0 whatever it found: reporting is its whole job.
@@ -31,7 +33,7 @@ Close with the counts and, when there are no findings, `On the conventions, noth
 Three findings deserve a sentence rather than a line, because none has a mechanical fix:
 
 - **`secret`**: a credential pattern in the git index. Report the `file:line`, never the value, and say plainly that a credential in the index is compromised: it needs removing *and* rotating.
-- **`live-lane`**: the repo calls a model and has no live lane. That is a gap in what the tests can see, not a formatting problem. Offer to wire one from `/agentic-teamwork:tdd`, `references/live-lane.md`.
+- **`live-lane`**: the repo calls a model and has no live lane. That is a gap in what the tests can see, not a formatting problem. Offer to wire one from `/agentcraft:agentic-teamwork tdd`, `references/live-lane.md`.
 - **`hooks-path`**: this clone has not turned the pre-commit hook on. It is one clone's setting and the person's call; name the command and leave it to them.
 
 *Done when: every finding appears once and the counts match the script's.*
@@ -42,7 +44,7 @@ Only when the person asked for repairs in this conversation. When you reached fo
 
 | Finding | Fix |
 | --- | --- |
-| `marker`, `floor`, `standard-version`, `scripts`, `script-drift`, `pre-commit`, `pre-commit-drift`, `settings`, `lanes`, and `verify-standard` lines starting `ci-gate`, `gitignore-fence`, `scripts-present`, `hub` | `node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs" --upgrade --dry-run`, read the plan, then without `--dry-run`. It keeps an edited file and shows its diff. |
+| `marker`, `floor`, `standard-version`, `scripts`, `script-drift`, `pre-commit`, `pre-commit-drift`, `settings`, `lanes`, and `verify-standard` lines starting `ci-gate`, `gitignore-fence`, `scripts-present`, `hub` | `node "W/scripts/init-project.mjs" --upgrade --dry-run`, read the plan, then without `--dry-run`. It keeps an edited file and shows its diff. |
 | `verify-standard: claude-md` | A `CLAUDE.md` with content beside an `AGENTS.md`: merge it into `AGENTS.md`, delete it, then run the upgrade to make the link. |
 | `verify-standard: rules-imported` | Add the missing `@.agents/rules/<file>.md` line to the root `AGENTS.md`. |
 | `strict-gate` | The upgrade with `--strict --test-command "<cmd>"`, once the person names the command. |

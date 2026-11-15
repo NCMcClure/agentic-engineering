@@ -15,7 +15,7 @@ funnel records the result.
 ## The loop
 
 **If agentic-teamwork is installed, the loop is its `tdd` skill**
-(`/agentic-teamwork:tdd`): red, green, refactor, the repo's test lanes and
+(`/agentcraft:agentic-teamwork tdd`): red, green, refactor, the repo's test lanes and
 their commands, what to mock and what to run for real, and the refactor
 candidates. Read that skill and run its loop; come back here for the
 plan-issue contract around it.

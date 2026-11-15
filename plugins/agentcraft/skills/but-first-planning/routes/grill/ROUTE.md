@@ -37,7 +37,7 @@ Write this down, read it back, and get a yes before treating it as agreed:
 - **Files likely touched:** by path, from reading the repo.
 - **Tests:** which of the repo's test commands cover it, and what no test
   reaches. If agentic-teamwork is installed, name the lanes of
-  `/agentic-teamwork:tdd` and say which are not wired.
+  `/agentcraft:agentic-teamwork tdd` and say which are not wired.
 
 When the work goes to a session you will not watch, the brief is all that
 session has. Hold it to this bar: a stranger could build the work and check it

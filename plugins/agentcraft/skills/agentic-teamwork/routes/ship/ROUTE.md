@@ -6,6 +6,8 @@ argument-hint: "[--stack] [--draft]"
 
 # ship
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Everything between "the work is done" and "the change request is open". The guard hook blocks the mistakes; this is the sequence that avoids them. It works the same on GitHub and GitLab: the forge is reached only through `scripts/mr.mjs`.
 
 ## Step 1: Check the state
@@ -13,7 +15,7 @@ Everything between "the work is done" and "the change request is open". The guar
 ```bash
 git status --short --branch
 git log --oneline "$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null || echo HEAD)"..HEAD
-node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" check
+node "W/scripts/mr.mjs" check
 ```
 
 `check` names the forge and what it calls a change request (a pull request or a merge request; use its word from here on), and says whether its CLI is installed and signed in. If it is not, give the person the line it printed and stop before pushing: signing in is theirs to do.
@@ -59,7 +61,7 @@ A person grants a branch in their own terminal: `git config branch.<b>.agentic-e
 The title is the commit subject, or one line for the whole branch when it has several commits. The body says what changed and why, and how it was tested; it goes in on stdin, so backticks and quotes need no escaping:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/scripts/mr.mjs" open --title "<subject>" --body-file - [--draft] [--target <branch below>] --json <<'BODY'
+node "W/scripts/mr.mjs" open --title "<subject>" --body-file - [--draft] [--target <branch below>] --json <<'BODY'
 <what changed and why>
 
 <which lanes ran>
@@ -68,7 +70,7 @@ BODY
 
 With `--stack`, pass `--target` the branch below this one instead of leaving it to the default branch. Run it twice and the second run reports the request the first one opened (`created: false`) rather than failing.
 
-Report `url` and `number`. Do not merge here. Landing comes after the review, through `/agentic-teamwork:land`: it waits on the checks in the background, asks the person for an approval where the repo needs one, and merges the reviewed head on green. A stack lands from the bottom, also through `land`.
+Report `url` and `number`. Do not merge here. Landing comes after the review, through `/agentcraft:agentic-teamwork land`: it waits on the checks in the background, asks the person for an approval where the repo needs one, and merges the reviewed head on green. A stack lands from the bottom, also through `land`.
 
 *Done when: the URL is reported.*
 

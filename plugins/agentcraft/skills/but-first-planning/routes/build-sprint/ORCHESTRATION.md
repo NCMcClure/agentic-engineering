@@ -53,7 +53,7 @@ Brief every builder to:
 1. Read the spec anchor and the issue file first.
 2. Implement **test-first** (`build-tdd`): red, green, refactor. A subagent
    loads no skill you did not name, so name in the briefing the ones this
-   session has: `/agentic-teamwork:tdd` (the loop and this repo's lane
+   session has: `/agentcraft:agentic-teamwork tdd` (the loop and this repo's lane
    commands) and `/code-diet:ladder` (build at the first rung that holds)
    when those plugins are installed.
 3. Make the checkpoint **genuinely runnable**. If the templated checkpoint names

@@ -66,7 +66,7 @@ credentials, junk, the push question) without the branch conventions. Answer
 Then, in the repo:
 
 ```text
-/agentic-teamwork:bootstrap
+/agentcraft:agentic-teamwork bootstrap
 ```
 
 Node 22 and git are the only requirements. Opening and landing change requests
@@ -76,9 +76,9 @@ needs the forge's own CLI, `gh` or `glab`, signed in.
 
 | Skill | Invocation | Does |
 |---|---|---|
-| `bootstrap` | `/agentic-teamwork:bootstrap` | Puts a repo, or an empty folder, on the conventions. Local only: nothing is pushed or created on a forge. |
-| `init-project` | `/agentic-teamwork:init-project [--upgrade] [--strict]` | The scaffold itself: the manifest, the `AGENTS.md` hub and its `CLAUDE.md` link, the ignore block, the pre-commit hook, the CI gate. `--upgrade` brings an existing repo forward and never overwrites a file it did not write. |
-| `audit-project` | model-invoked, or `/agentic-teamwork:audit-project [--fix]` | Checks every layer and names the broken one. |
+| `bootstrap` | `/agentcraft:agentic-teamwork bootstrap` | Puts a repo, or an empty folder, on the conventions. Local only: nothing is pushed or created on a forge. |
+| `init-project` | `/agentcraft:agentic-teamwork init-project [--upgrade] [--strict]` | The scaffold itself: the manifest, the `AGENTS.md` hub and its `CLAUDE.md` link, the ignore block, the pre-commit hook, the CI gate. `--upgrade` brings an existing repo forward and never overwrites a file it did not write. |
+| `audit-project` | model-invoked, or `/agentcraft:agentic-teamwork audit-project [--fix]` | Checks every layer and names the broken one. |
 | `ship` | model-invoked on "ship it" or "open a PR" | Commits, pushes, and opens the pull or merge request. |
 | `land` | model-invoked when a reviewed change should merge | Waits for checks, merges the reviewed commit, cleans up the branch. |
 | `tdd` | model-invoked when writing or changing tests | Red, green, refactor per behavior, which lane a check belongs in, and what to mock. |
@@ -117,7 +117,7 @@ wants more adds a `teamwork` block to the manifest; every key is optional.
   lets one command through when set on that command: `TEAMWORK_ALLOW=1 git push`.
   A mention in a comment or a commit message does not count.
 
-`/agentic-teamwork:init-project --strict` writes the test gate for you.
+`/agentcraft:agentic-teamwork init-project --strict` writes the test gate for you.
 
 ## Coming from 0.x
 

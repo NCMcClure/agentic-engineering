@@ -169,10 +169,10 @@ Most of it runs unasked: hooks judge commits and pushes against the team's git c
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| put a new repo on the team conventions before any code is written | `/agentic-teamwork:bootstrap` | person |
-| check the repo against the conventions and repair what drifted | `/agentic-teamwork:audit-project` | agent |
-| commit the work in hand and open its pull or merge request | `/agentic-teamwork:ship` | agent |
-| merge a reviewed request once its checks are green | `/agentic-teamwork:land` | agent |
+| put a new repo on the team conventions before any code is written | `/agentcraft:agentic-teamwork bootstrap` | person |
+| check the repo against the conventions and repair what drifted | `/agentcraft:agentic-teamwork audit-project` | agent |
+| commit the work in hand and open its pull or merge request | `/agentcraft:agentic-teamwork ship` | agent |
+| merge a reviewed request once its checks are green | `/agentcraft:agentic-teamwork land` | agent |
 
 ### code-diet
 

@@ -9,7 +9,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const SCRIPTS = path.join(REPO, "plugins", "agentic-teamwork", "templates", "common", ".agents", "scripts");
+const SCRIPTS = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "common", ".agents", "scripts");
 const ship = (dir, script) => write(dir, `.agents/scripts/${script}`, fs.readFileSync(path.join(SCRIPTS, script), "utf8"));
 
 // ---------------------------------------------------------------------------

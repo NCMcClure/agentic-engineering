@@ -50,7 +50,7 @@ Every deliberate shortcut with a known ceiling gets a comment `debt: <ceiling>, 
 
 ## Step 5: Leave one runnable check
 
-Non-trivial logic (a branch, a loop, a parser, a money or security path) leaves the smallest thing that fails if the logic breaks: a test under the project's own test command where it has one, an assert-based self-check where it does not. No new framework, no fixtures. With agentic-teamwork installed, `/agentic-teamwork:tdd` says which lane it belongs in. Trivial one-liners need none.
+Non-trivial logic (a branch, a loop, a parser, a money or security path) leaves the smallest thing that fails if the logic breaks: a test under the project's own test command where it has one, an assert-based self-check where it does not. No new framework, no fixtures. With agentic-teamwork installed, `/agentcraft:agentic-teamwork tdd` says which lane it belongs in. Trivial one-liners need none.
 
 *Done when: the check has been run once and passes, and deleting the logic would make it fail.*
 

@@ -1,11 +1,12 @@
 ---
 name: init-project
 description: "Put a repo on the team conventions: scaffold a new one from a template, or run --upgrade to put the marker, the hub, the CI gate, the permission rules and the pre-commit hook around a repo that already exists, or to bring an earlier scaffold forward. Use when starting a new repo, when the session briefing or audit-project says to run the upgrade, or to turn on the strict test gate with --strict. Local only: it creates nothing on a forge and pushes nothing. To check a repo that is already set up use audit-project."
-disable-model-invocation: true
 argument-hint: "[--upgrade] [--name <n>] [--template library|node-service] [--forge github|gitlab|none] [--strict] [--dry-run]"
 ---
 
 # init-project
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
 Two jobs behind one script. A fresh scaffold lays down a starter and the conventions together. `--upgrade` puts the conventions around a repo that already has files, or brings an earlier scaffold up to this version, and writes nothing the second time it runs. Either way everything stays on this machine: no repository is created anywhere, nothing is committed, nothing is pushed.
 
@@ -26,10 +27,10 @@ Read the folder first: its name, any README or package manifest, its `origin` re
 
 ```bash
 # a new repo, in ./<name> (or --target <dir>)
-node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs" --name <name> --template <t> --description "<one line>" [--forge github|gitlab] --dry-run
+node "W/scripts/init-project.mjs" --name <name> --template <t> --description "<one line>" [--forge github|gitlab] --dry-run
 
 # a repo that already has files, from its root
-node "${CLAUDE_PLUGIN_ROOT}/scripts/init-project.mjs" --upgrade [--description "<one line>"] [--forge github|gitlab] --dry-run
+node "W/scripts/init-project.mjs" --upgrade [--description "<one line>"] [--forge github|gitlab] --dry-run
 ```
 
 It writes nothing and prints every path it would write. On an upgrade, read the `keep` lines: a file the scaffold did not write is never overwritten, and a file it wrote that somebody edited is kept with the diff shown.
@@ -64,6 +65,6 @@ Other flags, when the person asks for what they do:
 
 Nothing is committed. Report the template, the forge, the default branch, and the four lane commands from the marker's `lanes`. Then:
 
-- A repo with no commits takes its first commit on the default branch; the git guard allows exactly that one. A repo with history commits the upgrade on a branch (`git switch -c chore/team-conventions`) and lands it like any other change (`/agentic-teamwork:ship`).
+- A repo with no commits takes its first commit on the default branch; the git guard allows exactly that one. A repo with history commits the upgrade on a branch (`git switch -c chore/team-conventions`) and lands it like any other change (`/agentcraft:agentic-teamwork ship`).
 - The pre-commit hook does nothing until a clone turns it on: `git config core.hooksPath .githooks`, once per clone. Say so; do not run it unasked.
 - The forge's own branch protection (reviews required, checks required) is set in its settings by a person with the rights. The CI gate gives it a check to require.

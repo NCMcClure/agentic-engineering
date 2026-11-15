@@ -27,7 +27,7 @@ Then install whichever plugins you want:
 ```
 
 Skills arrive namespaced: `/agentcraft:but-first-planning spec-init`,
-`/agentic-teamwork:bootstrap`, and so on.
+`/agentcraft:agentic-teamwork bootstrap`, and so on.
 
 Not sure which one a job needs? Install `agentcraft` and type
 `/agentcraft:start-here`.
@@ -109,11 +109,11 @@ A pre-commit hook covers the terminal and a CI gate backs both. Skills scaffold
 a repo, ship and land a change on GitHub or GitLab, and keep tests honest; a
 hard test gate is one opt-in away. Owns team version-control conventions; how
 agents share a codebase is agent-works' job. The two are meant to run together.
-[Read more →](plugins/agentic-teamwork/README.md)
+[Read more →](plugins/agentcraft/skills/agentic-teamwork/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-teamwork/assets/figures/four-commands-one-answer.dark.gif">
-  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="plugins/agentic-teamwork/assets/figures/four-commands-one-answer.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/agentic-teamwork/assets/figures/four-commands-one-answer.dark.gif">
+  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="plugins/agentcraft/skills/agentic-teamwork/assets/figures/four-commands-one-answer.gif" width="720">
 </picture>
 
 <sub>Each git call in a shell line is judged where it really runs, and one deny stops the line.</sub>
