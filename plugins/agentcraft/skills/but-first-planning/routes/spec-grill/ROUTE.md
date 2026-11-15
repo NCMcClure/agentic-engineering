@@ -18,14 +18,14 @@ between decisions one by one. For every question, offer your recommended answer,
 Ask **one question at a time** and wait for the answer before continuing. If a
 question can be answered by reading the spec instead of asking, read the spec.
 
-This skill grills a spec and nothing else. For anything that is not a spec (a
+This route grills a spec and nothing else. For anything that is not a spec (a
 request, a task, a plan, a design not yet written down), use `grill`, the
 general alignment interview.
 
 The standing goal: every concept has one canonical name, every fork in the design
 has a recorded resolution, and no two spec files contradict each other.
 
-## What this skill operates on
+## What this route operates on
 
 - The spec under `.agents/plan/spec/`, the thing being grilled.
 - The glossary at `.agents/plan/spec/reference/glossary.md`, the canonical vocabulary. Format and discipline in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md).
@@ -67,7 +67,7 @@ cases expose the boundaries between concepts faster than abstract questions.
 
 ## Capture decisions inline, don't batch
 
-The value of this skill is that understanding gets *recorded* as it crystallises,
+The value of this route is that understanding gets *recorded* as it crystallises,
 not lost to the transcript.
 
 - **A term gets resolved?** Update `glossary.md` right then, in the format in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md). The glossary is a glossary, definitions only, no implementation detail, no design rationale.

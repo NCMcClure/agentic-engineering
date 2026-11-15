@@ -1,10 +1,6 @@
 ---
 name: audit
-description: >
-  Analyze existing text for AI-writing tells, report a verdict, and optionally
-  rewrite it in the user's voice. Use when the user runs /agentcraft:write-like-me audit,
-  asks "does this sound AI-written?", or wants a draft checked for AI tells.
-  (Fresh prose is the write-like-me skill's job.)
+description: "Analyze existing text for AI-writing tells, report a verdict, and optionally rewrite it in the person's voice. Use when the person asks for a text to be audited, asks whether it sounds AI-written, or wants a draft checked for AI tells. Fresh prose is the area's own job, not this route's."
 ---
 
 # Audit: Find the Tells

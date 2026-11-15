@@ -93,7 +93,7 @@ user which issues were created, with their references, and which sprint is
 now live. `node .agents/plan/plan/publish-issues.mjs status --sprint EE-SS`
 reads the tickets back if you want proof.
 
-## What this skill does not do
+## What this route does not do
 
 - It does not create, close, or edit a ticket for an epic or a sprint: only
   for issues. An epic is a label (GitLab) or a board field (GitHub).

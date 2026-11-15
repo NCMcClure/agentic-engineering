@@ -1,9 +1,6 @@
 ---
 name: review
-description: >
-  Show, prune, revert, or configure the user's writing profile and its
-  auto-refinement history. Use when the user runs /agentcraft:write-like-me review to see
-  what the learning loop changed, undo a revision, or pause learning.
+description: "Show, prune, revert, or configure the person's writing profile and its auto-refinement history. Use when the person asks to see what the learning loop changed, to undo a revision, or to pause learning."
 ---
 
 # Review: Inspect and Curate the Profile
@@ -13,7 +10,7 @@ description: >
 The profile (normally `~/.claude/rules/write-like-me.md`, or `$WLM_PROFILE`
 if set) is auto-loaded into every session, and the Stop hook auto-applies
 refinements as in-place revisions to its sections; the changelog in
-`${CLAUDE_PLUGIN_DATA}` is the only record of what was auto-applied. This
+the data directory (the one the write-like-me area names when it loads) is the only record of what was auto-applied. This
 skill is the human valve on that loop.
 
 ## Steps
@@ -21,7 +18,7 @@ skill is the human valve on that loop.
 1. **Show the current state.** Print the profile, run
    `node "W/scripts/wlm/profile-budget.mjs"` for the
    line count against the budget, then show the recent entries from
-   `${CLAUDE_PLUGIN_DATA}/changelog.md` so the user can see what was
+   `changelog.md` in the data directory so the user can see what was
    auto-applied and when. Flag any auto-applied revision that overwrote a
    calibrated line (the changelog records old → new).
 
@@ -35,10 +32,10 @@ skill is the human valve on that loop.
    - **Edit** — direct wording changes anywhere in the profile at the user's
      dictation.
    - **Pause/resume learning** — pause: create the empty file
-     `${CLAUDE_PLUGIN_DATA}/state/refine-disabled`; resume: delete it.
+     `state/refine-disabled` in the data directory; resume: delete it.
      Confirm which state it's now in.
-   - **Full rebuild** — that's `/agentcraft:write-like-me calibrate`; hand off rather
-     than reimplementing the interview here.
+   - **Full rebuild** — that is the `calibrate` route (`/agentcraft:write-like-me calibrate`). The person
+     asked for it, so read that route and follow it instead of reimplementing the interview here.
 
 3. **Write and log.** Any profile change gets a dated changelog entry
    (`## <date> (review)`) recording old → new. Review is complete when the

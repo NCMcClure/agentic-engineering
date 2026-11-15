@@ -11,7 +11,7 @@ A hub is a short `AGENTS.md` that lists a directory's direct children, one line 
 in `W/references/hubs.md`; read it before writing your first hub in a repository.
 
 Moving source files to make a directory hub-ready is a reorganisation. That, and deepening architecture, is the
-codebase-optimizer plugin's work; this skill verifies and writes the hubs.
+codebase-optimizer plugin's work; this route verifies and writes the hubs.
 
 ## Step 1: Verify
 
@@ -31,12 +31,12 @@ Exit 0 clean, 1 warnings, 2 critical. `--json` for scripts; `--exclude <prefix>`
 |---|---|
 | `HUB_ISOLATION` | Source files sit beside a hub. If the directory is a leaf, delete its hub (the parent's line covers it). Otherwise the files move into a sub-directory: a reorganisation, see above. |
 | `HUB_MISSING` | Write the hub: Step 3. |
-| `HUB_MIXED_DIR` | Report it. It takes a hub only after its loose files move down a level. A directory the owner decides stays mixed goes into `accept` of the config with its why (the `doctor` skill, Step 3). |
+| `HUB_MIXED_DIR` | Report it. It takes a hub only after its loose files move down a level. A directory the owner decides stays mixed goes into `accept` of the config with its why (the `doctor` route, Step 3). |
 | `HUB_STALE_CHILD` | The line names a child that is gone: fix the name or delete the line. |
 | `HUB_UNLISTED_CHILD` | Add the child's line: Step 3. In a git repository a child counts as named only by a bullet that opens with its path in a code span; prose, a table or a link does not name it. |
 | `HUB_SIZE` | Back to one line per direct child. Rules, commands and reasons move to the root file or to memory. |
-| `ROOT_SIZE` | The `doctor` skill slims the root. |
-| `HUB_ROOT_MISSING` | Setting the repository up writes the root: ask the person to run `/agentcraft:agent-works setup`. |
+| `ROOT_SIZE` | The `doctor` route slims the root. |
+| `HUB_ROOT_MISSING` | Setting the repository up writes the root. That is the `setup` route (`/agentcraft:agent-works setup`), the person's to start: ask them, and take it on their yes. |
 | `CLAUDE_CHAIN` | `aw twins`. A twin with content of its own: move the content into its `AGENTS.md` first. |
 
 A generated or data tree that follows its own layout is left out with the marker line the contract shows, in the

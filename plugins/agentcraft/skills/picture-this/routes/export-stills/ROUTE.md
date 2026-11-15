@@ -15,7 +15,7 @@ argument-hint: "<figure> [--strip] [--gif] [--beat <id>]"
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
 A figure's still is an exact frame of the live figure, taken in the studio at
-twice its size, once for a light page and once for a dark one. This skill
+twice its size, once for a light page and once for a dark one. This route
 takes them and hands back the Markdown that shows the right one. It also
 takes the two exports that show more than one frame: the beat strip and the
 looping GIF.
@@ -34,7 +34,7 @@ on their yes.
 
 The figure is one of the repo's (`<figures>/<name>/`, as `P init` recorded,
 or `.agents/picture-this/figures/<name>/` by default). To make a new one, use
-the **visualize** skill.
+the **visualize** route.
 
 ## 2. Look first
 

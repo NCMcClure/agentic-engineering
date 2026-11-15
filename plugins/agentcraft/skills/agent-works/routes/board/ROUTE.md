@@ -51,7 +51,7 @@ In a session the same cards are reachable through six tools, each one run of the
 | `owe "<title>" --ref R --needs N [--owner O] [--from-file F]` | A gate: a check this session cannot run, what it is owed for, and what running it needs. |
 | `settle <id> --evidence "<the command and its result>"` | Records the evidence on the gate and moves it to done. The only way a gate closes. |
 | `note <id> "<text>"` | A dated line under `## Notes`: where the card stands, or why it moved. It counts as a change, so it also quiets the card-sync reminder. |
-| `evidence [<ids>\|--scope in-flight\|backlog\|suggested]` | What git on this machine knows about each card's work. The `sync-cards` skill starts from it. |
+| `evidence [<ids>\|--scope in-flight\|backlog\|suggested]` | What git on this machine knows about each card's work. The `sync-cards` route starts from it. |
 | `abandon <id>` | Back to the backlog; the card's session, branch, worktree, request and push grant go. |
 | `remote status\|on\|off\|sync [--dry-run]` | Keep cards in step with GitHub (`gh`) or GitLab (`glab`) issues. Ask the person before `remote on`: `unlinked` in `remote status --json` is how many issues the first pass opens. |
 | `config [--start-mode new-session\|queue] [--parallel N]` | What starting a card does, and how many run side by side. |

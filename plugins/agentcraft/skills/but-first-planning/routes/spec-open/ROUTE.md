@@ -31,7 +31,8 @@ issue, refreshed as `plan-status.mjs` flips statuses. For local-tracker
 projects it is the issue board.
 
 Relay whatever the script prints. If it reports no spec site, the project is
-not scaffolded yet: ask the person to run `/agentcraft:but-first-planning spec-init`. If
+not scaffolded yet: that is the `spec-init` route (`/agentcraft:but-first-planning spec-init`),
+the person's to start, so ask them and take it on their yes. If
 the server never comes up, the docs toolchain is likely missing:
 `pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin`. On a remote or
 headless host the browser will not open: pass on the printed URL so the user

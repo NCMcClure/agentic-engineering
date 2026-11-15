@@ -1,13 +1,13 @@
 ---
 name: browser-setup
-description: Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro.
+description: Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board route's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro.
 ---
 
 # browser-setup
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-The live check in the miro-board skill runs a script in a Miro tab through chrome-devtools MCP. This plugin bundles that server as `miro-browser` (`.mcp.json` at the plugin root starts `scripts/miro-browser.mjs`). The server is pinned to one chrome-devtools-mcp version and gives Chrome its own profile under `~/.cache/system-map/`, so a Miro sign-in made there persists (a profile made under `~/.cache/marvelous-miro/`, the plugin's earlier name, stays the one in use). In `/mcp` it is listed as `plugin:agentcraft:miro-browser`. Any other chrome-devtools server works too, provided its browser is signed in to Miro.
+The live check in the miro-board route runs a script in a Miro tab through chrome-devtools MCP. This plugin bundles that server as `miro-browser` (`.mcp.json` at the plugin root starts `scripts/miro-browser.mjs`). The server is pinned to one chrome-devtools-mcp version and gives Chrome its own profile under `~/.cache/system-map/`, so a Miro sign-in made there persists (a profile made under `~/.cache/marvelous-miro/`, the plugin's earlier name, stays the one in use). In `/mcp` it is listed as `plugin:agentcraft:miro-browser`. Any other chrome-devtools server works too, provided its browser is signed in to Miro.
 
 `S` below is `W/routes/browser-setup/scripts`.
 
@@ -35,7 +35,7 @@ Find the surface first.
 
 Open the board from `miro/board.json` (or `https://miro.com/app/dashboard/`) with `new_page`. If Miro shows a sign-in page, ask the person to sign in in that Chrome window and wait for them. The profile keeps the session for every later check.
 
-*Done when: the board loads in the tab.* Then go back to the miro-board skill's Step 3.
+*Done when: the board loads in the tab.* Then go back to the miro-board route's Step 3.
 
 ## When it breaks
 

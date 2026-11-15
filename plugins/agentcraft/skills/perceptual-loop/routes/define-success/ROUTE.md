@@ -8,7 +8,7 @@ argument-hint: "<task in a sentence>"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-Most wasted iterations start without an answer to "what will prove this change?". This skill writes that answer down as a short file an agent can act on, **before** any change is made. It never sets a target against the reference (doctrine rule 5, `W/references/doctrine.md`).
+Most wasted iterations start without an answer to "what will prove this change?". This route writes that answer down as a short file an agent can act on, **before** any change is made. It never sets a target against the reference (doctrine rule 5, `W/references/doctrine.md`).
 
 ## Step 1: Triage, can it be measured?
 

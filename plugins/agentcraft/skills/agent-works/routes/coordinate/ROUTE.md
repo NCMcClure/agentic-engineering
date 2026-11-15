@@ -36,7 +36,7 @@ project's agents told each other (`--all` for every project).
 - **Lease** when you share: a training job, a long compile, a memory-heavy run. Others carry on, and see it.
 
 A resource the project's config declares with `"scope": "machine"` locks across every project; any other name
-locks within this project. Declaring a resource is the `guard` skill.
+locks within this project. Declaring a resource is the `guard` route.
 
 *Done when: each thing you are about to start is either a lock, a lease, or light enough to need neither.*
 
@@ -55,7 +55,7 @@ command's own exit code.
 - The command after `--` runs as a program with its arguments, never through a shell: a line with a pipe or
   `&&` is wrapped as `-- bash -c "<line>"`.
 - Several commands under one hold: `aw lock acquire <resource> …`, check that it exited 0, run them, then
-  `aw lock release <resource>`, also after a failure. The `resource-locks` skill has the detail.
+  `aw lock release <resource>`, also after a failure. The `resource-locks` route has the detail.
 - Two locks: in the order of the config's `lockOrder`; release in reverse.
 - "Running without a lock" is the owner's own instance, or a leftover. Wait or ask. Never kill it.
 
@@ -108,7 +108,7 @@ aw learn add --topic "<one line>" --tags <tool>,<platform> --from-file <file>
 
 Search before a fight with a tool. Add a lesson when it would be true in any repository on this machine: the
 fact, how it was established, how to apply it. Never a secret, a project's proprietary content or source code:
-every project on the machine reads it. A lesson about this project is the `memory` skill. A learning that stopped
+every project on the machine reads it. A lesson about this project is the `memory` route. A learning that stopped
 being true: `aw learn retire <id> --reason "…"`.
 
 *Done when: the lesson is in exactly one place, the shared learnings or the project's memory.*

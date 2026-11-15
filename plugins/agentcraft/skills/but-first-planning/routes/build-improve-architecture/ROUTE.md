@@ -33,7 +33,7 @@ Key principles (see [LANGUAGE.md](../spec-architect/LANGUAGE.md) for the full li
 - **The interface is the test surface.**
 - **One adapter = hypothetical seam. Two adapters = real seam.**
 
-This skill is _informed_ by the project's domain model. The domain language gives names to good seams; ADRs record decisions the skill should not re-litigate.
+This route is _informed_ by the project's domain model. The domain language gives names to good seams; ADRs record decisions the skill should not re-litigate.
 
 ## Process
 
@@ -72,7 +72,7 @@ End the report with a **Top recommendation** section: which candidate you'd tack
 
 **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007, but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
 
-See the canonical [HTML-REPORT.md](../spec-architect/HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance, its Framing section says how this skill's report differs from spec-architect's (title "Architecture review"; Files means source files).
+See the canonical [HTML-REPORT.md](../spec-architect/HTML-REPORT.md) for the full HTML scaffold, diagram patterns, and styling guidance, its Framing section says how this route's report differs from spec-architect's (title "Architecture review"; Files means source files).
 
 Do NOT propose interfaces yet. After the file is written, ask the user: "Which of these would you like to explore?"
 

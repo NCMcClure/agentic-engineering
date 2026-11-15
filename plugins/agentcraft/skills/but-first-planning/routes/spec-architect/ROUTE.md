@@ -41,7 +41,7 @@ Key principles (full list in [LANGUAGE.md](LANGUAGE.md)):
 - **The interface is the test surface.**
 - **One adapter = a hypothetical seam. Two adapters = a real one.**
 
-This skill is *informed* by the project's vocabulary: the glossary
+This route is *informed* by the project's vocabulary: the glossary
 (`.agents/plan/spec/reference/glossary.md`) names good seams; the ADRs
 (`.agents/plan/spec/reference/adr/`) record decisions you should not re-litigate.
 

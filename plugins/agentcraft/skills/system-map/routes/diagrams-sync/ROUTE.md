@@ -18,7 +18,7 @@ description: >
 
 The in-loop pass. The map is committed in the same change as the code it describes; the board follows it, in the same session when the Miro MCP is there, and otherwise as soon as someone runs this with it. For the whole repo rather than one change, run [the whole-repo sweep](#the-whole-repo-sweep) in place of steps 1 and 2.
 
-`MAP` below is `node "W/scripts/system-map.mjs"`. Run it from the repo root (or pass `--root <repo>`). The grammar is in [references/grammar.md](references/grammar.md). A repo with no `.agents/system-map.json` has no map yet: ask the person to run `/agentcraft:system-map diagrams-init`, which is theirs to run.
+`MAP` below is `node "W/scripts/system-map.mjs"`. Run it from the repo root (or pass `--root <repo>`). The grammar is in [references/grammar.md](references/grammar.md). A repo with no `.agents/system-map.json` has no map yet: the `diagrams-init` route (`/agentcraft:system-map diagrams-init`) makes one. It is the person's to start: ask them, and take it on their yes.
 
 ## Step 1: What moved
 
@@ -53,7 +53,7 @@ Read the diff of `diagrams/system-map.json`; it is what the reviewer reads. A re
 ## Step 3: Republish the board
 
 1. `MAP --can-publish`. If it refuses, publish nothing and say why: no board is recorded, or the config requires a classification label the board is not recorded as carrying. Either is the person's to settle; `/agentcraft:system-map diagrams-init` (Step 3) walks them through it.
-2. Run the miro-board skill's loop on the `system` view: build, publish the update, live check, pull.
+2. Run the miro-board route's loop on the `system` view: build, publish the update, live check, pull.
 3. `MAP --mark-published`, then commit `diagrams/` and the config together.
 
 Without the Miro MCP, stop after step 2 and say so: the map is committed and the check passes, and the board reports `BOARD_BEHIND` until someone publishes it.

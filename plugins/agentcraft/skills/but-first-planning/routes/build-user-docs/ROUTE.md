@@ -10,7 +10,7 @@ description: >
 
 The spec site under `.agents/plan/spec/` documents the *design* for the people building
 it. Nothing in the pipeline documents the *product* for the people who'll use
-it: how to install it, run it, and get something done with it. This skill
+it: how to install it, run it, and get something done with it. This route
 closes that gap: after `build-next-issue`'s verification confirms a sprint's
 work is genuinely done, it writes or refreshes the target project's end-user
 docs (README, `docs/`), so documentation grows sprint by sprint alongside the
@@ -19,7 +19,7 @@ code instead of being one rushed pass at the end.
 Most docs land earlier than this: `build-tdd` updates the pages and
 screenshots of a `User-facing: yes` issue in the same change (through
 `/agentcraft:docs-parity docs-sync` if docs-parity is installed, by hand otherwise).
-This skill is the **coherence pass** over the whole set after a sprint
+This route is the **coherence pass** over the whole set after a sprint
 verifies: it reads the managed pages as one document and fills what the
 per-issue passes could not see (a quickstart that now spans three features, a
 reference page). If docs-parity is installed it finishes with that plugin's
@@ -53,8 +53,8 @@ the docs correction rides the existing drift machinery like any other defect.
 
 ## What it reads
 
-- `.agents/plan/progress/docs.md`, this skill's own ledger and managed-files
-  manifest, created lazily on the first run. This skill owns the format; it is
+- `.agents/plan/progress/docs.md`, this route's own ledger and managed-files
+  manifest, created lazily on the first run. This route owns the format; it is
   defined in [DOCS-STATE.md](DOCS-STATE.md).
 - `.agents/plan/progress/completed/`, the verified-complete ledgers. The diff against
   `docs.md` is the work list: every verified issue not yet documented.
@@ -81,7 +81,7 @@ is edited or created until the user approves.
 
 Diff `.agents/plan/progress/completed/` against the sprints recorded in
 `.agents/plan/progress/docs.md`. The result is the verified-but-undocumented issue
-set. If it's empty, say so and stop, this skill is idempotent, and a no-op
+set. If it's empty, say so and stop, this route is idempotent, and a no-op
 run is a correct run. Sort the set user-first: issues whose `**User-facing**`
 line says `no - internal` need no docs, only a line in the report saying they
 were considered and excluded.
@@ -117,7 +117,7 @@ the report.
 
 Apply the ownership and coherence rules from [DOCS-STATE.md](DOCS-STATE.md):
 
-- Files this skill created (listed under `## Managed files` in `docs.md`) are
+- Files this route created (listed under `## Managed files` in `docs.md`) are
   **managed**: restructure them freely every pass so the doc set reads as a
   whole. Files it didn't create get **surgical section-level edits only**;
   a conflict with user-authored prose is reported, never overwritten.
@@ -165,7 +165,7 @@ pass; and the docs commit landed where the git posture says it should.
 
 ## Scope boundary
 
-This skill touches only the target project's documentation files and
+This route touches only the target project's documentation files and
 `.agents/plan/progress/docs.md`. It never flips a plan `Status:` field (the funnel
 owns those), never edits the spec (that's `spec-edit`), and never writes
 under `.agents/plan/spec/`, the spec site is design docs, and keeping the two

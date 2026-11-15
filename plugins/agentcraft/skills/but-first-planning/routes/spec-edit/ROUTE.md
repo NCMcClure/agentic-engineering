@@ -12,14 +12,14 @@ description: >
 
 Once a project has been specced, grilled, architected, and planned, change
 doesn't stop, requirements shift, a design assumption breaks, a new feature
-arrives. This skill is the front door for all of that. Its job is twofold:
+arrives. This route is the front door for all of that. Its job is twofold:
 **route** the change to the specialised skill that does the actual work, and
 **propagate** the consequences so the spec, the plan tree, and the tracker don't
 drift out of agreement.
 
 The danger after initial planning is silent drift: someone edits a spec file and
 the issues that realise it quietly become wrong, or a plan issue is rewritten and
-the published ticket no longer matches. This skill exists to make change
+the published ticket no longer matches. This route exists to make change
 deliberate and consistent across all three layers.
 
 ### 0. Enter plan mode
@@ -33,7 +33,7 @@ Before anything else, check for `.agents/plan/spec-comments.json`, the review qu
 spec site writes when someone highlights text and leaves a comment. If it exists,
 read it and filter to the entries with `"resolved": false`; each unresolved
 comment is a requested change. The comment's `specFile` names the spec page it
-sits on, so it is exactly the changed-spec-file input the rest of this skill runs
+sits on, so it is exactly the changed-spec-file input the rest of this route runs
 on: it drives **routing** (which owning skill below) and **propagation** (the
 spec-anchor grep in [SYNC.md](SYNC.md)). The `quote`/`body` say *what* on that
 page to change. (`specFile` is derived from the page URL; if it doesn't resolve
@@ -86,7 +86,7 @@ published vs unpublished ones, and how to keep anchors valid, is in
 
 ## Autonomous mode
 
-The propagation workflow above IS this skill's autonomous mode. **Converged
+The propagation workflow above IS this route's autonomous mode. **Converged
 when** both verifiers exit 0, every published ticket is synced, and no `re-cut`
 verdict is left unpropagated, the workflow returns `recutsNeedingSkill` with
 each re-cut's spec anchors so an autonomous caller can feed them straight into

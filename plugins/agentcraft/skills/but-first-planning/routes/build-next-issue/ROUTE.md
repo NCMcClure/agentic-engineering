@@ -11,7 +11,7 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-Keep the user from having to remember where things stand. This skill answers two
+Keep the user from having to remember where things stand. This route answers two
 questions, in order: **what is genuinely complete?** and **what should I build
 next?** It does the bookkeeping, reconciling the plan, the tracker, and git, and verifies that issues claimed "done" actually meet their acceptance criteria,
 so "done" means done, not merely closed.

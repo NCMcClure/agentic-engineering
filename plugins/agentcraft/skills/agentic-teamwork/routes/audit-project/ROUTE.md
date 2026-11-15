@@ -40,7 +40,7 @@ Three findings deserve a sentence rather than a line, because none has a mechani
 
 ## Step 3: Fix, only with `--fix`
 
-Only when the person asked for repairs in this conversation. When you reached for this skill on your own, report the findings and offer `--fix`; do not apply it. Each repair is shown before it is applied:
+Only when the person asked for repairs in this conversation. When you reached for this route on your own, report the findings and offer `--fix`; do not apply it. Each repair is shown before it is applied:
 
 | Finding | Fix |
 | --- | --- |

@@ -34,8 +34,8 @@ the code wins and you fix the memory.
 |---|---|
 | A lesson that cost time, a verified fact, a measurement, the reason behind something | a memory: Step 3 |
 | True on any project of this machine (a tool, a shell, a compiler, the operating system) | `aw learn add --topic "<line>" --tags a,b --from-file <file>` |
-| Work to do, a check to run later | a card: the `board` skill |
-| A choice that is hard to reverse, or a new term | the `decisions` skill |
+| Work to do, a check to run later | a card: the `board` route |
+| A choice that is hard to reverse, or a new term | the `decisions` route |
 | A rule every agent must follow | the root `AGENTS.md`, with the memory as its why |
 | What the code or the git log already says; what you did this session | nowhere |
 

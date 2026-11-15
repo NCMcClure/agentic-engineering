@@ -14,7 +14,7 @@ A project's Miro frames are code. Generators draw scenes; `build.mjs` turns them
 The tools come from two servers, and both are the person's own sessions:
 
 - **Miro MCP:** `canvas_create_from_svg`, `canvas_update_from_svg`, and `canvas_read_as_svg`. If it is missing, ask the person to connect it: the Miro connector, or `claude mcp add --transport http miro https://mcp.miro.com/`.
-- **Browser:** `list_pages`, `new_page`, and `evaluate_script`, from this plugin's `miro-browser` server or any chrome-devtools server whose browser is signed in to Miro. If they are missing, ask the person to run `/agentcraft:system-map browser-setup` before Step 3; it is theirs to run.
+- **Browser:** `list_pages`, `new_page`, and `evaluate_script`, from this plugin's `miro-browser` server or any chrome-devtools server whose browser is signed in to Miro. If they are missing, the `browser-setup` route (`/agentcraft:system-map browser-setup`) sets them up before Step 3. It is the person's to start: ask them, and take it on their yes.
 
 No script here takes a token, and nothing about the board's access is written to the repo: `miro/board.json` holds the board's URL and item ids, nothing else. Never type credentials into Miro, and never ask for them in chat. Publish only to the board the config names; create a board, or change who can see one, only when the person asks.
 

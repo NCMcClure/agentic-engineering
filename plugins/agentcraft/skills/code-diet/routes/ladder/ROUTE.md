@@ -14,7 +14,7 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-The discipline: price every line at generation time and stop climbing the moment a rung holds. The always-on form is the one ladder line in `hooks/critical.json`, which the session hook keeps in context; this skill is the full procedure.
+The discipline: price every line at generation time and stop climbing the moment a rung holds. The always-on form is the one ladder line in `hooks/critical.json`, which the session hook keeps in context; this route is the full procedure.
 
 ## Step 1: Understand first
 

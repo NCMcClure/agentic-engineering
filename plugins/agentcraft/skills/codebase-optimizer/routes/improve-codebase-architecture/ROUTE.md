@@ -33,7 +33,7 @@ The key principles (the **deletion test**, **the interface is the test
 surface**, and **one adapter = hypothetical seam, two = real seam**) are
 defined once, in [LANGUAGE.md](LANGUAGE.md); apply them by name.
 
-This skill is _informed_ by the project's domain model. The domain language gives names to good seams; decision records (ADRs) hold decisions the skill should not re-litigate.
+This route is _informed_ by the project's domain model. The domain language gives names to good seams; decision records (ADRs) hold decisions the skill should not re-litigate.
 
 **Where they live.** The glossary is `.agents/CONTEXT.md` and decision records are `.agents/decisions/NNNN-slug.md`; when `.agents/agent-works.json` exists, its `paths.glossary` and `paths.decisions` name the homes instead. Never `./docs` (that folder is for user-facing documentation) and never a `CONTEXT.md` at the repo root. Below, "the glossary" and "a decision record" mean these files.
 

@@ -43,7 +43,7 @@ Ground truth and examples:
 - **Never hand-edit `compiled.js` without regenerating the `@workflow-graph`
   sidecar** — a stale sidecar silently breaks round-tripping.
 - **When the user wants VISUAL editing**, do not do it by hand: launch the
-  studio via the **workflow-studio** skill instead.
+  studio via the **workflow-studio** area instead.
 - **Compilation is the studio's job.** `compile()` in `app/src/codegen.ts` is
   the only deterministic graph→js compiler; when byte-stable output matters,
   compile in the studio rather than hand-emulating codegen.

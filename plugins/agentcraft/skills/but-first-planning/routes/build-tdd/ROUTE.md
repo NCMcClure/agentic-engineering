@@ -8,13 +8,13 @@ description: >
 
 # build-tdd
 
-One plan issue, built test-first. This skill owns the half that is specific to
+One plan issue, built test-first. This route owns the half that is specific to
 a plan issue: where the tests come from, what counts as the gate, and how the
 funnel records the result.
 
 ## The loop
 
-**If agentic-teamwork is installed, the loop is its `tdd` skill**
+**If agentic-teamwork is installed, the loop is its `tdd` route**
 (`/agentcraft:agentic-teamwork tdd`): red, green, refactor, the repo's test lanes and
 their commands, what to mock and what to run for real, and the refactor
 candidates. Read that skill and run its loop; come back here for the

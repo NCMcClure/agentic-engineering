@@ -9,7 +9,7 @@ description: "Rewrite a README so it tells a person what the project is, why to 
 
 A README is the first thing a person reads to learn what a project is, why they would use it, and how. In a
 repo agents build, it grows into agent context: pasted prompts, rule restatements, build plumbing, and
-history. `readme-check.mjs` holds the line mechanically, and this skill does the rewrite that gets a README
+history. `readme-check.mjs` holds the line mechanically, and this route does the rewrite that gets a README
 past it without losing a sentence.
 
 ## Which READMEs

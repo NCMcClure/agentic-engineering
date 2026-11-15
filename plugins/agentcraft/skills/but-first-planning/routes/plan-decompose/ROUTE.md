@@ -150,7 +150,7 @@ is under way. If revising the spec later, `spec-edit` keeps the plan in sync.
 
 For a large spec (roughly **15+ content pages**), or when the user asks for a
 headless/comprehensive run, sketching the whole tree in prose stops being
-tractable. This skill bundles a deterministic multi-agent pipeline for exactly
+tractable. This route bundles a deterministic multi-agent pipeline for exactly
 that case: `workflows/build-plan-tree.js` assesses every spec page in parallel,
 has three lens-diverse architects propose competing epic shapes with a judge
 synthesizing the winner (this replaces the step-2/step-4 user quiz, say so when

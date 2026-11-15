@@ -52,7 +52,7 @@ wording intact, and quote in your report every passage you removed rather than m
 | Finding | Repair |
 |---|---|
 | `ROOT_SIZE`, `ROOT_STATUS_PROSE` | Slim the root `AGENTS.md`: keep what the project is, the repo map, the commands, and each rule in five lines. Move a rule's why to a decision or a memory and link it; status to the status memory and cards; a folder's detail to that folder's hub; generic contract text out (it is in `.agents/README.md`). |
-| `HUB_*` | The `hubs` skill. |
+| `HUB_*` | The `hubs` route. |
 | `STATUS_*`, `MEM_FILE_SIZE`, `MEM_FOLDER_OVER`, `MEM_HOOK_LONG` | Consolidation, in `W/references/memory.md`: split by topic, split the folder, rewrite the description, compact status to Goal, Current focus and Known issues. |
 | `MEM_SLUG_DUP`, `MEM_NAME_MISMATCH`, `MEM_ROOT_LOOSE`, `MEM_LINK_DANGLING` | Rename to `<date>-<slug>.md` with `git mv`, move into a category folder, fix or drop the link. |
 | `MEM_INDEX_HANDWRITTEN` (info) | Nothing is wrong: the index was written by hand, and `aw memory new` and `touch` change one line of it at a time. Converting is the owner's decision. To adopt: move what each list line says beyond its memory's `description` into that description (160 characters, `MEM_HOOK_LONG`) or the memory, then `aw memory index --adopt`, and read the diff. |
@@ -60,14 +60,14 @@ wording intact, and quote in your report every passage you removed rather than m
 | `MEM_SHARED_CANDIDATE` | If it holds on any project: `aw learn add`, then delete the memory or leave one line pointing at the learning. |
 | `DUP_RULE` | Choose the single home with `W/references/homes.md` (a rule: the root `AGENTS.md`). Keep that copy; replace the other with a link. If the copies disagree, ask the owner which is right. |
 | `DOCS_AGENT_FILE` | `git mv` the file or folder to the home the finding names, then `aw decisions index` and `aw links`, and fix every link and path the move broke (code comments too: search for the old path). |
-| `GLOSSARY_*`, `DEC_*` | The `decisions` skill. |
+| `GLOSSARY_*`, `DEC_*` | The `decisions` route. |
 | `LINK_BROKEN`, `PATH_MISSING` | Fix the link or the path. A path named before it exists goes into `links.planned` of the config; build output into `links.notChecked`. |
 | `KANBAN_OLD_FOLDER` | The session hook moves an old `.agents/board` by itself; where both folders exist, merge the old one's cards into `.agents/kanban` by hand and delete it. |
 | `KANBAN_UNTRACKED` | The config says the board is shared (`kanban.tracked`) and nothing of it is committed. Ask the owner: commit the folder, or take the key out for a local board. |
-| `TASKS_TWO_HOMES`, other `KANBAN_*`, `GATE_OWED_OLD` | The `board` skill. |
+| `TASKS_TWO_HOMES`, other `KANBAN_*`, `GATE_OWED_OLD` | The `board` route. |
 | `BRIEF_UNTRACKED`, `BRIEF_SIZE` | Track the brief; move rules that bind beyond a round into the root `AGENTS.md` and link them. |
 | `BRIEF_STRAY` (a file named like a brief or a hand-over outside `.agents/briefs/`, often in a git-ignored scratch folder) | Read it. Move what holds for every round into `.agents/briefs/common.md`, and each lasting fact to its home: a rule to the root `AGENTS.md`, a lesson to memory, a task to a card, a ruling to a decision. Then delete the file, and quote in your report what you dropped. A file that is no brief: rename it, or narrow `briefs.stray` in the config. |
-| `CONFIG_INVALID` | The `guard` skill. |
+| `CONFIG_INVALID` | The `guard` route. |
 
 ### Accepting a finding instead of repairing it
 

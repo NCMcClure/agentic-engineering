@@ -10,7 +10,7 @@ argument-hint: "[in-flight|backlog|suggested] [card ids]"
 
 The card-sync hook keeps the card a session is working in step as it works. What it cannot see goes stale anyway:
 a pull or merge request merged from another machine, a child session that ended without moving its card, a
-backlog card someone built by hand, a suggestion whose problem was fixed in passing. This skill checks one scope
+backlog card someone built by hand, a suggestion whose problem was fixed in passing. This route checks one scope
 of the board against the work and brings it level. `aw board` below is
 `node "W/scripts/aw.mjs" board`.
 

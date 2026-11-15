@@ -1,9 +1,6 @@
 ---
 name: calibrate
-description: >
-  Build or rebuild the user's writing voice profile through sample analysis
-  and a short interview. Use when the user runs /agentcraft:write-like-me calibrate: the
-  plugin's one-time setup, and the full rebuild when the profile has drifted.
+description: "Build or rebuild the person's writing voice profile through sample analysis and a short interview. Use when the person asks to calibrate their voice: the one-time setup, and the full rebuild when the profile has drifted."
 ---
 
 # Calibrate: Build the Voice Profile
@@ -22,13 +19,13 @@ captures five true things beats one that catalogs twenty.
 
 1. **Check for an existing profile.** If the profile file
    exists, read it and tell the user you'll update rather than start over.
-   `${CLAUDE_PLUGIN_DATA}/changelog.md` records which lines were auto-revised
+   `changelog.md` in the data directory (the one the write-like-me area names when it loads) records which lines were auto-revised
    from observed feedback — carry those preferences forward unless the user
    drops them.
 
 2. **Gather 2–4 writing samples.** Ask for prose the user actually wrote —
    pasted text or file paths (emails, docs, posts; a few hundred words total
-   is enough). Copy each into `${CLAUDE_PLUGIN_DATA}/samples/` (create dirs as
+   is enough). Copy each into `samples/` in the data directory (create dirs as
    needed) so future recalibrations can reuse them. If the user has no samples
    handy, proceed on interview alone and say the profile will sharpen once
    they add some.
@@ -62,7 +59,7 @@ captures five true things beats one that catalogs twenty.
 
 6. **Show the user the full draft and iterate** until they approve it. Then
    write it to the profile path and append a dated entry to
-   `${CLAUDE_PLUGIN_DATA}/changelog.md` noting calibration (created or
+   `changelog.md` in the data directory, noting calibration (created or
    rebuilt, and what changed).
 
 Calibration is complete when the approved profile is on disk, the changelog

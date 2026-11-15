@@ -11,7 +11,7 @@ argument-hint: "<plugin idea | existing dir to wrap> [--dir <parent>] [--bar <co
 Author one new plugin, then prove it: the same rubric that scores plugins is
 the spec you write against, and the same scanner that grades them is the
 referee that says you're done. Core dir below means
-`W/core`; this skill's dir means
+`W/core`; this route's dir means
 `W/routes/create-plugin`.
 
 **Safety rule:** never scaffold into a directory that already contains a
@@ -79,7 +79,7 @@ treats a file without markers as authored and protects it.
 
 ## Step 4: Self-eval loop
 
-Score what you built, with the same tools the evaluate-plugin skill uses:
+Score what you built, with the same tools the evaluate-plugin route uses:
 
 1. `node "W/core/scripts/plugin-scan.mjs" <target-dir> > scan.json`
 2. Grade every applicable judgment check per the grading contract at the end

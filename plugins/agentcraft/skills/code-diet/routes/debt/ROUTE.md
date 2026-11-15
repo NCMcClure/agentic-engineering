@@ -1,6 +1,6 @@
 ---
 name: debt
-description: "Inventory every `debt:` marker in the repo with scripts/debt.mjs, judge whether each deferral still holds, and flag trigger-less markers as rot risk. Use when auditing shortcuts already in the tree, before a release, or when the user asks what debt this repo carries; the ladder skill is what writes new markers."
+description: "Inventory every `debt:` marker in the repo with scripts/debt.mjs, judge whether each deferral still holds, and flag trigger-less markers as rot risk. Use when auditing shortcuts already in the tree, before a release, or when the user asks what debt this repo carries; the ladder route is what writes new markers."
 argument-hint: "[--write <file>]"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[--write <file>]"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-A `debt:` marker records a deliberate shortcut: `debt: <ceiling>, <trigger>`. The ceiling is the limit the code accepts, the trigger is the observable condition that should make someone upgrade past it. This skill inventories every marker, then judges each: does the deferral still hold, has its trigger tripped, or is it rotting toward permanent?
+A `debt:` marker records a deliberate shortcut: `debt: <ceiling>, <trigger>`. The ceiling is the limit the code accepts, the trigger is the observable condition that should make someone upgrade past it. This route inventories every marker, then judges each: does the deferral still hold, has its trigger tripped, or is it rotting toward permanent?
 
 The scan and every count live in `scripts/debt.mjs`, the single home of the grammar. Never grep for markers yourself and never recount in prose. Judgment is the only thing asked of you here.
 
@@ -48,4 +48,4 @@ Confirm the ledger path when `--write` was used. Zero markers reports: `No debt 
 
 ## Where markers come from
 
-The ladder skill's step 4 writes them, in this same shape. The plugin's edit hook (`hooks/debt-nudge.mjs`) reads the same grammar at edit time and nudges on a marker with no trigger, before it ever reaches this audit.
+The ladder route's step 4 writes them, in this same shape. The plugin's edit hook (`hooks/debt-nudge.mjs`) reads the same grammar at edit time and nudges on a marker with no trigger, before it ever reaches this audit.

@@ -15,7 +15,7 @@ Setting the map up makes the code the source of the repo's system diagram. Inves
 ## Step 0: What it needs
 
 - **The Miro MCP** (`board_search_boards`, `board_create`, `canvas_create_from_svg`, `canvas_read_as_svg`), connected by the person: the Miro connector, or `claude mcp add --transport http miro https://mcp.miro.com/`.
-- **The browser the live check drives**, signed in to Miro. If `list_pages` is not an available tool, ask the person to run `/agentcraft:system-map browser-setup`.
+- **The browser the live check drives**, signed in to Miro. If `list_pages` is not an available tool, the `browser-setup` route (`/agentcraft:system-map browser-setup`) sets it up. It is the person's to start: ask them, and take it on their yes.
 
 Without either, Steps 1 and 2 still give the repo its map and its check; say that the board waits, and stop after Step 2.
 
@@ -59,7 +59,7 @@ If their boards must carry a classification label before anything lands on them,
 
 ## Step 4: Draw and publish the first frame
 
-1. Follow the miro-board skill's Step 0 to initialize `diagrams/` against the board URL, then replace its example view in `diagrams/miro.config.mjs` with one view, `{ key: "system", title: "<the map's title>", gen: "./src/gen-system.mjs" }`, and delete `src/gen-example.mjs`.
+1. Follow the miro-board route's Step 0 to initialize `diagrams/` against the board URL, then replace its example view in `diagrams/miro.config.mjs` with one view, `{ key: "system", title: "<the map's title>", gen: "./src/gen-system.mjs" }`, and delete `src/gen-example.mjs`.
 2. Copy `W/routes/diagrams-init/assets/gen-system.mjs` to `diagrams/src/gen-system.mjs`. It is one line: the build hands it the drawing.
 3. Run `MAP --can-publish` again, then the miro-board loop: build, publish, live check, pull.
 4. `MAP --mark-published`.

@@ -43,7 +43,7 @@ branch>` to keep a place across calls.
 A resource the config declares with `"scope": "machine"`, and the built-in `gpu` and `gpu-exclusive`, lock across
 every repository on this machine. Any other name locks within this repository and all its worktrees, so the same
 name in two repositories is two locks. A port, a simulator and a GPU belong to the machine: declare them in
-`resources` of `.agents/agent-works.json` (the `guard` skill, Step 2). A name the config does not declare still
+`resources` of `.agents/agent-works.json` (the `guard` route, Step 2). A name the config does not declare still
 locks, for this repository, with a warning.
 
 ## Hold it across commands
@@ -79,4 +79,4 @@ a warning, because two sessions taking one pair in opposite orders wait on each 
 Where the config declares the commands that start a resource (`resources.<name>.match`), the guard notices such a
 command run outside its lock. It warns by default; `"guard": { "locks": "deny" }` makes it refuse. Sharing rather
 than excluding (a training job on a GPU others still use), timing runs, and notes to other sessions are the
-`coordinate` skill.
+`coordinate` route.

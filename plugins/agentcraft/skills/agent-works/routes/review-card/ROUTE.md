@@ -8,7 +8,7 @@ argument-hint: "<card id>"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-A child's "passed" is a claim until checked, and a merge is the one step that cannot be taken back. This skill is
+A child's "passed" is a claim until checked, and a merge is the one step that cannot be taken back. This route is
 the check, then the landing. `aw board` below is `node "W/scripts/aw.mjs" board`.
 
 ## Step 1: Read the report and the card

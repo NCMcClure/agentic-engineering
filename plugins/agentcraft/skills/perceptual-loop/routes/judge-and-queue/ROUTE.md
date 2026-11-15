@@ -7,7 +7,7 @@ description: "Use when a difference in a picture needs a verdict, a finished loo
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-The agent decides defects, the owner decides taste, and nobody decides either with a bare metric. This skill gives each difference a verdict with its evidence, gets a second look from a critic who does not know what you meant, and batches the owner's questions into one page, so the owner rules on ten questions in one sitting instead of being interrupted ten times.
+The agent decides defects, the owner decides taste, and nobody decides either with a bare metric. This route gives each difference a verdict with its evidence, gets a second look from a critic who does not know what you meant, and batches the owner's questions into one page, so the owner rules on ten questions in one sitting instead of being interrupted ten times.
 
 `P` below is `node "W/scripts/pl.mjs"`. The verdicts are the table in `W/references/doctrine.md` rule 2, and only there.
 

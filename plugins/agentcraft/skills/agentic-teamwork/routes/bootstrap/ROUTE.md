@@ -47,7 +47,7 @@ From the next session on, the working rules arrive from the plugin's session hoo
 
 ## Step 4: The forge, when the person asks
 
-Never push on your own. This skill creates no remote repository: the person makes one (the forge's site, or its CLI) and adds it as `origin`. Then:
+Never push on your own. This route creates no remote repository: the person makes one (the forge's site, or its CLI) and adds it as `origin`. Then:
 
 - If no CI gate was written because the forge was not known, run `init-project.mjs --upgrade` again; it reads the forge off the remote.
 - `/agentcraft:agentic-teamwork ship` pushes the branch, after asking, and opens the change request.

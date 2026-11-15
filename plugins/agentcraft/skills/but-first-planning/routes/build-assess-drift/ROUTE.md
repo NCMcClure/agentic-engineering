@@ -14,7 +14,7 @@ description: >
 `build-next-issue` *records* cross-cutting problems as drift files under
 `.agents/plan/progress/drift/`, but nothing ever re-checks them. A noted defect may already
 be fixed; a smell may have moved when the code was refactored; a checkpoint bug may
-still be biting every run. This skill closes that loop: it re-derives each open
+still be biting every run. This route closes that loop: it re-derives each open
 drift item's relevance **from the live code**, plans how to fix the ones that
 survive, and turns them into grabbable tracker issues that point the implementer at
 the right skill.
@@ -28,7 +28,7 @@ build those issues.
 
 - `.agents/plan/progress/drift-status.mjs`, the read-only index of every drift item
   (`id / status / kind / where / route / file`). Run it to triage *which* files to
-  open, instead of reading the whole `drift/` directory up front. This skill
+  open, instead of reading the whole `drift/` directory up front. This route
   *consumes and advances* the drift-file format owned by `build-next-issue`; it does
   not redefine it.
 - `.agents/plan/progress/drift/drift-*.md`, the individual write-ups, read only for the
@@ -176,6 +176,6 @@ becoming a different, unverified run.
 
 ## Scope boundary
 
-The one non-obvious edge: this skill touches only drift `status:` fields (and
+The one non-obvious edge: this route touches only drift `status:` fields (and
 the issues it opens), never the plan tree's `Status:` fields, the spec, or the
 plan itself. Everything else it hands off is stated where it happens above.

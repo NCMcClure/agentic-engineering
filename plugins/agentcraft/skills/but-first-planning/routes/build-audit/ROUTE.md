@@ -15,7 +15,7 @@ A completed plan tree proves the plan was built; it says nothing about what the
 plan never contained. Spec promises can ship unreachable from any entrypoint,
 first-run UX can be a dead end no issue ever covered, test suites can be green
 yet toy-sized, benchmarks and end-user docs can simply never have been cut as
-issues. This skill runs a full-corpus audit *after* the build: it maps every
+issues. This route runs a full-corpus audit *after* the build: it maps every
 promise the spec makes, hunts gaps across independent dimensions, adversarially
 verifies each finding against the live code, and turns the survivors into one
 new epic in the plan tree, ready for `plan-publish`-style publishing

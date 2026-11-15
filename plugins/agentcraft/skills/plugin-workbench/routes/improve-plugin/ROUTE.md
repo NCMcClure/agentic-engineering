@@ -49,7 +49,7 @@ still matches scan.json's `applicable_judgment_checks`, reuse it; otherwise
 grade it yourself, the way Steps 3–4 of
 [../evaluate-plugin/ROUTE.md](../evaluate-plugin/ROUTE.md) grade. Read that
 file; do not call the skill. Only a person starts it, the host refuses a call
-on it, and these grades are this skill's own baseline. For a target past ~15
+on it, and these grades are this route's own baseline. For a target past ~15
 skills, grading inline grinds: stop, offer the person its autonomous mode, and
 take its output dir as `--report`. Either way, finish with `--score`:
 

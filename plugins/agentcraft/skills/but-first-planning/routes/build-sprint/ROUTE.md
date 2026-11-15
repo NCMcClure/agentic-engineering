@@ -12,7 +12,7 @@ description: >
 
 `build-next-issue` says *what* to build, it hands back a dispatch plan:
 the parallel-safe frontier, the true dependency DAG, the HITL gates, the
-checkpoint health. This skill **runs the builders that build it**. It is the
+checkpoint health. This route **runs the builders that build it**. It is the
 build-phase orchestrator: one coordinator drives a sprint to completion by fanning
 ephemeral builder subagents out across the frontier, integrating their work onto a
 sprint branch, and stopping at the human gates.
@@ -30,7 +30,7 @@ approves the cadence, then build.
 
 ## Which route builds the sprint
 
-This skill builds a sprint inside one session and lands it as one pull or
+This route builds a sprint inside one session and lands it as one pull or
 merge request. If agent-works is installed, its board is the other route: each
 issue is a card built by its own session in its own git worktree, running
 `build-tdd`, and lands as its own change request, so isolation is real by

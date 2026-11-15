@@ -82,8 +82,8 @@ phases stay sequential, the parent owns the branch and every commit, validation
 is the repo's own commands rather than a judgement, and an extraction is not
 landed until somebody who did not make it re-runs the checkpoint.
 
-Invoke the bundled dynamic Workflow, resolving all bundled paths via
-`${CLAUDE_PLUGIN_ROOT}`. Pass the absolute repo path and today's date (the workflow
+Invoke the bundled dynamic Workflow, with `W` written out as an absolute path.
+Pass the absolute repo path and today's date (the workflow
 sandbox has no clock):
 
 ```

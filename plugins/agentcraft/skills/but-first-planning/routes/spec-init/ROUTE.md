@@ -37,7 +37,7 @@ emitted path resolves against the repo that actually holds `.agents/plan/`.
 
 `.agents/` is the home of everything agent-facing in a repo, and it may
 already exist (other plugins keep their own files there). Add `plan/` beside
-what is there and touch nothing else in it. Nothing this skill scaffolds goes
+what is there and touch nothing else in it. Nothing this route scaffolds goes
 into `./docs`: that folder is for end-user documentation.
 
 ## When NOT to scaffold
@@ -69,7 +69,7 @@ Two re-runs touch one thing each and are safe to repeat:
 - **Reconfiguring the tracker**: replace only `tracker.md` with another stub.
 
 A workspace this plugin scaffolded before 5.0 (a `.plan/` folder, or Python
-scripts under `.agents/plan/`) needs nothing from this skill: the plugin's
+scripts under `.agents/plan/`) needs nothing from this route: the plugin's
 session hook moves it to the current layout and says what it moved.
 
 ## Process
@@ -325,8 +325,8 @@ reason; it only confirms the funnel runs and roots itself correctly.
 If the user wants to see the site, give them the install and serve commands
 (they are in `.agents/plan/README.md`):
 `pip install mkdocs mkdocs-shadcn mkdocs-awesome-pages-plugin` (or the `uv`
-equivalent), then ask the person to run `/agentcraft:but-first-planning spec-open`,
-which serves the site with inline comments and the live Plan page on one
+equivalent), and offer the `spec-open` route (`/agentcraft:but-first-planning spec-open`),
+theirs to start, which serves the site with inline comments and the live Plan page on one
 port. Do not install doc
 dependencies unless asked. Plain `mkdocs serve -f .agents/plan/mkdocs.yml`
 gives a read-only view: comments then fall back to browser localStorage, and

@@ -4,7 +4,7 @@ description: "Show what entered an agent's context window, when, and from which 
 argument-hint: "[report|serve] [session id or transcript path]"
 ---
 
-# context-lens
+# lens
 
 A plugin's hooks are invisible from both ends. The person never sees a
 SessionStart briefing, and the agent cannot tell which of its context came from
@@ -12,9 +12,7 @@ which plugin, which of it reached the person instead, or what came back after a
 compaction. Claude Code records all of it in the session transcript, and this
 reads it back.
 
-`S` below is this skill's `scripts/` directory, under the base directory the
-loader prints when the skill loads (in Claude Code,
-`${CLAUDE_PLUGIN_ROOT}`). Node 22, no dependencies.
+`S` below is `../../scripts` from the directory this file is in: the area's scripts. Write it out as an absolute path wherever a command says `S`. Node 22, no dependencies.
 
 ## What is true and what is estimated
 
@@ -41,10 +39,10 @@ loader prints when the skill loads (in Claude Code,
 ## Step 1: read it yourself
 
 ```bash
-node S/context-lens.mjs report                 # the newest session in this directory: this one
-node S/context-lens.mjs report <session-id>     # or a transcript path
-node S/context-lens.mjs report --all            # every kind of context, not only the focus plugins
-node S/context-lens.mjs list                    # recent sessions on this machine
+node "S/context-lens.mjs" report                 # the newest session in this directory: this one
+node "S/context-lens.mjs" report <session-id>     # or a transcript path
+node "S/context-lens.mjs" report --all            # every kind of context, not only the focus plugins
+node "S/context-lens.mjs" list                    # recent sessions on this machine
 ```
 
 The default lens is the `agentic-engineering` catalog's plugins (`--focus
@@ -67,7 +65,7 @@ given and by whom, rather than from the plugin's source.*
 ## Step 2: show the person
 
 ```bash
-node S/context-lens.mjs serve --port 4646
+node "S/context-lens.mjs" serve --port 4646
 ```
 
 Serves `http://127.0.0.1:4646`: the session list (subagents nested under their

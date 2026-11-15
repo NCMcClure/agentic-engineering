@@ -75,12 +75,12 @@ the folder is not the project's name, set `"name"` in the config and run `aw set
 - A new root `AGENTS.md` has four placeholders in angle brackets: what the project is, the repo map, the
   commands, the rules. Fill them from the code and the README. 200 lines at most.
 - The status memory's Goal, from the owner.
-- Hubs for the non-leaf code directories: the `hubs` skill.
+- Hubs for the non-leaf code directories: the `hubs` route.
 - An existing root `AGENTS.md` is not rewritten here, except for one marked section, § Agent plugins, which
   `--apply` puts in or brings up to date: which plugins the project works with, what each is for and when to open
   each skill. Every session and sub-agent loads the root file, so this is what primes them. The list is `plugins`
   in the config; ask the owner which of the three the project uses if that is not plain. Slimming the rest is the
-  `doctor` skill.
+  `doctor` route.
 
 *Done when: no `<…>` placeholder is left in the root `AGENTS.md` or the status memory.*
 
@@ -106,6 +106,6 @@ aw doctor --baseline
 It records today's sizes and finding counts; later runs print what moved. Commit the set-up (everything under
 `.agents/`, the root `AGENTS.md`, `.gitignore`, staged by path) on a branch and take it through the project's
 cadence without waiting for approval, unless the owner asked to approve a step. Report the counts. Findings on
-an adopted repository are the `doctor` skill's work, not a failure of setup.
+an adopted repository are the `doctor` route's work, not a failure of setup.
 
 *Done when: the baseline is written, and the set-up is committed, and the owner has the finding counts.*

@@ -16,7 +16,7 @@ markdown. You are writing **what the system is and how it behaves**, not code.
 The deliverable is a knowledge base, not one long document: many small, self-
 contained files, each findable by its frontmatter and reachable by navigation.
 
-If `.agents/plan/` doesn't exist, stop: ask the person to run `/agentcraft:but-first-planning spec-init` first.
+If `.agents/plan/` doesn't exist, stop: the `spec-init` route (`/agentcraft:but-first-planning spec-init`) scaffolds it and is the person's to start. Ask them, and take it on their yes first.
 
 ## The mental model: five-level progressive disclosure
 

@@ -13,11 +13,11 @@ or subagents fanned out inside one session where nobody can open, steer, or revi
 child session in its own git worktree, the person approves each parallel set before it starts, and this session
 reviews and lands each request. The board holds the round, so a compaction or a restart loses nothing.
 
-`aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` skill has every action
+`aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` route has every action
 of `aw board`.
 
 Deciding what to build and breaking a spec into a backlog is planning (but-first-planning, where it is installed).
-This skill is who works where, on what, with which rules, and what comes back.
+This route is who works where, on what, with which rules, and what comes back.
 
 ## The rules of the round
 
@@ -125,7 +125,7 @@ nothing else is. Where this host can start no session and the person no terminal
 Answer a child that reports `blocked`, or ask the person for it. Offer the person each card a child filed with
 `--suggest`. `aw status`, `aw who` and `aw notes` show the board, who holds which lock, who claims which counter,
 and what the agents told each other; relay nothing by hand that a note already says. Scarce resources are
-`/agentcraft:agent-works resource-locks`; leases, timing runs and shared counters are the `coordinate` skill.
+`/agentcraft:agent-works resource-locks`; leases, timing runs and shared counters are the `coordinate` route.
 
 ## Step 6: Review and land
 
@@ -149,7 +149,7 @@ that fails becomes a card for the task that caused it.
   every lock and lease is free (`aw lock status`, `aw leases`); `git config --get-regexp agentic-engineering-push`
   shows no grant for a finished card.
 - Rulings the person made that bind later work are decision records or rules in `AGENTS.md`; what the round
-  learned goes into memory (the `memory` skill), not into the next brief. A round's brief is the record once the
+  learned goes into memory (the `memory` route), not into the next brief. A round's brief is the record once the
   round closes, not a place the next round reads rules from.
 - Merged worktrees and branches are removed, with the person's yes.
 - Your report to the person: per card the verdict, what was verified and by whom, the gates settled and still

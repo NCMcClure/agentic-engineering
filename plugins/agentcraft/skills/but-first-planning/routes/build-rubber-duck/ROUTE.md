@@ -28,7 +28,7 @@ the spec disagree, surface it, that gap is often the real source of the stuck.
 
 ## Stay ephemeral
 
-This skill is for *thinking*, not bookkeeping. It does **not** update the
+This route is for *thinking*, not bookkeeping. It does **not** update the
 glossary, write ADRs, or edit the spec, that's the job of `spec-grill`
 (for the spec) and `spec-edit` (for changes). If the conversation surfaces a
 genuine, load-bearing design decision or a spec contradiction, say so and point

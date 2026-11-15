@@ -10,7 +10,7 @@ description: >
 # grill: agree on the work before anyone builds it
 
 A request nobody pinned down comes back as the wrong thing, and a session
-working alone cannot ask. This skill pins it down first, by interview, and
+working alone cannot ask. This route pins it down first, by interview, and
 leaves a brief short enough to read and exact enough to check.
 
 ## Method

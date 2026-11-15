@@ -45,7 +45,7 @@ recipe.
 - **Target, only when nothing exists.** Default to a `docs/` folder of markdown with an index page; a site
   only when the user wants one, a wiki only when the team already reads one.
 - **The README check.** Off unless asked for. With a `readme` block in the config, the Stop hook also holds
-  a README the turn changed to 800 words and standard-readme's sections (the `readme` skill has the rules).
+  a README the turn changed to 800 words and standard-readme's sections (the `readme` route has the rules).
 - **CI.** Whether the pipeline should run the checker; it needs a copy in the repo (Step 3).
 
 ## Step 3: Propose, then write

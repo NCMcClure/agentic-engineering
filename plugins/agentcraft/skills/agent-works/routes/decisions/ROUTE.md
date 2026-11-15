@@ -17,7 +17,7 @@ the project's users. The contract is `W/references/decisions.md`.
 
 Write a record when at least one holds: the choice is **hard to reverse**; it is **surprising without context**
 (a later reader would "fix" it); it was a **real trade-off**. Otherwise it is a commit message, or a memory of
-type `decision` (the `memory` skill).
+type `decision` (the `memory` route).
 
 Read `.agents/decisions/README.md` first: a record on the subject may exist. That index is generated when it
 carries the marker of `aw decisions index`; one written by hand is kept as it is (`DEC_INDEX_HANDWRITTEN`), and
