@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BoardError, boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
-import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, defaultBranch, grantText, renderBrief } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
+import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, areaForm, defaultBranch, grantText, renderBrief } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
 import { conflictConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
 
 const CLI = { board: 'node "/opt/plugin/scripts/aw.mjs" board', lock: 'node "/opt/plugin/scripts/aw.mjs" lock' };
@@ -18,6 +18,8 @@ const card = (id, over = {}) => ({
   ...over,
 });
 const board = (cards) => ({ ...boardConfig(), cards });
+/** A skill as a card named it when each area was a plugin of its own; with no route, the skill that carried the plugin's name. Built from its parts, so this file prints no address that is no longer one. */
+const was = (area, route = area) => `${area}:${route}`;
 const brief = (c, cards, extra = {}) => renderBrief(TEMPLATE, {
   card: c, board: board(cards), config: conflictConfig(), cli: CLI, cardPath: `/repo/.agents/kanban/${c.file}`, base: "main", ...extra,
 });
@@ -78,7 +80,7 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
     acceptance: [{ done: false, text: "`--max` takes a number" }, { done: true, text: "`--ids` takes a list" }],
   });
   const text = brief(c, [c], { cardPath: "/repo/.agents/kanban/plan-01-02-03.md", planRef: "origin/main" });
-  assert.match(text, /`\/but-first-planning:build-tdd`/);
+  assert.match(text, /Build it with `\/agentcraft:but-first-planning build-tdd`, which flips the issue to done/);
   assert.match(text, /- \[ \] `--max` takes a number\n- \[ \] `--ids` takes a list\n- \[ \] the issue's testing checkpoint exits 0/);
   assert.match(text, /\.agents\/plan\/plan\/01-cli\/02-flags\/issues\/03_issue_PARSE-FLAGS\.md/);
   assert.match(text, /~~~~markdown\n# Parse the flags\n/);
@@ -86,11 +88,46 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
 });
 
 test("a task judged by eye or ear loads perceptual-loop first, and a card's own skills are named", () => {
-  const c = card("0007", { files: ["src/"], labels: ["look"], skills: ["docs-parity:docs-shots"] });
+  const c = card("0007", { files: ["src/"], labels: ["look"], skills: [was("docs-parity", "docs-shots")] });
   const text = brief(c, [c]);
-  assert.match(text, /judged by eye or ear: if the perceptual-loop plugin is installed, load `\/perceptual-loop:iterate-shots` before the first test/);
-  assert.match(text, /Load first: `\/docs-parity:docs-shots`\./);
+  assert.match(text, /judged by eye or ear: load `\/agentcraft:perceptual-loop iterate-shots` before the first test/);
+  assert.match(text, /Load first: `\/agentcraft:docs-parity docs-shots`\./);
   assert.doesNotMatch(brief(card("0008", { files: ["src/"] }), []), /perceptual-loop/);
+  // A card that names the area's skill, in either form, is judged by eye or ear too, and the skill is not named twice.
+  for (const skill of [was("perceptual-loop", "iterate-shots"), "agentcraft:perceptual-loop iterate-shots"]) {
+    const named = brief(card("0009", { files: ["src/"], skills: [skill] }), []);
+    assert.match(named, /load `\/agentcraft:perceptual-loop iterate-shots` before the first test/, skill);
+    assert.doesNotMatch(named, /Load first/, skill);
+  }
+});
+
+// A card is a file outside git that outlasts a release, so its skills may be
+// written the way they were when each area was a plugin of its own.
+test("a card's skill is named by the area and its route, however the card wrote it", () => {
+  const forms = [
+    // As a plugin's own skill, before the areas moved into one plugin.
+    [was("docs-parity", "docs-shots"), "/agentcraft:docs-parity docs-shots"],
+    [`/${was("code-diet", "ladder")}`, "/agentcraft:code-diet ladder"],
+    [was("agent-works", "board"), "/agentcraft:agent-works board"],
+    [was("but-first-planning", "build-tdd"), "/agentcraft:but-first-planning build-tdd"],
+    // The skill that carried its plugin's name is the area itself.
+    [was("picture-this"), "/agentcraft:picture-this"],
+    [was("write-like-me"), "/agentcraft:write-like-me"],
+    // Today's form, with and without its slash, and with what follows the route.
+    ["agentcraft:docs-parity docs-shots", "/agentcraft:docs-parity docs-shots"],
+    ["/agentcraft:agent-works dispatch 0007 --serial", "/agentcraft:agent-works dispatch 0007 --serial"],
+    ["agentcraft:agentic-teamwork", "/agentcraft:agentic-teamwork"],
+    ["agentcraft:start-here", "/agentcraft:start-here"],
+    // Another plugin's skill, and a skill of no plugin, are left as written.
+    ["acme-tools:planning grill", "/acme-tools:planning grill"],
+    ["power-automate:debug-flow", "/power-automate:debug-flow"],
+    ["/simplify", "/simplify"],
+    ["code-review", "/code-review"],
+  ];
+  for (const [written, loaded] of forms) assert.equal(areaForm(written), loaded, written);
+  for (const [, loaded] of forms) assert.equal(areaForm(loaded), loaded, `${loaded} is already what a child loads`);
+  const c = card("0007", { files: ["src/"], skills: [was("code-diet", "ladder"), "agentcraft:docs-parity readme", "power-automate:debug-flow"] });
+  assert.match(brief(c, [c]), /Load first: `\/agentcraft:code-diet ladder`, `\/agentcraft:docs-parity readme`, `\/power-automate:debug-flow`\./);
 });
 
 test("the repo's config says how to sync: regenerate, keep both sides, re-bump", () => {

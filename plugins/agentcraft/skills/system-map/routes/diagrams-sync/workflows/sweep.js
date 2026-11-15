@@ -26,7 +26,7 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.pluginRoot) {
-  throw new Error('args must be an object: {root: <absolute repo root>, pluginRoot: <absolute system-map plugin root>, force?: boolean}')
+  throw new Error('args must be an object: {root: <absolute repo root>, pluginRoot: <absolute directory of the system-map area>, force?: boolean}')
 }
 const ROOT = A.root.replace(/\/+$/, '')
 const PLUGIN = A.pluginRoot.replace(/\/+$/, '')
@@ -44,7 +44,7 @@ const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Y
 
 const CTX = `
 CONTEXT. You are one step of a whole-repo sweep of the system map in ${ROOT}; run every command from there.
-The annotation grammar and its rules are ${PLUGIN}/skills/diagrams-sync/references/grammar.md
+The annotation grammar and its rules are ${PLUGIN}/routes/diagrams-sync/references/grammar.md
 (read it unless it is already in your context). The config is ${CONFIG}; the checker is \`${CHECK}\` (add --json for the findings);
 \`${SWEEP} --unit <dir>\` prints one module's source files, the modules nested in it, and its findings now.
 Never change git state: no add, commit, stash, checkout, reset, or branch. Never move, rename, or edit code:

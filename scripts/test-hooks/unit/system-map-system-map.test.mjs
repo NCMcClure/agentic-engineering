@@ -485,7 +485,7 @@ test("a repo without the config gets one line that says who sets the map up, and
   const out = runNode(CHECK, ["--root", dir]);
   assert.equal(out.status, 0);
   assert.equal(out.stdout.trim().split("\n").length, 1);
-  assert.match(out.stdout, /the person runs \/system-map:diagrams-init/);
+  assert.match(out.stdout, /the person asks for \/agentcraft:system-map diagrams-init to set the map up/);
   assert.equal(runNode(CHECK, ["--root", dir, "--can-publish"]).status, 1);
 });
 

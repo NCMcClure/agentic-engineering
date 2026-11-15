@@ -37,7 +37,7 @@ const isTask = (c) => c.kind !== "epic" && c.kind !== "gate";
 function taskOf(card, planRef) {
   if (card.source === "plan") {
     return `Plan issue ${card.plan} (${card.type ?? "AFK"}), at ${code(card.file)} in your worktree${planRef ? `, as ${planRef} has it` : ""}. `
-      + "Build it with `/but-first-planning:build-tdd`, which flips the issue to done through the plan's funnel in your last commit before the push, without `--evidence`. "
+      + "Build it with `/agentcraft:but-first-planning build-tdd`, which flips the issue to done through the plan's funnel in your last commit before the push, without `--evidence`. "
       + "The issue is quoted at the end of this brief.";
   }
   const kept = sections(card.body).filter((s) => !NOT_TASK.includes(s.head) && s.text);
@@ -77,13 +77,41 @@ function syncOf(config) {
   return [...out, ...(list.length ? ["", ...list] : [])].join("\n");
 }
 
+// The one plugin and its areas. An area takes a route as the first word of
+// its arguments, and a route is a document, not a skill: nothing is at its
+// own address, so a brief never prints one.
+const PLUGIN = "agentcraft";
+const AREAS = ["agent-works", "agentic-teamwork", "but-first-planning", "code-diet", "codebase-optimizer", "context-doctor", "docs-parity",
+  "perceptual-loop", "picture-this", "plugin-workbench", "system-map", "workflow-studio", "write-like-me"];
+
+/**
+ * A card's skill as the address a child can load. Cards live outside git and
+ * outlast a release, so one may still name a skill the way it was named when
+ * each area was a plugin: by its own address (`<area>:<route>`), or by the
+ * skill that carried the plugin's name (`<area>:<area>`). Both, and today's
+ * form, come out as `/agentcraft:<area> <route>`, for good: the old forms are
+ * never retired here, because an old card can be briefed at any time. Anything
+ * else is another plugin's and is left as written.
+ */
+export function areaForm(skill) {
+  const text = String(skill).trim().replace(/^\//, "");
+  const m = /^([a-z0-9-]+):([a-z0-9-]+)(?:\s+(.*))?$/s.exec(text);
+  if (!m) return `/${text}`;
+  const [, plugin, name, rest = ""] = m;
+  const to = (area, args) => `/${PLUGIN}:${area}${args ? ` ${args}` : ""}`;
+  // Today's form: the area, or a skill of the one plugin that is not an area.
+  if (plugin === PLUGIN) return to(name, rest);
+  if (!AREAS.includes(plugin)) return `/${text}`;
+  return name === plugin ? to(plugin, rest) : to(plugin, [name, rest].filter(Boolean).join(" "));
+}
+
 function firstOf(card) {
   const out = [];
   const skills = card.skills ?? [];
   if (card.labels?.some((l) => PERCEPTUAL_LABELS.includes(l)) || skills.some((s) => s.includes("perceptual-loop"))) {
-    out.push("This task is judged by eye or ear: if the perceptual-loop plugin is installed, load `/perceptual-loop:iterate-shots` before the first test, so the check is measured rather than eyeballed.");
+    out.push("This task is judged by eye or ear: load `/agentcraft:perceptual-loop iterate-shots` before the first test, so the check is measured rather than eyeballed.");
   }
-  const own = skills.filter((s) => !s.includes("perceptual-loop")).map((s) => code(s.startsWith("/") ? s : `/${s}`));
+  const own = skills.filter((s) => !s.includes("perceptual-loop")).map((s) => code(areaForm(s)));
   if (own.length) out.push(`Load first: ${own.join(", ")}.`);
   return out.join("\n\n");
 }

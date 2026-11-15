@@ -12,8 +12,10 @@ import { hookCommand } from "../../lib.mjs";
 import { run } from "../../../plugins/agentcraft/skills/system-map/scripts/system-map.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
-const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
+const ROOT = path.join(REPO, "plugins", "agentcraft");
+const PLUGIN = path.join(ROOT, "skills", "system-map");
+// The one plugin registers every area's hooks; this area's are the ones under its folder.
+const HOOKS = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8")).hooks;
 
 const CART = `// @system node cart "Cart" layer=surface
 // @system calls orders "places the order"
@@ -82,11 +84,12 @@ const silent = (out, why) => assert.deepEqual([out.status, out.stdout, out.stder
 // ---- what is registered -----------------------------------------------------
 
 test("hooks.json runs the Stop hook behind the quiet guard, with time to walk a tree", () => {
-  assert.equal(HOOKS.Stop.length, 1);
-  const [entry] = HOOKS.Stop[0].hooks;
-  assert.equal(entry.command, hookCommand("system-map", "hooks/stop-check.mjs"));
+  const command = hookCommand("agentcraft", "skills/system-map/hooks/stop-check.mjs");
+  const groups = HOOKS.Stop.filter((group) => group.hooks.some((hook) => hook.command === command));
+  assert.equal(groups.length, 1, "registered once");
+  const [entry] = groups[0].hooks;
   assert.ok(entry.timeout >= 10 && entry.timeout <= 30, `timeout ${entry.timeout}`);
-  assert.equal(HOOKS.Stop[0].matcher, undefined);
+  assert.equal(groups[0].matcher, undefined);
 });
 
 // ---- a turn that left the map behind ---------------------------------------
@@ -99,7 +102,7 @@ test("an import nobody declared reaches the agent with its file and line, and sa
   assert.equal(out.parsed.hookSpecificOutput.hookEventName, "Stop");
   assert.match(out.context, /^System map, before you finish:/);
   assert.match(out.context, /UNDECLARED_IMPORT cart\/index\.mjs:4/);
-  assert.ok(out.context.includes("/system-map:diagrams-sync"), out.context);
+  assert.ok(out.context.includes("/agentcraft:system-map diagrams-sync"), out.context);
   assert.ok(out.context.includes("Diagram: none, <why>"), out.context);
   assert.match(out.line, /^system-map told the agent the map fell behind this turn: 1 finding\.$/);
   assert.ok(!out.context.includes(dir), "the note carries the repo's path");

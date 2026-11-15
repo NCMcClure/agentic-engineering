@@ -56,7 +56,7 @@ function mapBehind(root, changed) {
       "System map, before you finish:",
       ...findings.slice(0, SHOWN).map((line) => `- ${line}`),
       ...(hidden > 0 ? [`- and ${hidden} more: node "${SCRIPT}" --changed HEAD lists them.`] : []),
-      "Add the `@system` line beside the code and write the map again in this change (/system-map:diagrams-sync), or write `Diagram: none, <why>` in the commit message for an import, a run or a network call that needs no edge.",
+      "Add the `@system` line beside the code and write the map again in this change (/agentcraft:system-map diagrams-sync), or write `Diagram: none, <why>` in the commit message for an import, a run or a network call that needs no edge.",
     ].join("\n"),
     summary: plural(findings.length, "finding"),
   };

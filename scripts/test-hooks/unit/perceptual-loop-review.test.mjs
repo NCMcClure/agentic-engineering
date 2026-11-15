@@ -258,7 +258,7 @@ test("timing reports per phase, the runs over budget, and advice, from the two l
 
 // ---- the critique workflow, with stub agents -------------------------------------------------
 
-const WORKFLOW = path.join(PLUGIN, "skills", "judge-and-queue", "workflows", "critique.js");
+const WORKFLOW = path.join(PLUGIN, "routes", "judge-and-queue", "workflows", "critique.js");
 const AsyncFunction = (async () => {}).constructor;
 
 /** Run the workflow script as the Workflow tool would, with stub agents and the same pipeline and parallel semantics. */
@@ -316,7 +316,9 @@ test("the critique workflow keeps the key out of every prompt and translates let
     const { result, calls, logs } = runWorkflow(JSON.stringify({ pluginRoot: "/plugins/pl/", items: [{ id: "sky_0", images: neutral(), aIs, observables: ["is the sky blue?"], box: "0,0,0.5,0.5" }] }), answer);
     const out = await result;
     for (const c of calls) {
-      assert.equal(c.opts.agentType, "perceptual-loop:vision-critic");
+      // An agent is named by the plugin that ships it, and that file is there.
+      assert.equal(c.opts.agentType, "agentcraft:vision-critic");
+      assert.ok(fs.existsSync(path.join(PLUGIN, "..", "..", "agents", "vision-critic.md")), "the plugin ships the critic");
       assert.doesNotMatch(c.prompt, /\b(before|after|aIs)\b/i, "no prompt names a state or carries the key");
       assert.match(c.prompt, /The plugin root, for a crop, is \/plugins\/pl\./);
     }

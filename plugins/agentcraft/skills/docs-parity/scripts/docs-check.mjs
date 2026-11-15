@@ -600,7 +600,7 @@ function main(argv) {
     return 2;
   }
   if (opts.json) console.log(JSON.stringify(report, null, 1));
-  else if (!report.config) console.log(`docs-check: no ${CONFIG} here; run /docs-parity:docs-init`);
+  else if (!report.config) console.log(`docs-check: no ${CONFIG} here; the person asks for /agentcraft:docs-parity docs-init to adopt it`);
   else {
     for (const f of report.findings) console.log(`${f.severity.padEnd(8)} ${f.code.padEnd(20)} ${f.path}${f.line ? `:${f.line}` : ""}  ${f.message}`);
     const s = report.summary;

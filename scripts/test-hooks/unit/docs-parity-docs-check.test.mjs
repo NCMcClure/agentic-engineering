@@ -377,7 +377,7 @@ test("--json prints the report as one object", (t) => {
 
 test("a project without the config prints one line and exits 0", (t) => {
   const r = runNode(CHECK, ["--root", project(t, { "docs/a.md": "# A" })]);
-  assert.deepEqual([r.status, r.stdout], [0, `docs-check: no ${CONFIG} here; run /docs-parity:docs-init\n`]);
+  assert.deepEqual([r.status, r.stdout], [0, `docs-check: no ${CONFIG} here; the person asks for /agentcraft:docs-parity docs-init to adopt it\n`]);
 });
 
 test("a value follows its flag or an equals sign, and a note may start with a dash", (t) => {

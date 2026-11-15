@@ -270,7 +270,7 @@ function judgeCommit(call, state, adds) {
   // The first commit of a repo has to land somewhere, and an unborn branch has nothing to protect.
   if (mode === "full" && rules.blockCommitOnProtected && !unborn && config.protectedBranches.includes(branch)) {
     const example = config.branchPrefixes[0] ? `${config.branchPrefixes[0]}<topic>` : "<type>/<topic>";
-    return deny(`Committing to ${branch} is not allowed: it moves only through a ${requestNoun(state)}. Branch first (git switch -c ${example}), then /agentic-teamwork:ship.`);
+    return deny(`Committing to ${branch} is not allowed: it moves only through a ${requestNoun(state)}. Branch first (git switch -c ${example}), then /agentcraft:agentic-teamwork ship.`);
   }
   const staged = stagedFiles(git);
   const pending = pendingFiles(state, adds, all);
@@ -296,7 +296,7 @@ function judgePush(call, state, plain, shellBranch) {
   const { force, noVerify, target } = inspectPush(call.args, branch, mode === "full" ? config.protectedBranches : []);
   if (force && rules.blockForcePush) return deny(`Force pushing rewrites shared history and is not allowed in this repo. Only if the person asks for it by name: ${config.escapeHatch}=1 in the command lets it through, on the record. Never add that yourself.`);
   if (noVerify && rules.blockNoVerify) return deny("git push --no-verify bypasses the checks this repo runs. Run it without the flag.");
-  if (target && rules.blockPushToProtected) return deny(`Pushing to ${target} is not allowed: it moves only through a reviewed ${requestNoun(state)}. Push your branch instead and open one with /agentic-teamwork:ship.`);
+  if (target && rules.blockPushToProtected) return deny(`Pushing to ${target} is not allowed: it moves only through a reviewed ${requestNoun(state)}. Push your branch instead and open one with /agentcraft:agentic-teamwork ship.`);
   const grant = plain ? grantFor(call, state, shellBranch) : null;
   if (grant) return { decision: "allow", reason: `Pushing ${branch} without asking: the person approved it ahead of time (branch.${branch}.agentic-engineering-push: "${grant}").` };
   if (!rules.askBeforePush) return null;

@@ -17,7 +17,8 @@ import { sha256 } from "./render.mjs";
 const PLUGIN = path.join(import.meta.dirname, "..");
 const TEMPLATES = path.join(PLUGIN, "templates");
 const STANDARD = JSON.parse(fs.readFileSync(path.join(PLUGIN, "standard.json"), "utf8"));
-const UPGRADE = "run /agentic-teamwork:init-project --upgrade";
+// A route only a person starts: the agent takes it once the person has said so.
+const UPGRADE = "on the person's say-so, /agentcraft:agentic-teamwork init-project --upgrade";
 const REPO_SCRIPTS = ["verify-standard.mjs", "lane.mjs", "plugin-check.mjs"];
 // A dependency whose presence means this repo calls a model, so its tests need a live lane.
 const INFERENCE_DEPS = /^(@anthropic-ai\/|@aws-sdk\/client-bedrock|openai$|@google\/(generative-ai|genai)$|@mistralai\/|cohere-ai$|@ai-sdk\/|ai$|langchain|@langchain\/|ollama$)/;
@@ -144,7 +145,7 @@ export function audit(root) {
   const packages = manifests.map((file) => { try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; } }).filter(isObject);
   const inferenceDeps = new Set(packages.flatMap((pkg) => Object.keys({ ...pkg.dependencies, ...pkg.devDependencies }).filter((dep) => INFERENCE_DEPS.test(dep))));
   if (inferenceDeps.size && !wired(marker?.lanes?.live) && !packages.some((pkg) => Object.keys(pkg.scripts ?? {}).some((s) => /live/.test(s)))) {
-    add("live-lane", "error", `this repo calls a model (${[...inferenceDeps].join(", ")}) and has no live lane`, "see /agentic-teamwork:tdd, references/live-lane.md");
+    add("live-lane", "error", `this repo calls a model (${[...inferenceDeps].join(", ")}) and has no live lane`, "see /agentcraft:agentic-teamwork tdd, its references/live-lane.md");
   }
 
   // ---- what must never be in the index --------------------------------------

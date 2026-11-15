@@ -54,7 +54,7 @@ export const MANIFEST = ".agents/manifest.json";
 const PROMPT_FENCE_LINES = 10;
 const PROMPT_INFO = new Set(["text", "prompt", ""]);
 const LICENSE_FILES = ["LICENSE", "LICENSE.md", "LICENSE.txt"];
-const SKILL = "/docs-parity:readme";
+const SKILL = "/agentcraft:docs-parity readme";
 
 // Each standard section's place. The repo's own sections, any names, sit at
 // OWN: after Usage and before API. Security is 0 before anything else and one

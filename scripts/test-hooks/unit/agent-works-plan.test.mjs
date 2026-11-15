@@ -334,7 +334,7 @@ test("grant, claim, and done on a plan card: the funnel runs in the worktree, th
   assert.equal(granted.status, 0, granted.stderr);
   const brief = board(r.main, "brief", "01-01-01");
   assert.equal(brief.status, 0, brief.stderr);
-  assert.match(brief.stdout, /`\/but-first-planning:build-tdd`/);
+  assert.match(brief.stdout, /`\/agentcraft:but-first-planning build-tdd`/);
   assert.match(brief.stdout, /- \[ \] Setup works/);
 
   const claimed = board(r.worktree, "claim", "01-01-01");

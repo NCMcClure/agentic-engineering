@@ -37,7 +37,8 @@ export const DEFAULTS = deepFreeze({
   },
   tasks: { home: "kanban" },
   claude: { twins: "generated" },
-  // The plugins the root AGENTS.md introduces.
+  // The areas of the agentcraft plugin the root AGENTS.md introduces. The key keeps its name: each was a plugin
+  // of its own under the same name, so a config written then still says what it meant.
   plugins: ["agent-works", "codebase-optimizer", "perceptual-loop"],
   budgets: {
     rootAgentsLines: 200,

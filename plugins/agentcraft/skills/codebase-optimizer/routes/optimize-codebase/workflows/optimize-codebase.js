@@ -1921,7 +1921,7 @@ For each lane: key (unique slug), concern, line_range (current, non-overlapping)
         `You are running the EXPLORE step of the improve-codebase-architecture skill (read-only) anchored on ${ROOT}/${TARGET} (~${linesEnd} lines) and the modules it collaborates with under ${TARGET.includes('/') ? TARGET.replace(/\/[^/]+$/, '') : SCAN_ROOTS[0]}. Do NOT edit anything.
 
 FIRST read the skill's vocabulary so every suggestion uses it exactly:
-- ${SKILL_DIR}/SKILL.md (process)
+- ${SKILL_DIR}/ROUTE.md (process)
 - ${SKILL_DIR}/LANGUAGE.md (module / interface / implementation / depth / seam / adapter / leverage / locality, use these, NOT "component/service/API/boundary")
 - ${SKILL_DIR}/DEEPENING.md (dependency categories: in-process / local-substitutable / remote-owned / true-external)
 If a glossary (.agents/CONTEXT.md) or decision records (.agents/decisions/) exist at ${ROOT}, read the parts touching this area and do NOT re-suggest anything a decision record already settled.
@@ -1946,7 +1946,7 @@ Apply the DELETION TEST to anything you suspect is shallow: would deleting the m
 ${lane.hint}
 
 FIRST read the skill vocabulary so suggestions use it exactly:
-- ${SKILL_DIR}/SKILL.md (process)
+- ${SKILL_DIR}/ROUTE.md (process)
 - ${SKILL_DIR}/LANGUAGE.md (module / interface / seam / adapter / leverage / locality)
 - ${SKILL_DIR}/DEEPENING.md (dependency categories; the two-adapter rule)
 

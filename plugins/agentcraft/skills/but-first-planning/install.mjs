@@ -13,11 +13,11 @@
 // marketplace first; BFP_REPO and BFP_BRANCH name another fork or branch.
 //
 // A skill installed this way is invoked without the plugin prefix
-// (`/spec-init`, not `/but-first-planning:spec-init`) and has no
+// (`/spec-init`, not `/agentcraft:but-first-planning spec-init`) and has no
 // ${CLAUDE_PLUGIN_ROOT}, so every such path in the copied files is rewritten
 // to where the copy landed. What does not come along is the hooks: the session
 // lines, the layout migration and the opt-in plan gate need the plugin install
-// (`/plugin install but-first-planning@agentic-engineering`).
+// (`/plugin install agentcraft@agentic-engineering`).
 //
 // Exit 0 = installed, 1 = nothing to install from, 2 = usage.
 import { execFileSync } from "node:child_process";

@@ -245,7 +245,7 @@ test("a surface's code changed without its docs: the agent is told, and the pers
   assert.equal(r.context, [
     "Docs parity, before you finish:",
     "- surface export changed (1 file(s)) but none of its pages (docs/export.md) or shots changed (capture group export).",
-    "Update the pages and retake the shots in this change (/docs-parity:docs-sync), or write `Docs: none, <why>` in the commit message.",
+    "Update the pages and retake the shots in this change (/agentcraft:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
   ].join("\n"));
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 1 surface changed without its docs.");
   assert.equal(r.out.decision, undefined, "a warning, never a refusal");
@@ -280,7 +280,7 @@ test("tree findings are reported only on files this turn changed", (t) => {
   assert.equal(r.context, [
     "Docs parity, before you finish:",
     "- LINK_BROKEN docs/export.md:3: missing.md resolves to no page.",
-    "Update the pages and retake the shots in this change (/docs-parity:docs-sync), or write `Docs: none, <why>` in the commit message.",
+    "Update the pages and retake the shots in this change (/agentcraft:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
   ].join("\n"));
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 1 finding on changed pages.");
 });
@@ -348,7 +348,7 @@ test("a changed README is checked only in a repo whose config carries a readme b
   write(opted, "README.md", README.replace("## Install", "## Installation"));
   const r = stop(t, opted);
   assert.match(r.context, /^A README this turn changed does not pass readme-check:\n- readme-sections: README\.md: no `## Install` section/);
-  assert.match(r.context, /\/docs-parity:readme/);
+  assert.match(r.context, /\/agentcraft:docs-parity readme/);
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 2 README findings.");
 });
 

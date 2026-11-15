@@ -2,7 +2,7 @@
 // The system map: the code declares its modules and their calls in `@system`
 // comment lines, this script extracts them into a committed, diffable map
 // (default `diagrams/system-map.json`), and checks the map against the code.
-// The grammar is in skills/diagrams-sync/references/grammar.md. Reads
+// The grammar is in routes/diagrams-sync/references/grammar.md. Reads
 // `.agents/system-map.json` at the root of the repo it is pointed at (--root,
 // else the git top level of the current directory); a repo without it has not
 // opted in, and the check prints one line and exits 0.
@@ -59,7 +59,7 @@ import path from "node:path";
 
 export const CONFIG = ".agents/system-map.json";
 // diagrams-init is run by a person, so every pointer to it says who runs it.
-const ADOPT = "the person runs /system-map:diagrams-init to set the map up";
+const ADOPT = "the person asks for /agentcraft:system-map diagrams-init to set the map up";
 export const LAYERS = ["people", "surface", "service", "adapter", "runtime", "external"];
 const SEVERITY = { warning: 1, info: 0 };
 const DEFAULTS = {
@@ -443,7 +443,7 @@ export function run(root, { changed = null, note = null, config = null, write = 
   if (!waived) findings = findings.concat(checkImports(root, ex, only));
   findings = findings.concat(checkCoverage(ex, only), checkSurface(ex, only));
   if (cfg.board && cfg.publishedHash !== mapHash(ex.map)) {
-    findings.push(finding("BOARD_BEHIND", "info", cfg.map, 0, "the map changed since the board was last published; /system-map:diagrams-sync publishes it"));
+    findings.push(finding("BOARD_BEHIND", "info", cfg.map, 0, "the map changed since the board was last published; /agentcraft:system-map diagrams-sync publishes it"));
   }
 
   const accepted = (f) => (cfg.accept ?? []).some((a) => a.code === f.code && (!a.path || a.path === f.path));

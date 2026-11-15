@@ -56,7 +56,7 @@ function docsBehind(root, changed) {
     text: [
       "Docs parity, before you finish:",
       ...bullets([parity, tree], `node "${path.join(SCRIPTS, "docs-check.mjs")}" --changed HEAD`),
-      "Update the pages and retake the shots in this change (/docs-parity:docs-sync), or write `Docs: none, <why>` in the commit message.",
+      "Update the pages and retake the shots in this change (/agentcraft:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
     ].join("\n"),
     summary: [parity.length ? `${plural(parity.length, "surface")} changed without ${parity.length === 1 ? "its" : "their"} docs` : "", tree.length ? `${plural(tree.length, "finding")} on changed pages` : ""].filter(Boolean).join(", "),
   };
@@ -73,8 +73,8 @@ function readmeBehind(root, changed) {
     text: [
       findings.length ? "A README this turn changed does not pass readme-check:" : "A README this turn changed passes readme-check, with warnings:",
       ...bullets([findings, warnings], `node "${path.join(SCRIPTS, "readme-check.mjs")}"`),
-      findings.length ? "Rewrite it to the skeleton with /docs-parity:readme, which also says where the moved content goes."
-        : "Read each one: a long text block or a line addressed to an agent usually belongs in AGENTS.md or a skill (/docs-parity:readme).",
+      findings.length ? "Rewrite it to the skeleton with /agentcraft:docs-parity readme, which also says where the moved content goes."
+        : "Read each one: a long text block or a line addressed to an agent usually belongs in AGENTS.md or a skill (/agentcraft:docs-parity readme).",
     ].join("\n"),
     summary: [findings.length ? plural(findings.length, "README finding") : "", warnings.length ? plural(warnings.length, "README warning") : ""].filter(Boolean).join(", "),
   };

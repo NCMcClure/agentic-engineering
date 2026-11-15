@@ -11,7 +11,7 @@ import { REPO, runNode, tempRepo, write } from "./helpers.mjs";
 
 const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const SCRIPT = path.join(PLUGIN, "scripts", "map-sweep.mjs");
-const WORKFLOW = path.join(PLUGIN, "skills", "diagrams-sync", "workflows", "sweep.js");
+const WORKFLOW = path.join(PLUGIN, "routes", "diagrams-sync", "workflows", "sweep.js");
 
 const MODULES = {
   "src/intake/index.mjs": [
@@ -76,7 +76,7 @@ test("a repo without the map is null, and the CLI exits 1 saying who sets it up"
   assert.equal(sweep(dir), null);
   const res = runNode(SCRIPT, ["--root", dir]);
   assert.equal(res.status, 1);
-  assert.match(JSON.parse(res.stdout).message, /the person runs \/system-map:diagrams-init/);
+  assert.match(JSON.parse(res.stdout).message, /the person asks for \/agentcraft:system-map diagrams-init to set the map up/);
 });
 
 test("the CLI prints the sweep and one unit as JSON", (t) => {
@@ -233,14 +233,14 @@ test("every step is handed the plugin's own checker and work list, pointed at th
   const list = 'node "/plugin/scripts/map-sweep.mjs" --root "/repo"';
   for (const c of calls) {
     assert.ok(c.prompt.includes(check), `${c.label} is told how to run the checker`);
-    assert.ok(c.prompt.includes("/plugin/skills/diagrams-sync/references/grammar.md"), `${c.label} is pointed at the grammar`);
+    assert.ok(c.prompt.includes("/plugin/routes/diagrams-sync/references/grammar.md"), `${c.label} is pointed at the grammar`);
     assert.doesNotMatch(c.prompt, /\.agents\/scripts\//, `${c.label} is sent to a copy the repo may not have`);
     assert.match(c.prompt, /Never change git state/);
   }
   assert.ok(by("scan").prompt.includes(`Run \`${list}\``));
   assert.ok(by("write:web").prompt.includes(`${list} --unit web`));
   assert.ok(by("check:0").prompt.includes(`${check} --write`));
-  for (const file of [path.join(PLUGIN, "scripts", "system-map.mjs"), path.join(PLUGIN, "scripts", "map-sweep.mjs"), path.join(PLUGIN, "skills", "diagrams-sync", "references", "grammar.md")]) {
+  for (const file of [path.join(PLUGIN, "scripts", "system-map.mjs"), path.join(PLUGIN, "scripts", "map-sweep.mjs"), path.join(PLUGIN, "routes", "diagrams-sync", "references", "grammar.md")]) {
     assert.ok(fs.existsSync(file), file);
   }
 });

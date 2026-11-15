@@ -78,7 +78,7 @@ product brief. The spec is a progressive-disclosure markdown knowledge base: a t
 index.md -> numbered category dirs (NN-slug/) each with a thin index.md -> small single-topic
 content files with frontmatter; the reserved reference/ dir holds glossary.md and adr/.
 Structure is machine-enforced by node ${SPEC}/scripts/verify-spec-tree.mjs. The authoring
-rules live in the spec-write skill at ${SKILL}/ (SKILL.md, PROGRESSIVE-DISCLOSURE.md,
+rules live in the spec-write skill at ${SKILL}/ (ROUTE.md, PROGRESSIVE-DISCLOSURE.md,
 FILE-LAYOUT.md, FRONTMATTER.md, DIAGRAMS.md).
 ${POSTURE_NOTE}
 ${UI_POSTURE_NOTE}

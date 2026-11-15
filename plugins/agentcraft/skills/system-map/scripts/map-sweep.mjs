@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // The size and the work list of a whole-repo system-map sweep, which
-// /system-map:diagrams-sync and its workflow read. It runs the checker
+// /agentcraft:system-map diagrams-sync and its workflow read. It runs the checker
 // beside it (system-map.mjs) without --changed and groups the findings by the
 // module that owns each path: one unit per declared node, one per directory of
 // source files no node owns yet. `large` says whether the repo is big enough
@@ -125,7 +125,7 @@ function main(argv) {
     const dir = flag("--unit");
     const out = dir === null ? sweep(root) : unit(root, dir);
     if (!out) {
-      console.log(JSON.stringify({ config: null, message: `no ${CONFIG} here; the person runs /system-map:diagrams-init to set the map up` }));
+      console.log(JSON.stringify({ config: null, message: `no ${CONFIG} here; the person asks for /agentcraft:system-map diagrams-init to set the map up` }));
       return 1;
     }
     console.log(JSON.stringify(out, null, 1));

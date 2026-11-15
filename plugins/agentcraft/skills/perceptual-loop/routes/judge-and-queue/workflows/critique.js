@@ -16,7 +16,7 @@ export const meta = {
 // path carries it, and the words for the two states never appear in a prompt.
 // Both stages dispatch the plugin's vision-critic agent, whose tools and rules keep it to the pictures.
 
-const CRITIC = 'perceptual-loop:vision-critic'
+const CRITIC = 'agentcraft:vision-critic'
 const STATE_WORDS = new Set(['before', 'after', 'old', 'new', 'prev', 'previous', 'baseline', 'candidate', 'cand', 'reference', 'ref',
   'orig', 'original', 'fixed', 'broken', 'good', 'bad', 'expected', 'actual', 'golden', 'current', 'cur', 'wip', 'base', 'head', 'main'])
 

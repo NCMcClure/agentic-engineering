@@ -277,7 +277,7 @@ function Scene() {
       <Box box={LOG} title="" lit={logLit} />
       <g opacity={r(0.55 + 0.45 * logLit)}>
         <text className="pt-tag" x={LOG.x + 10} y={LOG.y + 16} style={onPanel}>changelog.md</text>
-        <text className="pt-tag" x={LOG.x + LOG.width - 10} y={LOG.y + 16} textAnchor="end" style={onPanel}>undo: /write-like-me:review</text>
+        <text className="pt-tag" x={LOG.x + LOG.width - 10} y={LOG.y + 16} textAnchor="end" style={onPanel}>undo: the review route</text>
       </g>
       {logHere > 0 ? (
         <g opacity={r(logHere * (0.55 + 0.45 * logLit))}>

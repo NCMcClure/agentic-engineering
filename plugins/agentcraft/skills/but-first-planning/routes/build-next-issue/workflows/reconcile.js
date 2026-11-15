@@ -150,7 +150,7 @@ const record = await agent(
   `${CTX}\nYou are the reconciliation recorder, the ONLY agent in this run allowed to mutate state, and everything goes through the funnel or its owned files. Inputs below. Steps, in order:
 1. For each VERIFIED issue not already ledgered: node ${PLANDIR}/plan-status.mjs set <coords> done --evidence "<its evidence, one line>" (the --evidence flag is what appends the ledger row, use it only here, where verification actually happened this run).
 2. For each FAILED issue: node ${PLANDIR}/plan-status.mjs set <coords> in-progress (it claimed done but is not).
-3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/SKILL.md (kind: checkpoint-bug, route: spec-edit, status: open), reuse an existing item's file (bump it) rather than duplicating.
+3. For each BROKEN-CHECKPOINT issue: do NOT flip its status. Instead create/refresh a drift file ${PROG}/drift/drift-<kebab-slug>.md per the drift-file format in ${SKILL}/ROUTE.md (kind: checkpoint-bug, route: spec-edit, status: open), reuse an existing item's file (bump it) rather than duplicating.
 4. Write this run's reconciliation narrative to a NEW ${PROG}/notes/<today>-<scope-or-all>-reconcile.md (derive today via date +%F): verification method, per-issue outcomes, plan/tracker disagreements you can see in the inputs, checkpoint health.
 5. Refresh the "## Status snapshot" and "## Open cross-cutting items" sections of ${PROG}/index.md from node ${PLANDIR}/plan-status.mjs check and node ${PROG}/drift-status.mjs --open.
 Do not run git. Report exactly what you ran and wrote.
