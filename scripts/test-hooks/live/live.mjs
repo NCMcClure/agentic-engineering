@@ -9,6 +9,7 @@
 //   npm run test:live                              run, check, print the before/after tables
 //   npm run test:live -- --write-baseline          the same over three passes, then record both parts of baseline.json
 //   npm run test:live -- --write-baseline=skills   record the skills part alone, and leave the token sizes as they are
+//   npm run test:live -- --write-baseline=fixtures the token sizes alone, from one pass, and leave what each prompt reached
 //   npm run test:live -- --keep                    leave the temp fixtures and transcripts for a look
 //   npm run test:live -- --only adopted            one fixture (no baseline is written from a partial run)
 //
@@ -73,14 +74,15 @@ const ATTEMPTS = 3; // sessions a cell may take before it is left not measured
 const argv = process.argv.slice(2);
 const only = argv.includes("--only") ? argv[argv.indexOf("--only") + 1] : null;
 
-/** The baseline parts this run records: both for a bare --write-baseline, the skills part alone for --write-baseline=skills. */
+/** The baseline parts this run records: both for a bare --write-baseline, one alone for --write-baseline=skills or --write-baseline=fixtures. */
 function partsToWrite() {
   const flag = argv.find((a) => a === "--write-baseline" || a.startsWith("--write-baseline="));
   if (!flag) return [];
   if (only) throw new Error("--write-baseline needs every fixture; drop --only");
   if (flag === "--write-baseline") return ["fixtures", "skills"];
   if (flag === "--write-baseline=skills") return ["skills"];
-  throw new Error(`${flag}: --write-baseline records both parts, --write-baseline=skills the skills part`);
+  if (flag === "--write-baseline=fixtures") return ["fixtures"];
+  throw new Error(`${flag}: --write-baseline records both parts, --write-baseline=skills or --write-baseline=fixtures one of them`);
 }
 
 /**

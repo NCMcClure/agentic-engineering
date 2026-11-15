@@ -52,6 +52,7 @@ npm run test:live -- --only adopted             # one fixture, and the prompts t
 npm run test:live -- --keep                     # leave the fixtures and transcripts for a look
 npm run test:live -- --write-baseline           # record both parts of live/baseline.json
 npm run test:live -- --write-baseline=skills    # record the skills part alone
+npm run test:live -- --write-baseline=fixtures  # record the token sizes alone, from one pass
 ```
 
 `live/baseline.json` has two parts, each with its own stamp: `fixtures`, the
