@@ -5,14 +5,16 @@ description: Draw a Miro board from code and keep it legible, with a lint before
 
 # miro-board
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 A project's Miro frames are code. Generators draw scenes; `build.mjs` turns them into canvas-composer SVG and writes nothing while the legibility lint finds a problem; the Miro MCP publishes; `live.mjs` lints what Miro actually drew; `pull.mjs` brings the board's layout back, so a card moved in Miro survives the next build. The lint is the reviewer: never zoom in on the board hunting for overlaps, and never place items by eye.
 
-`S` below is `${CLAUDE_PLUGIN_ROOT}/skills/miro-board/scripts`. Run every script from the project root; each one finds `miro.config.mjs` there or in `diagrams/` (or takes `--config <path>`).
+`S` below is `W/routes/miro-board/scripts`. Run every script from the project root; each one finds `miro.config.mjs` there or in `diagrams/` (or takes `--config <path>`).
 
 The tools come from two servers, and both are the person's own sessions:
 
 - **Miro MCP:** `canvas_create_from_svg`, `canvas_update_from_svg`, and `canvas_read_as_svg`. If it is missing, ask the person to connect it: the Miro connector, or `claude mcp add --transport http miro https://mcp.miro.com/`.
-- **Browser:** `list_pages`, `new_page`, and `evaluate_script`, from this plugin's `miro-browser` server or any chrome-devtools server whose browser is signed in to Miro. If they are missing, ask the person to run `/system-map:browser-setup` before Step 3; it is theirs to run.
+- **Browser:** `list_pages`, `new_page`, and `evaluate_script`, from this plugin's `miro-browser` server or any chrome-devtools server whose browser is signed in to Miro. If they are missing, ask the person to run `/agentcraft:system-map browser-setup` before Step 3; it is theirs to run.
 
 No script here takes a token, and nothing about the board's access is written to the repo: `miro/board.json` holds the board's URL and item ids, nothing else. Never type credentials into Miro, and never ask for them in chat. Publish only to the board the config names; create a board, or change who can see one, only when the person asks.
 

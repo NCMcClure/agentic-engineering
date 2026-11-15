@@ -53,4 +53,4 @@ Comment lines, in any language (the `//`, `#`, `*`, or `--` prefix is stripped):
 
 ## Opting in
 
-`/system-map:diagrams-init`, run by a person once per repo, writes the config, proposes the annotations from the import graph, records the board, and can copy the checker into the repo for CI. From then on `/system-map:diagrams-sync` brings the map and the board level with a change.
+`/agentcraft:system-map diagrams-init`, run by a person once per repo, writes the config, proposes the annotations from the import graph, records the board, and can copy the checker into the repo for CI. From then on `/agentcraft:system-map diagrams-sync` brings the map and the board level with a change.

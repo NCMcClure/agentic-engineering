@@ -212,10 +212,10 @@ Pages, screenshots, and the nav move in the same change as the code they describ
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
-| give a repo a system map generated from its code | `/system-map:diagrams-init` | person |
-| bring the map and its board level with a code change | `/system-map:diagrams-sync` | agent |
-| draw or update a diagram on Miro | `/system-map:miro-board` | agent |
-| set up the browser the live Miro check drives | `/system-map:browser-setup` | person |
+| give a repo a system map generated from its code | `/agentcraft:system-map diagrams-init` | person |
+| bring the map and its board level with a code change | `/agentcraft:system-map diagrams-sync` | agent |
+| draw or update a diagram on Miro | `/agentcraft:system-map miro-board` | agent |
+| set up the browser the live Miro check drives | `/agentcraft:system-map browser-setup` | person |
 
 ### picture-this
 

@@ -6,10 +6,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { LARGE, sweep, unit } from "../../../plugins/system-map/scripts/map-sweep.mjs";
+import { LARGE, sweep, unit } from "../../../plugins/agentcraft/skills/system-map/scripts/map-sweep.mjs";
 import { REPO, runNode, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const SCRIPT = path.join(PLUGIN, "scripts", "map-sweep.mjs");
 const WORKFLOW = path.join(PLUGIN, "skills", "diagrams-sync", "workflows", "sweep.js");
 

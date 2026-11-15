@@ -6,7 +6,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 
 | Plugin | Version | Skills | For |
 |---|---|---|---|
-| [agentcraft](#agentcraft) | 0.1.0 | 13 | guide |
+| [agentcraft](#agentcraft) | 0.1.0 | 14 | guide |
 | [agent-works](#agent-works) | 1.0.3 | 0 | orchestration |
 | [but-first-planning](#but-first-planning) | 5.0.3 | 0 | planning |
 | [codebase-optimizer](#codebase-optimizer) | 1.0.3 | 0 | refactoring |
@@ -18,7 +18,7 @@ Install any of them with `/plugin install <name>@agentic-engineering` after `/pl
 | [plugin-workbench](#plugin-workbench) | 2.1.0 | 0 | authoring |
 | [perceptual-loop](#perceptual-loop) | 1.0.4 | 0 | evaluation |
 | [docs-parity](#docs-parity) | 1.0.3 | 0 | documentation |
-| [system-map](#system-map) | 0.3.0 | 4 | documentation |
+| [system-map](#system-map) | 0.3.0 | 0 | documentation |
 
 ## agentcraft
 
@@ -105,6 +105,11 @@ Version 0.1.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 | `/agentcraft:plugin-workbench improve-plugin <path \| owner/repo \| git URL>[#ref] [--report <dir with score.json + grades.json>] [--bar <tier \| composite>] [--output <dir>]` | by the agent | Raise an existing plugin's score: baseline it or reuse a prior scorecard, rank the fixes by the point delta the scanner computes, apply them, re-score, and report before against after. Use when someone wants a plugin improved, scorecard findings fixed, or a score pushed past a verdict tier. |
 | `/agentcraft:plugin-workbench refresh-marketplace [--plugins a,b] [--dry-run]` | when you ask for it | Validate a marketplace checkout and reinstall its plugins from the working tree, so the edits made this session are what the next session loads. Use when someone has changed a plugin in a marketplace checkout and asks to refresh, reinstall, or try it. |
 | `/agentcraft:start-here [the task, in a sentence]` | by the agent, or by hand | Use when a person asks what the agentic-engineering plugins offer, which one does a job, or how to begin with them. An agent with a task calls the skill whose plugin fits (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me) and does not come here first; ordinary work none of them covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the skill that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and skill that fit. |
+| `/agentcraft:system-map [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: browser-setup (); diagrams-init (); diagrams-sync (); miro-board (). |
+| `/agentcraft:system-map browser-setup` | when you ask for it | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
+| `/agentcraft:system-map diagrams-init [board name or URL]` | when you ask for it | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
+| `/agentcraft:system-map diagrams-sync` | by the agent | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
+| `/agentcraft:system-map miro-board` | by the agent | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |
 | `/agentcraft:workflow-studio [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: author-workflow (). |
 | `/agentcraft:workflow-studio author-workflow` | by the agent | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
 | `/agentcraft:write-like-me [route] [the route's arguments]` | by the agent | Routes are its arguments, not skills: audit (); calibrate (); review (). |
@@ -183,10 +188,3 @@ Version 1.0.3. [README](../plugins/docs-parity/README.md), [changelog](../plugin
 An architecture diagram is true on the day it is drawn, so system-map keeps the map in the code: @system annotations extracted into a committed, diffable map, checked against the real import graph and swept across the whole repo, then drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.
 
 Version 0.3.0. [README](../plugins/system-map/README.md), [changelog](../plugins/system-map/CHANGELOG.md).
-
-| Skill | Started | When |
-|---|---|---|
-| `/system-map:browser-setup` | by hand | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
-| `/system-map:diagrams-init [board name or URL]` | by hand | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
-| `/system-map:diagrams-sync` | by the agent, or by hand | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
-| `/system-map:miro-board` | by the agent, or by hand | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |

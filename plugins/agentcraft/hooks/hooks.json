@@ -142,6 +142,17 @@
             "statusMessage": "Loading the docs rule"
           }
         ]
+      },
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || { echo '{\"systemMessage\":\"Node 22 is not on PATH, so agentcraft hooks are off.\"}'; exit 0; }; node \"${CLAUDE_PLUGIN_ROOT}/skills/system-map/hooks/session-start.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Loading the system-map lines"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -177,6 +188,15 @@
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/hooks/stop-check.mjs\"",
+            "timeout": 20
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/system-map/hooks/stop-check.mjs\"",
             "timeout": 20
           }
         ]
@@ -233,6 +253,15 @@
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/docs-parity/hooks/session-start.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/system-map/hooks/session-start.mjs\"",
             "timeout": 5
           }
         ]

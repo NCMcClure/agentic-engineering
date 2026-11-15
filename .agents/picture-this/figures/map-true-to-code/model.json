@@ -11,7 +11,7 @@
       "label": "Code",
       "kind": "files",
       "note": "three modules, a folder each",
-      "source": "plugins/system-map/scripts/system-map.mjs:189"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:189"
     },
     {
       "id": "annotations",
@@ -19,7 +19,7 @@
       "kind": "comment",
       "note": "what a module is, whom it calls",
       "parent": "code",
-      "source": "plugins/system-map/scripts/system-map.mjs:94"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:94"
     },
     {
       "id": "imports",
@@ -27,28 +27,28 @@
       "kind": "statement",
       "note": "what the code really calls",
       "parent": "code",
-      "source": "plugins/system-map/scripts/system-map.mjs:285"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:285"
     },
     {
       "id": "checker",
       "label": "system-map.mjs",
       "kind": "script",
       "note": "writes the map, then checks it",
-      "source": "plugins/system-map/scripts/system-map.mjs:420"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:420"
     },
     {
       "id": "map",
       "label": "System map",
       "kind": "file",
       "note": "diagrams/system-map.json",
-      "source": "plugins/system-map/scripts/system-map.mjs:256"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:256"
     },
     {
       "id": "board",
       "label": "Miro board",
       "kind": "board",
       "note": "where people look",
-      "source": "plugins/system-map/scripts/system-map.mjs:553"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:553"
     }
   ],
   "flows": [
@@ -58,7 +58,7 @@
       "to": "map",
       "kind": "write",
       "label": "node",
-      "source": "plugins/system-map/scripts/system-map.mjs:209"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:209"
     },
     {
       "id": "connect",
@@ -66,7 +66,7 @@
       "to": "map",
       "kind": "write",
       "label": "calls",
-      "source": "plugins/system-map/scripts/system-map.mjs:236"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:236"
     },
     {
       "id": "crosscheck",
@@ -74,7 +74,7 @@
       "to": "checker",
       "kind": "query",
       "label": "import graph",
-      "source": "plugins/system-map/scripts/system-map.mjs:399"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:399"
     },
     {
       "id": "rewrite",
@@ -82,7 +82,7 @@
       "to": "map",
       "kind": "write",
       "label": "--write",
-      "source": "plugins/system-map/scripts/system-map.mjs:430"
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:430"
     },
     {
       "id": "publish",
@@ -90,7 +90,7 @@
       "to": "board",
       "kind": "write",
       "label": "publish",
-      "source": "plugins/system-map/skills/diagrams-sync/SKILL.md:54"
+      "source": "plugins/agentcraft/skills/system-map/routes/diagrams-sync/ROUTE.md:54"
     }
   ],
   "quantities": [

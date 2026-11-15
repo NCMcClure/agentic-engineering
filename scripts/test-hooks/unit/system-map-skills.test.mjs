@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const SKILLS = path.join(PLUGIN, "skills");
 const ALLOWED_KEYS = ["name", "description", "disable-model-invocation", "argument-hint"];
 // Run by a person, once per machine or once per repo: never picked by the model on its own.

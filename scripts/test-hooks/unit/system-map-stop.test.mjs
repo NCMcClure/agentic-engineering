@@ -9,10 +9,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import { run } from "../../../plugins/system-map/scripts/system-map.mjs";
+import { run } from "../../../plugins/agentcraft/skills/system-map/scripts/system-map.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
 
 const CART = `// @system node cart "Cart" layer=surface

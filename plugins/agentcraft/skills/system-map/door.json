@@ -1,0 +1,20 @@
+{
+  "lead": "",
+  "default": "",
+  "routes": {
+    "browser-setup": {
+      "cue": "",
+      "starts": "person"
+    },
+    "diagrams-init": {
+      "cue": "",
+      "starts": "person"
+    },
+    "diagrams-sync": {
+      "cue": ""
+    },
+    "miro-board": {
+      "cue": ""
+    }
+  }
+}

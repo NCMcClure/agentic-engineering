@@ -7,13 +7,13 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { CONFIG as CONFIG_PATH, exitCode, extract, generate, publishBlocker, run } from "../../../plugins/system-map/scripts/system-map.mjs";
-import { lint, predictedModel } from "../../../plugins/system-map/skills/miro-board/scripts/lint.mjs";
-import { sceneFrame, sceneItems } from "../../../plugins/system-map/skills/miro-board/scripts/miro.mjs";
-import { kit as miroKit } from "../../../plugins/system-map/skills/miro-board/scripts/scene-kit.mjs";
+import { CONFIG as CONFIG_PATH, exitCode, extract, generate, publishBlocker, run } from "../../../plugins/agentcraft/skills/system-map/scripts/system-map.mjs";
+import { lint, predictedModel } from "../../../plugins/agentcraft/skills/system-map/routes/miro-board/scripts/lint.mjs";
+import { sceneFrame, sceneItems } from "../../../plugins/agentcraft/skills/system-map/routes/miro-board/scripts/miro.mjs";
+import { kit as miroKit } from "../../../plugins/agentcraft/skills/system-map/routes/miro-board/scripts/scene-kit.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const CHECK = path.join(PLUGIN, "scripts", "system-map.mjs");
 const BOARD = "https://miro.com/app/board/uXjTEST=/";
 const codes = (report) => report.findings.map((f) => f.code).sort();

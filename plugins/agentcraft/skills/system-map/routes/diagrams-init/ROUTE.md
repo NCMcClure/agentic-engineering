@@ -1,20 +1,21 @@
 ---
 name: diagrams-init
 description: "Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo."
-disable-model-invocation: true
 argument-hint: "[board name or URL]"
 ---
 
 # diagrams-init
 
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
 Setting the map up makes the code the source of the repo's system diagram. Investigate first, propose, and write only after the person agrees. Never overwrite an existing file; a conflict is a report line.
 
-`MAP` below is `node "${CLAUDE_PLUGIN_ROOT}/scripts/system-map.mjs"`. Run it from the repo root (or pass `--root <repo>`). The grammar it reads is in `${CLAUDE_PLUGIN_ROOT}/skills/diagrams-sync/references/grammar.md`; read that first.
+`MAP` below is `node "W/scripts/system-map.mjs"`. Run it from the repo root (or pass `--root <repo>`). The grammar it reads is in `W/routes/diagrams-sync/references/grammar.md`; read that first.
 
 ## Step 0: What it needs
 
 - **The Miro MCP** (`board_search_boards`, `board_create`, `canvas_create_from_svg`, `canvas_read_as_svg`), connected by the person: the Miro connector, or `claude mcp add --transport http miro https://mcp.miro.com/`.
-- **The browser the live check drives**, signed in to Miro. If `list_pages` is not an available tool, ask the person to run `/system-map:browser-setup`.
+- **The browser the live check drives**, signed in to Miro. If `list_pages` is not an available tool, ask the person to run `/agentcraft:system-map browser-setup`.
 
 Without either, Steps 1 and 2 still give the repo its map and its check; say that the board waits, and stop after Step 2.
 
@@ -36,7 +37,7 @@ Show the person the externals, the edges, the exports, and the exceptions as one
 
 ## Step 2: Write the annotations and the map
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/skills/diagrams-init/assets/system-map.json` to `.agents/system-map.json`, with the title and `externals` filled in.
+1. Copy `W/routes/diagrams-init/assets/system-map.json` to `.agents/system-map.json`, with the title and `externals` filled in.
 2. Add the agreed `@system` lines at the top of each entry file, in that language's comment syntax and below any shebang.
 3. `MAP --write`, then fix every finding it prints. One that is deliberate goes in `accept` with a `why`.
 4. Where the repo documents its layout, add a line for `.agents/system-map.json` and one for `diagrams/`.
@@ -59,7 +60,7 @@ If their boards must carry a classification label before anything lands on them,
 ## Step 4: Draw and publish the first frame
 
 1. Follow the miro-board skill's Step 0 to initialize `diagrams/` against the board URL, then replace its example view in `diagrams/miro.config.mjs` with one view, `{ key: "system", title: "<the map's title>", gen: "./src/gen-system.mjs" }`, and delete `src/gen-example.mjs`.
-2. Copy `${CLAUDE_PLUGIN_ROOT}/skills/diagrams-init/assets/gen-system.mjs` to `diagrams/src/gen-system.mjs`. It is one line: the build hands it the drawing.
+2. Copy `W/routes/diagrams-init/assets/gen-system.mjs` to `diagrams/src/gen-system.mjs`. It is one line: the build hands it the drawing.
 3. Run `MAP --can-publish` again, then the miro-board loop: build, publish, live check, pull.
 4. `MAP --mark-published`.
 
@@ -69,7 +70,7 @@ If their boards must carry a classification label before anything lands on them,
 
 Ask whether the map should be checked in CI. On a yes:
 
-1. Copy `${CLAUDE_PLUGIN_ROOT}/scripts/system-map.mjs` to `.agents/scripts/system-map.mjs`. It is one file with no imports of its own, and the config's default `exclude` keeps `.agents/` out of the map.
+1. Copy `W/scripts/system-map.mjs` to `.agents/scripts/system-map.mjs`. It is one file with no imports of its own, and the config's default `exclude` keeps `.agents/` out of the map.
 2. Add one step to the repo's pipeline, on Node 22, with enough history fetched for the range to resolve: `node .agents/scripts/system-map.mjs --changed <base>..HEAD --note "<the pull request description>"`. It exits 1 on a stale map, an undeclared import, or a module no node owns.
 3. Say that the copy is a snapshot: after a plugin update, copy it again.
 

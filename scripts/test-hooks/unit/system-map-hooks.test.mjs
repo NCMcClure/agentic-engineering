@@ -13,7 +13,7 @@ import { hookCommand } from "../../lib.mjs";
 import { CONFIG_KEY, MARKERS, ORDER, SHARED_LINE } from "../../shared/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
 const [MAP_LINE, BOARD_LINE] = CRITICAL.lines.map((l) => l.text);

@@ -19,7 +19,7 @@ import { run } from "./critical-context.mjs";
 
 async function briefing(payload, state) {
   // Loaded here, inside what the kernel catches: a broken import costs the note, never the lines.
-  const { report } = await import("../skills/browser-setup/scripts/check-setup.mjs");
+  const { report } = await import("../routes/browser-setup/scripts/check-setup.mjs");
   const setup = report({ root: state.root });
   if (!setup.project || !setup.fixes.length) return "";
   // browser-setup is run by the person, so the line asks for that instead of naming a skill to load.

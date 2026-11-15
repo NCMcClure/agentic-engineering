@@ -1,14 +1,15 @@
 ---
 name: browser-setup
 description: Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board skill's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro.
-disable-model-invocation: true
 ---
 
 # browser-setup
 
-The live check in the miro-board skill runs a script in a Miro tab through chrome-devtools MCP. This plugin bundles that server as `miro-browser` (`.mcp.json` at the plugin root starts `scripts/miro-browser.mjs`). The server is pinned to one chrome-devtools-mcp version and gives Chrome its own profile under `~/.cache/system-map/`, so a Miro sign-in made there persists (a profile made under `~/.cache/marvelous-miro/`, the plugin's earlier name, stays the one in use). In `/mcp` it is listed as `plugin:system-map:miro-browser`. Any other chrome-devtools server works too, provided its browser is signed in to Miro.
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-`S` below is `${CLAUDE_PLUGIN_ROOT}/skills/browser-setup/scripts`.
+The live check in the miro-board skill runs a script in a Miro tab through chrome-devtools MCP. This plugin bundles that server as `miro-browser` (`.mcp.json` at the plugin root starts `scripts/miro-browser.mjs`). The server is pinned to one chrome-devtools-mcp version and gives Chrome its own profile under `~/.cache/system-map/`, so a Miro sign-in made there persists (a profile made under `~/.cache/marvelous-miro/`, the plugin's earlier name, stays the one in use). In `/mcp` it is listed as `plugin:agentcraft:miro-browser`. Any other chrome-devtools server works too, provided its browser is signed in to Miro.
+
+`S` below is `W/routes/browser-setup/scripts`.
 
 The sign-in is the person's, made by them, in that Chrome window. No step here reads, copies, or prints a password, token, or cookie, and none goes into the repo.
 
@@ -24,7 +25,7 @@ For each thing that is missing, say in one line what it is, where it comes from,
 
 Find the surface first.
 
-- **Claude Code (terminal or the desktop Code tab, local session):** plugin servers start with the session. If the browser tools are missing after an install or a fix, ask the person to start a new session, then check `/mcp` for `plugin:system-map:miro-browser`. Cloud and remote sessions have no local Chrome, so the live check cannot run there; say so and stop.
+- **Claude Code (terminal or the desktop Code tab, local session):** plugin servers start with the session. If the browser tools are missing after an install or a fix, ask the person to start a new session, then check `/mcp` for `plugin:agentcraft:miro-browser`. Cloud and remote sessions have no local Chrome, so the live check cannot run there; say so and stop.
 - **Cowork:** a plugin's local server loads only when the Cowork session runs on the person's computer. When the browser tools are still missing there, offer the Claude Desktop config route below.
 - **Claude Desktop config route:** use it for Cowork or the desktop chat when the plugin's server does not load. `node S/check-setup.mjs --desktop` prints the entry and the config path. Show it to the person and ask before writing, since it changes their Desktop configuration. On a yes, run `node S/check-setup.mjs --desktop --write`. It merges the entry and keeps the old file as `.bak`. Then the person quits Claude Desktop completely and reopens it.
 

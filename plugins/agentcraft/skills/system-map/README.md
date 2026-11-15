@@ -41,7 +41,7 @@ the layers, network calls live in adapters, and every export of an entry file
 is classified. A stale map is `MAP_STALE`; an import nobody declared is
 `UNDECLARED_IMPORT`. An import that deliberately needs no edge takes
 `Diagram: none, <why>` in the commit message. The grammar and every finding
-are in `skills/diagrams-sync/references/grammar.md`.
+are in `routes/diagrams-sync/references/grammar.md`.
 
 **Told in session, failed in CI.** A Stop hook runs the checker on what a
 turn changed since the last commit. When the turn left the map behind, the
@@ -81,7 +81,7 @@ and a color only tells one kind of card from another.
 1. **Build.** Each scene becomes Miro SVG, and the build writes nothing while
    the legibility lint finds overflowing text, collisions, crossed or diagonal
    connectors, captions longer than their run, or cards across a border. Each
-   check encodes how Miro really draws (`skills/miro-board/references/how-miro-draws.md`).
+   check encodes how Miro really draws (`routes/miro-board/references/how-miro-draws.md`).
 2. **Publish.** The files go to the board through the Miro MCP.
 3. **Live check.** Miro's read does not return connector routes or caption
    positions, so a script run in the board's browser tab dumps what Miro
@@ -142,7 +142,7 @@ nothing else. Drawing it on a board also needs:
 - Google Chrome, for the live check.
 - The Miro MCP connected, for publishing.
 
-`/system-map:browser-setup` checks the machine and gets the browser
+`/agentcraft:system-map browser-setup` checks the machine and gets the browser
 connected.
 
 This plugin replaces `marvelous-miro`: the same scripts and skills under a
@@ -157,10 +157,10 @@ until it is copied in again.
 
 | Skill | Invocation | Does |
 |---|---|---|
-| `diagrams-init` | `/system-map:diagrams-init [board name or URL]` | Once per repo: proposes the `@system` annotations from the import graph, writes `.agents/system-map.json` and the committed map, records the board, publishes the first frame, and on request copies the checker in for CI. |
+| `diagrams-init` | `/agentcraft:system-map diagrams-init [board name or URL]` | Once per repo: proposes the `@system` annotations from the import graph, writes `.agents/system-map.json` and the committed map, records the board, publishes the first frame, and on request copies the checker in for CI. |
 | `diagrams-sync` | model-invoked | Brings the map and the board level with a change: reads the checker's findings, fixes the annotations, regenerates the map, republishes. Also the whole-repo sweep, which fans out a writer and a reviewer per module in a large repo. |
 | `miro-board` | model-invoked | Starts a Miro project, then runs the build, publish, live check, and pull loop for any frame drawn from code. |
-| `browser-setup` | `/system-map:browser-setup` | Checks Node, npx, and Chrome, connects the bundled browser server on the current surface, and waits while you sign in to Miro once. |
+| `browser-setup` | `/agentcraft:system-map browser-setup` | Checks Node, npx, and Chrome, connects the bundled browser server on the current surface, and waits while you sign in to Miro once. |
 
 ## The check, by hand and in CI
 
