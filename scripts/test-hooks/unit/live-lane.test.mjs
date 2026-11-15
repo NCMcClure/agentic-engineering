@@ -14,7 +14,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter } from "../../lib.mjs";
-import { auditLines, baselineRecord, loadChecks, measureCell, measureTriggers, readBaseline, regressions, runChecks, skillsRefusal, skillsTable, stopOf, suspects, unlockedLines } from "../live/measure.mjs";
+import { auditLines, baselineRecord, loadChecks, measureCell, measureFixture, measureTriggers, readBaseline, regressions, runChecks, skillsRefusal, skillsTable, stopOf, suspects, unlockedLines } from "../live/measure.mjs";
 import { MERGED, acrossCompaction, calls, listing, listingSizes, offered, parseTranscript, reached, reaches } from "../live/reach.mjs";
 import { NO_MCP, SKILL_SESSION_ARGS, pool } from "../live/session.mjs";
 import { COMPACTION, MOST_REFERENCED, TRIGGERS, labelOf, names } from "../live/triggers.mjs";
@@ -38,6 +38,40 @@ function call(name, input, result = {}) {
 }
 const read = (file_path, result) => call("Read", { file_path }, result);
 const invoke = (skill, result) => call("Skill", { skill }, result);
+
+// The lane's token rows, read from the lens. The lens names an area where a
+// plugin holds areas, and splits one hook's critical lines by the area each
+// block names, so a row carries the same name on both sides of the plugins
+// becoming areas of one plugin.
+const lensEvent = (kind, plugin, tokens, extra = {}) => ({ segment: 0, phase: "start", kind, tokens, visibility: "model", source: { plugin, focus: true }, ...extra });
+const lensReport = (events) => ({ requests: [{ segment: 0, contextTokens: 1000 }], segments: [{ index: 0 }], compactions: [], events });
+
+test("the lane's rows are a plugin's as they were, where each hook's critical block is its own", () => {
+  const m = measureFixture({ main: lensReport([
+    lensEvent("hook", "agent-works", 120, { event: "SessionStart", blocks: [{ owner: "agent-works", tokens: 80 }] }),
+    lensEvent("skills", "agent-works", 300, { names: ["a", "b"], detail: "2 skills, 1 without a description" }),
+    lensEvent("hook", "agent-works", 0, { event: "Stop", phase: 1, visibility: "silent" }),
+  ]) });
+  assert.deepEqual(m.start, { "agent-works": 420 });
+  assert.deepEqual(m.sessionStart, { "agent-works": 120 });
+  assert.deepEqual(m.skills, { "agent-works": { tokens: 300, skills: 2, bare: 1 } });
+  assert.deepEqual(m.stop, { "agent-works": { model: 0, person: 0, silent: 1, error: 0 } });
+});
+
+test("the lane's rows are an area's where the lens names one, and one session hook's blocks go to the area each names", () => {
+  const inArea = (area) => ({ source: { plugin: "agentcraft", area, focus: true } });
+  const m = measureFixture({ main: lensReport([
+    lensEvent("hook", "agentcraft", 200, { event: "SessionStart", blocks: [{ owner: "agent-works", tokens: 80 }, { owner: "docs-parity", tokens: 40 }] }),
+    lensEvent("skills", "agentcraft", 90, { names: ["agentcraft:agent-works"], ...inArea("agent-works") }),
+    lensEvent("skills", "agentcraft", 30, { names: ["agentcraft:start-here"] }),
+    lensEvent("hook", "agentcraft", 0, { event: "Stop", phase: 1, visibility: "silent", ...inArea("agent-works") }),
+  ]) });
+  // What the hook says for every area at once stays the plugin's.
+  assert.deepEqual(m.sessionStart, { "agent-works": 80, "docs-parity": 40, agentcraft: 80 });
+  assert.deepEqual(m.start, { "agent-works": 170, "docs-parity": 40, agentcraft: 110 });
+  assert.deepEqual(m.skills, { "agent-works": { tokens: 90, skills: 1, bare: 0 }, agentcraft: { tokens: 30, skills: 1, bare: 0 } });
+  assert.deepEqual(m.stop, { "agent-works": { model: 0, person: 0, silent: 1, error: 0 } });
+});
 
 test("a skill invoked through the Skill tool is reached", () => {
   const entries = recorded("skill-then-read");

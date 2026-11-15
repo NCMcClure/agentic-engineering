@@ -37,7 +37,8 @@ export function renderReport(session, { all = false } = {}) {
         const what = e.kind === "hook" ? e.hookName ?? e.event : e.kind;
         const tokens = e.visibility === "model" ? `~${num(e.tokens)}` : "";
         const text = e.kind === "hook" ? one(e.text || e.detail || "") : one(`${e.label}${e.detail ? ` (${e.detail})` : ""}`);
-        const who = e.source.plugin ?? (e.kind === "hook" ? "unattributed" : e.source.origin ? `${e.source.origin} file` : "Claude Code");
+        // The area where the plugin holds areas: the plugin's name is then the same on every line.
+        const who = e.source.area ?? e.source.plugin ?? (e.kind === "hook" ? "unattributed" : e.source.origin ? `${e.source.origin} file` : "Claude Code");
         lines.push(`    ${pad(what, 26)} ${pad(who, 18)} ${pad(e.visibility, 7)} ${pad(tokens, 8)} ${text}`);
       }
     }

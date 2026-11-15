@@ -29,6 +29,14 @@ loader prints when the skill loads (in Claude Code,
   names a hook by its status message or unexpanded command, never by plugin.
   A command two plugins share is reported as both; a hook nothing claims is
   "unattributed", with the plugins whose matcher could have fired it.
+- **A plugin of areas is named by area.** Where a plugin's skills hold
+  `routes/`, a hook is attributed to the area its command runs from, a listing
+  entry to the area it names, and each `Critical, from <area>:` block inside
+  one hook's output to the area in its heading. What a hook says for every
+  area at once stays the plugin's.
+- **Calls and reads are the transcript's own.** `--json` lists every call on
+  the Skill tool and every read of a skill's or a route's file, with whether
+  it went through: a call the host refused is `ok: false`.
 
 ## Step 1: read it yourself
 

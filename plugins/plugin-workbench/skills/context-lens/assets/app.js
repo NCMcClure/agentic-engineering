@@ -68,6 +68,8 @@ const oneLine = (text, n = 200) => {
 };
 const sourceName = (ev) => {
   if (ev.source.origin === "repo copy") return `${ev.source.plugin} (.agents copy)`;
+  // The area where the plugin holds areas, since the plugin's name is then the same for everything.
+  if (ev.source.area) return ev.source.area;
   if (ev.source.plugin) return ev.source.plugin;
   if (ev.kind === "hook") return "unattributed";
   return ev.source.origin ? `${ev.source.origin} file` : "";
@@ -160,7 +162,7 @@ function draw() {
   const s = state.session;
   assignKinds(s);
   const peak = Math.max(0, ...s.requests.map((r) => r.contextTokens));
-  const focusSeen = [...new Set(s.events.filter((e) => e.source.focus && e.source.plugin).map((e) => e.source.plugin))].sort();
+  const focusSeen = [...new Set(s.events.filter((e) => e.source.focus && e.source.plugin).map((e) => e.source.area ?? e.source.plugin))].sort();
   const main = document.getElementById("main");
   main.replaceChildren(
     el("section", { class: "head" },
@@ -322,6 +324,8 @@ function fullView(ev) {
     ["kind", ev.kind],
     ev.hookName ? ["hook", ev.hookName] : null,
     ev.source.plugin ? ["plugin", `${ev.source.plugin}${ev.source.version ? ` ${ev.source.version}` : ""}`] : null,
+    ev.source.area ? ["area", ev.source.area] : null,
+    ev.blocks?.length ? ["critical lines", ev.blocks.map((b) => `${b.owner} ~${b.tokens}`).join(", ")] : null,
     ev.source.candidates?.length > 1 || (!ev.source.plugin && ev.source.candidates?.length) ? ["could be", ev.source.candidates.join(", ")] : null,
     ev.source.origin ? ["origin", ev.source.origin] : null,
     ev.detail ? ["note", ev.detail] : null,

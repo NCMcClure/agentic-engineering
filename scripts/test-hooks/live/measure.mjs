@@ -17,9 +17,28 @@ const standing = (e, segment) => e.segment === segment && e.phase === "start" &&
 /** Keys sorted, so a baseline diff and the table do not move with transcript order. */
 const sorted = (entries) => Object.fromEntries([...entries].sort(([a], [b]) => a.localeCompare(b)));
 
+/**
+ * Who a piece of context is from: the area where the lens knows one, else the
+ * plugin. Once the plugins are areas of one plugin, the plugin's name is the
+ * same for everything, and an area carries the name its plugin had, so a row
+ * reads the same against a baseline from either side.
+ */
+const ownerOf = (e) => e.source.area ?? e.source.plugin;
+
+/**
+ * Tokens per owner. One hook may print a block of critical lines for each of
+ * several areas (the lens's `blocks`): each block counts for the area its
+ * heading names, and the rest of the hook's text for the hook's own owner.
+ */
 function byPlugin(events, keep) {
   const out = new Map();
-  for (const e of events) if (keep(e)) out.set(e.source.plugin, (out.get(e.source.plugin) ?? 0) + e.tokens);
+  const add = (owner, tokens) => out.set(owner, (out.get(owner) ?? 0) + tokens);
+  for (const e of events) {
+    if (!keep(e)) continue;
+    const blocks = e.blocks ?? [];
+    for (const b of blocks) add(b.owner, b.tokens);
+    add(ownerOf(e), e.tokens - blocks.reduce((n, b) => n + b.tokens, 0));
+  }
   return sorted(out);
 }
 const sum = (events, keep) => events.filter(keep).reduce((n, e) => n + e.tokens, 0);
@@ -31,7 +50,7 @@ function listing(events) {
   for (const e of events) {
     if (e.kind !== "skills" || e.segment !== 0 || !e.source?.focus) continue;
     const bare = Number(/(\d+) without a description/.exec(e.detail ?? "")?.[1] ?? 0);
-    out.set(e.source.plugin, { tokens: e.tokens, skills: e.names?.length ?? 0, bare });
+    out.set(ownerOf(e), { tokens: e.tokens, skills: e.names?.length ?? 0, bare });
   }
   return sorted(out);
 }
@@ -41,9 +60,9 @@ function hookOutcomes(events, event) {
   const out = new Map();
   for (const e of events) {
     if (e.kind !== "hook" || e.event !== event || !e.source?.focus) continue;
-    const row = out.get(e.source.plugin) ?? { model: 0, person: 0, silent: 0, error: 0 };
+    const row = out.get(ownerOf(e)) ?? { model: 0, person: 0, silent: 0, error: 0 };
     row[e.visibility] = (row[e.visibility] ?? 0) + 1;
-    out.set(e.source.plugin, row);
+    out.set(ownerOf(e), row);
   }
   return sorted(out);
 }

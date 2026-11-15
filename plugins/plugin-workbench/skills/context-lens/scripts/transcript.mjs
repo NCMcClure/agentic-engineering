@@ -14,7 +14,7 @@
 // carried at its start.
 //
 // Import-safe and pure: the caller reads the file and loads the sources.
-import { attributeHook, emptySources, hookCandidates, inFocus, serverPlugin, splitListing, toolPlugin } from "./sources.mjs";
+import { attributeHook, emptySources, hookCandidates, inFocus, ownerOf, serverPlugin, splitListing, toolPlugin } from "./sources.mjs";
 
 export const estimateTokens = (text) => Math.ceil(String(text ?? "").length / 4);
 
@@ -73,6 +73,27 @@ function parseStdout(stdout) {
   }
 }
 
+/**
+ * The blocks of critical lines inside one hook's output: a heading that names
+ * who they are from, then a bullet per line. One session hook may print a
+ * block for each of several areas, so the owner is read from the heading:
+ * `{ owner, tokens }` each, in order.
+ */
+export function criticalBlocks(text) {
+  const blocks = [];
+  let open = null;
+  for (const line of String(text ?? "").split("\n")) {
+    const head = /^Critical, from ([^:\n]+):$/.exec(line);
+    if (head) { open = { owner: head[1], lines: [line] }; blocks.push(open); }
+    else if (open && line.startsWith("- ")) open.lines.push(line);
+    else open = null;
+  }
+  return blocks.map((b) => ({ owner: b.owner, tokens: estimateTokens(b.lines.join("\n")) }));
+}
+
+/** A skill's or a route's own instructions, by the file they are read from. */
+const INSTRUCTION_FILE = /\/(?:SKILL|ROUTE)\.md$/;
+
 const HOME = /^\/(?:Users|home)\/[^/]+\//;
 
 /** Instruction files: the user's own and the repo's, .agents/ files included. */
@@ -104,6 +125,10 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
     segments: [],
     compactions: [],
     turns: [],
+    // Every call on the Skill tool, and every read of a skill's or a route's
+    // own file, with whether it succeeded: a refused call is `ok: false`.
+    skillCalls: [],
+    reads: [],
   };
 
   let segment = -1;
@@ -113,6 +138,7 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
   const assistants = new Map();
   const byRequest = new Map();
   const toolNames = new Map();
+  const opened = new Map(); // tool_use id to its skillCalls or reads row, until the result says how it went
   // Per hook run (its toolUseID): which plugins spoke and what they said, so a
   // later summary or system-message entry is not counted twice.
   const runs = new Map();
@@ -201,7 +227,8 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
     const modelText = parsed.additionalContext ?? (rendered !== null ? a.content || parsed.plain : null);
     let spoke = false;
     if (modelText) {
-      const ev = push(entry, { ...base, visibility: "model", text: String(modelText) });
+      const blocks = criticalBlocks(modelText);
+      const ev = push(entry, { ...base, visibility: "model", text: String(modelText), ...(blocks.length ? { blocks } : {}) });
       record.model.set(String(modelText), ev);
       spoke = true;
     }
@@ -266,7 +293,7 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
           // No run entry claimed it: name the plugins whose hooks could have.
           const tool = String(a.hookName ?? "").split(":")[1] ?? "";
           const candidates = hookCandidates(sources, event, tool);
-          push(entry, { kind: "hook", event, hookName: a.hookName ?? event, label: a.hookName ?? event, visibility: "model", text: String(text), confirmed: true, source: { plugin: null, candidates }, detail: candidates.length ? `no hook run recorded; could be ${candidates.join(", ")}, or a built-in hook` : "no hook run recorded" });
+          push(entry, { kind: "hook", event, hookName: a.hookName ?? event, label: a.hookName ?? event, visibility: "model", text: String(text), confirmed: true, ...(criticalBlocks(text).length ? { blocks: criticalBlocks(text) } : {}), source: { plugin: null, candidates }, detail: candidates.length ? `no hook run recorded; could be ${candidates.join(", ")}, or a built-in hook` : "no hook run recorded" });
         }
         continue;
       }
@@ -307,14 +334,15 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
         const text = a.type === "skill_listing" ? a.content : (a.addedLines ?? []).join("\n");
         const kind = a.type === "skill_listing" ? "skills" : "agents";
         const noun = kind === "skills" ? "skill" : "agent";
-        for (const group of splitListing(text)) {
+        for (const group of splitListing(text, sources)) {
           push(entry, {
             kind,
-            label: `${kind} · ${group.plugin ?? "not from a plugin"}`,
+            label: `${kind} · ${group.area ?? group.plugin ?? "not from a plugin"}`,
             text: group.text,
             detail: `${group.count} ${noun}${group.count === 1 ? "" : "s"}${group.bare ? `, ${group.bare} without a description` : ""}`,
-            source: { plugin: group.plugin },
+            source: { plugin: group.plugin, ...(group.area ? { area: group.area } : {}) },
             names: group.names,
+            entries: group.entries,
           });
         }
         continue;
@@ -344,8 +372,9 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
 
       if (a.type === "invoked_skills") {
         for (const skill of a.skills ?? []) {
-          const plugin = String(skill.name ?? "").includes(":") ? skill.name.split(":")[0] : null;
-          push(entry, { kind: "reattach", label: `skill · ${skill.name}`, text: String(skill.content ?? ""), detail: "invoked before the compaction, re-attached after it", source: { plugin } });
+          const [plugin, name] = String(skill.name ?? "").includes(":") ? skill.name.split(":") : [null, null];
+          const area = plugin && sources.areas?.get(plugin)?.has(name) ? name : null;
+          push(entry, { kind: "reattach", label: `skill · ${skill.name}`, text: String(skill.content ?? ""), detail: "invoked before the compaction, re-attached after it", source: { plugin, ...(area ? { area } : {}) } });
         }
         continue;
       }
@@ -365,6 +394,9 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
         for (const r of results) {
           const name = toolNames.get(r.tool_use_id) ?? "tool";
           push(entry, { kind: "tool-result", label: name, visibility: "model", text: blocksText(r.content), source: { plugin: toolPlugin(sources, name) } });
+          // The host answers a call it refused with an error result.
+          const row = opened.get(r.tool_use_id);
+          if (row) row.ok = !r.is_error;
         }
         continue;
       }
@@ -403,7 +435,19 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
         // Only a real request ends the segment's start; a replayed message does not.
         seenAssistant = true;
       }
-      for (const block of Array.isArray(message.content) ? message.content : []) if (block?.type === "tool_use") toolNames.set(block.id, block.name);
+      for (const block of Array.isArray(message.content) ? message.content : []) {
+        if (block?.type !== "tool_use" || opened.has(block.id)) continue;
+        toolNames.set(block.id, block.name);
+        // `ok` stays null for a call the transcript holds no result for.
+        const where = { segment, turn, ok: null };
+        if (block.name === "Skill" && block.input?.skill) {
+          opened.set(block.id, { skill: String(block.input.skill), ...where });
+          session.skillCalls.push(opened.get(block.id));
+        } else if (block.name === "Read" && INSTRUCTION_FILE.test(String(block.input?.file_path ?? ""))) {
+          opened.set(block.id, { file: String(block.input.file_path), ...where });
+          session.reads.push(opened.get(block.id));
+        }
+      }
       const text = blocksText((Array.isArray(message.content) ? message.content : []).filter((c) => c?.type !== "thinking"));
       const id = message.id ?? key;
       const known = assistants.get(id);
@@ -427,12 +471,12 @@ export function buildSession(entries, { sources = emptySources() } = {}) {
   return session;
 }
 
-/** A channel is one plugin's kind of context: its SessionStart hook, its skills, one rule file. */
+/** A channel is one owner's kind of context: its SessionStart hook, its skills, one rule file. The owner is the area where one is known, else the plugin. */
 export function channelOf(ev) {
-  if (ev.kind === "hook") return `${ev.event} · ${ev.source.plugin ?? "unattributed"}`;
+  if (ev.kind === "hook") return `${ev.event} · ${ownerOf(ev.source) ?? "unattributed"}`;
   if (ev.kind === "instructions") return `instructions · ${ev.label}`;
   if (ev.kind === "reattach") return ev.label;
-  return `${ev.kind} · ${ev.source.plugin ?? "other"}`;
+  return `${ev.kind} · ${ownerOf(ev.source) ?? "other"}`;
 }
 
 /**

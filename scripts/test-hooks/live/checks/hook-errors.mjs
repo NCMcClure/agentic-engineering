@@ -8,9 +8,9 @@ export default {
   check({ run }) {
     const failures = new Set();
     for (const [kind, fixture] of Object.entries(run.fixtures)) {
-      for (const e of failed(fixture.main)) failures.add(`${kind}: a ${e.event} hook failed (${e.source.plugin ?? "unattributed"})`);
+      for (const e of failed(fixture.main)) failures.add(`${kind}: a ${e.event} hook failed (${e.source.area ?? e.source.plugin ?? "unattributed"})`);
       for (const { agentType, report } of fixture.subagents) {
-        for (const e of failed(report)) failures.add(`${kind}: a ${e.event} hook failed in ${agentType} (${e.source.plugin ?? "unattributed"})`);
+        for (const e of failed(report)) failures.add(`${kind}: a ${e.event} hook failed in ${agentType} (${e.source.area ?? e.source.plugin ?? "unattributed"})`);
       }
     }
     return [...failures];
