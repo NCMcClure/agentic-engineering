@@ -34,7 +34,10 @@ enforces.
   `refresh.mjs` (the local dev loop; they install `agentcraft` and never a
   stub), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its README
   has the detail).
-- `docs/assets/` - the pictures only the root README shows: the banner
+- `docs/assets/` - the pictures only the root README shows: two figures of
+  the plugin as a whole (`goal-to-main`, how a goal moves through the areas,
+  and `routes-behind-names`, whose route counts a unit test holds to the
+  doors: `pt still <figure> --gif --dark --out docs/assets` retakes one), the banner
   (`banner.gif`, `banner.dark.gif`) and the picture-this worked example. The
   banner is the `banner` figure, with its avatar and fonts beside it:
   `pt still banner --gif --dark --width 1600 --fps 24 --out docs/assets`

@@ -1,0 +1,431 @@
+{
+  "schema": 1,
+  "title": "How a rule lost at a compaction is found",
+  "mechanism": "A compaction drops what a SessionStart hook said at startup; the lens compares each segment's start in the transcript and names what did not come back.",
+  "lens": "time",
+  "claim": "A matcher that leaves out compact raises no error: the transcript is the one place the loss shows, and the finding names the fix.",
+  "implication": "Make the change, then run diagnose on a new session: the finding should be gone.",
+  "entities": [
+    {
+      "id": "hook",
+      "label": "SessionStart hook",
+      "kind": "hook",
+      "note": "matcher: startup|resume|clear",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:219"
+    },
+    {
+      "id": "context",
+      "label": "Start context",
+      "kind": "context",
+      "note": "the team's rules, ~102 tokens",
+      "parent": "window",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:231"
+    },
+    {
+      "id": "window",
+      "label": "Model's window",
+      "kind": "window",
+      "note": "what each request carries",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:428"
+    },
+    {
+      "id": "compaction",
+      "label": "Compaction",
+      "kind": "boundary",
+      "note": "163,000 to 18,000 tokens",
+      "born": "compact",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:262"
+    },
+    {
+      "id": "transcript",
+      "label": "Session transcript",
+      "kind": "record",
+      "note": "~/.claude/projects/<slug>/<id>.jsonl",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/context-lens.mjs:98"
+    },
+    {
+      "id": "lens",
+      "label": "The lens",
+      "kind": "script",
+      "note": "compares each segment's start",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:492"
+    },
+    {
+      "id": "finding",
+      "label": "COMPACT_LOST",
+      "kind": "finding",
+      "note": "critical, with its fix",
+      "born": "finding",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:252"
+    }
+  ],
+  "flows": [
+    {
+      "id": "inject",
+      "from": "hook",
+      "to": "window",
+      "kind": "write",
+      "label": "additionalContext",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:227"
+    },
+    {
+      "id": "drop",
+      "from": "compaction",
+      "to": "context",
+      "kind": "write",
+      "label": "dropped",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:265"
+    },
+    {
+      "id": "record",
+      "from": "window",
+      "to": "transcript",
+      "kind": "event",
+      "label": "every request",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:432"
+    },
+    {
+      "id": "read",
+      "from": "lens",
+      "to": "transcript",
+      "kind": "read",
+      "label": "reads back",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:473"
+    },
+    {
+      "id": "raise",
+      "from": "lens",
+      "to": "finding",
+      "kind": "event",
+      "label": "lost",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:244"
+    },
+    {
+      "id": "fix",
+      "from": "finding",
+      "to": "hook",
+      "kind": "event",
+      "label": "add compact",
+      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:259"
+    }
+  ],
+  "data": {
+    "requests": [
+      {
+        "id": "r1",
+        "of": "window",
+        "at": "start",
+        "segment": 1,
+        "tokens": 21000,
+        "carried": 1
+      },
+      {
+        "id": "r2",
+        "of": "window",
+        "at": "compact",
+        "segment": 1,
+        "tokens": 48000,
+        "carried": 1
+      },
+      {
+        "id": "r3",
+        "of": "window",
+        "at": "compact",
+        "segment": 1,
+        "tokens": 79000,
+        "carried": 1
+      },
+      {
+        "id": "r4",
+        "of": "window",
+        "at": "compact",
+        "segment": 1,
+        "tokens": 112000,
+        "carried": 1
+      },
+      {
+        "id": "r5",
+        "of": "window",
+        "at": "compact",
+        "segment": 1,
+        "tokens": 141000,
+        "carried": 1
+      },
+      {
+        "id": "r6",
+        "of": "window",
+        "at": "compact",
+        "segment": 1,
+        "tokens": 163000,
+        "carried": 1
+      },
+      {
+        "id": "r7",
+        "of": "window",
+        "at": "silent",
+        "segment": 2,
+        "tokens": 19000,
+        "carried": 0
+      },
+      {
+        "id": "r8",
+        "of": "window",
+        "at": "silent",
+        "segment": 2,
+        "tokens": 31000,
+        "carried": 0
+      },
+      {
+        "id": "r9",
+        "of": "window",
+        "at": "silent",
+        "segment": 2,
+        "tokens": 46000,
+        "carried": 0
+      }
+    ],
+    "rules": [
+      {
+        "id": "head",
+        "of": "context",
+        "at": "start",
+        "text": "Critical, from team-rules:"
+      },
+      {
+        "id": "tests",
+        "of": "context",
+        "at": "start",
+        "text": "- Run the tests before every commit, and name the command you ran."
+      },
+      {
+        "id": "push",
+        "of": "context",
+        "at": "start",
+        "text": "- Never force push. Never push unless the person asked."
+      },
+      {
+        "id": "secret",
+        "of": "context",
+        "at": "start",
+        "text": "- Never stage a credential: .env files stay ignored."
+      },
+      {
+        "id": "cause",
+        "of": "context",
+        "at": "start",
+        "text": "- A bug fix is root cause: one guard where every caller routes."
+      },
+      {
+        "id": "board",
+        "of": "context",
+        "at": "start",
+        "text": "- Work noticed outside the task goes on the board, never into this change."
+      },
+      {
+        "id": "docs",
+        "of": "context",
+        "at": "start",
+        "text": "- Docs change in the same commit as the behavior they describe."
+      }
+    ],
+    "matcher": [
+      {
+        "id": "has",
+        "of": "hook",
+        "at": "start",
+        "text": "startup|resume|clear"
+      },
+      {
+        "id": "fixed",
+        "of": "hook",
+        "at": "finding",
+        "text": "startup|resume|clear|compact"
+      }
+    ],
+    "standing": [
+      {
+        "id": "s1-system",
+        "of": "window",
+        "at": "start",
+        "segment": 1,
+        "label": "system prompt",
+        "status": "start"
+      },
+      {
+        "id": "s1-tools",
+        "of": "window",
+        "at": "start",
+        "segment": 1,
+        "label": "tool definitions",
+        "status": "start"
+      },
+      {
+        "id": "s1-rules",
+        "of": "context",
+        "at": "start",
+        "segment": 1,
+        "label": "SessionStart · team-rules",
+        "status": "start",
+        "size": "~102"
+      },
+      {
+        "id": "s2-system",
+        "of": "window",
+        "at": "compact",
+        "segment": 2,
+        "label": "system prompt",
+        "status": "carried"
+      },
+      {
+        "id": "s2-tools",
+        "of": "window",
+        "at": "compact",
+        "segment": 2,
+        "label": "tool definitions",
+        "status": "carried"
+      },
+      {
+        "id": "s2-summary",
+        "of": "window",
+        "at": "compact",
+        "segment": 2,
+        "label": "compaction summary",
+        "status": "new"
+      },
+      {
+        "id": "s2-rules",
+        "of": "context",
+        "at": "read",
+        "segment": 2,
+        "label": "SessionStart · team-rules",
+        "status": "lost",
+        "size": "~102 before"
+      }
+    ],
+    "report": [
+      {
+        "id": "started",
+        "of": "context",
+        "at": "start",
+        "hook": "SessionStart:startup",
+        "owner": "team-rules",
+        "saw": "model",
+        "size": "~102"
+      },
+      {
+        "id": "boundary",
+        "of": "compaction",
+        "at": "compact",
+        "text": "Compaction 1: auto, 163,000 -> 18,000 tokens"
+      },
+      {
+        "id": "lost",
+        "of": "context",
+        "at": "read",
+        "status": "lost",
+        "channel": "SessionStart · team-rules",
+        "size": "~102 before"
+      }
+    ],
+    "finding": [
+      {
+        "id": "f1",
+        "of": "finding",
+        "at": "finding",
+        "level": "critical",
+        "code": "COMPACT_LOST",
+        "where": "team-rules · segment 2",
+        "summary": "1 critical, 0 warnings, 0 notes.",
+        "what": "Its SessionStart context (~102 tokens) was in the window before compaction 1 and no request after it carried it.",
+        "cause": "No SessionStart hook of its ran after the compaction: the hook's matcher leaves out `compact`.",
+        "fix": "Add `compact` to the SessionStart matcher: \"startup|resume|clear|compact\"."
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "start",
+      "title": "The hook speaks once",
+      "plain": "At startup a plugin's hook puts the team's rules in the model's window. The person never sees them.",
+      "technical": "SessionStart:startup runs the team-rules hook; its additionalContext, 405 characters, enters the window as ~102 tokens.",
+      "focus": [
+        "hook",
+        "context",
+        "window"
+      ],
+      "flows": [
+        "inject"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "compact",
+      "title": "The window compacts",
+      "plain": "Six requests later the host compacts the window. The hook's matcher leaves out compact, so the hook does not run again.",
+      "technical": "compact_boundary: auto, 163,000 to 18,000 tokens. The matcher is startup|resume|clear, so no SessionStart:compact run follows.",
+      "focus": [
+        "compaction",
+        "context",
+        "hook"
+      ],
+      "flows": [
+        "drop"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "silent",
+      "title": "Nothing says so",
+      "plain": "The next requests go out without the rules, and no error says so. Only the session transcript holds what happened.",
+      "technical": "Requests 7 to 9 carry 19,000 to 46,000 tokens and no SessionStart context. The JSONL holds each with the API's own count.",
+      "focus": [
+        "window",
+        "transcript"
+      ],
+      "flows": [
+        "record"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "read",
+      "title": "The lens reads it back",
+      "plain": "The lens reads the transcript and compares what each side of the compaction carried at its start.",
+      "technical": "compactionRows() keys each segment's standing context by channel: SessionStart · team-rules is in segment 1 only, so lost.",
+      "focus": [
+        "lens",
+        "transcript"
+      ],
+      "flows": [
+        "read"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "finding",
+      "title": "The finding names the fix",
+      "plain": "The diagnose route raises one critical finding, COMPACT_LOST, and names its fix: add compact to the hook's matcher.",
+      "technical": "compactLost() adds COMPACT_LOST for team-rules, segment 2. Its fix is the matcher \"startup|resume|clear|compact\".",
+      "focus": [
+        "finding",
+        "hook"
+      ],
+      "flows": [
+        "raise",
+        "fix"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "finding",
+    "at": 0.5
+  }
+}

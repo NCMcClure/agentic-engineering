@@ -12,6 +12,11 @@ in a session.
 
 ## How it works
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/figures/lost-at-compaction.dark.gif">
+  <img alt="How a rule lost at a compaction is found. A matcher that leaves out compact raises no error: the transcript is the one place the loss shows, and the finding names the fix." src="assets/figures/lost-at-compaction.gif" width="720">
+</picture>
+
 The `diagnose` route reads a session transcript for the faults that have a
 known cause, and names each with where it happened and the change in the
 plugin that fixes it:
@@ -36,13 +41,13 @@ it, and what each compaction kept or lost. `report` prints to the terminal;
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/screens/context-lens.dark.png">
-  <img alt="The context lens page on a session in this repo: the session list, the context size of each API request with a compaction marked, and a table of what each plugin put in context." src="assets/screens/context-lens.light.png" width="880">
+  <img alt="The context lens page on a synthetic session: the session list, the session's three findings (start context a compaction lost, a hook that says the same thing every turn, a rule said twice), each with its fix, and the top of the chart of context size per request with the compaction marked." src="assets/screens/context-lens.light.png" width="880">
 </picture>
 
-The page `serve` opens, here on a sample session in this repo: the size of
-every request with the compaction marked, then what was put in at the start
-and what came back after the compaction. The picture is from before the
-findings card, which now sits above the chart.
+The page `serve` opens, here on a synthetic session: the findings first,
+each opening the event it was raised from, then the size of every request
+with the compaction marked. Below the fold are what was put in at the start
+and what came back after the compaction.
 
 The text is the transcript's own, and a request's size is the API's own
 count. A per-item token figure is an estimate, characters over four, and is

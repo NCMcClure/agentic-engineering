@@ -56,3 +56,18 @@ test("agentcraft: every other plugin directory is a stub that depends on it, and
     for (const dir of ["hooks", "agents", "bin", "lib", "scripts"]) assert.equal(fs.existsSync(path.join(plugins, name, dir)), false, `${name}/${dir}: a stub runs nothing`);
   }
 });
+
+// The root README's figure of the plugin draws one page per route, to the
+// real counts, and says how many there are. Its numbers are in its model, so
+// a route added or removed fails here until the figure is retaken:
+//   pt still routes-behind-names --gif --dark --out docs/assets
+test("the routes-behind-names figure draws each area's routes to the count its door holds", () => {
+  const model = JSON.parse(fs.readFileSync(path.join(REPO, ".agents", "picture-this", "figures", "routes-behind-names", "model.json"), "utf8"));
+  const doors = Object.fromEntries(AREAS.map((name) => [name, Object.keys(area(name).door.routes).length]));
+  assert.deepEqual(Object.fromEntries(model.data.areas.map((a) => [a.id, a.routes])), doors, "edit the figure's model.json to the doors, then retake its GIFs");
+  const total = Object.values(doors).reduce((n, c) => n + c, 0);
+  for (const text of [model.title, model.claim, model.beats[0].plain]) assert.ok(text.includes(`${total} routes`), `"${text}" should say ${total} routes`);
+  const readme = fs.readFileSync(path.join(REPO, "README.md"), "utf8");
+  assert.ok(readme.includes(`keeps ${total} routes behind fourteen names`), "the README's alt text for the figure");
+  assert.equal(AREAS.length + 1, 14, "fourteen names: the entry skill and the areas");
+});

@@ -72,7 +72,7 @@ function Banner() {
       <rect className="bn-ground" x={0} y={0} width={VIEW.width} height={HEADER} />
       <line className="bn-rule" x1={0} y1={HEADER} x2={VIEW.width} y2={HEADER} />
       <text className="bn-name" x={52} y={30}>nick mcclure</text>
-      <text className="bn-mono" x={2 * COLUMN + 12} y={29}>agentic engineering / 12 plugins for claude code</text>
+      <text className="bn-mono" x={2 * COLUMN + 12} y={29}>agentic engineering / 1 plugin, 13 areas for claude code</text>
       <text className="bn-mono" x={VIEW.width - 40} y={29} textAnchor="end">currently creating something...</text>
       <circle cx={VIEW.width - 40 - 224} cy={25.5} r={3} style={{ fill: mix("var(--pt-ink)", "var(--pt-ink-3)", blink) }} />
 

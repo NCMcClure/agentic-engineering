@@ -8,7 +8,7 @@ Install it with `/plugin install agentcraft@agentic-engineering` after `/plugin 
 
 A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentcraft:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.
 
-Version 1.2.1. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
+Version 1.2.2. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
 
 | Area | Routes | For |
 |---|---|---|

@@ -26,6 +26,21 @@ Coming from the separate plugins? Each old name is now a stub that brings
 `agentcraft` in when it updates (Claude Code 2.1.321 or later). Install
 `agentcraft` by name as well, so it stays when the stubs are retired.
 
+## How the areas work together
+
+The areas are not a pile of tools. A goal too big for one change gets
+questioned into a spec and a plan, each issue runs as a card in a session of
+its own, and the change that comes out is tested first, judged by eye where
+that matters, documented in the same change, written in your voice, reviewed,
+and landed. Each area names the next one, so nobody has to remember the step.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/goal-to-main.dark.gif">
+  <img alt="How a goal moves through the areas. Each area takes the work from the one before or checks what it built, so a big goal lands as small changes: tested, documented, reviewed." src="docs/assets/goal-to-main.gif" width="720">
+</picture>
+
+<sub>One goal, three issues, three sessions. Every hand-off drawn here is a line in one area that names another.</sub>
+
 ## The areas
 
 There used to be twelve plugins here, listing about eighty skills between
@@ -39,6 +54,13 @@ It is the only entry in the slash menu. An area is something an agent calls,
 with a route as the first word of its arguments, and a route is a document
 the area reads, so it costs the skill listing nothing until it is taken. You
 ask for the work in words and the agent picks the area.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/routes-behind-names.dark.gif">
+  <img alt="How one plugin keeps 75 routes behind fourteen names. A session lists fourteen names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
+</picture>
+
+<sub>Fourteen names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
 
 ### agent-works
 
@@ -256,8 +278,15 @@ skill call the host refused. It used to live in plugin-workbench.
 [Read more →](plugins/agentcraft/skills/context-doctor/README.md)
 
 <picture>
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/context-doctor/assets/figures/lost-at-compaction.dark.gif">
+  <img alt="How a rule lost at a compaction is found. A matcher that leaves out compact raises no error: the transcript is the one place the loss shows, and the finding names the fix." src="plugins/agentcraft/skills/context-doctor/assets/figures/lost-at-compaction.gif" width="720">
+</picture>
+
+<sub>Nothing fails when a rule is lost at a compaction. The transcript is where it shows.</sub>
+
+<picture>
   <source media="(prefers-color-scheme: dark)" srcset="plugins/agentcraft/skills/context-doctor/assets/screens/context-lens.dark.png">
-  <img alt="The context lens: what was put into a session's context, and what a compaction dropped." src="plugins/agentcraft/skills/context-doctor/assets/screens/context-lens.light.png" width="720">
+  <img alt="The context lens page: a session's findings, each with its fix, above the size of every request with the compaction marked." src="plugins/agentcraft/skills/context-doctor/assets/screens/context-lens.light.png" width="720">
 </picture>
 
 <sub>The lens reading a synthetic session.</sub>
