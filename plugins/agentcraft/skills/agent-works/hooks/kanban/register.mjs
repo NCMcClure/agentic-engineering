@@ -49,7 +49,8 @@ let syncSeconds = SYNC_SECONDS;
 /** The engine as the mod's other files reach it. */
 function hostOf($) {
   return {
-    root: $.plugin.root,
+    // The area's own directory: the plugin holds it under skills/, and the board's command line is in it.
+    root: `${$.plugin.root}/skills/agent-works`,
     cwd: () => $.session.cwd(),
     run: (argv, init) => $.process.run(argv, init),
     exists: (path) => $.fs.exists(path),
@@ -229,12 +230,12 @@ export const register = (on, options) => {
   }).catch(($, e, next) => next(e));
 
   // The names are written out: the host reads each matcher off this source. A hook that fails still answers.
-  on("tool.call", { tool: "mcp__agent-works__surface_task" }, ($, e) => answerTool($, "surface_task", e)).catch(toolFailed);
-  on("tool.call", { tool: "mcp__agent-works__list_tasks" }, ($, e) => answerTool($, "list_tasks", e)).catch(toolFailed);
-  on("tool.call", { tool: "mcp__agent-works__move_task" }, ($, e) => answerTool($, "move_task", e)).catch(toolFailed);
-  on("tool.call", { tool: "mcp__agent-works__plan_task" }, ($, e) => answerTool($, "plan_task", e)).catch(toolFailed);
-  on("tool.call", { tool: "mcp__agent-works__owe_gate" }, ($, e) => answerTool($, "owe_gate", e)).catch(toolFailed);
-  on("tool.call", { tool: "mcp__agent-works__settle_gate" }, ($, e) => answerTool($, "settle_gate", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__surface_task" }, ($, e) => answerTool($, "surface_task", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__list_tasks" }, ($, e) => answerTool($, "list_tasks", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__move_task" }, ($, e) => answerTool($, "move_task", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__plan_task" }, ($, e) => answerTool($, "plan_task", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__owe_gate" }, ($, e) => answerTool($, "owe_gate", e)).catch(toolFailed);
+  on("tool.call", { tool: "mcp__agentcraft__settle_gate" }, ($, e) => answerTool($, "settle_gate", e)).catch(toolFailed);
 };
 
 /** What a tool call is answered with when its hook failed. */

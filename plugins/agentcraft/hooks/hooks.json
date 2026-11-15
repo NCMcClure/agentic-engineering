@@ -3,7 +3,7 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit|mcp__agent-works__(move_task|plan_task|settle_gate)",
+        "matcher": "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit|mcp__agentcraft__(move_task|plan_task|settle_gate)",
         "hooks": [
           {
             "type": "command",

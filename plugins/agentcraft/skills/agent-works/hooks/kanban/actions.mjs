@@ -4,13 +4,14 @@
 // copy it could write back, so a refusal by the CLI leaves the card where it
 // was and the reason is shown.
 //
-// Start hands a card to the plugin's dispatch skill, run in this session as if
-// the person typed it: the skill checks the card against what is in flight,
-// writes the brief and starts the work. With the board's start mode on queue
-// the skill is asked to work the card in this session instead of a session of
-// its own. Either way the host runs one command at a time, once the session is
-// idle, and a card asked for and not yet begun is marked queued. A host that
-// cannot run a skill for a mod gets the one command to type instead.
+// Start hands a card to the area's dispatch route, run in this session: the
+// route checks the card against what is in flight, writes the brief and
+// starts the work. With the board's start mode on queue the route is asked to
+// work the card in this session instead of a session of its own. Either way
+// the host runs one command at a time, once the session is idle, and a card
+// asked for and not yet begun is marked queued. Where the host will not run
+// the area for a mod, the session is asked for the same thing in plain words:
+// a person cannot type an area.
 //
 // `host` is the engine as register.mjs spells it; `state` is the pane's own:
 // the view, the selection, the scope and the gates filter, the queue, where
@@ -20,7 +21,9 @@ import { BOARD } from "./commands.mjs";
 import { SYNC_MS, answer, readBoard, runBoard, signatureOf } from "./host.mjs";
 import { closePreview, lanesOf, nextScope, notStarting, placeAt, plannedFor, scopeOf } from "./model.mjs";
 
-export const DISPATCH = "agent-works:dispatch";
+/** The area this pane belongs to, as the host names the skill, and the route that starts a card. */
+export const AREA = "agentcraft:agent-works";
+export const DISPATCH = "dispatch";
 const BOARD_VIEW = { kind: "board" };
 
 /** The pane's state at load: nothing read, the board view, no choice made. */
@@ -113,20 +116,26 @@ export function actionsOf(host, state) {
   // ---- starting ---------------------------------------------------------
 
   /**
-   * Ask this session to run one of the plugin's skills, as if the person typed it. The host runs it once the
-   * session is idle, so nothing here waits for that: the card is marked queued until the command has begun, and
-   * `state.pending` settles then.
+   * Ask this session to take one of this area's routes. A route is a document, not a command: the command is
+   * the area, and the route is the first word of its arguments. The host runs it once the session is idle, so
+   * nothing here waits for that: the card is marked queued until the command has begun, and `state.pending`
+   * settles then. A person cannot type an area (the host keeps it out of the slash menu and refuses it), so
+   * where the host will not run it for the pane either, `words` asks this session for the same thing in plain
+   * words.
    */
-  function runSkill(command, args, id) {
-    const typed = `/${command} ${args}`;
+  function runRoute(route, rest, id, words) {
+    const args = `${route} ${rest}`;
+    const typed = `/${AREA} ${args}`;
     state.queue = [...state.queue.filter((x) => x !== id), id];
     say({ ok: true, text: `Queued ${typed}: it runs in this session once it is idle.` });
     redraw();
-    state.pending = Promise.resolve().then(() => host.command({ command, args })).then(() => true, (e) => {
-      // No way to start a skill from here: the person types it.
-      say({ ok: false, text: `This host did not run ${typed} for the pane (${e?.message ?? e}). Type it at the prompt to start the card.` });
+    state.pending = Promise.resolve().then(() => host.command({ command: AREA, args })).then(() => true, (e) => host.submit(words).then(() => {
+      say({ ok: true, text: `${typed} did not run as a command (${e?.message ?? e}), so this session was asked in plain words.` });
+      return true;
+    }, (e2) => {
+      say({ ok: false, text: `The pane could not start ${id} (${e2?.message ?? e2}). Ask this session to dispatch card ${id}.` });
       return false;
-    }).then((ran) => {
+    })).then((ran) => {
       state.queue = state.queue.filter((x) => x !== id);
       redraw();
       return ran;
@@ -174,7 +183,8 @@ export function actionsOf(host, state) {
       return redraw();
     }
     if (state.queue.includes(id)) return undefined;
-    return runSkill(DISPATCH, board.startMode === "queue" ? `${id} --serial` : id, id);
+    const rest = board.startMode === "queue" ? `${id} --serial` : id;
+    return runRoute(DISPATCH, rest, id, `Dispatch card ${id} on the kanban board: call the \`${AREA}\` skill with "${DISPATCH} ${rest}" as its arguments, and follow its ${DISPATCH} route.`);
   }
 
   // ---- moving -----------------------------------------------------------

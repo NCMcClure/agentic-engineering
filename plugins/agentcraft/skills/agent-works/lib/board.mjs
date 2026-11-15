@@ -332,7 +332,7 @@ export function briefLine(s) {
   if (s.ready) parts.push(`${s.ready} ready`);
   if (s.owed) parts.push(`${s.owed} gate${s.owed === 1 ? "" : "s"} owed`);
   if (s.suggested) parts.push(`${s.suggested} suggested`);
-  const untouched = s.untouched ? ` ${s.untouched} in flight ${s.untouched === 1 ? "has" : "have"} not changed for a day: /agent-works:sync-cards checks ${s.untouched === 1 ? "it" : "them"}.` : "";
+  const untouched = s.untouched ? ` ${s.untouched} in flight ${s.untouched === 1 ? "has" : "have"} not changed for a day: /agentcraft:agent-works sync-cards checks ${s.untouched === 1 ? "it" : "them"}.` : "";
   return `Board: ${parts.join(", ")}.${untouched}`;
 }
 

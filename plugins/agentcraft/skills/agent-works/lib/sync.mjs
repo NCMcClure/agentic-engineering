@@ -66,7 +66,8 @@ function text(output) {
  * card the session is working.
  */
 export function observe({ tool = "", input = {}, output } = {}) {
-  const mcp = /^mcp__(?:plugin_)?agent-works[\w-]*__(\w+)$/.exec(String(tool));
+  // The host names a mod's tools by the plugin that loads it.
+  const mcp = /^mcp__(?:plugin_)?agentcraft[\w-]*__(\w+)$/.exec(String(tool));
   if (mcp) {
     const verb = TOOL_VERBS[mcp[1]];
     if (!verb || !input?.id) return null;

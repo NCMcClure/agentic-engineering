@@ -1,4 +1,5 @@
-// The board's model tools, which the model calls as mcp__agent-works__<name>:
+// The board's model tools, which the model calls as mcp__agentcraft__<name>
+// (the host names a mod's tools by the plugin that loads it):
 // six, each registered deferred, so the session's
 // context carries only their names until the model asks for one. They give an
 // agent the board without a shell: file out-of-scope work as a suggestion,
@@ -19,7 +20,7 @@ const given = (value) => text(value) || undefined;
 
 /** What the model reads for each tool, and the arguments each takes. */
 /** A pane tool's name as the model and the hooks see it. */
-export const toolId = (name) => `mcp__agent-works__${name}`;
+export const toolId = (name) => `mcp__agentcraft__${name}`;
 
 export const TOOLS = {
   surface_task: {
