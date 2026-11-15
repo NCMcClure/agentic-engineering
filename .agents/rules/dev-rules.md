@@ -96,49 +96,73 @@ judge in a tree with no area and no stub.
 
 ## Shared files
 
-- `scripts/shared/` holds the files several plugins ship unchanged, since a plugin
-  cannot import from outside itself: `critical-context.mjs` (the session-start
-  kernel), `provider.mjs` (GitHub and GitLab through `gh` and `glab`),
-  `shell-words.mjs` (the command lexer the guards read a Bash call with), and
-  `verify-hubs.mjs` (the check that every `AGENTS.md` hub names its children).
-- A plugin lists its copies, plugin-relative, under `shared` in
-  `scripts/plugins/<name>.json`. The file of the same name in `scripts/shared/`
-  is the one to edit; `node scripts/sync-shared.mjs --write` rewrites the copies,
-  and validate fails one that is missing or has drifted.
-- A change to a shared file is a change to every plugin that ships it: bump each.
+- What several areas use sits once, in `plugins/agentcraft/lib/`: `provider.mjs`
+  (GitHub and GitLab through `gh` and `glab`), `shell-words.mjs` (the command
+  lexer the guards read a Bash call with), and `verify-hubs.mjs` (the check that
+  every `AGENTS.md` hub names its children). An area imports the file by its
+  relative path: one plugin, so nothing is copied and nothing is synced.
+- Every file in `lib/` has a suite of the same name in
+  `scripts/test-hooks/unit/`. Validate fails one without, and fails a
+  `scripts/shared/` or `scripts/plugins/` folder that comes back.
+- A file a route copies into a user's repo cannot reach back into the plugin, so
+  it stays a copy: it is listed in `HASH_PAIRS` in `scripts/lib.mjs`, and validate
+  holds it hash-equal to the one in `lib/`. Today that is spec-init's
+  `assets/provider.mjs`.
+- A change to a shared file changes every area that imports it: run each one's
+  suites.
 
 ## Critical lines
 
-The lines a plugin keeps in an agent's context for a whole session, delivered by
-its copy of the kernel at session start, after a compaction or `/clear`, and in
-subagents.
+The lines the plugin keeps in an agent's context for a whole session, delivered
+at session start, after a compaction or `/clear`, and in subagents.
 
-- They live in `hooks/critical.json`: `plugin`, `lines`, and `chains`. A line has
-  `text`, `for` (`main` or `all`), `mode` (`full`, `portable`, or `any`), and an
-  optional `when` (a repo path that must exist). A chain line adds `partner`,
-  another plugin in the kernel's `ORDER`, and prints only when that one is enabled.
-- A plugin that ships them lists `hooks/critical-context.mjs` under `shared`, runs
-  `hooks/session-start.mjs` on SessionStart (`startup|resume|clear|compact`) and
-  SubagentStart, and is named in the kernel's `ORDER`.
-- Every request pays for them, so they are capped: `critical.cap` characters per
-  plugin in `scripts/plugins/<name>.json`, 7,500 across all plugins, and 10,000
-  for any one hook's worst-case output (`critical.briefing` is the allowance for
-  the plugin's own briefing).
+- The plugin speaks once. One helper, `plugins/agentcraft/hooks/critical-context.mjs`,
+  and two commands built on it. `hooks/session-start.mjs` runs on SessionStart
+  (`startup|resume|clear|compact`) and SubagentStart: the shared line once, then
+  each area's lines under the area's name, then the once-per-clone question.
+  `hooks/briefing.mjs` runs on SessionStart only, for the main session: each
+  area's migration, then each area's briefing. They are two commands because a
+  host shows the model only a preview of a hook's output past 10,000 characters.
+- An area's lines are data, in `skills/<area>/hooks/critical.json`: `area` and
+  `lines`. A line has `text`, `for` (`main` or `all`), `mode` (`full`,
+  `portable`, or `any`), and an optional `when` (a repo path, or a list of them,
+  one of which must exist). Every area is always present, so no line waits on
+  another plugin: there is no `chains` block and no `partner`. A line names a
+  route by its address, `/agentcraft:<area> <route>`.
+- An area's briefing is `skills/<area>/hooks/briefing.mjs`, exporting `briefing`
+  and, where its layout in a repo has changed, `migrate`. An area has no session
+  hook of its own and no copy of the helper.
+- Every request pays for the lines, so they are capped: per area by
+  `CRITICAL_CAPS` in `scripts/validate.mjs`, and 7,500 characters across all of
+  them. `AREAS` in the helper names exactly the areas with a cap, in the order
+  their blocks print. Each command's worst case stays under 10,000: the lines
+  plus the question, and for the briefing the sum of `BRIEFING_CHARS`,
+  `MIGRATION_CHARS` and `CATALOG_CHARS` in the helper, which the command cuts
+  each part to.
 - The mode decides who speaks. `full`: the repo has `.agents/manifest.json`, or
-  the person answered `team`. `portable`: a plugin's own marker is committed, or
-  the person answered `on`. Otherwise nothing prints, and the first enabled
-  plugin in `ORDER` asks once per clone. The answer lives in
-  `git config --local agentic-engineering.plugins`; a committed marker outranks
-  a personal `off`.
-- A denied agent type (the kernel's `DENYLIST`) gets nothing. A subagent never
-  gets a briefing, only the lines marked `all`.
-- When a plugin's layout in a repo changes, its session hook passes `run()` a
-  `migrate` function. It runs first, in the main session only, and changes the
-  repo only through the `move` and `write` it is given: both refuse a path that
-  exists, so it never overwrites and a second run changes nothing. It recognises
-  the old layout by a file only the plugin wrote, writes the opt-in that keeps
-  behavior the same, and finishes inside three seconds. The kernel reports what
-  moved to the model and the person.
+  the person answered `team`. `portable`: an area's own marker is committed, or
+  the person answered `on`. Otherwise nothing prints but the question, asked
+  once per clone, with the team conventions always among its answers. The answer
+  lives in `git config --local agentic-engineering.plugins`; a committed marker
+  outranks a personal `off`.
+- A denied agent type (the helper's `DENYLIST`) gets nothing, and an entry that
+  names one of the plugin's agents names one it ships. A subagent never gets a
+  briefing, only the lines marked `all`.
+- When an area's layout in a repo changes, its `briefing.mjs` exports `migrate`.
+  The briefing command runs it first, in the main session only, whatever the
+  repo's mode, and it changes the repo only through the `move` and `write` it is
+  given: both refuse a path that exists, so it never overwrites and a second run
+  changes nothing. It recognises the old layout by a file only the plugin wrote,
+  writes the opt-in that keeps behavior the same, and finishes inside three
+  seconds. The helper reports what moved to the model and the person.
+- A host runs the two commands side by side, so the lines may be read before the
+  repo is moved. A marker of the old layout stays in the helper's `OLD_MANIFESTS`
+  or `OLD_MARKERS`, and in the `when` of a line that waits on it, for as long as
+  a repo may still carry it.
+- Validate fails a second copy of the helper, an area's own `session-start.mjs`,
+  a `chains` block, a line with `partner`, a briefing with no allowance, and a
+  hook map that runs the lines other than once per event or the briefing other
+  than once on SessionStart.
 
 ## Versioning: the one rule that matters
 

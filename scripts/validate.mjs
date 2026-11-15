@@ -8,14 +8,14 @@
 // against a tree that is meant to fail. --tag checks one thing only: that the
 // tag names a plugin at the version its plugin.json carries.
 //
-// scripts/plugins/<name>.json carries a plugin's gate data: `shared` (its
-// copies of files in scripts/shared/) and `critical` (the cap on its critical
-// lines, and the allowance for its session briefing).
+// The one plugin's session hooks are held to budgets kept here: CRITICAL_CAPS
+// (each area's critical lines) and the totals a hook's output must stay
+// under. What a hook may print at run time is in the plugin's own helper.
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { HASH_PAIRS, addressFinder, areaOwner, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, parseFrontmatter, parseHookCommand, placed, pluginRootPaths, readJson, sha256, sharedCopies, skillBody, stringSet } from "./lib.mjs";
+import { HASH_PAIRS, addressFinder, areaOwner, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, parseFrontmatter, parseHookCommand, placed, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -52,15 +52,22 @@ const ABS_PATH = new RegExp("/(?:Users|home/[a-z]|fast)/");
 const NODE_FILE = /^(?:plugins|scripts)\/.*\.(?:mjs|js|cjs)$/;
 const EXIT_CALL = /^(?!\s*(?:\/\/|\/?\*)).*\bprocess\.exit\(/;
 // Critical lines are paid for on every request of every session, so each
-// plugin's lines and chain lines stay under its own cap, all of them together
-// under the combined target, and each session hook's worst case under the
-// host's limit on a hook's output, past which the model reads a preview.
+// area's lines stay under its own cap, all of them together under the
+// combined target, and each session command's worst case under the host's
+// limit on a hook's output, past which the model reads a preview.
+const CRITICAL_CAPS = { "agentic-teamwork": 1500, "agent-works": 2100, "code-diet": 550, "docs-parity": 450, "but-first-planning": 750, "perceptual-loop": 1100, "system-map": 600 };
 const CRITICAL_TOTAL = 7500;
 const HOOK_OUTPUT_CAP = 10000;
-// What the first enabled plugin can add to its own block: the catalog notices
-// or the question, and a migration's report.
-const ASKER_ALLOWANCE = 2600;
-const KERNEL = "scripts/shared/critical-context.mjs";
+// What the lines command can print beside the lines: the once-per-clone
+// question, and the JSON it all goes out in.
+const QUESTION_ALLOWANCE = 800;
+const ENVELOPE_ALLOWANCE = 200;
+// The one plugin, the one copy of the session helper, and the two commands built on it.
+const ONE_PLUGIN = "agentcraft";
+const HELPER = `plugins/${ONE_PLUGIN}/hooks/critical-context.mjs`;
+const LINES_HOOK = "hooks/session-start.mjs";
+const BRIEFING_HOOK = "hooks/briefing.mjs";
+const SESSION_MATCHER = "startup|resume|clear|compact";
 // A route is a document no host parses, so its frontmatter is the table's data and nothing else.
 const ROUTE_KEYS = new Set(["name", "description", "argument-hint"]);
 // An area is one entry in the skill listing, and the host cuts an entry's
@@ -132,15 +139,7 @@ async function validate() {
   }
   if (external.length && failures() === externalFailures) ok(`${external.length} external entr${external.length === 1 ? "y" : "ies"}: github or git source, nothing vendored`);
 
-  // ---- per-plugin gate data --------------------------------------------
   const pluginDirs = listDirs(at("plugins"));
-  const meta = new Map();
-  for (const file of isDir(at("scripts", "plugins")) ? fs.readdirSync(at("scripts", "plugins")).filter((f) => f.endsWith(".json")).sort() : []) {
-    const name = file.slice(0, -5);
-    const where = `scripts/plugins/${file}`;
-    if (!pluginDirs.includes(name)) { fail(`${where} describes a plugin that is not under plugins/`, where); continue; }
-    try { meta.set(name, readJson(at(where))); } catch (e) { fail(`${where} does not parse (${e.message})`, where); }
-  }
 
   // ---- per plugin ------------------------------------------------------
   const entryNames = new Set(catalog.plugins.map((p) => p.name));
@@ -207,16 +206,27 @@ async function validate() {
       }
       // A Node hook sits behind a guard, so a machine without Node hears about
       // it once at session start instead of failing on every event.
+      // One SessionStart command says so to the person; said by each of
+      // several, the message prints once per command.
+      const loud = [];
       for (const [event, groups] of Object.entries(map?.hooks ?? {})) {
+        const starts = [];
         for (const hook of [].concat(groups ?? []).flatMap((g) => g?.hooks ?? [])) {
           if (!/\bnode\b/.test(String(hook.command ?? "")) || !/\.m?js\b/.test(String(hook.command))) continue;
           const parsed = parseHookCommand(hook.command, name);
           const what = `${name}/hooks/hooks.json: the ${event} command`;
           if (!parsed) fail(`${what} is not a guard followed by node "\${CLAUDE_PLUGIN_ROOT}/<file>"`, rel(hooks));
           else if (!parsed.guard) fail(`${what} for ${parsed.script} has no guard for a machine without Node`, rel(hooks));
-          else if (event === "SessionStart" && parsed.guard !== "loud") fail(`${what} for ${parsed.script} must use the guard that tells the person Node is missing`, rel(hooks));
-          if (parsed && event === "SessionStart" && !hook.statusMessage) fail(`${what} for ${parsed.script} has no statusMessage`, rel(hooks));
+          else if (event !== "SessionStart" && parsed.guard === "loud") fail(`${what} for ${parsed.script} uses the guard that tells the person Node is missing; only a SessionStart command does`, rel(hooks));
+          if (parsed && event === "SessionStart") {
+            starts.push(parsed);
+            if (parsed.guard === "loud") loud.push(parsed.script);
+            if (!hook.statusMessage) fail(`${what} for ${parsed.script} has no statusMessage`, rel(hooks));
+          }
         }
+        if (event !== "SessionStart" || !starts.some((s) => s.guard)) continue;
+        if (!loud.length) fail(`${name}/hooks/hooks.json: the SessionStart command for ${starts[0].script} must use the guard that tells the person Node is missing`, rel(hooks));
+        for (const script of loud.slice(1)) fail(`${name}/hooks/hooks.json: the SessionStart command for ${script} repeats the guard that tells the person Node is missing; ${loud[0]} says it, and the rest stay quiet`, rel(hooks));
       }
       for (const mod of [].concat(map?.modules ?? [])) {
         const target = typeof mod === "string" ? path.resolve(path.dirname(hooks), mod) : "";
@@ -241,66 +251,105 @@ async function validate() {
   if (failures() === pluginFailures) ok(`${pluginDirs.length} plugin director${pluginDirs.length === 1 ? "y" : "ies"}: manifests, names, README, CHANGELOG, skills, hooks`);
 
   // ---- shared files ---------------------------------------------------
-  // A file several plugins ship has one copy that is edited, in
-  // scripts/shared/, and every plugin's copy is byte-identical to it.
-  const { copies, problems } = sharedCopies(ROOT);
-  const sharedFailures = failures();
-  for (const problem of problems) fail(problem, "scripts/plugins");
-  for (const { copy, canonical } of copies) {
-    if (!exists(at(canonical))) fail(`${copy} is listed as shared, but ${canonical} does not exist`, canonical);
-    else if (!exists(at(copy))) fail(`${copy} is missing: node scripts/sync-shared.mjs --write`, copy);
-    else if (sha256(at(copy)) !== sha256(at(canonical))) fail(`${copy} has drifted from ${canonical}: edit that one, then node scripts/sync-shared.mjs --write`, copy);
+  // What several areas use sits once, in the one plugin's lib/, and is tested
+  // once, by a suite of its own name. (A copy a user's repo gets is a
+  // duplicated file, below.)
+  {
+    const before = failures();
+    const lib = `plugins/${ONE_PLUGIN}/lib`;
+    const shared = isDir(at(lib)) ? fs.readdirSync(at(lib)).sort() : [];
+    for (const f of shared) {
+      const suite = `scripts/test-hooks/unit/${f.replace(/\.mjs$/, ".test.mjs")}`;
+      if (!f.endsWith(".mjs")) fail(`${lib}/${f} is not a .mjs file`, `${lib}/${f}`);
+      else if (!exists(at(suite))) fail(`${lib}/${f} has no ${suite}`, `${lib}/${f}`);
+    }
+    for (const gone of ["scripts/shared", "scripts/plugins"]) {
+      if (exists(at(gone))) fail(`${gone}/ is still here: one plugin holds one copy of what its areas share, in ${lib}/, and its budgets are in this gate`, gone);
+    }
+    if (shared.length && failures() === before) ok(`${shared.length} shared file(s) in ${lib}/, each with a suite`);
   }
-  // What ships in several plugins is tested once, where it is edited.
-  const sharedFiles = isDir(at("scripts", "shared")) ? fs.readdirSync(at("scripts", "shared")).sort() : [];
-  for (const f of sharedFiles) {
-    if (!f.endsWith(".mjs")) fail(`scripts/shared/${f} is not a .mjs file`, `scripts/shared/${f}`);
-    else if (!exists(at("scripts", "test-hooks", "unit", f.replace(/\.mjs$/, ".test.mjs")))) fail(`scripts/shared/${f} has no scripts/test-hooks/unit/${f.replace(/\.mjs$/, ".test.mjs")}`, `scripts/shared/${f}`);
-  }
-  if (failures() === sharedFailures) ok(`${copies.length} shared copy/copies match scripts/shared, ${sharedFiles.length} shared file(s) each with a suite`);
 
-  // ---- critical lines --------------------------------------------------
-  const speakers = pluginDirs.filter((p) => exists(at("plugins", p, "hooks", "critical.json")));
-  const criticalFailures = failures();
-  let kernel = null;
-  if (speakers.length) {
-    try { kernel = await import(pathToFileURL(at(KERNEL)).href); } catch (e) { fail(`${KERNEL} does not load (${e.message})`, KERNEL); }
-  }
-  let total = kernel ? kernel.SHARED_LINE.length + 3 : 0;
-  for (const plugin of kernel ? speakers : []) {
-    const file = `plugins/${plugin}/hooks/critical.json`;
-    const bad = (what) => fail(`${file}: ${what}`, file);
-    if (!kernel.ORDER.includes(plugin)) bad(`${plugin} is not in ORDER in ${KERNEL}`);
-    if (!copies.some((c) => c.copy === `plugins/${plugin}/hooks/critical-context.mjs`)) bad(`scripts/plugins/${plugin}.json does not list hooks/critical-context.mjs under shared`);
+  // ---- the session hooks -----------------------------------------------
+  // The plugin speaks once. One command prints every area's critical lines
+  // (and, where nothing settles the repo, the question); another prints the
+  // briefing. Each stays under what a host shows the model in full.
+  if (exists(at(HELPER))) {
+    const before = failures();
+    const skills = `plugins/${ONE_PLUGIN}/skills`;
+    let helper = null;
+    try { helper = await import(pathToFileURL(at(HELPER)).href); } catch (e) { fail(`${HELPER} does not load (${e.message})`, HELPER); }
+    const capped = Object.keys(CRITICAL_CAPS);
+    const speaking = listDirs(at(skills)).filter((a) => exists(at(skills, a, "hooks", "critical.json")));
+    let total = helper ? helper.SHARED_LINE.length + 3 : 0;
+    if (helper) {
+      const listed = helper.AREAS ?? [];
+      for (const area of capped) if (!listed.includes(area)) fail(`${HELPER}: AREAS does not list ${area}, which CRITICAL_CAPS in scripts/validate.mjs gives a cap`, HELPER);
+      for (const area of listed) if (!capped.includes(area)) fail(`${HELPER}: AREAS lists ${area}, which has no cap in CRITICAL_CAPS in scripts/validate.mjs`, HELPER);
+      for (const area of listed) if (!speaking.includes(area)) fail(`${HELPER}: AREAS lists ${area}, which has no ${skills}/${area}/hooks/critical.json`, HELPER);
+    }
+    for (const area of helper ? speaking : []) {
+      const file = `${skills}/${area}/hooks/critical.json`;
+      const bad = (what) => fail(`${file}: ${what}`, file);
+      if (!(helper.AREAS ?? []).includes(area)) bad(`${area} is not in AREAS in ${HELPER}, so its lines never print`);
+      let data;
+      try { data = readJson(at(file)); } catch (e) { bad(e.message); continue; }
+      if (data.area !== area) bad(`area is ${JSON.stringify(data.area ?? null)}, expected ${area}`);
+      // Every area is always there, so no line waits on another plugin.
+      if ("chains" in data) bad("it carries a chains block; a line that waited on another plugin is a line of its own now, behind its own when");
+      const lines = Array.isArray(data.lines) ? data.lines : [];
+      for (const l of lines) {
+        const which = `"${String(l.text).slice(0, 40)}"`;
+        if (typeof l.text !== "string" || !l.text) bad(`${which} has no text`);
+        if (!helper.AUDIENCES.includes(l.for)) bad(`${which} needs for: ${helper.AUDIENCES.join(" or ")}`);
+        if (!helper.MODES.includes(l.mode)) bad(`${which} needs mode: ${helper.MODES.join(", ")}`);
+        if ("partner" in l) bad(`${which} names a partner; every area is present, so the line stands behind its own when`);
+        if ("when" in l && ![l.when].flat().every((p) => typeof p === "string" && p)) bad(`${which} needs when: a repo path, or a list of them`);
+      }
+      // What the block costs as printed: a header, and "- " plus a newline a line.
+      const size = `Critical, from ${area}:`.length + lines.reduce((n, l) => n + String(l.text).length + 3, 0);
+      total += size;
+      const cap = CRITICAL_CAPS[area];
+      if (Number.isInteger(cap) && size > cap) bad(`critical lines are ${size} characters, over the ${cap} cap`);
+      // The plugin speaks through one command, never an area's own.
+      const own = `${skills}/${area}/hooks/session-start.mjs`;
+      if (exists(at(own))) fail(`${own}: an area has no session hook of its own; its lines are critical.json and its briefing is hooks/briefing.mjs`, own);
+    }
+    for (const copy of tracked.filter((f) => f.startsWith("plugins/") && f.endsWith("/critical-context.mjs") && f !== HELPER && exists(at(f)))) {
+      fail(`${copy} is a second copy of the session helper; the one copy is ${HELPER}`, copy);
+    }
+    if (total > CRITICAL_TOTAL) fail(`critical lines total ${total} characters across the areas, over the ${CRITICAL_TOTAL} target`, skills);
+    const linesWorst = total + QUESTION_ALLOWANCE + ENVELOPE_ALLOWANCE;
+    if (linesWorst > HOOK_OUTPUT_CAP) fail(`the lines command can print ${linesWorst} characters, over the host's ${HOOK_OUTPUT_CAP}`, HELPER);
+
+    // The briefing: each part is cut to its allowance at run time, so the sum is the worst case.
+    let briefingWorst = 0;
+    if (helper) {
+      const parts = helper.BRIEFING_CHARS ?? {};
+      const have = listDirs(at(skills)).filter((a) => exists(at(skills, a, "hooks", "briefing.mjs")));
+      for (const area of Object.keys(parts)) if (!have.includes(area)) fail(`${HELPER}: BRIEFING_CHARS gives ${area} an allowance, and ${skills}/${area}/hooks/briefing.mjs is not there`, HELPER);
+      for (const area of have) if (!Number.isInteger(parts[area])) fail(`${skills}/${area}/hooks/briefing.mjs has no allowance in BRIEFING_CHARS in ${HELPER}, so the briefing command never loads it`, `${skills}/${area}/hooks/briefing.mjs`);
+      briefingWorst = Object.values(parts).reduce((n, c) => n + c, 0) + (helper.MIGRATION_CHARS ?? 0) + (helper.CATALOG_CHARS ?? 0) + ENVELOPE_ALLOWANCE;
+      if (!Number.isInteger(briefingWorst)) fail(`${HELPER}: BRIEFING_CHARS, MIGRATION_CHARS, and CATALOG_CHARS are whole numbers of characters`, HELPER);
+      else if (briefingWorst > HOOK_OUTPUT_CAP) fail(`the briefing command can print ${briefingWorst} characters, over the host's ${HOOK_OUTPUT_CAP}`, HELPER);
+    }
+
+    // The hook map: the lines once per event, the briefing once, in the main session only.
+    const mapFile = `plugins/${ONE_PLUGIN}/hooks/hooks.json`;
     let registered = {};
-    try { registered = readJson(at("plugins", plugin, "hooks", "hooks.json")).hooks ?? {}; } catch { /* reported above */ }
-    for (const event of ["SessionStart", "SubagentStart"]) {
-      if (!JSON.stringify(registered[event] ?? "").includes("/hooks/session-start.mjs")) bad(`hooks.json does not run hooks/session-start.mjs on ${event}`);
+    try { registered = readJson(at(mapFile)).hooks ?? {}; } catch { /* reported with the plugin's hooks */ }
+    const runs = (event, script) => [].concat(registered[event] ?? []).flatMap((g) => (g?.hooks ?? []).map((h) => ({ matcher: g.matcher ?? "", parsed: parseHookCommand(h.command, ONE_PLUGIN) }))).filter((r) => r.parsed?.script === script);
+    for (const [event, script, want] of [["SessionStart", LINES_HOOK, 1], ["SubagentStart", LINES_HOOK, 1], ["SessionStart", BRIEFING_HOOK, 1], ["SubagentStart", BRIEFING_HOOK, 0]]) {
+      const n = runs(event, script).length;
+      if (n !== want) fail(`${mapFile} runs ${script} ${n} time(s) on ${event}; it runs ${want === 1 ? "once" : "never: a subagent gets no briefing"}`, mapFile);
     }
-    let data;
-    try { data = readJson(at(file)); } catch (e) { bad(e.message); continue; }
-    if (data.plugin !== plugin) bad(`plugin is ${JSON.stringify(data.plugin)}, expected ${plugin}`);
-    const entries = [...(data.lines ?? []), ...(data.chains ?? [])];
-    for (const l of entries) {
-      const which = `"${String(l.text).slice(0, 40)}"`;
-      if (typeof l.text !== "string" || !l.text) bad(`${which} has no text`);
-      if (!kernel.AUDIENCES.includes(l.for)) bad(`${which} needs for: ${kernel.AUDIENCES.join(" or ")}`);
-      if (!kernel.MODES.includes(l.mode)) bad(`${which} needs mode: ${kernel.MODES.join(", ")}`);
+    for (const event of Object.keys(registered).filter((e) => e !== "SessionStart" && e !== "SubagentStart")) {
+      for (const script of [LINES_HOOK, BRIEFING_HOOK]) if (runs(event, script).length) fail(`${mapFile} runs ${script} on ${event}; it is a session-start command`, mapFile);
     }
-    for (const c of data.chains ?? []) {
-      if (!kernel.ORDER.includes(c.partner) || c.partner === plugin) bad(`chain partner ${JSON.stringify(c.partner)} is not another plugin in ORDER`);
+    for (const script of [LINES_HOOK, BRIEFING_HOOK]) {
+      for (const r of runs("SessionStart", script)) if (r.matcher !== SESSION_MATCHER) fail(`${mapFile}: ${script} runs on SessionStart "${r.matcher}"; it is "${SESSION_MATCHER}", so the context comes back after a compaction and a /clear`, mapFile);
     }
-    // What the block costs as printed: a header, and "- " plus a newline a line.
-    const size = `Critical, from ${plugin}:`.length + entries.reduce((n, l) => n + String(l.text).length + 3, 0);
-    total += size;
-    const { cap, briefing = 0 } = meta.get(plugin)?.critical ?? {};
-    if (!Number.isInteger(cap)) bad(`scripts/plugins/${plugin}.json carries no critical.cap`);
-    else if (size > cap) bad(`critical and chain lines are ${size} characters, over the ${cap} cap`);
-    const worst = size + kernel.SHARED_LINE.length + 3 + briefing + ASKER_ALLOWANCE;
-    if (worst > HOOK_OUTPUT_CAP) bad(`the session hook can print ${worst} characters, over the host's ${HOOK_OUTPUT_CAP}`);
+    if (failures() === before) ok(`critical lines within budget (${total} of ${CRITICAL_TOTAL} characters across ${speaking.length} area(s)); the lines command prints at most ${linesWorst} and the briefing ${briefingWorst}, of ${HOOK_OUTPUT_CAP}`);
   }
-  if (total > CRITICAL_TOTAL) fail(`critical lines total ${total} characters across the plugins, over the ${CRITICAL_TOTAL} target`, "plugins");
-  if (failures() === criticalFailures) ok(`critical lines within budget (${total} of ${CRITICAL_TOTAL} characters across ${speakers.length} plugin(s))`);
 
   // ---- the generated guide ---------------------------------------------
   // docs/plugins.md is written from the catalog, the manifests and the skills'
@@ -662,7 +711,7 @@ async function validate() {
   // be sent the builder's lines. Each plugin-qualified entry is an agent file
   // in that plugin. An entry with no plugin is one of the host's own agents.
   {
-    const file = [KERNEL, `plugins/${gen?.ENTRY_PLUGIN}/hooks/critical-context.mjs`].find((f) => exists(at(f)));
+    const file = exists(at(HELPER)) ? HELPER : null;
     const entries = file ? stringSet(fs.readFileSync(at(file), "utf8"), "DENYLIST") : [];
     if (!entries) fail("DENYLIST is not a Set of string literals any more, so its entries cannot be checked; change this check with it", file);
     else {

@@ -188,12 +188,13 @@ export function placed(root, rel) {
   return to == null ? rel : `plugins/${owner}/${to}`;
 }
 
-// Files duplicated on purpose because an installed copy may not reach outside
-// itself: a canonical file, and the copies held hash-equal to it. Empty while
-// the plugins are separate, where scripts/shared/ and scripts/plugins/ do the
-// job (sharedCopies, below); one plugin needs only the pairs a user's repo
-// carries a copy of.
-export const HASH_PAIRS = [];
+// Files duplicated on purpose: a canonical file, and the copies held
+// hash-equal to it. The one plugin keeps one copy of what its areas share (in
+// its lib/), so the only pairs left are files a route copies into a user's
+// repo, where nothing can reach back into the plugin.
+export const HASH_PAIRS = [
+  { canonical: "plugins/agentcraft/lib/provider.mjs", copies: ["plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/provider.mjs"] },
+];
 
 // The trees a plugin copies into a user's repo. A file there is another
 // repo's file once copied: what it names is in that repo, and a copy already
@@ -283,28 +284,4 @@ export function parseHookCommand(command, plugin) {
   const guard = text.startsWith(loudGuard(plugin)) ? "loud" : text.startsWith(QUIET_GUARD) ? "quiet" : null;
   const call = NODE_CALL.exec(guard === "loud" ? text.slice(loudGuard(plugin).length) : guard === "quiet" ? text.slice(QUIET_GUARD.length) : text);
   return call ? { script: call[1], args: call[2].trim().split(" ").filter(Boolean), guard } : null;
-}
-
-// ---- shared files --------------------------------------------------------
-/**
- * The files plugins ship as unchanged copies of one in scripts/shared/. A
- * plugin lists its copies, plugin-relative, under `shared` in
- * scripts/plugins/<name>.json; the file of the same name in scripts/shared/ is
- * the one to edit. Returns { copies: [{ plugin, copy, canonical }], problems }.
- */
-export function sharedCopies(root) {
-  const copies = [], problems = [];
-  const dir = path.join(root, "scripts", "plugins");
-  for (const file of fs.existsSync(dir) ? fs.readdirSync(dir).filter((f) => f.endsWith(".json")).sort() : []) {
-    const plugin = file.slice(0, -5);
-    let shared;
-    try { shared = readJson(path.join(dir, file)).shared ?? []; } catch { continue; }
-    if (!Array.isArray(shared)) { problems.push(`scripts/plugins/${file}: shared is not a list of paths`); continue; }
-    for (const rel of shared) {
-      if (typeof rel !== "string" || !rel || path.isAbsolute(rel) || rel.split("/").includes("..")) { problems.push(`scripts/plugins/${file}: ${JSON.stringify(rel)} is not a path inside the plugin`); continue; }
-      // Named as the plugin's own path, and found where that is once the plugin is an area.
-      copies.push({ plugin, copy: placed(root, `plugins/${plugin}/${rel}`), canonical: `scripts/shared/${path.posix.basename(rel)}` });
-    }
-  }
-  return { copies, problems };
 }
