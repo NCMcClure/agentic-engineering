@@ -1553,12 +1553,12 @@
   },
   "skills": {
     "claudeCodeVersion": "2.1.325",
-    "date": "2026-11-15",
+    "date": "2026-11-16",
     "model": "claude-haiku-5-5",
-    "pluginsTree": "22b6a7466b3be08fd983acb369378f9c8aadec5a",
+    "pluginsTree": "2a00cbcc8896de49640f3d1d6acd67d3482a98be",
     "passes": 3,
-    "sessions": 202,
-    "costUsd": 0.8294,
+    "sessions": 199,
+    "costUsd": 0.7854,
     "windows": {
       "default": 1000000,
       "200k": 200000
@@ -1568,7 +1568,7 @@
         "agentcraft": {
           "skills": 14,
           "described": 14,
-          "characters": 9272
+          "characters": 9303
         }
       },
       "200k": {
@@ -1635,12 +1635,12 @@
         },
         "reached": {
           "default": [
-            "miss",
             "read",
-            "read"
+            "read",
+            "miss"
           ],
           "200k": [
-            "read",
+            "miss",
             "read",
             "read"
           ]
@@ -1663,7 +1663,7 @@
           ],
           "200k": [
             "read",
-            "miss",
+            "read",
             "read"
           ]
         }
@@ -1811,7 +1811,7 @@
         },
         "reached": {
           "default": [
-            "miss",
+            "read",
             "miss",
             "miss"
           ],
@@ -1839,7 +1839,7 @@
           ],
           "200k": [
             "read",
-            "miss",
+            "read",
             "read"
           ]
         }
@@ -1878,8 +1878,8 @@
         "reached": {
           "default": [
             "read",
-            "read",
-            "read"
+            "miss",
+            "miss"
           ],
           "200k": [
             "read",
@@ -2009,8 +2009,8 @@
         },
         "reached": {
           "default": [
-            "miss",
             "read",
+            "miss",
             "miss"
           ],
           "200k": [
@@ -2099,7 +2099,7 @@
           "default": [
             "read",
             "read",
-            "miss"
+            "read"
           ],
           "200k": [
             "miss",
@@ -2148,7 +2148,7 @@
           "200k": [
             "read",
             "miss",
-            "miss"
+            "read"
           ]
         }
       },
@@ -2185,14 +2185,14 @@
         },
         "reached": {
           "default": [
-            "miss",
+            "read",
             "read",
             "read"
           ],
           "200k": [
             "read",
             "read",
-            "miss"
+            "read"
           ]
         }
       },
@@ -2230,7 +2230,7 @@
         "reached": {
           "default": [
             "miss",
-            "miss",
+            "skill",
             "miss"
           ],
           "200k": [
@@ -2274,7 +2274,7 @@
         "reached": {
           "default": [
             "miss",
-            "read",
+            "miss",
             "miss"
           ],
           "200k": [
@@ -2296,7 +2296,7 @@
         "reached": {
           "default": [
             "read",
-            "read",
+            "miss",
             "miss"
           ],
           "200k": [
