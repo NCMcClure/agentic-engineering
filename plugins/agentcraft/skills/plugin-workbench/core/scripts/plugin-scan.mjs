@@ -157,6 +157,11 @@ const UNQUOTED_COLON_RE = /^description:[ \t]*(?!["'>|])\S.*: /m;
 // AN6: a file read by path gets no root variable, so a route names each
 // directory its paths need from its own location, once, in this sentence.
 const NAMED_DIR_RE = /`([A-Z])`\s+below\s+is\s+`([^`\s]+)`\s+from\s+the\s+directory\s+this\s+file\s+is\s+in/g;
+// A route may also name a directory that is not the plugin's: one of the repo
+// it works in ("`P` below is the workspace this run works in"). It opens the
+// same way without the "from the directory" that makes a name a plugin path,
+// and no path under it is resolved: this scan has no such repo to look in.
+const OUTSIDE_DIR_RE = /`([A-Z])`\s+below\s+is\s+(?!`[^`\s]+`\s+from\s+the\s+directory\s+this\s+file\s+is\s+in)/g;
 // Built in pieces: this file must not hold the call it looks for.
 const EXIT_CALL_RE = new RegExp("\\bprocess\\.ex" + "it\\(");
 
@@ -504,6 +509,8 @@ function scanRoutePaths(root, skills) {
       else if (!isDir(full)) problems.push({ ...at(), problem: `\`${d.name}\` is ${d.rel} from this file, which is not a directory` });
       else { dirs.set(d.name, full); declarations++; }
     }
+    const outside = new Set(matchAll(text, OUTSIDE_DIR_RE).map((m) => m[1]));
+    for (const name of outside) if (dirs.has(name)) problems.push({ ...at(), problem: `\`${name}\` is declared twice` });
     text.split("\n").forEach((line, i) => {
       if (s.route && line.includes("${CLAUDE_PLUGIN_ROOT}")) problems.push({ ...at(i + 1), problem: "a route writes the root variable, which is not filled in for a file read by path" });
       for (const found of namedPaths(line, [...dirs.keys()])) {
@@ -518,7 +525,7 @@ function scanRoutePaths(root, skills) {
       }
       // A path copied in from another route, whose name this one never declared.
       if (s.route) for (const m of matchAll(line, /(?<=["`])([A-Z])\/[a-z][A-Za-z0-9_./-]*/g)) {
-        if (!dirs.has(m[1])) problems.push({ ...at(i + 1), problem: `${m[0]} is under \`${m[1]}\`, which this file does not declare` });
+        if (!dirs.has(m[1]) && !outside.has(m[1])) problems.push({ ...at(i + 1), problem: `${m[0]} is under \`${m[1]}\`, which this file does not declare` });
       }
     });
   }

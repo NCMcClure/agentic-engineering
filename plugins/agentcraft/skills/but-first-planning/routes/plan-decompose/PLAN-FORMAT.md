@@ -1,5 +1,7 @@
 # Plan format: exact templates
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 Use these templates verbatim. The **field names and link shapes are checked by
 `verify-plan-tree.mjs`**: `**Sprint**`, `**Type**`, `**Tracker**`, `**Status**`,
 the `## ` section headings, the `(issues/NN_issue_SLUG.md)` links in a sprint
@@ -69,8 +71,8 @@ parallel, say so.
 
 | Check | Command | Expected result |
 |-------|---------|-----------------|
-| All epic sprints done | `node .agents/plan/plan/plan-status.mjs check 01` | exit 0 (`01-minimal-core: done`) |
-| Plan tree verifier passes | `node .agents/plan/plan/verify-plan-tree.mjs` | exit 0; `OK: ...` |
+| All epic sprints done | `node P/plan/plan-status.mjs check 01` | exit 0 (`01-minimal-core: done`) |
+| Plan tree verifier passes | `node P/plan/verify-plan-tree.mjs` | exit 0; `OK: ...` |
 
 ## Blocked by
 
@@ -129,8 +131,8 @@ Issues are parallelizable unless an issue's own `Blocked by` says otherwise.
 
 | Check | Command | Expected result |
 |-------|---------|-----------------|
-| All sprint issues done | `node .agents/plan/plan/plan-status.mjs check 01-01` | exit 0 (`...: done`) |
-| Plan tree verifier passes | `node .agents/plan/plan/verify-plan-tree.mjs` | exit 0; `OK: ...` |
+| All sprint issues done | `node P/plan/plan-status.mjs check 01-01` | exit 0 (`...: done`) |
+| Plan tree verifier passes | `node P/plan/verify-plan-tree.mjs` | exit 0; `OK: ...` |
 
 ## Blocked by
 
@@ -267,6 +269,6 @@ issues per the posture rules in [VERTICAL-SLICES.md](VERTICAL-SLICES.md).
 - `**Type**:` is exactly `AFK`, `HITL`, or `REVIEW` (the verifier rejects anything else).
 - All five sections present: `## Parent`, `## What to build`, `## Acceptance criteria`, `## Testing checkpoint`, `## Blocked by`.
 - `**Tracker**:` is exactly `<unassigned>` until published, then the ticket's `#NNN` (a local-markdown plan may use `local:<handle>`).
-- Every markdown link in `## What to build` that contains `spec/` must resolve, that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `.agents/plan/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).
+- Every markdown link in `## What to build` that contains `spec/` must resolve, that's the spec anchor. The path from an issue file to the spec is `../../../../spec/...` (issues → sprint → epic → plan → `P/` → `spec/`). See [SPEC-ANCHORS.md](SPEC-ANCHORS.md).
 - Every markdown link in `## Blocked by` must resolve to a real sibling issue file (use `[title](./NN_issue_OTHER.md)`), or say "None".
 - `**User-facing**:` present on every `AFK`/`HITL` issue, matching `yes - <surface>` or `no - internal` (CRITICAL on trees marked `plan-format: 3.7` or later, WARN on older and unmarked ones).

@@ -1,14 +1,16 @@
 # File layout and structural rules
 
-The spec lives under `.agents/plan/spec/`. The layout is small and the rules are few,
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
+The spec lives under `P/spec/`. The layout is small and the rules are few,
 but each one is load-bearing: break it and you break the progressive-disclosure
 cost model (see [PROGRESSIVE-DISCLOSURE.md](PROGRESSIVE-DISCLOSURE.md)). The
-verifier (`.agents/plan/spec/scripts/verify-spec-tree.mjs`) enforces the mechanical ones.
+verifier (`P/spec/scripts/verify-spec-tree.mjs`) enforces the mechanical ones.
 
 ## Canonical layout
 
 ```
-.agents/plan/spec/
+P/spec/
 ├── index.md                 # root navigation hub, categories only, no content
 ├── 01-<category>/           # a category: numbered, kebab-case
 │   ├── index.md             # category hub, one line per file in this category

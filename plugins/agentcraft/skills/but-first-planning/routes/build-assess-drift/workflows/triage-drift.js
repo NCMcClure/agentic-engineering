@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-drift-triage',
   description: 'Re-assess every open drift item against the live code in parallel, verdict + fix plan per item, settle terminal items in their files, and (opt-in) publish one routed tracker issue per survivor',
-  whenToUse: "build-assess-drift's autonomous mode, or 5+ open items; below that the interactive triage is faster. Args: {root, skillDir, items?, publish?}, items limits the run to specific drift ids; publish defaults false. The skill runs publish:false first, presents the batch for approval, then re-invokes with publish:true and the surviving ids.",
+  whenToUse: "build-assess-drift's autonomous mode, or 5+ open items; below that the interactive triage is faster. Args: {root, skillDir, items?, publish?, workspace?}, items limits the run to specific drift ids; publish defaults false. The skill runs publish:false first, presents the batch for approval, then re-invokes with publish:true and the surviving ids.",
   phases: [
     { title: 'Index', detail: 'drift-status.mjs --open listing, filtered to args.items', model: 'haiku' },
     { title: 'Reassess', detail: 'one re-assessor+planner per open item, in parallel' },
@@ -21,11 +21,17 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) {
-  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-assess-drift skill dir>, items?: [drift ids to limit to], publish?: boolean (default false)}')
+  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-assess-drift skill dir>, items?: [drift ids to limit to], publish?: boolean (default false), workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
-const PROGRESS = `${ROOT}/.agents/plan/progress`
+const PROGRESS = `${WS}/progress`
 const DRIFTDIR = `${PROGRESS}/drift`
 const PUBLISH = A.publish === true
 const ONLY = Array.isArray(A.items) && A.items.length ? A.items : null
@@ -33,6 +39,7 @@ const ONLY = Array.isArray(A.items) && A.items.length ? A.items : null
 const BRIEF = 'Be terse in every string field. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of a drift-triage pipeline (the build-assess-drift skill). Drift files
 live under ${DRIFTDIR}/, one drift-<slug>.md per cross-cutting item, with greppable
 frontmatter (id / kind / surfaced / where / route / status). That format is owned by
@@ -95,7 +102,7 @@ const REASSESS_SCHEMA = {
 // Per-item re-assessment is parallel-heavy judgment, opus+high per the model-tier policy.
 // Single stage (no separate planner): the re-assessor already holds all the context the
 // fix plan needs. The await on parallel() is a deliberate barrier: Settle serializes
-// shared-file edits (every item's outcome funnels into .agents/plan/progress/index.md), so it
+// shared-file edits (every item's outcome funnels into the workspace's progress/index.md), so it
 // needs the full verdict set before it can start.
 const verdicts = (await parallel(items.map(i => () =>
   agent(
@@ -111,7 +118,7 @@ log(`reassessed ${verdicts.length}/${items.length}: ${survivors.length} survivor
 
 // ---------- Phase 3: settle the drift files ----------
 // ONE serial agent, not a fan-out: every item's outcome touches the shared
-// .agents/plan/progress/index.md list (and the drift dir the index script re-reads), so
+// progress/index.md list (and the drift dir the index script re-reads), so
 // concurrent editors would race; one sonnet pass applies the whole verdict set.
 phase('Settle')
 const settled = await agent(
@@ -142,7 +149,7 @@ if (PUBLISH && survivors.length) {
   // ONE serial agent again: tracker CLI calls plus per-file route:/status: edits are
   // cheap but order-sensitive, and idempotency checks must see each prior edit.
   pub = await agent(
-    `${CTX}\nYou are the publisher. Read ${ROOT}/.agents/plan/tracker.md for the tracker backend (GitHub, GitLab, or local), its exact label strings, and any Project board; do not guess any of them. Derive today via date +%F. For EACH survivor below, in order:\n1. IDEMPOTENCY: read its drift file first, if route: already names a "follow-up issue #NNN", it is already published: record it as skipped, never open a duplicate.\n2. Otherwise create the issue per ${SKILL}/ISSUE-FORMAT.md: short specific title (the fix, not the symptom); body = "What's drifting" refreshed from the file's ## Triage note, the Where/Kind/Drift item lines, "How to address it" naming the routeSkill and why, and the acceptance criteria as checkboxes; the label from the kind->route mapping (on GitHub the exact string tracker.md gives for that role). GitHub: gh issue create --title ... --label <label> --body-file - with the body on stdin, and capture the number from the URL it prints; if tracker.md names a Project board, add the issue to it and set its Type field, leaving Epic and Sprint unset. GitLab: glab issue create -R <project from tracker.md> --title ... --label <label> --description ... --yes, and capture the iid from the URL it prints; no epic label, no milestone. If the CLI is missing or signed out, record the item as skipped with the reason; in local-tracker mode there is nothing to create, so record the item as skipped.\n3. Edit the drift file: set "route: follow-up issue #NNN" and "status: routed (drift-triage <today>)".\nNo sprint milestone and no sprint field: drift is not sprint-bound. On a per-item failure, record it and continue with the rest. Do not run git mutations.\n\nSURVIVORS (fix plans already annotated under "## Triage" in each file):\n${JSON.stringify(survivors.map(v => ({ id: v.id, file: v.file, kind: v.kind, where: v.where, verdict: v.verdict, plan: v.plan })), null, 1)}\n${BRIEF}`,
+    `${CTX}\nYou are the publisher. Read ${WS}/tracker.md for the tracker backend (GitHub, GitLab, or local), its exact label strings, and any Project board; do not guess any of them. Derive today via date +%F. For EACH survivor below, in order:\n1. IDEMPOTENCY: read its drift file first, if route: already names a "follow-up issue #NNN", it is already published: record it as skipped, never open a duplicate.\n2. Otherwise create the issue per ${SKILL}/ISSUE-FORMAT.md: short specific title (the fix, not the symptom); body = "What's drifting" refreshed from the file's ## Triage note, the Where/Kind/Drift item lines, "How to address it" naming the routeSkill and why, and the acceptance criteria as checkboxes; the label from the kind->route mapping (on GitHub the exact string tracker.md gives for that role). GitHub: gh issue create --title ... --label <label> --body-file - with the body on stdin, and capture the number from the URL it prints; if tracker.md names a Project board, add the issue to it and set its Type field, leaving Epic and Sprint unset. GitLab: glab issue create -R <project from tracker.md> --title ... --label <label> --description ... --yes, and capture the iid from the URL it prints; no epic label, no milestone. If the CLI is missing or signed out, record the item as skipped with the reason; in local-tracker mode there is nothing to create, so record the item as skipped.\n3. Edit the drift file: set "route: follow-up issue #NNN" and "status: routed (drift-triage <today>)".\nNo sprint milestone and no sprint field: drift is not sprint-bound. On a per-item failure, record it and continue with the rest. Do not run git mutations.\n\nSURVIVORS (fix plans already annotated under "## Triage" in each file):\n${JSON.stringify(survivors.map(v => ({ id: v.id, file: v.file, kind: v.kind, where: v.where, verdict: v.verdict, plan: v.plan })), null, 1)}\n${BRIEF}`,
     {
       label: 'publish:survivors', phase: 'Publish', model: 'sonnet', effort: 'medium',
       schema: {

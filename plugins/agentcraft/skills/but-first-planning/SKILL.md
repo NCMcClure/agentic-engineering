@@ -30,7 +30,7 @@ A route is a document to read, never a skill to call: no skill is named after on
 | --- | --- | --- | --- | --- |
 | `grill` | a vague or ambiguous ask: one question at a time | Use before planning or building anything not fully specified, before handing work off, and after a round of work to reflect. |  | agent |
 | `spec-init` | scaffold .agents/plan/ where no spec exists yet | Scaffolds the `.agents/plan/` workspace: spec site, empty plan tree, glossary and ADRs, tracker config, status scripts. Run once per project, when the user wants to spec or plan it and no workspace exists; `--refresh` updates a workspace's scripts. | `[--refresh]` | person |
-| `spec-write` | author the spec from a brief or a codebase | Use when the user wants to write or grow a spec ("spec this out", "document the design"). |  | agent |
+| `spec-write` | author the spec from a brief or a codebase | Use when the user wants to write or grow a spec ("spec this out", "document the design"); it makes a named workspace itself where the work has none. |  | agent |
 | `spec-grill` | interrogate the spec for gaps and contradictions | Use after spec-write and before planning, or when asked to grill or stress-test the spec. |  | agent |
 | `spec-architect` | pressure-test the design, record ADRs | Use after spec-grill, or when asked to review the design. |  | agent |
 | `spec-edit` | change a spec page, keep plan and tracker level | Use for any change once a spec exists ("the design changed", "add a feature") and to turn inline spec comments into edits. |  | agent |

@@ -499,6 +499,8 @@ const ROUTE_STEPS = [
   "Filled in by nothing: `node \"${CLAUDE_PLUGIN_ROOT}/skills/tidy/scripts/pan.mjs\"`.",
   "Copied from another route: `node \"R/scripts/pan.mjs\"`.",
   "What it swept is kept in `${CLAUDE_PLUGIN_DATA}/tidy`.",
+  // A directory of the repo the route works in, declared by what it is: nothing here resolves it, and nothing is said.
+  "`P` below is the workspace this run works in. Read `P/spec/index.md`, then run `node P/plan/status.mjs`.",
   "",
 ].join("\n");
 const PAGE = [`Run /${STUB}:sweep.`, `Or /${ONE}:brush.`, `Or \`/${ONE}:tidy mop\`.`, `Or /${ONE}:nothing.`, `This works: \`/${ONE}:tidy sweep\`, and so does /${ONE}:tidy.`].join("\n");

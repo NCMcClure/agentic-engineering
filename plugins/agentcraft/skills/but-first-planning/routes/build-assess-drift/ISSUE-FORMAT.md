@@ -1,12 +1,14 @@
 # The tracker issue for a drift fix
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 A drift-fix issue isn't a plan-tree issue: it has no epic/sprint and no spec-anchored
 acceptance criteria authored up front. It's a grabbable ticket that says *what drifted*,
 *where*, and *which skill to use to fix it*, so whoever picks it up (a human, or
 `build-next-issue` dispatching an agent) can act without re-deriving the triage.
 
 For the mechanics (the `gh` or `glab` call, reading the labels and the board
-from `.agents/plan/tracker.md`, and re-reading to stay idempotent) follow the
+from `P/tracker.md`, and re-reading to stay idempotent) follow the
 build-assess-drift skill's step 5. This file only defines the **body shape**
 and the **label and route mapping**.
 
@@ -19,7 +21,7 @@ and the **label and route mapping**.
 present in the code today, not the stale original description>
 
 **Where:** <the `where:` location>   **Kind:** <defect | smell | checkpoint-bug | note>
-**Drift item:** D<NN> (.agents/plan/progress/drift/drift-<slug>.md)
+**Drift item:** D<NN> (P/progress/drift/drift-<slug>.md)
 
 ## How to address it
 
@@ -50,7 +52,7 @@ The route skill drives both the label and the "How to address it" line:
 | `note`         | none (usually no issue)      | none              | none         | An observation; it settles to a terminal status. It routes only when it surfaced a latent defect, and then by what that defect *is*. |
 | concrete fix   | `build-tdd`                  | ready-for-agent   | `type::AFK`  | A scoped, test-first code change. |
 
-On GitHub use the **exact label strings from `.agents/plan/tracker.md`**: the
+On GitHub use the **exact label strings from `P/tracker.md`**: the
 table names the roles, and a project may have renamed the labels. Bump an
 agent item to the human label when the re-assessment shows the fix needs a
 human call (a `smell` whose deepening reopens an ADR, for instance).

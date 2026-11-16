@@ -8,6 +8,8 @@ description: >
 
 # build-tdd
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 One plan issue, built test-first. This route owns the half that is specific to
 a plan issue: where the tests come from, what counts as the gate, and how the
 funnel records the result.
@@ -52,7 +54,7 @@ found, and they pass when the behaviour breaks.
 
 ## What the issue gives you
 
-The issue file under `.agents/plan/plan/` (usually the one `build-next-issue`
+The issue file under `P/plan/` (usually the one `build-next-issue`
 named as next) is the test plan:
 
 - Its **acceptance criteria** are the behaviour list. One tracer bullet per
@@ -60,11 +62,11 @@ named as next) is the test plan:
 - Its **testing checkpoint** command is the gate the slice must pass to count
   as done. Run the literal command from the issue; do not substitute a
   broader or narrower one.
-- Its **spec anchors** (links into `.agents/plan/spec/`) are the behavioural
+- Its **spec anchors** (links into `P/spec/`) are the behavioural
   contract. Read them before writing the first test, so the assertions say
   what was specified, in the spec's vocabulary, rather than a guess at it.
-- The project's **glossary** (`.agents/plan/spec/reference/glossary.md`) and
-  **ADRs** (`.agents/plan/spec/reference/adr/`) set the names. A test whose
+- The project's **glossary** (`P/spec/reference/glossary.md`) and
+  **ADRs** (`P/spec/reference/adr/`) set the names. A test whose
   vocabulary disagrees with the glossary is a rename waiting to happen.
 - A criterion about how something **looks or sounds** is not a unit assertion
   on bytes or a threshold picked by hand. Use
@@ -98,7 +100,7 @@ When every acceptance criterion is satisfied and the checkpoint exits 0, run
 the funnel:
 
 ```bash
-node .agents/plan/plan/plan-status.mjs set EE-SS-II done
+node P/plan/plan-status.mjs set EE-SS-II done
 ```
 
 It flips the issue's `**Status**`, ticks its acceptance boxes, rolls the

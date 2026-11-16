@@ -1,5 +1,7 @@
 # Spec anchors
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 Every issue (and every epic and sprint) links back to the spec section(s) it
 realises. These links are **spec anchors**. They are what keeps the plan
 grounded in the design: an anchor says "this work exists to make *this* part of
@@ -16,17 +18,17 @@ truth, and lets `spec-edit` find exactly which issues a spec change touches.
 An issue file lives at:
 
 ```
-.agents/plan/plan/<epic>/<sprint>/issues/NN_issue_SLUG.md
+P/plan/<epic>/<sprint>/issues/NN_issue_SLUG.md
 ```
 
-The spec lives at `.agents/plan/spec/...`. So from an issue file, the spec is **four
+The spec lives at `P/spec/...`. So from an issue file, the spec is **four
 directories up**, then into `spec/`:
 
 ```
 issues/  →  ../        (sprint dir)
          →  ../../      (epic dir)
          →  ../../../   (plan/)
-         →  ../../../../ (.agents/plan/)
+         →  ../../../../ (P/)
          →  ../../../../spec/<category>/<file>.md
 ```
 

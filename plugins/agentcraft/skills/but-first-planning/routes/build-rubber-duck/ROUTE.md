@@ -8,6 +8,8 @@ description: >
 
 # build-rubber-duck: think it through, out loud
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Be a sharp rubber duck. Interview the user relentlessly about the problem in
 front of them, a bug, an implementation approach, a confusing piece of code, walking down each branch of the decision tree, resolving dependencies one at a
 time. For every question, offer your recommended answer; you're a thinking
@@ -22,7 +24,7 @@ test, the stack trace. Ground every step in what's really there.
 ## Grounding in the plan (when relevant)
 
 If the work maps to a plan issue, anchor the conversation in it: read the issue's
-acceptance criteria and its spec anchors under `.agents/plan/spec/` so the approach you
+acceptance criteria and its spec anchors under `P/spec/` so the approach you
 land on actually satisfies what was specified. When the user's mental model and
 the spec disagree, surface it, that gap is often the real source of the stuck.
 

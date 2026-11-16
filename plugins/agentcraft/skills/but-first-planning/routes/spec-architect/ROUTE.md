@@ -11,6 +11,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Surface architectural friction in the **designed system** described by the spec
 and propose **deepening opportunities**: places where shallow designed modules
 should become deep ones. The whole point of doing this at the spec stage is
@@ -42,8 +44,8 @@ Key principles (full list in [LANGUAGE.md](LANGUAGE.md)):
 - **One adapter = a hypothetical seam. Two adapters = a real one.**
 
 This route is *informed* by the project's vocabulary: the glossary
-(`.agents/plan/spec/reference/glossary.md`) names good seams; the ADRs
-(`.agents/plan/spec/reference/adr/`) record decisions you should not re-litigate.
+(`P/spec/reference/glossary.md`) names good seams; the ADRs
+(`P/spec/reference/adr/`) record decisions you should not re-litigate.
 
 ## Process
 
@@ -104,7 +106,7 @@ sits behind the seam, what the eventual tests would assert.
 
 Side effects happen **inline**, because this is the moment the design firms up:
 
-- **Editing the spec.** The spec is the source of truth, when the design changes, change the spec files and bump their `updated`/summary frontmatter. Run `node .agents/plan/spec/scripts/verify-spec-tree.mjs` after edits.
+- **Editing the spec.** The spec is the source of truth, when the design changes, change the spec files and bump their `updated`/summary frontmatter. Run `node P/spec/scripts/verify-spec-tree.mjs` after edits.
 - **Naming a deepened module after a concept not in the glossary?** Add the term, same discipline as `spec-grill` ([its CONTEXT-FORMAT.md](../spec-grill/CONTEXT-FORMAT.md)).
 - **Sharpening a fuzzy term?** Update the glossary right there.
 - **A load-bearing decision, or the user rejecting a candidate for a reason future reviews must respect?** Offer an ADR ([its ADR-FORMAT.md](../spec-grill/ADR-FORMAT.md)), framed as "want me to record this so future architecture reviews don't re-suggest it?" Only when it clears the bar.
@@ -127,6 +129,7 @@ Workflow({
   scriptPath: "W/routes/spec-architect/workflows/deepening-review.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/spec-architect",
     // optional: context, extraLenses: [{key, prompt}, ...],
     // apply: "strong", default "none" (report-only)

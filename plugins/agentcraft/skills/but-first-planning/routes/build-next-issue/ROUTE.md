@@ -11,6 +11,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Keep the user from having to remember where things stand. This route answers two
 questions, in order: **what is genuinely complete?** and **what should I build
 next?** It does the bookkeeping, reconciling the plan, the tracker, and git, and verifies that issues claimed "done" actually meet their acceptance criteria,
@@ -18,19 +20,19 @@ so "done" means done, not merely closed.
 
 Run it whenever work pauses or resumes. It's idempotent and read-mostly: it reads
 state, verifies completion, records it through the status funnel and into
-`.agents/plan/progress/`, and reports, it does not implement issues. When work will be built in parallel by multiple builders, its report
+`P/progress/`, and reports, it does not implement issues. When work will be built in parallel by multiple builders, its report
 also includes a **dispatch plan**: the parallel-safe build frontier, that
 `build-sprint` consumes to fan builders out across a sprint.
 
 ## What it reads
 
-- The plan tree under `.agents/plan/plan/`, `Status:` fields and `Blocked by` chains.
-- `.agents/plan/tracker.md`, where the tracker is and how to query it.
-- The tracker itself, read back by script: `node .agents/plan/plan/publish-issues.mjs status` lists every published issue with the plan's status beside the ticket's (closed, open, and on GitLab its status label) and exits 1 where they disagree about done. In local mode there is no remote, so lean on the plan and git.
+- The plan tree under `P/plan/`, `Status:` fields and `Blocked by` chains.
+- `P/tracker.md`, where the tracker is and how to query it.
+- The tracker itself, read back by script: `node P/plan/publish-issues.mjs status` lists every published issue with the plan's status beside the ticket's (closed, open, and on GitLab its status label) and exits 1 where they disagree about done. In local mode there is no remote, so lean on the plan and git.
 - Git history, merged branches and commits that reference an issue file or slug.
-- `.agents/plan/progress/completed/`, what was already verified-complete in past runs (per-epic ledgers); `.agents/plan/progress/notes/`, past reconciliation narrative.
-- `.agents/plan/progress/docs.md`, which verified sprints have end-user docs (read-only; `build-user-docs` owns it, and it may not exist yet on a workspace where that skill hasn't run).
-- `.agents/plan/progress/drift/`, open cross-cutting items (`status: open` or `routed`) and any `route: follow-up issue #NNN` they've been ticketed as. Untriaged drift (`open`) is work waiting to be turned into issues by `build-assess-drift`; routed drift points at a real follow-up issue you can build.
+- `P/progress/completed/`, what was already verified-complete in past runs (per-epic ledgers); `P/progress/notes/`, past reconciliation narrative.
+- `P/progress/docs.md`, which verified sprints have end-user docs (read-only; `build-user-docs` owns it, and it may not exist yet on a workspace where that skill hasn't run).
+- `P/progress/drift/`, open cross-cutting items (`status: open` or `routed`) and any `route: follow-up issue #NNN` they've been ticketed as. Untriaged drift (`open`) is work waiting to be turned into issues by `build-assess-drift`; routed drift points at a real follow-up issue you can build.
 - **Implicit dependencies**: derived, not declared: artifacts an issue's *checkpoint command* or *What to build* needs that another issue produces. A `Blocked by: None` routinely hides a real ordering; see [DISPATCH-PLAN.md](DISPATCH-PLAN.md).
 
 ## Process
@@ -63,26 +65,26 @@ Never hand-edit a `Status` field or a ledger by retyping. Drive everything throu
 `plan-status.mjs`:
 
 - **Reconcile status to reality.** For each issue whose real state differs from the
-  plan, run `node .agents/plan/plan/plan-status.mjs set EE-SS-II <status>`, flip a
+  plan, run `node P/plan/plan-status.mjs set EE-SS-II <status>`, flip a
   genuinely-finished issue to `done`, or a falsely-done one back to `in-progress`
   (or `blocked`). The funnel rolls the change up through the sprint/epic tables and
   fields, the plan index, and the tracker in one step.
 - **Log verified-complete work.** When an issue passes verification, record it with
   `set EE-SS-II done --evidence "<what convinced you>"`, this appends a row to
-  `.agents/plan/progress/completed/<epic>.md` (the per-epic ledger). Pass `--evidence` only
+  `P/progress/completed/<epic>.md` (the per-epic ledger). Pass `--evidence` only
   when *you* have verified it; that's what keeps unverified rows out of the ledger.
 - **Write the reconciliation narrative** for this run to a new
-  `.agents/plan/progress/notes/YYYY-MM-DD-NN-MM-slug.md` file (one file per run): build/verify
+  `P/progress/notes/YYYY-MM-DD-NN-MM-slug.md` file (one file per run): build/verify
   method, issues that claimed done but failed, plan/tracker drift, merged-but-unmarked
   work, checkpoint health, test totals. Mirror any cross-cutting plan/spec defect or
-  architecture smell into its own file under `.agents/plan/progress/drift/`, one
+  architecture smell into its own file under `P/progress/drift/`, one
   `drift-<slug>.md` per item, so it's tracked once, not restated every run. This
   skill owns the drift-file format, frontmatter fields, status lifecycle, and the
   one-time old-workspace migration are in [DRIFT-FORMAT.md](DRIFT-FORMAT.md); reuse
   an existing item's file (bump its `status`) rather than opening a duplicate for a
   recurring one.
 - **Refresh the snapshot.** Update the `## Status snapshot` and `## Open cross-cutting
-  items` lists in `.agents/plan/progress/index.md` from the current roll-up
+  items` lists in `P/progress/index.md` from the current roll-up
   (`plan-status.mjs check` gives you the rolled-up numbers).
 
 ### 4. Select the next issue
@@ -125,7 +127,7 @@ Give the user a tight status read:
 - **On deck**: the 1–3 issues that unlock after the next one, so the path is visible.
 - **Dispatch plan** *(parallel builds)*, the wave-ordered frontier (issues safe to build concurrently now), the intra-sprint dependency DAG, and file-overlap hints. This is the hand-off to `build-sprint`.
 - **Human gates**: the HITL and REVIEW issues in the current/next sprint and whether any AFK work depends on them, so it's clear up front whether the sprint runs autonomously or stalls on a human.
-- **Docs freshness**: one line: verified sprints (in `completed/`) with no row in `.agents/plan/progress/docs.md` have undocumented user-facing work, recommend `build-user-docs`. Where `.agents/docs-parity.json` exists, add the counts from a read-only run of its checker, `docs-check.mjs --changed <base>..HEAD --stale --json` (`PARITY_MISSING`, `SHOT_STALE`, and any critical finding), and recommend `/agentcraft:docs-parity docs-sync` for them. Skip the line when everything verified is documented and the checker is clean (or nothing is verified yet).
+- **Docs freshness**: one line: verified sprints (in `completed/`) with no row in `P/progress/docs.md` have undocumented user-facing work, recommend `build-user-docs`. Where `.agents/docs-parity.json` exists, add the counts from a read-only run of its checker, `docs-check.mjs --changed <base>..HEAD --stale --json` (`PARITY_MISSING`, `SHOT_STALE`, and any critical finding), and recommend `/agentcraft:docs-parity docs-sync` for them. Skip the line when everything verified is documented and the checker is clean (or nothing is verified yet).
 - **Codebase hubs** - one line, where the repo keeps `AGENTS.md` hubs: the agent-works area's hub check's exit state and first few findings (missing or isolation-breaking AGENTS.md hubs). Skip the line when it is clean.
 - **Checkpoint health**: any checkpoint that isn't runnable in the current tree (names tooling not built yet) or can't pass by construction (a pattern that never matches the real artifact). These are issue defects, not failures, route them to `spec-edit`.
 
@@ -144,10 +146,11 @@ Workflow({
   scriptPath: "W/routes/build-next-issue/workflows/reconcile.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/build-next-issue",
     // optional: scope: "EE" or "EE-SS" to bound the run,
     // dispatch: true, also derive the dispatch plan and write
-    //                   .agents/plan/progress/dispatch/EE-SS.json (the build-sprint contract),
+    //                   P/progress/dispatch/EE-SS.json (the build-sprint contract),
     // verifyLimit: 20, cap the verification fan-out (deferred claims are reported, never passed)
   }
 })

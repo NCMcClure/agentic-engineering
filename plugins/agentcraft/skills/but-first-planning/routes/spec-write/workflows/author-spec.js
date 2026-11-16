@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-write-author',
   description: 'Author a complete spec from a product brief: three parallel outline lenses, a judge synthesis, a per-category planner->author pipeline, a verify loop, and a three-critic audit with a fixer',
-  whenToUse: "spec-write's autonomous mode, authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, uiPosture?, docsPosture?, today?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). uiPosture is 'headless' | 'dev-dashboard' | 'existing-design-system' | 'greenfield-product' from ADR-0002 (default headless). docsPosture is 'docs-site' | 'readme-only' | 'existing-convention' from ADR-0003 (default docs-site). brief is inline text or an absolute file path.",
+  whenToUse: "spec-write's autonomous mode, authoring a whole spec from a brief/PRD (roughly 10+ expected pages) or an explicit headless run; interactive authoring stays the default for growing an existing spec. Args: {root, skillDir, brief, context?, sourcePaths?, languagePosture?, uiPosture?, docsPosture?, today?, workspace?}. languagePosture is 'agnostic' | '<lang>:minimal' | '<lang>:code-forward' from ADR-0001 (legacy bare `language` still accepted, treated as minimal). uiPosture is 'headless' | 'dev-dashboard' | 'existing-design-system' | 'greenfield-product' from ADR-0002 (default headless). docsPosture is 'docs-site' | 'readme-only' | 'existing-convention' from ADR-0003 (default docs-site). brief is inline text or an absolute file path.",
   phases: [
     { title: 'Orient', detail: 'inventory existing spec categories/files/glossary', model: 'haiku' },
     { title: 'Outline', detail: 'three lens proposals: reader-cost, domain-model, behavior-flows', model: 'opus' },
@@ -22,11 +22,17 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir || !A.brief) {
-  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <spec-write skill dir>, brief: <inline text or absolute path>, context?, sourcePaths?, languagePosture?, uiPosture?, today?}')
+  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <spec-write skill dir>, brief: <inline text or absolute path>, context?, sourcePaths?, languagePosture?, uiPosture?, today?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
+const SPEC = `${WS}/spec`
 
 // ---------- language posture (from ADR-0001) ----------
 // "agnostic" | "<lang>:minimal" | "<lang>:code-forward"; legacy bare `language` => minimal.
@@ -73,6 +79,7 @@ const DATE_NOTE = A.today
   : "Derive today's date yourself via `date +%F`; frontmatter created/updated use its YYYY-MM month."
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of an authoring pipeline writing the SPECIFICATION at ${SPEC}/ from a
 product brief. The spec is a progressive-disclosure markdown knowledge base: a thin root
 index.md -> numbered category dirs (NN-slug/) each with a thin index.md -> small single-topic

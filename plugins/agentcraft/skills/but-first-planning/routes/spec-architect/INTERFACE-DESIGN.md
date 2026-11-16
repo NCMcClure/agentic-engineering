@@ -1,6 +1,8 @@
 <!-- Canonical copy shared across skills. Referenced by spec-architect, build-improve-architecture, and build-tdd, keep phase-neutral. -->
 # Interface design
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 When the user wants to explore alternative interfaces for a chosen deepening
 candidate, use this parallel sub-agent pattern. Based on "Design It Twice"
 (Ousterhout), your first idea is rarely the best. Uses the vocabulary in
@@ -68,5 +70,5 @@ a strong read, not a menu.
 At the spec stage, write the winning design into the relevant spec file as the
 module's interface contract, add any new terms to the glossary, offer an ADR if
 the choice was load-bearing, and run
-`node .agents/plan/spec/scripts/verify-spec-tree.mjs` after editing. On built code, the
+`node P/spec/scripts/verify-spec-tree.mjs` after editing. On built code, the
 winner becomes the refactor's target interface.

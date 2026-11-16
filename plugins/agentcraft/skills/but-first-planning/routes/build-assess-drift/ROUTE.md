@@ -11,8 +11,10 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 `build-next-issue` *records* cross-cutting problems as drift files under
-`.agents/plan/progress/drift/`, but nothing ever re-checks them. A noted defect may already
+`P/progress/drift/`, but nothing ever re-checks them. A noted defect may already
 be fixed; a smell may have moved when the code was refactored; a checkpoint bug may
 still be biting every run. This route closes that loop: it re-derives each open
 drift item's relevance **from the live code**, plans how to fix the ones that
@@ -26,16 +28,16 @@ build those issues.
 
 ## What it reads
 
-- `.agents/plan/progress/drift-status.mjs`, the read-only index of every drift item
+- `P/progress/drift-status.mjs`, the read-only index of every drift item
   (`id / status / kind / where / route / file`). Run it to triage *which* files to
   open, instead of reading the whole `drift/` directory up front. This route
   *consumes and advances* the drift-file format owned by `build-next-issue`; it does
   not redefine it.
-- `.agents/plan/progress/drift/drift-*.md`, the individual write-ups, read only for the
+- `P/progress/drift/drift-*.md`, the individual write-ups, read only for the
   items the index says are actionable.
 - The code each item points at, its `where:` location (a spec path, a sprint, or a
   code location), walked against the tree as it exists today.
-- `.agents/plan/tracker.md`, where issues go and how (repo, labels, optional Project board).
+- `P/tracker.md`, where issues go and how (repo, labels, optional Project board).
 - Git history, to tell "fixed since it was surfaced" from "never a real problem."
 
 ## Process
@@ -50,7 +52,7 @@ is edited or created until the user approves.
 Run the index rather than reading every file:
 
 ```bash
-node .agents/plan/progress/drift-status.mjs --open
+node P/progress/drift-status.mjs --open
 ```
 
 `--open` lists just the `open` and `routed` items (skip `resolved`, those are
@@ -59,10 +61,10 @@ table to decide which write-ups are worth opening, then read **only those**
 `drift/drift-*.md` files for the paragraph that explains what was claimed and where
 to look. This keeps the skill cheap even when the drift directory is large.
 
-> **Script missing?** If `.agents/plan/progress/drift-status.mjs` doesn't exist,
+> **Script missing?** If `P/progress/drift-status.mjs` doesn't exist,
 > `node "W/routes/spec-init/scaffold.mjs"` copies it in (it
 > writes only files that are missing). As a one-off fallback you can grep
-> instead: `grep -l 'status: \(open\|routed\)' .agents/plan/progress/drift/drift-*.md`.
+> instead: `grep -l 'status: \(open\|routed\)' P/progress/drift/drift-*.md`.
 
 ### 2. Re-assess each against the codebase
 
@@ -106,7 +108,7 @@ get the user's approval before publishing anything.
 
 ### 5. Open a tracker issue per survivor
 
-Publish one issue per surviving item on the tracker `.agents/plan/tracker.md`
+Publish one issue per surviving item on the tracker `P/tracker.md`
 names. Read the labels and the board from that file, never hardcode them, and
 **do not invoke `plan-publish`** (it is sprint and plan-tree bound; drift
 items are not).
@@ -133,7 +135,7 @@ it's already published: skip it, never open a duplicate.
 
 For each item you published, edit its drift file: set
 `route: follow-up issue #NNN` and flip `status:` to `routed`. Then refresh the
-**Open cross-cutting items** list in `.agents/plan/progress/index.md` so the progress hub
+**Open cross-cutting items** list in `P/progress/index.md` so the progress hub
 reflects what's now triaged.
 
 ### 7. Report
@@ -153,6 +155,7 @@ Workflow({
   scriptPath: "W/routes/build-assess-drift/workflows/triage-drift.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/build-assess-drift",
     // optional: items: ["D1", ...] to limit the run,
     // publish: true, create the tracker issues (default false)

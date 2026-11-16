@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-next-reconcile',
   description: 'Reconcile plan tree, tracker, git, and progress ledger in parallel; independently verify every claimed-done issue against its checkpoint; record through the status funnel; select the next issue, and optionally derive the dispatch-plan JSON that build-sprint consumes',
-  whenToUse: "build-next-issue's autonomous mode, when 5+ done-claims need verification or a parallel build needs a dispatch plan; the interactive read stays the default for quick what's-next questions. Args: {root, skillDir, scope?, dispatch?, verifyLimit?}. scope bounds the run to an epic (EE) or sprint (EE-SS); dispatch:true also derives and writes .agents/plan/progress/dispatch/EE-SS.json; verifyLimit caps the verification fan-out (default 20).",
+  whenToUse: "build-next-issue's autonomous mode, when 5+ done-claims need verification or a parallel build needs a dispatch plan; the interactive read stays the default for quick what's-next questions. Args: {root, skillDir, scope?, dispatch?, verifyLimit?, workspace?}. scope bounds the run to an epic (EE) or sprint (EE-SS); dispatch:true also derives and writes <workspace>/progress/dispatch/EE-SS.json; verifyLimit caps the verification fan-out (default 20).",
   phases: [
     { title: 'Gather', detail: 'four parallel state readers: plan, tracker, git, drift+ledger', model: 'haiku' },
     { title: 'Verify', detail: 'one verifier per unverified done-claim, per ASSESSMENT.md', model: 'sonnet' },
@@ -19,12 +19,18 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) {
-  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-next-issue skill dir>, scope?, dispatch?, verifyLimit?}')
+  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-next-issue skill dir>, scope?, dispatch?, verifyLimit?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
-const PLANDIR = `${ROOT}/.agents/plan/plan`
-const PROG = `${ROOT}/.agents/plan/progress`
+const PLANDIR = `${WS}/plan`
+const PROG = `${WS}/progress`
 const SCOPE = typeof A.scope === 'string' && /^\d\d(-\d\d)?$/.test(A.scope) ? A.scope : null
 const DISPATCH = A.dispatch === true
 const VERIFY_LIMIT = Math.max(parseInt(A.verifyLimit, 10) || 20, 1)
@@ -32,10 +38,11 @@ const VERIFY_LIMIT = Math.max(parseInt(A.verifyLimit, 10) || 20, 1)
 const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
-CONTEXT. You are part of a reconciliation pipeline for the plan workspace at ${ROOT}/.agents/plan/:
+${ONE_WORKSPACE}
+CONTEXT. You are part of a reconciliation pipeline for the plan workspace at ${WS}/:
 the plan tree is ${PLANDIR}/ (epic/sprint/issue files; issue coords are EE-SS-II and an issue
 file matches ${PLANDIR}/EE-*/SS-*/issues/II_issue_*.md), the tracker config is
-${ROOT}/.agents/plan/tracker.md, and the progress records live under ${PROG}/ (completed/ ledgers,
+${WS}/tracker.md, and the progress records live under ${PROG}/ (completed/ ledgers,
 notes/, drift/). The status funnel is: node ${PLANDIR}/plan-status.mjs, NEVER hand-edit a
 Status field or ledger row.
 ${SCOPE ? `SCOPE: this run is bounded to ${SCOPE}, ignore issues outside it.` : ''}
@@ -64,7 +71,7 @@ const [planState, trackerState, gitState, progressState] = await parallel([
     }
   ),
   () => agent(
-    `${CTX}\nRead tracker state, mechanically. Read ${ROOT}/.agents/plan/tracker.md for the backend. GitHub or GitLab: run node ${PLANDIR}/publish-issues.mjs status --json (cwd ${ROOT}); it reads every published ticket back through gh or glab. Report backend "github" or "gitlab", the refs whose tracker value is "done" as the closed list and every other published ref as the open list, each as "#NNN". If a row's tracker value starts with "unread", say so in notes (the CLI is missing, signed out, or offline) and leave that ref out of both lists. Local mode: report backend "local" and empty lists (the plan is the tracker). Pure retrieval. ${BRIEF}`,
+    `${CTX}\nRead tracker state, mechanically. Read ${WS}/tracker.md for the backend. GitHub or GitLab: run node ${PLANDIR}/publish-issues.mjs status --json (cwd ${ROOT}); it reads every published ticket back through gh or glab. Report backend "github" or "gitlab", the refs whose tracker value is "done" as the closed list and every other published ref as the open list, each as "#NNN". If a row's tracker value starts with "unread", say so in notes (the CLI is missing, signed out, or offline) and leave that ref out of both lists. Local mode: report backend "local" and empty lists (the plan is the tracker). Pure retrieval. ${BRIEF}`,
     {
       label: 'gather:tracker', phase: 'Gather', model: 'haiku', effort: 'low',
       schema: {
@@ -245,7 +252,7 @@ let notify = null
 const gated = selection && selection.nextIssue && ['HITL', 'REVIEW'].includes(selection.nextIssue.type)
 if (gated && selection.nextIssue.ref && selection.nextIssue.ref !== '<unassigned>') {
   notify = await agent(
-    `${CTX}\nYou are the gate notifier. Read ${ROOT}/.agents/plan/tracker.md. If it is local-mode, or has no "**Notify**:" field, or the handle is unset/a {{PLACEHOLDER}}, do nothing and report skipped with the reason. Otherwise the next actionable issue is a human gate: ${selection.nextIssue.type} ${selection.nextIssue.coords} "${selection.nextIssue.title}" (ref ${selection.nextIssue.ref}). IDEMPOTENCY FIRST: read the ticket's comments (GitHub: gh issue view <n> --comments; GitLab: glab issue view <n> --comments); if any comment already contains "Human gate", report skipped=already-notified. Otherwise add ONE comment to it (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...) shaped: "**Human gate**: @<handle>: this ${selection.nextIssue.type} issue is now the frontier, ${selection.nextIssue.type === 'REVIEW' ? 'the walkthrough in the issue needs a human to perform it' : 'it needs a human decision before dependent work can proceed'}." Do not run git; touch nothing but that one comment. ${BRIEF}`,
+    `${CTX}\nYou are the gate notifier. Read ${WS}/tracker.md. If it is local-mode, or has no "**Notify**:" field, or the handle is unset/a {{PLACEHOLDER}}, do nothing and report skipped with the reason. Otherwise the next actionable issue is a human gate: ${selection.nextIssue.type} ${selection.nextIssue.coords} "${selection.nextIssue.title}" (ref ${selection.nextIssue.ref}). IDEMPOTENCY FIRST: read the ticket's comments (GitHub: gh issue view <n> --comments; GitLab: glab issue view <n> --comments); if any comment already contains "Human gate", report skipped=already-notified. Otherwise add ONE comment to it (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...) shaped: "**Human gate**: @<handle>: this ${selection.nextIssue.type} issue is now the frontier, ${selection.nextIssue.type === 'REVIEW' ? 'the walkthrough in the issue needs a human to perform it' : 'it needs a human decision before dependent work can proceed'}." Do not run git; touch nothing but that one comment. ${BRIEF}`,
     {
       label: 'notify:gate', phase: 'Select', model: 'sonnet', effort: 'low',
       schema: {

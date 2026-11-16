@@ -49,7 +49,10 @@ and PR. When a rule changes, change the check in the same commit.
 - A route never writes `${CLAUDE_PLUGIN_ROOT}` or `${CLAUDE_PLUGIN_DATA}`:
   read by path, neither is filled in. It names a directory from its own file
   ("`W` below is `../..` from the directory this file is in") and writes each
-  path under it, quoted in a command and in a code span in prose. The area's
+  path under it, quoted in a command and in a code span in prose. A directory
+  of the repo the route works in, which differs from run to run, is named the
+  same way by what it is ("`P` below is the workspace this run works in"):
+  declared, and resolved by nothing here. The area's
   `SKILL.md`, which the host does fill in, names the data directory for its
   routes.
 

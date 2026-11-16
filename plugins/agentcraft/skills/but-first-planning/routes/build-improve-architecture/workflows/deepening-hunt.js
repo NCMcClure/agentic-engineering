@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-improve-deepening-hunt',
   description: 'Parallel deepening hunt over built code: per-area hunters + churn/test-surface/pass-through lenses, semantic dedup, adversarial deletion-test verification, a judge ranking with a top recommendation, and an HTML report. Report-only, applying refactors is test-gated build-tdd work',
-  whenToUse: "build-improve-architecture's autonomous mode, or a codebase too big for one Explore pass (roughly 20+ modules). Args: {root, skillDir, areas?, context?, extraLenses?}. areas (paths relative to root) overrides discovery.",
+  whenToUse: "build-improve-architecture's autonomous mode, or a codebase too big for one Explore pass (roughly 20+ modules). Args: {root, skillDir, areas?, context?, extraLenses?, workspace?}. areas (paths relative to root) overrides discovery.",
   phases: [
     { title: 'Discover', detail: 'map top-level code areas + git churn top-20', model: 'haiku' },
     { title: 'Hunt', detail: 'one deepening hunter per area + cross-cutting lenses', model: 'opus' },
@@ -24,15 +24,22 @@ export const meta = {
 // ---------- args (may arrive as a JSON string, coerce defensively) ----------
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
-if (!A || !A.root || !A.skillDir) throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-improve-architecture skill dir>, areas?, context?, extraLenses?}')
+if (!A || !A.root || !A.skillDir) throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <build-improve-architecture skill dir>, areas?, context?, extraLenses?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
 const CANON = `${SKILL}/../spec-architect` // canonical LANGUAGE.md / DEEPENING.md / HTML-REPORT.md
-const SPEC = `${ROOT}/.agents/plan/spec` // may not exist, hunters check before reading
+const SPEC = `${WS}/spec` // may not exist, hunters check before reading
 
 const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of a deepening hunt over the BUILT CODEBASE at ${ROOT}/, real code,
 not a design. The aim is testability and AI-navigability: find refactor candidates that
 turn shallow modules into deep ones.
@@ -42,7 +49,7 @@ ${A.context ? `PROJECT NOTES: ${A.context}` : ''}
 const HUNT_GUIDE = `
 Read ${CANON}/LANGUAGE.md and ${CANON}/DEEPENING.md FIRST, every string you emit uses that
 vocabulary exactly (module, interface, seam, depth, deep, shallow, adapter, leverage,
-locality; NEVER "component", "service", or "boundary"). THEN, if a .agents/plan/ workspace exists
+locality; NEVER "component", "service", or "boundary"). THEN, if the planning workspace ${WSREL}/ exists
 (check for ${SPEC}/), also read the project glossary (${SPEC}/reference/glossary.md), the
 ADRs (${SPEC}/reference/adr/), and the spec sections covering your area, the spec is the
 DESIGN INTENT. Where the code has drifted from what the spec describes, that is a FINDING
@@ -88,7 +95,7 @@ const HUNT_OUT = {
   type: 'object', required: ['candidates', 'specDriftFindings'],
   properties: {
     candidates: { type: 'array', maxItems: 12, items: CANDIDATE },
-    specDriftFindings: { type: 'array', items: DRIFT, description: 'empty if no .agents/plan/ workspace or no drift' },
+    specDriftFindings: { type: 'array', items: DRIFT, description: 'empty if no planning workspace or no drift' },
   },
 }
 const VERDICT = {
@@ -105,7 +112,7 @@ const VERDICT = {
 // ---------- Phase 0: discover areas + churn ----------
 phase('Discover')
 const disco = await agent(
-  `Map the codebase at ${ROOT}/, pure retrieval, no judgment. (1) List the top-level CODE areas: source directories with their file and line-of-code counts (use ls/glob/wc; exclude vendored/node_modules/dist/build/target dirs, .git/, and .agents/plan/). (2) Report churn: run \`git -C ${ROOT} log --since='6 months ago' --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20\` and return it as {path, changes} pairs (skip blank lines). ${BRIEF}`,
+  `Map the codebase at ${ROOT}/, pure retrieval, no judgment. (1) List the top-level CODE areas: source directories with their file and line-of-code counts (use ls/glob/wc; exclude vendored/node_modules/dist/build/target dirs, .git/, .agents/plan/ and .agents/plans/). (2) Report churn: run \`git -C ${ROOT} log --since='6 months ago' --pretty=format: --name-only | sort | uniq -c | sort -rn | head -20\` and return it as {path, changes} pairs (skip blank lines). ${BRIEF}`,
   {
     label: 'discover:areas', phase: 'Discover', model: 'haiku', effort: 'low',
     schema: {

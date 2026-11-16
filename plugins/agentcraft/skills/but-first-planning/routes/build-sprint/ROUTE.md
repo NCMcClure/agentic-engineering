@@ -10,6 +10,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 `build-next-issue` says *what* to build, it hands back a dispatch plan:
 the parallel-safe frontier, the true dependency DAG, the HITL gates, the
 checkpoint health. This route **runs the builders that build it**. It is the
@@ -80,8 +82,8 @@ These are the user's calls, and they change the run. Surface them first:
 7. **Record and hand back to build-next-issue.** Run `plan-status.mjs set EE-SS-II done` per
    built issue (the sprint, epic, and index roll up automatically, no separate
    "mark the sprint done" step). Write the per-run narrative to
-   `.agents/plan/progress/notes/` and mirror any drift/smells into their own files under
-   `.agents/plan/progress/drift/` (one `drift-<slug>.md` each; format in `build-next-issue`).
+   `P/progress/notes/` and mirror any drift/smells into their own files under
+   `P/progress/drift/` (one `drift-<slug>.md` each; format in `build-next-issue`).
    Leave the verified-complete ledger rows (`completed/`) to `build-next-issue`, which owns
    verification. Don't hand-edit status anywhere. Open one PR per sprint.
 8. **Stop at the boundary** per the cadence, and report: what shipped, verification
@@ -132,10 +134,11 @@ Workflow({
   scriptPath: "W/routes/build-sprint/workflows/build-sprint.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/build-sprint",
     tddSkillPath: "W/routes/build-tdd/ROUTE.md",
     sprint: "EE-SS",
-    dispatch: "<the dispatch object, or the .agents/plan/progress/dispatch/EE-SS.json path>",
+    dispatch: "<the dispatch object, or the P/progress/dispatch/EE-SS.json path>",
     // hitlPolicy: "skip-and-flag" (default) | "draft-and-defer" | "auto-implement",
     // parallelism: "serial" (default, robust) | "worktree" (parallel file-disjoint units),
     // openPr: true, maxFailures: 2, prBase: "main",

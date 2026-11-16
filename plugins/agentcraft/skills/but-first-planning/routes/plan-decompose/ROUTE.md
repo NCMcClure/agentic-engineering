@@ -1,8 +1,8 @@
 ---
 name: plan-decompose
 description: >
-  Decomposes the spec into an epic, sprint, issue tree of vertical slices
-  under `.agents/plan/plan/`, each with acceptance criteria and spec anchors.
+  Decomposes a spec into an epic, sprint, issue tree of vertical slices under
+  its workspace's `plan/`, each with acceptance criteria and spec anchors.
   Use when the spec is settled and the user wants a backlog or a plan.
 ---
 
@@ -10,7 +10,9 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-Decompose the specification into a plan tree under `.agents/plan/plan/`: **epics**
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
+Decompose the specification into a plan tree under `P/plan/`: **epics**
 (large outcomes) contain **sprints** (coherent batches) contain **issues** (thin
 vertical slices a single contributor can grab and finish). The tree mirrors the
 spec's structure, and every issue links back to the spec sections it realises, so
@@ -38,7 +40,7 @@ is edited or created until the user approves.
 
 ### 1. Read the spec
 
-Read `.agents/plan/spec/index.md` and descend into the categories. Note the spec's
+Read `P/spec/index.md` and descend into the categories. Note the spec's
 natural seams (often the architecture work from `spec-architect` already
 named them) and any ordering the design implies. Use the glossary's vocabulary
 for titles and descriptions, issues should read in the project's own language.
@@ -85,7 +87,7 @@ inline `**Open question:**` blocks, each one is routed **exactly once**:
 An unrouted open question is a planning bug: it resurfaces mid-build as an
 improvised decision nobody approved.
 
-**Cut the REVIEW gates.** Read `.agents/plan/spec/reference/adr/0002-ui-posture.md`.
+**Cut the REVIEW gates.** Read `P/spec/reference/adr/0002-ui-posture.md`.
 Under `headless`, cut none. Otherwise add one `REVIEW` issue per **verification
 boundary**, a user-visible feature or system capability a human can confirm by
 looking, typically 1–3 per sprint, `Blocked by` the slices that implement it,
@@ -115,7 +117,7 @@ Create the directories and files using the exact templates in
 cosmetic; the verifier checks them. The shape:
 
 ```
-.agents/plan/plan/
+P/plan/
 ├── index.md                         # epic table (update the spec-init stub)
 ├── 01-<epic-slug>/
 │   ├── epic.md                      # sprint table + goal + testing checkpoints
@@ -132,7 +134,7 @@ Leave every issue's `Tracker` field as `<unassigned>` and `Status` as
 ### 6. Verify
 
 ```bash
-node .agents/plan/plan/verify-plan-tree.mjs
+node P/plan/verify-plan-tree.mjs
 ```
 
 It checks structure, required fields, that sprint/epic tables match what's on
@@ -141,7 +143,7 @@ spec files. Fix anything it flags. A clean tree exits 0 and prints the counts.
 
 ### 7. Hand off
 
-Update `.agents/plan/plan/index.md`'s epic table and tell the user the plan is ready.
+Update `P/plan/index.md`'s epic table and tell the user the plan is ready.
 Next steps: `plan-publish` to push a sprint's issues to the tracker (do this
 lazily, sprint by sprint, not all at once), or `build-next-issue` once work
 is under way. If revising the spec later, `spec-edit` keeps the plan in sync.
@@ -167,6 +169,7 @@ Workflow({
   scriptPath: "W/routes/plan-decompose/workflows/build-plan-tree.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/plan-decompose",
     // optional: pages: [...spec-relative paths] (else auto-discovered),
     // context: "<one-paragraph project orientation for the agents>",

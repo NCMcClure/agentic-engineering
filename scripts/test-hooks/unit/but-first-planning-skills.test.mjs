@@ -73,8 +73,9 @@ test("but-first-planning routes: every relative link in a route, a reference or 
 test("but-first-planning routes: every workspace script a file tells an agent to run is one the scaffold copies", () => {
   const scaffolded = new Set(["plan/plan-status.mjs", "plan/publish-issues.mjs", "plan/verify-plan-tree.mjs", "spec/scripts/verify-spec-tree.mjs", "spec/scripts/comments-server.py", "progress/drift-status.mjs"]);
   for (const doc of docs) {
-    for (const m of doc.text.matchAll(/\.agents\/plan\/((?:plan|spec\/scripts|progress)\/[a-z-]+\.(?:mjs|py))\b/g)) {
-      assert.ok(scaffolded.has(m[1]), `${doc.rel}: .agents/plan/${m[1]}`);
+    // A route writes `P` for the workspace; the project's own pages (spec-init, spec-open) write its path out.
+    for (const m of doc.text.matchAll(/(?:\.agents\/plan|\bP)\/((?:plan|spec\/scripts|progress)\/[a-z-]+\.(?:mjs|py))\b/g)) {
+      assert.ok(scaffolded.has(m[1]), `${doc.rel}: ${m[0]}`);
     }
   }
 });
