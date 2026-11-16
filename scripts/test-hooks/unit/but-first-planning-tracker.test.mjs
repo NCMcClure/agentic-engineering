@@ -8,7 +8,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO } from "./helpers.mjs";
 
-const ASSETS = path.join(REPO, "plugins", "but-first-planning", "skills", "spec-init", "assets");
+const ASSETS = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "assets");
 const {
   BOARD_STATUS, EPIC_COLORS, STATUS_LABEL, agrees, createTicket, epicLabel, milestoneTitle, providerFor, readTracker, rebuildTicket,
   refNumber, syncStatus, ticketLabels, trackerState,
@@ -100,6 +100,12 @@ test("labels: GitHub takes the triage label for the type, GitLab the epic and ty
   assert.deepEqual(ticketLabels(gl, SPRINT, { type: "HITL", decision: true }), ["epic::02-persistence", "type::HITL", "decision"]);
   assert.equal(epicLabel(SPRINT), "epic::02-persistence");
   assert.equal(milestoneTitle(SPRINT), "02-01 event-store");
+});
+
+test("epic label colours: the five house hues, then three ink tones, eight `#rrggbb` values a forge takes", () => {
+  assert.deepEqual(EPIC_COLORS, ["#2563eb", "#15803d", "#7c3aed", "#a16207", "#be185d", "#171716", "#5c5c58", "#8e8e89"]);
+  for (const c of EPIC_COLORS) assert.match(c, /^#[0-9a-f]{6}$/);
+  assert.equal(new Set(EPIC_COLORS).size, 8);
 });
 
 test("GitHub: a ticket is opened with its triage label, which is made first and only once a run", () => {

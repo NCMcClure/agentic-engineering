@@ -11,9 +11,9 @@ import path from "node:path";
 import test from "node:test";
 import { PL, mulberry32, runNode, tempDir } from "./perceptual-loop-fixtures.mjs";
 
-import * as wav from "../../../plugins/perceptual-loop/scripts/lib/wav.mjs";
-import * as dsp from "../../../plugins/perceptual-loop/scripts/lib/dsp.mjs";
-import { decodePng } from "../../../plugins/perceptual-loop/scripts/lib/png.mjs";
+import * as wav from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/wav.mjs";
+import * as dsp from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/dsp.mjs";
+import { decodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 const ENV = { PL_DIR: "", PL_SHOTS_DIR: "", PL_FFMPEG: "", PL_FFPROBE: "" };
 

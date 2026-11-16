@@ -9,13 +9,13 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "but-first-planning");
-const SCAFFOLD = path.join(PLUGIN, "skills", "spec-init", "scaffold.mjs");
-const SPEC_OPEN = path.join(PLUGIN, "skills", "spec-open", "spec-open.mjs");
-const INSTALL = path.join(PLUGIN, "install.mjs");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
+const SCAFFOLD = path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs");
+const SPEC_OPEN = path.join(PLUGIN, "routes", "spec-open", "spec-open.mjs");
+// The path a README once published a curl to. It is the stub's now, and installs nothing.
+const INSTALL = path.join(REPO, "plugins", "but-first-planning", "install.mjs");
 const { EMPTY_DIRS, SCRIPTS, SITE, WORKSPACE, scaffold, staleScripts } = await import(pathToFileURL(SCAFFOLD).href);
 const { findRoot } = await import(pathToFileURL(SPEC_OPEN).href);
-const installer = await import(pathToFileURL(INSTALL).href);
 
 const real = (p) => fs.realpathSync.native(p);
 const at = (root, rel) => path.join(root, WORKSPACE, rel);
@@ -24,7 +24,7 @@ const at = (root, rel) => path.join(root, WORKSPACE, rel);
 
 test("every file the scaffold copies exists in the plugin, and the scripts land where they root themselves", () => {
   for (const name of [...Object.keys(SCRIPTS), ...Object.keys(SITE)]) {
-    assert.ok(fs.existsSync(path.join(PLUGIN, "skills", "spec-init", "assets", name)), name);
+    assert.ok(fs.existsSync(path.join(PLUGIN, "routes", "spec-init", "assets", name)), name);
   }
   assert.equal(SCRIPTS["plan-status.mjs"], "plan/plan-status.mjs");
   assert.equal(SCRIPTS["publish-issues.mjs"], "plan/publish-issues.mjs");
@@ -49,7 +49,7 @@ test("a script that differs is kept until --refresh, and the site's own files ar
   scaffold(root);
   fs.appendFileSync(at(root, "plan/plan-status.mjs"), "\n// edited\n");
   fs.rmSync(at(root, "plan/tracker.mjs"));
-  write(root, `${WORKSPACE}/spec/assets/gruvbox.css`, "/* the project's own theme */\n");
+  write(root, `${WORKSPACE}/spec/assets/house.css`, "/* the project's own theme */\n");
   assert.deepEqual(staleScripts(root).sort(), ["plan/plan-status.mjs", "plan/tracker.mjs"]);
 
   const plain = scaffold(root);
@@ -59,7 +59,18 @@ test("a script that differs is kept until --refresh, and the site's own files ar
   const refreshed = scaffold(root, { refresh: true });
   assert.deepEqual(refreshed, { wrote: [], refreshed: ["plan/plan-status.mjs"], kept: [] });
   assert.deepEqual(staleScripts(root), []);
-  assert.equal(fs.readFileSync(at(root, "spec/assets/gruvbox.css"), "utf8"), "/* the project's own theme */\n");
+  assert.equal(fs.readFileSync(at(root, "spec/assets/house.css"), "utf8"), "/* the project's own theme */\n");
+});
+
+test("a workspace scaffolded when the theme file was gruvbox.css keeps it and is not given a second theme", (t) => {
+  const root = tempDir(t, "bfp-legacy-theme-");
+  scaffold(root);
+  // What an older plugin version left: the theme under its old name, which that workspace's mkdocs.yml loads.
+  fs.renameSync(at(root, SITE["house.css"]), at(root, "spec/assets/gruvbox.css"));
+  fs.writeFileSync(at(root, "spec/assets/gruvbox.css"), "/* the old palette */\n");
+  assert.deepEqual(scaffold(root, { refresh: true }), { wrote: [], refreshed: [], kept: [] });
+  assert.equal(fs.existsSync(at(root, SITE["house.css"])), false);
+  assert.equal(fs.readFileSync(at(root, "spec/assets/gruvbox.css"), "utf8"), "/* the old palette */\n");
 });
 
 test("a checkout that turned line endings into CRLF has not made a script stale", (t) => {
@@ -123,53 +134,21 @@ test("spec-open with no spec site says to run spec-init and exits 1", (t) => {
 });
 
 // ---- install ----------------------------------------------------------------
+// Before the plugins were one, this script copied each skill into a project's
+// .claude/skills for a host with no plugins. A route is a document its area
+// reads, not a skill to copy, so there is nothing left to install: the script
+// stays at the path that was published, and says where to go.
 
-const SKILLS = fs.readdirSync(path.join(PLUGIN, "skills")).filter((n) => fs.existsSync(path.join(PLUGIN, "skills", n, "SKILL.md"))).sort();
-
-test("install copies every skill into a project's .claude/skills and points plugin paths at the copy", (t) => {
+test("the install script at the published path installs nothing and names the plugin to install", (t) => {
   const project = tempDir(t, "bfp-install-");
-  const out = [];
-  assert.equal(installer.main([project], { log: (l) => out.push(l) }), 0);
-  const dest = path.join(project, ".claude", "skills");
-  assert.deepEqual(fs.readdirSync(dest).filter((n) => fs.existsSync(path.join(dest, n, "SKILL.md"))).sort(), SKILLS);
-  assert.ok(out.includes(`\nInstalled ${SKILLS.length} skills into ${dest}`));
-  assert.ok(fs.existsSync(path.join(dest, "spec-init", "assets", "plan-status.mjs")));
-  assert.ok(fs.existsSync(path.join(dest, "spec-init", "scaffold.mjs")));
-
-  // No copied file still asks for a plugin root, and what replaced it exists.
-  const texts = fs.readdirSync(dest, { recursive: true }).map(String).filter((f) => /\.(md|js)$/.test(f));
-  for (const rel of texts) assert.doesNotMatch(fs.readFileSync(path.join(dest, rel), "utf8"), /\$\{CLAUDE_PLUGIN_ROOT\}/, rel);
-  const posix = dest.split(path.sep).join("/");
-  assert.ok(fs.readFileSync(path.join(dest, "spec-open", "SKILL.md"), "utf8").includes(`${posix}/spec-open/spec-open.mjs`));
-  assert.ok(fs.existsSync(path.join(dest, "but-first-planning-references", "subagent-fallback.md")));
-  assert.match(fs.readFileSync(path.join(dest, "build-sprint", "SKILL.md"), "utf8"), /\(\.\.\/but-first-planning-references\/subagent-fallback\.md\)/);
-});
-
-test("install replaces a skill of the same name, leaves other skills alone, and --global goes to the home directory", (t) => {
-  const project = tempDir(t, "bfp-install-again-");
-  write(project, ".claude/skills/grill/STALE.md", "left by an older copy\n");
-  write(project, ".claude/skills/someone-elses/SKILL.md", "---\nname: someone-elses\ndescription: x\n---\n");
-  assert.equal(installer.main([], { cwd: project, log: () => {} }), 0);
-  assert.equal(fs.existsSync(path.join(project, ".claude/skills/grill/STALE.md")), false);
-  assert.ok(fs.existsSync(path.join(project, ".claude/skills/someone-elses/SKILL.md")));
-
-  const home = tempDir(t, "bfp-install-home-");
-  assert.equal(installer.main(["--global"], { home, cwd: project, log: () => {} }), 0);
-  assert.ok(fs.existsSync(path.join(home, ".claude", "skills", "spec-init", "SKILL.md")));
-});
-
-test("install as a command: --help exits 0, an unknown option exits 2, and a relocated path keeps its tail", (t) => {
-  const project = tempDir(t, "bfp-install-cli-");
-  const run = runNode(INSTALL, [project]);
-  assert.equal(run.status, 0);
-  assert.match(run.stdout, /Installed \d+ skills into /);
-  assert.match(run.stdout, /The hooks .* come only with the plugin install\./);
-  assert.equal(runNode(INSTALL, ["--help"]).status, 0);
-  const bad = runNode(INSTALL, ["--frobnicate"]);
-  assert.equal(bad.status, 2);
-  assert.match(bad.stderr, /unknown option '--frobnicate'/);
-
-  const dest = path.join("x", ".claude", "skills");
-  assert.equal(installer.relocate('scriptPath: "${CLAUDE_PLUGIN_ROOT}/skills/build-sprint/workflows/build-sprint.js"', dest), 'scriptPath: "x/.claude/skills/build-sprint/workflows/build-sprint.js"');
-  assert.equal(installer.relocate('pluginRoot: "${CLAUDE_PLUGIN_ROOT}"', dest), 'pluginRoot: "x/.claude"');
+  for (const args of [[], [project], ["--global"], ["--help"]]) {
+    const run = runNode(INSTALL, args, { cwd: project });
+    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.stderr, "");
+    assert.match(run.stdout, /^but-first-planning is now an area of the agentcraft plugin, and this script installs nothing\.$/m);
+    assert.match(run.stdout, /^ {2}\/plugin install agentcraft@agentic-engineering$/m);
+    assert.match(run.stdout, /\/agentcraft:start-here/);
+  }
+  assert.deepEqual(fs.readdirSync(project), [], "nothing was written");
+  assert.equal(fs.existsSync(path.join(PLUGIN, "install.mjs")), false, "the area ships no installer of its own");
 });

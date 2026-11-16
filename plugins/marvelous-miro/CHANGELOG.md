@@ -1,3 +1,3 @@
 # Changelog
 
-- **0.1.0**: initial release. A system map extracted from `@system` annotations and checked against the import graph (`scripts/system-map.mjs`, skills `diagrams-init` and `diagrams-sync`, a whole-repo sweep), and Miro boards drawn from code with a legibility lint before publishing, a live check after, and layout pulled back from the board (skills `miro-board` and `browser-setup`).
+- **1.0.0**: Moved into `agentcraft`, as its `system-map` area. The plugin was renamed system-map before the move. This plugin is now a stub that depends on `agentcraft` and ships nothing of its own: updating it installs and enables that plugin (Claude Code 2.1.321 or later). Install `agentcraft` by name too, so it stays when the stubs are removed. The area's history up to the move is its own `CHANGELOG.md` in `agentcraft`, under `skills/system-map/`.

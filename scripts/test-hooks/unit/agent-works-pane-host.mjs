@@ -22,13 +22,15 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { REPO, tempRepo, write } from "./helpers.mjs";
 
-export const PLUGIN = path.join(REPO, "plugins", "agent-works");
+/** The plugin that loads the mod, and the area of it the board belongs to. */
+export const ROOT = path.join(REPO, "plugins", "agentcraft");
+export const PLUGIN = path.join(ROOT, "skills", "agent-works");
 export const KANBAN = path.join(PLUGIN, "hooks", "kanban");
 export const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 const MOD = pathToFileURL(path.join(KANBAN, "register.mjs")).href;
 const PROPS_CAP = 100000;
-/** The skill a Start runs, as the person would type it. */
-export const DISPATCH = "agent-works:dispatch";
+/** The skill a Start runs, as the host names it: the area. Its route, `dispatch`, is the first word of the arguments. */
+export const AREA = "agentcraft:agent-works";
 
 /** A repository with one commit, and where its board lives. `origin` names a tracker without reaching it. */
 export function repo(t, { origin = null } = {}) {
@@ -234,7 +236,7 @@ async function runClient(node, surface, deliver) {
  * answer a process in the real one's place (a tracker's CLI, say) by returning
  * a result; `skills` are the skills the host lists beside the plugin's own.
  */
-export async function mount(cwd, { refuseCommands = false, noCommands = false, busy = false, answers = [], run = null, options = {}, skills = [], panes = [], unplaced = false, noPane = false } = {}) {
+export async function mount(cwd, { refuseCommands = false, noCommands = false, refusePrompts = false, busy = false, answers = [], run = null, options = {}, skills = [], panes = [], unplaced = false, noPane = false } = {}) {
   const { register, ...rest } = await import(`${MOD}?case=${++loaded}`);
   assert.deepEqual(Object.keys(rest), [], "the hooks module exports register and nothing else");
   const hooks = [];
@@ -247,9 +249,9 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, b
   const seen = { tools: [], commands: [], commandRuns: [], submits: [], toasts: [], opens: [], timers: [], afters: [], runs: [], asks: [], invalidations: 0, lists: 0 };
   const session = { cwd };
   const waiting = [];
-  const known = () => [...seen.commands.map((x) => x.name), DISPATCH, ...skills];
+  const known = () => [...seen.commands.map((x) => x.name), AREA, ...skills];
   const $ = {
-    plugin: { name: "agent-works", root: PLUGIN },
+    plugin: { name: "agentcraft", root: ROOT },
     session: { cwd: async () => session.cwd },
     fs: {
       exists: async (p) => fs.existsSync(p),
@@ -273,7 +275,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, b
         return { exitCode: r.status ?? 1, stdout: r.stdout, stderr: r.stderr, isStdoutTruncated: false, isStderrTruncated: false };
       },
     },
-    tool: { register: async (t) => { seen.tools.push(t); return { tool: `mcp__agent-works__${t.name}` }; } },
+    tool: { register: async (t) => { seen.tools.push(t); return { tool: `mcp__agentcraft__${t.name}` }; } },
     command: {
       register: async (c) => { seen.commands.push(c); return { command: c.name }; },
       list: async () => known().map((name) => ({ name, source: seen.commands.some((c) => c.name === name) ? "builtin" : "plugin" })),
@@ -290,6 +292,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, b
     prompt: {
       submit: async (p) => {
         if (p.text.startsWith("/")) throw new Error("prompt.submit: a text beginning with / would run a command as the person (host check)");
+        if (refusePrompts) throw new Error("prompt.submit: this session takes no prompt from a plugin (host check)");
         seen.submits.push(p);
         return {};
       },
@@ -340,7 +343,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, b
       await settle();
     },
     events: () => hooks.map((h) => h.event),
-    tool: (name, input) => emit("tool.call", { tool: `mcp__agent-works__${name}`, tool_use_id: `call-${name}`, ...input }),
+    tool: (name, input) => emit("tool.call", { tool: `mcp__agentcraft__${name}`, tool_use_id: `call-${name}`, ...input }),
     command: (args = "") => emit("command.run", { command: "kanban", args, origin: { kind: "composer" } }),
     close: () => emit("ui.close", { id: "kanban", origin: { kind: "person" } }),
     tick: () => Promise.all(seen.timers.filter((t) => !t.cancelled).map((t) => t.fn())),

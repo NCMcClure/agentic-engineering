@@ -1,0 +1,20 @@
+---
+name: {{ROUTE_NAME}}
+description: "TODO(author), what this route does, then when to take it."
+{{ARGUMENT_HINT_LINE}}---
+
+# {{ROUTE_NAME}}
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
+TODO(author): one-paragraph statement of the job this route does and what
+"done" looks like.
+
+## Step 1: TODO(author)
+
+TODO(author): steps in execution order. Offload anything deterministic to a
+script. This file is read by path, so the host fills no variable in: write
+every path under `W`, double-quoted in a command and in a code span in prose.
+
+*Done when: TODO(author), an observable completion criterion.*
+{{SECTIONS}}

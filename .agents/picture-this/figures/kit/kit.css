@@ -1,0 +1,205 @@
+/* picture-this: the house style. Monochrome clay, one orange accent, a hue
+   only where an entity needs telling apart. Hairlines, flat upright labels.
+   Every name carries the pt- prefix and every token lives on .pt-stage, so a
+   host page and the kit cannot collide. Nothing here moves on its own: a
+   figure is drawn from its clock. */
+
+.pt-stage, .pt-term {
+  /* Clay */
+  --pt-bg: #f5f5f3;
+  --pt-top: #ffffff;
+  --pt-left: #ebebe8;
+  --pt-right: #dededa;
+  --pt-ink: #171716;
+  --pt-ink-2: #5c5c58;
+  --pt-ink-3: #8e8e89;
+  --pt-line: #1c1c1b;
+  --pt-line-2: #b4b4ae;
+  --pt-rule: #dcdcd7;
+  /* The accent: where the story is now */
+  --pt-accent: #ff5a1f;
+  --pt-accent-ink: #c2410c;
+  --pt-accent-soft: #ffe9df;
+  /* Entity hues, for telling things apart and nothing else */
+  --pt-hue-blue: #2563eb;
+  --pt-hue-green: #15803d;
+  --pt-hue-violet: #7c3aed;
+  --pt-hue-yellow: #a16207;
+  --pt-hue-pink: #be185d;
+  /* Hairlines */
+  --pt-hair: 1px;
+  --pt-hair-bold: 1.5px;
+  /* 3D: what the shapes are made of. Hex or rgb(), read once per theme. */
+  --pt-clay: #f3f2ee;
+  --pt-matte: #1f1f20;
+  --pt-glass: #cfd0d3;
+  --pt-glass-alpha: 0.45;
+  --pt-wire: #9c9c96;
+  --pt-floor: #ffffff;
+  --pt-floor-alpha: 0.7;
+  /* 3D: the lights. Set so a top face shows its colour as written, its left
+     face about 0.78 of it and its right face about 0.62. */
+  --pt-light-key: 2.08;
+  --pt-light-rim: 1.45;
+  --pt-light-fill: 0.23;
+  --pt-light-env: 0.3;
+  --pt-light-room: #bdbdbb;
+  --pt-light-side: 1.2;
+  --pt-light-back: 1;
+  --pt-shadow: 0.2;
+  --pt-contact: 0.42;
+}
+
+.pt-stage {
+  margin: 0;
+  padding: 0;
+  display: block;
+  box-sizing: border-box;
+  color: var(--pt-ink);
+  background: var(--pt-bg);
+  border: 1px solid var(--pt-rule);
+  border-radius: 14px;
+  overflow: hidden;
+  font-family: var(--pt-font-sans, inherit);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+  -webkit-font-smoothing: antialiased;
+}
+
+.dark .pt-stage:not([data-pt-theme="light"]),
+[data-theme="dark"] .pt-stage:not([data-pt-theme="light"]),
+[data-pt-theme="dark"] .pt-stage:not([data-pt-theme="light"]),
+.pt-stage[data-pt-theme="dark"],
+.dark .pt-term,
+[data-theme="dark"] .pt-term,
+[data-pt-theme="dark"] .pt-term {
+  --pt-bg: #0e0e0f;
+  --pt-top: #1e1e20;
+  --pt-left: #161617;
+  --pt-right: #111112;
+  --pt-ink: #f1f1ee;
+  --pt-ink-2: #a3a39d;
+  --pt-ink-3: #74746f;
+  --pt-line: #e9e9e5;
+  --pt-line-2: #47474a;
+  --pt-rule: #262628;
+  --pt-accent: #ff6b2c;
+  --pt-accent-ink: #ff8a57;
+  --pt-accent-soft: #3a1c10;
+  --pt-hue-blue: #6ea0ff;
+  --pt-hue-green: #4ade80;
+  --pt-hue-violet: #a78bfa;
+  --pt-hue-yellow: #facc15;
+  --pt-hue-pink: #f472b6;
+  --pt-clay: #38383d;
+  --pt-matte: #e2e1dc;
+  --pt-glass: #b9bac6;
+  --pt-glass-alpha: 0.34;
+  --pt-wire: #5f5f64;
+  --pt-floor: #1f1f22;
+  --pt-floor-alpha: 0.95;
+  --pt-light-key: 1.95;
+  --pt-light-rim: 1.3;
+  --pt-light-fill: 0.35;
+  --pt-light-env: 0.35;
+  --pt-light-room: #3a3a3d;
+  --pt-light-side: 1.6;
+  --pt-light-back: 3.2;
+  --pt-shadow: 0.55;
+  --pt-contact: 0.75;
+}
+
+/* A host's prose styles reach into a figure; these put it back. */
+.pt-stage *, .pt-stage *::before, .pt-stage *::after { box-sizing: border-box; }
+.pt-stage figcaption, .pt-stage div, .pt-stage span { margin: 0; padding: 0; max-width: none; color: inherit; font: inherit; }
+.pt-stage button { margin: 0; padding: 0; font: inherit; color: inherit; background: none; border: 0; border-radius: 0; cursor: pointer; }
+.pt-stage svg { display: block; max-width: none; height: auto; }
+
+/* The art */
+.pt-stage .pt-scroll { overflow-x: auto; }
+.pt-stage .pt-canvas { position: relative; width: 100%; min-width: 520px; }
+.pt-art { width: 100%; height: 100%; overflow: visible; }
+/* Under the art, the same size: where a 3D scene puts its canvas. The art is
+   positioned too, so it is painted after the layer and stays on top of it. */
+.pt-stage .pt-under { position: absolute; inset: 0; pointer-events: none; }
+.pt-stage .pt-under ~ .pt-art { position: relative; }
+.pt-art * { vector-effect: non-scaling-stroke; }
+
+.pt-edge { fill: none; stroke: var(--pt-line); stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }
+.pt-guide { fill: none; stroke: var(--pt-ink-3); stroke-width: var(--pt-hair); stroke-dasharray: 5 4; stroke-linecap: round; }
+.pt-ground { fill: none; stroke: var(--pt-line-2); stroke-width: var(--pt-hair); stroke-dasharray: 1 5; stroke-linecap: round; }
+
+.pt-wire { fill: none; stroke: var(--pt-line-2); stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }
+.pt-wire[data-kind="write"] { stroke-width: var(--pt-hair-bold); }
+.pt-wire[data-kind="query"] { stroke-dasharray: 3 4; }
+.pt-wire[data-kind="read"] { stroke-dasharray: 1 4; }
+.pt-wire-head { fill: none; stroke-width: var(--pt-hair); stroke-linejoin: round; stroke-linecap: round; }
+.pt-wire-head[data-kind="write"] { stroke-width: var(--pt-hair-bold); }
+.pt-pulse { fill: none; stroke: var(--pt-accent); stroke-width: 2.5px; stroke-linecap: round; stroke-linejoin: round; }
+
+.pt-leader { fill: none; stroke: var(--pt-ink-3); stroke-width: var(--pt-hair); }
+.pt-dot { fill: var(--pt-ink); stroke: none; }
+/* Words sit on a halo of the page colour, so a line passing behind never cuts through a letter. */
+/* A panel sets --pt-halo to its own face, so words inside it wear that. */
+.pt-label, .pt-tag { paint-order: stroke; stroke: var(--pt-halo, var(--pt-bg)); stroke-width: 4px; stroke-linejoin: round; }
+.pt-label { font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; fill: var(--pt-ink); }
+.pt-label-sub { font-family: var(--pt-font-sans, inherit); font-size: 11px; font-weight: 400; letter-spacing: 0; text-transform: none; fill: var(--pt-ink-2); }
+.pt-tag { font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 9.5px; font-weight: 500; letter-spacing: 0.06em; fill: var(--pt-ink-2); }
+
+/* Flat space: boxes, bars, tiles, connectors, tokens, meters, axes, cells */
+.pt-panel { fill: var(--pt-top); stroke: var(--pt-line-2); stroke-width: var(--pt-hair); }
+.pt-bar { stroke-width: var(--pt-hair); }
+.pt-link { fill: none; stroke: var(--pt-line); stroke-width: var(--pt-hair-bold); stroke-linejoin: round; stroke-linecap: round; }
+.pt-link[data-quiet] { stroke-width: var(--pt-hair); }
+.pt-link-head { stroke-width: var(--pt-hair); stroke-linejoin: round; }
+.pt-token { fill: var(--pt-ink-2); stroke: var(--pt-bg); stroke-width: 1.5px; }
+.pt-token-place { fill: none; stroke: var(--pt-line-2); stroke-width: var(--pt-hair); stroke-dasharray: 2 3; }
+.pt-meter { fill: var(--pt-top); stroke: var(--pt-line-2); stroke-width: var(--pt-hair); }
+.pt-cell { stroke: var(--pt-bg); stroke-width: var(--pt-hair); }
+.pt-lane { fill: var(--pt-top); stroke: var(--pt-rule); stroke-width: var(--pt-hair); }
+.pt-rule { fill: none; stroke: var(--pt-rule); stroke-width: var(--pt-hair); }
+.pt-num { font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 9.5px; font-weight: 500; fill: var(--pt-ink-2); }
+
+/* The words */
+.pt-stage .pt-words { display: grid; gap: 10px; padding: 14px 20px 16px; border-top: 1px solid var(--pt-rule); }
+.pt-stage .pt-caption { display: grid; grid-template-columns: 9.5em 1fr; gap: 12px; align-items: baseline; min-height: 3em; }
+.pt-stage .pt-caption-mark { font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--pt-accent-ink); }
+.pt-stage .pt-caption-text { font-size: 14px; color: var(--pt-ink); text-wrap: pretty; }
+.pt-stage .pt-claim { padding-left: calc(9.5em + 12px); font-size: 13px; color: var(--pt-ink-2); text-wrap: pretty; }
+.pt-stage .pt-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* The strip */
+.pt-stage .pt-strip { display: flex; align-items: center; gap: 4px; padding: 6px 12px; border-top: 1px solid var(--pt-rule); color: var(--pt-ink-2); }
+.pt-stage .pt-button { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; }
+.pt-button:hover, .pt-chip:hover { color: var(--pt-ink); }
+.pt-button:focus-visible, .pt-chip:focus-visible, .pt-scrub:focus-visible { outline: 2px solid var(--pt-accent); outline-offset: 1px; }
+.pt-stage .pt-track { position: relative; flex: 1; margin: 0 10px; height: 28px; display: grid; align-items: center; }
+.pt-scrub { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; margin: 0; background: transparent; cursor: pointer; }
+.pt-scrub::-webkit-slider-runnable-track { height: 1px; background: linear-gradient(to right, var(--pt-accent) var(--pt-progress, 0%), var(--pt-line-2) var(--pt-progress, 0%)); }
+.pt-scrub::-moz-range-track { height: 1px; background: linear-gradient(to right, var(--pt-accent) var(--pt-progress, 0%), var(--pt-line-2) var(--pt-progress, 0%)); }
+.pt-scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 9px; height: 9px; margin-top: -4px; border-radius: 50%; background: var(--pt-accent); border: 0; }
+.pt-scrub::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--pt-accent); border: 0; }
+.pt-stage .pt-ticks { position: absolute; inset: 0; pointer-events: none; }
+.pt-ticks i { position: absolute; top: 50%; width: 1px; height: 7px; margin-top: -3px; background: var(--pt-ink-3); }
+.pt-stage .pt-audience { display: flex; gap: 2px; padding: 2px; border: 1px solid var(--pt-rule); border-radius: 8px; }
+.pt-stage .pt-chip { padding: 3px 8px; border-radius: 6px; font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.pt-stage .pt-chip[aria-pressed="true"] { color: var(--pt-ink); background: var(--pt-rule); }
+
+@media (max-width: 520px) {
+  .pt-stage .pt-caption { grid-template-columns: 1fr; gap: 2px; }
+  .pt-stage .pt-claim { padding-left: 0; }
+}
+
+/* An inline term in prose: the same mark its entity carries in the figure. */
+.pt-term { font-weight: 600; white-space: nowrap; }
+.pt-term::before { content: ""; display: inline-block; width: 0.5em; height: 0.5em; margin-right: 0.3em; border-radius: 1px; background: currentColor; transform: translateY(-0.08em) rotate(45deg); }
+
+/* The flat style: cards laid out by the page, threads behind them. */
+.pt-stage .pt-flat { min-width: 620px; padding: 44px 36px; }
+.pt-stage .pt-flow { position: relative; display: grid; column-gap: 72px; row-gap: 48px; align-items: center; }
+.pt-stage .pt-threads { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.pt-stage .pt-card { position: relative; display: grid; gap: 3px; padding: 11px 12px 12px; border: 1px solid var(--pt-line-2); border-radius: 9px; background: var(--pt-top); }
+.pt-stage .pt-card-name { display: flex; align-items: center; gap: 6px; font-family: var(--pt-font-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace); font-size: 10.5px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--pt-ink); }
+.pt-stage .pt-card-note { font-size: 12px; line-height: 1.35; color: var(--pt-ink-2); }
+.pt-stage .pt-card-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }

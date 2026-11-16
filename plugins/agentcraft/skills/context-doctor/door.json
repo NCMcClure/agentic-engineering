@@ -1,0 +1,12 @@
+{
+  "lead": "Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room, or after changing a hook, a critical line, or a skill description: reads the session transcript and says what reached the model, what did not, and the fix.",
+  "default": "diagnose",
+  "routes": {
+    "diagnose": {
+      "cue": "what went wrong with a session's context, and the fix"
+    },
+    "lens": {
+      "cue": "what entered an agent's context, by area and hook"
+    }
+  }
+}

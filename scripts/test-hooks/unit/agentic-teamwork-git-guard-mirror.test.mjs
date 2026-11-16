@@ -9,7 +9,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const MIRROR = path.join(REPO, "plugins", "agentic-teamwork", "templates", "githooks", "pre-commit");
+const MIRROR = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit");
 const SOURCE = fs.readFileSync(MIRROR, "utf8");
 const suite = { after };
 const HOME = tempDir(suite, "tw-mirror-home-");
@@ -18,8 +18,8 @@ const PATH = [path.dirname(process.execPath), process.env.PATH ?? process.env.Pa
 
 const MANIFEST = { standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test" }, owned: {} };
 const node = (code) => `"${process.execPath}" -e "${code}"`;
-const PASSING = node("process.exit(0)");
-const FAILING = node("console.log('1 failing: adds two numbers'); process.exit(1)");
+const PASSING = node("process.exitCode = 0");
+const FAILING = node("console.log('1 failing: adds two numbers'); process.exitCode = 1");
 
 /** A repo with the mirror installed and turned on, one commit, and `staged` in the index. */
 function repo(t, { branch = "feat/topic", manifest = MANIFEST, teamwork, staged = { "src/a.mjs": "export const a = 1;\n" }, tracked = {}, born = true } = {}) {

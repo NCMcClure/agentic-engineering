@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Architecture review, {{repo name}}</title>
+    <style>
+      /* The house style. Every colour in the report is one of these tokens:
+         a rule, an inline style or a diagram never writes a hex of its own. */
+      :root {
+        color-scheme: light dark;
+        --page: #f5f5f3;
+        --panel: #ffffff;
+        --sunk: #ebebe8;
+        --ink: #171716;
+        --ink-2: #5c5c58;
+        --ink-3: #8e8e89;
+        --line: #1c1c1b;
+        --line-2: #b4b4ae;
+        --rule: #dcdcd7;
+        --accent: #ff5a1f;
+        --accent-ink: #c2410c;
+        --accent-soft: #ffe9df;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --page: #0e0e0f;
+          --panel: #1e1e20;
+          --sunk: #161617;
+          --ink: #f1f1ee;
+          --ink-2: #a3a39d;
+          --ink-3: #74746f;
+          --line: #e9e9e5;
+          --line-2: #47474a;
+          --rule: #262628;
+          --accent: #ff6b2c;
+          --accent-ink: #ff8a57;
+          --accent-soft: #3a1c10;
+        }
+      }
+
+      /* Page */
+      * { box-sizing: border-box; }
+      body { margin: 0; background: var(--page); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+      main { max-width: 1040px; margin: 0 auto; padding: 40px 24px 96px; display: grid; gap: 32px; }
+      h1, h2, p, ul, dl, dd, figure { margin: 0; }
+      ul { padding: 0; list-style: none; }
+      h1 { font-size: 26px; font-weight: 600; line-height: 1.2; }
+      h2 { font-size: 17px; font-weight: 600; line-height: 1.3; }
+      a { color: inherit; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: 3px; }
+      a:hover { text-decoration-color: var(--ink); }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      code { font: 12.5px var(--mono); }
+
+      /* Labels: small mono capitals. Eyebrows, badges, tags, figure captions,
+         the names inside a diagram. */
+      .eyebrow, .badge, .tag, .legend, figcaption, dt, .mod b, .band b, .mass b, .label {
+        font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.09em; text-transform: uppercase;
+      }
+      .eyebrow { color: var(--ink-2); margin-bottom: 6px; }
+      .meta { font: 12px var(--mono); color: var(--ink-2); margin-top: 6px; }
+
+      /* Header: what the marks in every diagram mean. */
+      .legend { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--rule); color: var(--ink-2); }
+      .legend li { display: flex; align-items: center; gap: 8px; }
+      .key { width: 22px; height: 12px; flex: none; }
+      .key.module { background: var(--panel); border: 1px solid var(--line-2); border-radius: 3px; }
+      .key.deep { background: var(--panel); border: 1.5px solid var(--line); border-radius: 3px; }
+      .key.seam { height: 0; border-top: 1px dashed var(--line); }
+      .key.leak { height: 0; border-top: 1.5px solid var(--accent); }
+
+      /* Candidate card */
+      #candidates { display: grid; gap: 24px; }
+      .candidate { background: var(--panel); border: 1px solid var(--rule); border-radius: 14px; padding: 24px; display: grid; gap: 18px; scroll-margin-top: 24px; }
+      .candidate > header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 16px; }
+      .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+      .badge, .tag { border-radius: 6px; padding: 3px 8px; white-space: nowrap; }
+      /* Strength in three weights of ink, never in green, amber and grey. */
+      .badge.strong { background: var(--ink); color: var(--panel); border: 1px solid var(--ink); }
+      .badge.explore { color: var(--ink); border: 1px solid var(--line); }
+      .badge.speculative { color: var(--ink-2); border: 1px dashed var(--line-2); }
+      .tag { color: var(--ink-2); border: 1px solid var(--line-2); }
+      .files { display: flex; flex-wrap: wrap; gap: 4px 18px; font: 12.5px var(--mono); color: var(--ink-2); }
+
+      /* Before and after, side by side. A figure is a well in the page tone;
+         the modules drawn in it are panels. */
+      .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+      .fig { background: var(--page); border: 1px solid var(--rule); border-radius: 8px; padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; min-height: 320px; min-width: 0; }
+      figcaption { color: var(--ink-2); }
+      .fig > svg, .fig > .mermaid, .fig > .bands, .fig > .mass { flex: 1; min-height: 0; }
+      .fig > svg { width: 100%; height: auto; display: block; }
+
+      /* Diagram marks, as classes on an element or on an SVG shape.
+         .mod      a module: a panel with a quiet hairline
+         .deep     a deep module: the strong hairline, one and a half pixels
+         .inner    what a deep module absorbed: sunk, dimmed by colour
+         .leak     leakage across a seam: the accent, and nothing else is
+         .seam     a seam: a dashed hairline
+         .wire     a call or a dependency, with an arrowhead */
+      .mod { background: var(--panel); border: 1px solid var(--line-2); border-radius: 8px; fill: var(--panel); stroke: var(--line-2); stroke-width: 1; }
+      .mod.deep { border: 1.5px solid var(--line); stroke: var(--line); stroke-width: 1.5; }
+      .mod.inner { background: var(--sunk); border-color: var(--rule); color: var(--ink-2); fill: var(--sunk); stroke: var(--rule); }
+      .mod.leak { border: 1.5px solid var(--accent); stroke: var(--accent); stroke-width: 1.5; }
+      div.mod { padding: 8px 12px; }
+      .stack { display: grid; gap: 6px; align-content: start; }
+      .mod > .stack { margin-top: 8px; }
+      .mod b, .band b, .mass b { display: block; font-weight: 500; }
+      .mod small, .band small, .mass small { display: block; font: 12px/1.4 var(--sans); color: var(--ink-2); }
+      .label { fill: var(--ink); stroke: none; }
+      .label.quiet { fill: var(--ink-2); }
+      .label.leak { fill: var(--accent-ink); }
+      .note { font: 12px var(--sans); fill: var(--ink-2); stroke: none; }
+      .wire { fill: none; stroke: var(--ink-2); stroke-width: 1; marker-end: url(#arrow); }
+      .wire.leak { stroke: var(--accent); stroke-width: 1.5; marker-end: url(#arrow-leak); }
+      .seam { fill: none; stroke: var(--line); stroke-width: 1; stroke-dasharray: 4 4; border-top: 1px dashed var(--line); }
+      #arrow path { fill: var(--ink-2); }
+      #arrow-leak path { fill: var(--accent); }
+
+      /* Cross-section: the layers a call passes through, top to bottom. */
+      .bands { display: flex; flex-direction: column; gap: 6px; }
+      .band { background: var(--panel); border: 1px solid var(--line-2); border-left: 3px solid var(--ink-2); border-radius: 6px; padding: 7px 12px; min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
+      .band.thin { background: var(--sunk); border-color: var(--rule); border-left-color: var(--line-2); color: var(--ink-2); }
+      .band.deep { flex: 1; border: 1.5px solid var(--line); border-left-width: 3px; }
+      .band.leak { border-left-color: var(--accent); }
+
+      /* Mass: interface over implementation, one column per module. The
+         interface is flat ink, the implementation a lighter weight of it.
+         Heights are set inline, from numbers that were measured. */
+      .mass { display: flex; align-items: flex-end; justify-content: center; gap: 28px; }
+      .mass > div { display: flex; flex-direction: column; align-items: stretch; gap: 3px; width: 120px; text-align: center; }
+      .mass .iface { background: var(--ink); border-radius: 3px; }
+      .mass .impl { background: var(--ink-3); border-radius: 3px; }
+      .mass b { margin-top: 6px; }
+
+      /* Problem, solution, wins */
+      .case { display: grid; grid-template-columns: 96px 1fr; gap: 8px 16px; align-items: baseline; }
+      dt { color: var(--ink-2); }
+      dd { font-size: 15px; max-width: 76ch; }
+      .wins { display: flex; flex-wrap: wrap; gap: 6px 20px; padding-top: 14px; border-top: 1px solid var(--rule); }
+      .wins li { display: flex; align-items: baseline; gap: 8px; }
+      .wins li::before { content: ""; width: 5px; height: 5px; flex: none; background: var(--ink); transform: translateY(-2px); }
+
+      /* A decision record the candidate contradicts: a warning, on the
+         accent's tint. */
+      .adr { background: var(--accent-soft); border-radius: 8px; padding: 10px 14px; font-weight: 500; }
+      .adr b { font: 500 10.5px var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent-ink); margin-right: 8px; }
+
+      /* Top recommendation: the one card the reader is sent to. */
+      .top { background: var(--accent-soft); border: 1.5px solid var(--accent); border-radius: 14px; padding: 24px; display: grid; gap: 8px; }
+      .top .eyebrow { color: var(--accent-ink); margin: 0; }
+      .top p:not(.eyebrow) { font-size: 15px; max-width: 76ch; }
+
+      /* Mermaid, redrawn in the tokens so a graph follows the theme like the
+         rest of the page. `class A,B leak`, `class C deep` and `class D inner`
+         mark nodes; `-->` is a call, `==>` is leakage, `-.->` crosses a seam,
+         and a subgraph draws as a seam. */
+      .mermaid { display: flex; align-items: center; justify-content: center; margin: 0; font: 12px var(--mono); color: var(--ink-2); white-space: pre; overflow: hidden; }
+      .mermaid svg { max-width: 100%; height: auto; }
+      .mermaid .node rect, .mermaid .node polygon, .mermaid .node circle, .mermaid .node path, .mermaid rect.actor { fill: var(--panel) !important; stroke: var(--line-2) !important; stroke-width: 1px !important; }
+      .mermaid .node rect { rx: 6px; ry: 6px; }
+      .mermaid .node.deep rect, .mermaid .node.deep polygon { stroke: var(--line) !important; stroke-width: 1.5px !important; }
+      .mermaid .node.inner rect, .mermaid .node.inner polygon { fill: var(--sunk) !important; stroke: var(--rule) !important; }
+      .mermaid .node.leak rect, .mermaid .node.leak polygon { stroke: var(--accent) !important; stroke-width: 1.5px !important; }
+      .mermaid .nodeLabel, .mermaid .cluster-label, .mermaid .cluster-label span, .mermaid text.actor > tspan { font: 500 10.5px var(--mono) !important; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink) !important; fill: var(--ink) !important; }
+      .mermaid .node.inner .nodeLabel { color: var(--ink-2) !important; }
+      .mermaid .flowchart-link, .mermaid .messageLine0, .mermaid .messageLine1, .mermaid .actor-line { stroke: var(--ink-2) !important; stroke-width: 1px !important; }
+      .mermaid .flowchart-link.edge-thickness-thick { stroke: var(--accent) !important; stroke-width: 1.5px !important; }
+      .mermaid .flowchart-link.edge-pattern-dotted { stroke: var(--line) !important; stroke-dasharray: 4 4 !important; }
+      .mermaid .marker, .mermaid .arrowMarkerPath, .mermaid #arrowhead path { fill: var(--ink-2) !important; stroke: var(--ink-2) !important; }
+      /* An arrowhead takes its wire's colour where the browser can say so. */
+      @supports (fill: context-stroke) {
+        .mermaid .marker, .mermaid .arrowMarkerPath { fill: context-stroke !important; stroke: context-stroke !important; }
+      }
+      .mermaid .edgeLabel, .mermaid .edgeLabel p, .mermaid .labelBkg { background: var(--page) !important; color: var(--ink-2) !important; font: 11px var(--mono) !important; }
+      .mermaid .messageText { fill: var(--ink-2) !important; stroke: none !important; font: 11px var(--mono) !important; }
+      .mermaid .cluster rect { fill: none !important; stroke: var(--line) !important; stroke-width: 1px !important; stroke-dasharray: 4 4; }
+
+      @media (max-width: 760px) {
+        .pair { grid-template-columns: 1fr; }
+        .fig { min-height: 0; }
+        .case { grid-template-columns: 1fr; gap: 2px; }
+        .case dd { margin-bottom: 8px; }
+      }
+      @media print {
+        .candidate, .top { break-inside: avoid; }
+      }
+    </style>
+    <script type="module">
+      import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+      const token = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+      mermaid.initialize({
+        startOnLoad: true,
+        securityLevel: "loose",
+        theme: "base",
+        themeVariables: {
+          darkMode: matchMedia("(prefers-color-scheme: dark)").matches,
+          fontFamily: token("--mono"),
+          fontSize: "12px",
+          background: token("--page"),
+          primaryColor: token("--panel"),
+          primaryTextColor: token("--ink"),
+          primaryBorderColor: token("--line-2"),
+          lineColor: token("--ink-2"),
+          secondaryColor: token("--sunk"),
+          tertiaryColor: token("--page"),
+        },
+      });
+    </script>
+  </head>
+  <body>
+    <!-- The arrowheads every .wire ends in; a diagram never defines its own. -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+      <defs>
+        <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 8 4 0 7.5z" /></marker>
+        <marker id="arrow-leak" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0.5 8 4 0 7.5z" /></marker>
+      </defs>
+    </svg>
+    <main>
+      <header>{{header, see Header}}</header>
+      <section id="candidates">{{candidate cards, see Candidate card}}</section>
+      <section id="top-recommendation">{{top recommendation, see Top recommendation}}</section>
+    </main>
+  </body>
+</html>

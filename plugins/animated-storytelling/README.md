@@ -1,42 +1,17 @@
-# Animated Storytelling
+# animated-storytelling
 
-Most ideas don't fail because they're wrong; they fail because they're presented in bullet points.
+This plugin moved into `agentcraft`, where it is the `picture-this` area. The plugin was renamed picture-this before the move. What is
+left under this name is a stub: it ships nothing and depends on `agentcraft`,
+so updating it brings that plugin in. That needs Claude Code 2.1.321 or
+later; an older build installs nothing until it is updated.
 
-This plugin works the overlooked intersection of three crafts: **narrative** (what order things land in), **visual design** (what the eye believes), and **motion** (what change feels like). Any one of them is nice. The intersection is what hooks people: a real arc rendered with credible hierarchy, animated only where the story earns it.
+Install `agentcraft` by name as well:
 
-## How it works
-
-One skill routes each request to the lever it needs (narrative, visual, motion) and to the reference that covers it. Five reference sections, 29 files of distilled craft:
-
-| Section | One-liner |
-|---------|-----------|
-| `narrative/` | A deliberately minimal NCP storyform (throughlines, beats, dynamics), enough to give almost any idea a spine |
-| `visual-design/` | The credibility layer: hierarchy, type scales, color roles, and the Craft Pass that separates "polished" from "something feels off" |
-| `motion-design/` | When and why to animate: three designer philosophies, golden rules, durations, and non-negotiable accessibility |
-| `motion-api/` | The how, in code: Motion (Framer Motion; version pinned in its overview), covering variants, layout animation, scroll-driven work, and performance |
-| `creative-recipes/` | Bespoke showcase patterns: state machines, SVG choreography, streaming feeds, interactive mocks, visual metaphors |
-
-The one thing the skill never does by eye is contrast: `scripts/contrast-check.mjs` computes each WCAG ratio and exits non-zero on a hard failure. Node 22, no dependencies.
-
-## Install
-
-```
-/plugin marketplace add NCMcClure/agentic-engineering
-/plugin install animated-storytelling@agentic-engineering
+```text
+/plugin install agentcraft@agentic-engineering
 ```
 
-## The skill
-
-Invoke `/animated-storytelling`, or just ask for the outcome:
-
-- "This deck reads flat."
-- "Make this hero feel alive."
-- "Why does this look cheap?"
-
-The skill triggers itself on requests like these. If it triggers too eagerly for your taste, re-add `disable-model-invocation: true` to the SKILL.md frontmatter.
-
-## Honesty box
-
-- The motion **code** assumes React + Motion (version pinned in `motion-api/overview.md`); the **principles** (timing, restraint, hierarchy, accessibility) are universal and port anywhere.
-- NCP here is a deliberately minimal subset of the full theory, tuned for communication pieces, not screenplays.
-- The recipes are starting points to adapt, not components to import.
+A plugin the host installed as a dependency is removable once the stubs
+are gone, and one installed by name stays. Then type
+`/agentcraft:start-here`, or ask for the work in words. The area's history up
+to the move is its own `CHANGELOG.md` in `agentcraft`, under `skills/picture-this/`.

@@ -1,4 +1,4 @@
-// scripts/shared/provider.mjs: the argv it builds for each operation on both
+// plugins/agentcraft/lib/provider.mjs: the argv it builds for each operation on both
 // forges, and the object each answer is normalized into.
 //
 // A fake runner stands in for gh, glab, git and ssh. It records every call
@@ -14,7 +14,7 @@ import {
   ERROR_KINDS, FORGES, api, apiPaged, approveChange, authStatus, checkCli, classifyFailure, cliPath,
   commentOnChange, commentOnIssue, createChange, createIssue, currentBranch, detect, ensureLabel, graphql,
   listChanges, listIssues, mergeChange, parseRemote, retryChecks, updateChange, updateIssue, viewChange, viewIssue,
-} from "../../shared/provider.mjs";
+} from "../../../plugins/agentcraft/lib/provider.mjs";
 
 const HEAD = "a1b2c3d4e5f60718293a4b5c6d7e8f9012345678";
 const GH = { kind: "github", cli: "gh", host: "github.com", slug: "someone/thing", root: "checkout" };

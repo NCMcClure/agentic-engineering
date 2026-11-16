@@ -2,11 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "codebase-optimizer",
   "displayName": "Codebase Optimizer",
-  "version": "1.0.0",
-  "description": "Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.",
+  "version": "2.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the codebase-optimizer area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:codebase-optimizer <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["refactor", "architecture", "decompose", "organize", "agents-md", "codemod", "python", "typescript", "go", "rust"]
+  "dependencies": [
+    "agentcraft"
+  ]
 }

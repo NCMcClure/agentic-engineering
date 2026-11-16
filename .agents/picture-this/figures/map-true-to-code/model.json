@@ -1,0 +1,228 @@
+{
+  "schema": 1,
+  "title": "How a system map stays true to the code",
+  "mechanism": "system-map.mjs draws a box or an arrow for each @system line in the code, and fails when a module imports another with no calls line.",
+  "lens": "transformation",
+  "claim": "The diagram is drawn from lines in the code, so a call it does not show fails a check instead of waiting to mislead someone.",
+  "implication": "Declare a new module or call in the same commit as the code, and the picture never falls behind.",
+  "entities": [
+    {
+      "id": "code",
+      "label": "Code",
+      "kind": "files",
+      "note": "three modules, a folder each",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:189"
+    },
+    {
+      "id": "annotations",
+      "label": "@system lines",
+      "kind": "comment",
+      "note": "what a module is, whom it calls",
+      "parent": "code",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:94"
+    },
+    {
+      "id": "imports",
+      "label": "import lines",
+      "kind": "statement",
+      "note": "what the code really calls",
+      "parent": "code",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:285"
+    },
+    {
+      "id": "checker",
+      "label": "system-map.mjs",
+      "kind": "script",
+      "note": "writes the map, then checks it",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:420"
+    },
+    {
+      "id": "map",
+      "label": "System map",
+      "kind": "file",
+      "note": "diagrams/system-map.json",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:256"
+    },
+    {
+      "id": "board",
+      "label": "Miro board",
+      "kind": "board",
+      "note": "where people look",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:553"
+    }
+  ],
+  "flows": [
+    {
+      "id": "declare",
+      "from": "annotations",
+      "to": "map",
+      "kind": "write",
+      "label": "node",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:209"
+    },
+    {
+      "id": "connect",
+      "from": "annotations",
+      "to": "map",
+      "kind": "write",
+      "label": "calls",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:236"
+    },
+    {
+      "id": "crosscheck",
+      "from": "imports",
+      "to": "checker",
+      "kind": "query",
+      "label": "import graph",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:399"
+    },
+    {
+      "id": "rewrite",
+      "from": "checker",
+      "to": "map",
+      "kind": "write",
+      "label": "--write",
+      "source": "plugins/agentcraft/skills/system-map/scripts/system-map.mjs:430"
+    },
+    {
+      "id": "publish",
+      "from": "map",
+      "to": "board",
+      "kind": "write",
+      "label": "publish",
+      "source": "plugins/agentcraft/skills/system-map/routes/diagrams-sync/ROUTE.md:54"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "edges",
+      "label": "Calls on the map",
+      "of": "map",
+      "unit": "calls",
+      "max": 3,
+      "start": 0,
+      "values": {
+        "calls": [0, 1, 2],
+        "level": 3
+      }
+    },
+    {
+      "id": "warnings",
+      "label": "Warnings from the check",
+      "of": "checker",
+      "unit": "warnings",
+      "max": 1,
+      "start": 0,
+      "values": {
+        "check": 1,
+        "level": 0
+      }
+    }
+  ],
+  "data": {
+    "lines": [
+      { "id": "cart-node", "file": "cart/index.mjs", "of": "annotations", "text": "// @system node cart \"Cart\" layer=surface" },
+      { "id": "cart-calls-orders", "file": "cart/index.mjs", "of": "annotations", "text": "// @system calls orders \"places the order\"" },
+      { "id": "cart-import-orders", "file": "cart/index.mjs", "of": "imports", "text": "import { place } from \"../orders/index.mjs\";" },
+      { "id": "cart-calls-stock", "file": "cart/index.mjs", "of": "annotations", "at": "level", "text": "// @system calls stock \"asks what is left\"" },
+      { "id": "cart-import-stock", "file": "cart/index.mjs", "of": "imports", "at": "drift", "text": "import { left } from \"../stock/index.mjs\";" },
+      { "id": "orders-node", "file": "orders/index.mjs", "of": "annotations", "text": "// @system node orders \"Orders\" layer=service" },
+      { "id": "orders-calls-stock", "file": "orders/index.mjs", "of": "annotations", "text": "// @system calls stock \"reserves each item\"" },
+      { "id": "orders-import-stock", "file": "orders/index.mjs", "of": "imports", "text": "import { reserve } from \"../stock/index.mjs\";" },
+      { "id": "stock-node", "file": "stock/index.mjs", "of": "annotations", "text": "// @system node stock \"Stock\" layer=service" },
+      { "id": "stock-shelf", "file": "stock/index.mjs", "of": "code", "text": "const shelf = new Map([[\"mug\", 12]]);" }
+    ],
+    "nodes": [
+      { "id": "cart", "of": "map", "at": "nodes", "title": "Cart", "layer": "surface", "path": "cart", "line": "cart-node" },
+      { "id": "orders", "of": "map", "at": "nodes", "title": "Orders", "layer": "service", "path": "orders", "line": "orders-node" },
+      { "id": "stock", "of": "map", "at": "nodes", "title": "Stock", "layer": "service", "path": "stock", "line": "stock-node" }
+    ],
+    "edges": [
+      { "id": "cart-orders", "of": "map", "at": "calls", "from": "cart", "to": "orders", "label": "places the order", "line": "cart-calls-orders" },
+      { "id": "orders-stock", "of": "map", "at": "calls", "from": "orders", "to": "stock", "label": "reserves each item", "line": "orders-calls-stock" },
+      { "id": "cart-stock", "of": "map", "at": "level", "from": "cart", "to": "stock", "label": "asks what is left", "line": "cart-calls-stock" }
+    ],
+    "output": [
+      { "id": "write", "of": "checker", "at": "nodes", "text": "$ node .agents/scripts/system-map.mjs --write" },
+      { "id": "clean", "of": "checker", "at": "calls", "exit": 0, "text": "system-map: 0 warning, 0 info" },
+      { "id": "check", "of": "checker", "at": "check", "text": "$ node .agents/scripts/system-map.mjs --changed HEAD" },
+      { "id": "finding", "of": "checker", "at": "check", "text": "warning  UNDECLARED_IMPORT  cart/index.mjs:4  cart imports stock/index.mjs (stock)" },
+      { "id": "finding-more", "of": "checker", "at": "check", "text": "with no @system calls stock line; declare the call or move the code" },
+      { "id": "failed", "of": "checker", "at": "check", "exit": 1, "text": "system-map: 1 warning, 0 info" },
+      { "id": "stat", "of": "checker", "at": "level", "text": "$ git diff --shortstat diagrams/system-map.json" },
+      { "id": "stat-map", "of": "map", "at": "level", "text": " 1 file changed, 5 insertions(+)" }
+    ],
+    "cards": [
+      { "id": "cart", "of": "board", "at": "board", "x": 240, "y": 140, "width": 240, "height": 134 },
+      { "id": "orders", "of": "board", "at": "board", "x": 60, "y": 434, "width": 240, "height": 117 },
+      { "id": "stock", "of": "board", "at": "board", "x": 420, "y": 434, "width": 240, "height": 117 }
+    ]
+  },
+  "beats": [
+    {
+      "id": "nodes",
+      "title": "A line, a box",
+      "plain": "Each module carries a comment line that says what it is. The tool reads those lines and draws one box for each.",
+      "technical": "system-map.mjs --write reads each `@system node <id> \"<title>\" layer=<layer>` line into a node of diagrams/system-map.json; the layer is its row.",
+      "focus": ["code", "annotations", "map"],
+      "flows": ["declare"],
+      "ms": 3600
+    },
+    {
+      "id": "calls",
+      "title": "A line, an arrow",
+      "plain": "A second kind of line says whom a module calls. Each one becomes an arrow, and the map is saved in the repo beside the code.",
+      "technical": "Each `@system calls <id> \"<label>\"` line is an edge from the module that owns the file. The map is committed, and the check prints 0 warning and exits 0.",
+      "focus": ["annotations", "map", "checker"],
+      "flows": ["connect"],
+      "ms": 3600
+    },
+    {
+      "id": "drift",
+      "title": "The code moves on",
+      "plain": "Later, someone has Cart read from Stock. The code now calls something the diagram does not show.",
+      "technical": "A new import in cart/index.mjs crosses into stock/ with no `@system calls stock` line, so the committed map is quietly out of date.",
+      "focus": ["code", "imports"],
+      "flows": [],
+      "ms": 3200
+    },
+    {
+      "id": "check",
+      "title": "The check says so",
+      "plain": "The check compares the diagram with what the code really imports. It finds the missing arrow, and fails.",
+      "technical": "checkImports resolves every import to the node that owns it: UNDECLARED_IMPORT at cart/index.mjs:4, exit 1. Run by the Stop hook as the turn ends, by diagrams-sync, or in CI.",
+      "focus": ["imports", "checker", "map"],
+      "flows": ["crosscheck"],
+      "ms": 3800
+    },
+    {
+      "id": "level",
+      "title": "Brought level",
+      "plain": "One comment line declares the call. The map file is written again, the arrow appears, and the check passes.",
+      "technical": "`@system calls stock` goes in above the import; --write regenerates diagrams/system-map.json (one edge, five lines) for the same commit, and exits 0.",
+      "focus": ["annotations", "checker", "map"],
+      "flows": ["rewrite"],
+      "ms": 4000
+    },
+    {
+      "id": "board",
+      "title": "Drawn for people",
+      "plain": "The same map is then drawn on a Miro board, so the picture people open matches the code.",
+      "technical": "diagrams-sync builds the frame from the map (generate), lints it, publishes through the Miro MCP, and runs --mark-published; until then the check reports BOARD_BEHIND.",
+      "focus": ["map", "board"],
+      "flows": ["publish"],
+      "ms": 3200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "check",
+    "at": 0.5
+  }
+}

@@ -1,0 +1,55 @@
+# Self-contained docs site for the .agents/plan/ specification.
+# Serve from the repo root with:  mkdocs serve -f .agents/plan/mkdocs.yml
+# Paths below are resolved relative to THIS file (.agents/plan/).
+site_name: "{{PROJECT_NAME}} Specification"
+docs_dir: spec
+site_dir: .site
+use_directory_urls: true
+
+theme:
+  name: shadcn
+  show_title: true
+  show_stargazers: false
+  topbar_sections: false
+  # The house accent. assets/house.css holds the rest of the palette, light
+  # and dark, and gives the accent its dark value.
+  accent: "#ff5a1f"
+  # Monochrome code in both themes: weight and slant, no token colours.
+  pygments_style:
+    light: bw
+    dark: bw
+
+extra_css:
+  - assets/house.css
+  - assets/spec-comments.css
+  - assets/plan-view.css
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
+  - assets/mermaid-init.js
+  - assets/spec-comments.js
+  - assets/plan-view.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - codehilite
+  - def_list
+  - footnotes
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      css_class: codehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_div_format
+
+plugins:
+  - awesome-pages
+  - search
+
+exclude_docs: |
+  /scripts/

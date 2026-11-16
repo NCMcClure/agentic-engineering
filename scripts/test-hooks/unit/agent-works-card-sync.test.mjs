@@ -8,8 +8,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agent-works", "hooks", "card-sync.mjs");
-const AW = path.join(REPO, "plugins", "agent-works", "scripts", "aw.mjs");
+const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "card-sync.mjs");
+const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const HOUR_AGO = new Date(Date.now() - 60 * 60 * 1000).toISOString();
 
 function repoWithWorktree(t, { answer = "on" } = {}) {
@@ -121,7 +121,7 @@ test("agent-works card-sync: a board command and a pane tool are recorded, and n
   const r = repoWithWorktree(t);
   card(r.kanban, "0009", "Loose", "status: backlog\norder: 1\n");
   assert.equal(hook(r, bash(r, `node "${AW}" board move 0009 in-progress`, "moved")), null);
-  assert.equal(hook(r, { hook_event_name: "PostToolUse", session_id: "s1", cwd: r.worktree, tool_name: "mcp__agent-works__move_task", tool_input: { id: "0009", status: "in-progress" }, tool_response: "ok" }), null);
+  assert.equal(hook(r, { hook_event_name: "PostToolUse", session_id: "s1", cwd: r.worktree, tool_name: "mcp__agentcraft__move_task", tool_input: { id: "0009", status: "in-progress" }, tool_response: "ok" }), null);
   const ledger = JSON.parse(fs.readFileSync(path.join(r.tmp, "agent-works-cards-s1.json"), "utf8"));
   assert.deepEqual(ledger.events.map((e) => [e.kind, e.verb, e.ids, e.column]), [["board", "move", ["0009"], "in-progress"], ["board", "move", ["0009"], "in-progress"]]);
   assert.equal(ledger.focus, "0009", "a card this session moved into progress is the one it works");

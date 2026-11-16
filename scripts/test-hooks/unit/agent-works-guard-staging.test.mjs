@@ -8,7 +8,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO } from "./helpers.mjs";
 
-const load = (rel) => import(pathToFileURL(path.join(REPO, "plugins", "agent-works", rel)).href);
+const load = (rel) => import(pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", rel)).href);
 const rules = await load("lib/guard-rules.mjs");
 const { defaults } = await load("lib/config.mjs");
 

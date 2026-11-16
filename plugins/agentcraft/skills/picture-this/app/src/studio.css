@@ -1,0 +1,63 @@
+/* The studio's own chrome. The figures bring their look with the kit; this
+   file only sets the page they sit on and the fonts stills are taken in. */
+:root {
+  --pt-font-sans: "Inter Variable", system-ui, sans-serif;
+  --pt-font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+  --studio-bg: #f4f4f2;
+  --studio-fg: #1a1a19;
+  --studio-muted: #70706c;
+  --studio-line: #dcdcd8;
+  color-scheme: light;
+}
+:root[data-pt-theme="dark"] {
+  --studio-bg: #0d0d0e;
+  --studio-fg: #ededeb;
+  --studio-muted: #8a8a86;
+  --studio-line: #2a2a2c;
+  color-scheme: dark;
+}
+html, body { margin: 0; background: var(--studio-bg); color: var(--studio-fg); font-family: var(--pt-font-sans); }
+a { color: inherit; }
+
+.studio-wait { padding: 24px; font: 12px var(--pt-font-mono); color: var(--studio-muted); }
+.studio-error { margin: 12px 0; padding: 12px; border: 1px solid #d4502a; color: #d4502a; font: 12px/1.5 var(--pt-font-mono); white-space: pre-wrap; }
+
+.studio-gallery { max-width: 960px; margin: 0 auto; padding: 32px 24px 96px; }
+.studio-gallery header { display: flex; align-items: baseline; gap: 16px; border-bottom: 1px solid var(--studio-line); padding-bottom: 12px; }
+.studio-gallery h1 { margin: 0; font: 600 14px var(--pt-font-mono); letter-spacing: 0.04em; }
+.studio-gallery header p { margin: 0; flex: 1; font: 12px var(--pt-font-mono); color: var(--studio-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.studio-gallery nav { display: flex; gap: 12px; font: 12px var(--pt-font-mono); }
+.studio-gallery h2 { margin: 40px 0 0; font: 500 11px var(--pt-font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--studio-muted); }
+.studio-gallery h3 { display: flex; gap: 12px; margin: 24px 0 8px; font: 500 12px var(--pt-font-mono); }
+.studio-gallery h3 span { flex: 1; }
+.studio-figure { max-width: 880px; }
+
+/* /frame and /sheet are what the camera sees: the figure, the page colour, nothing else. */
+.studio-frame { margin: 0; padding: 24px; box-sizing: content-box; }
+.studio-sheet { padding: 24px 0 24px 24px; box-sizing: border-box; }
+.studio-cells { display: grid; gap: 24px; }
+.studio-cell h2 { margin: 0 0 8px; font: 500 11px var(--pt-font-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--studio-muted); }
+
+/* /strip is a picture for a README: one frame in the figure's own colours (it
+   wears the kit's .pt-stage), the beats in a row inside it. Each beat's own
+   frame is taken off, so the row reads as one figure. Sizes are in em: the
+   page sets the frame's type so the words read once the row is shown small. */
+.studio-strip { margin: 0; padding: 24px; width: max-content; }
+/* The rule between two beats is the row's own colour showing through a 1px gap, so every beat is exactly as wide as the next. */
+.studio-strip-frame .studio-strip-row { display: grid; gap: 1px; background: var(--pt-rule); }
+.studio-strip-frame .studio-strip-beat { display: flex; flex-direction: column; min-width: 0; background: var(--pt-bg); }
+.studio-strip-frame .studio-strip-beat .pt-stage { border: 0; border-radius: 0; background: none; }
+.studio-strip-frame .studio-strip-words { flex: 1; display: grid; align-content: start; gap: 0.35em; margin: 0; padding: 1em 1.4em 1.2em; border-top: 1px solid var(--pt-rule); line-height: 1.45; }
+.studio-strip-frame .studio-strip-words .pt-caption-mark { font-size: 0.75em; }
+.studio-strip-frame .studio-strip-words .pt-caption-text { font-size: 1em; }
+.studio-strip-frame .studio-strip-claim { margin: 0; padding: 0.9em 1.4em 1em; border-top: 1px solid var(--pt-rule); font-size: 0.93em; line-height: 1.45; color: var(--pt-ink-2); text-wrap: pretty; }
+
+/* A draft's view, in its own words, over its sheet. */
+.studio-view { margin: 0 0 20px; padding: 0 0 16px; border-bottom: 1px solid var(--studio-line); }
+.studio-view h1 { margin: 0 0 10px; font: 500 12px/1.4 var(--pt-font-mono); letter-spacing: 0.09em; text-transform: uppercase; }
+.studio-view h1 span { margin-left: 12px; font-weight: 400; opacity: 0.6; }
+.studio-view dl { margin: 0; display: grid; gap: 6px; }
+.studio-view dl div { display: grid; grid-template-columns: 5.5em 1fr; gap: 12px; align-items: baseline; }
+.studio-view dt { font: 500 10.5px/1.4 var(--pt-font-mono); letter-spacing: 0.09em; text-transform: uppercase; opacity: 0.6; }
+.studio-view dd { margin: 0; font-size: 13px; line-height: 1.45; max-width: 86ch; }
+.studio-view p { margin: 0; font-size: 13px; opacity: 0.6; }

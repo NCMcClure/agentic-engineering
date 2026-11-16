@@ -1,0 +1,283 @@
+{
+  "schema": 1,
+  "title": "How a Miro frame goes round from code to board and back",
+  "mechanism": "The build lays the generator's words on the board's own positions, lints it, publishes, lints what Miro drew, and pulls the layout back.",
+  "lens": "path",
+  "claim": "Words come from code and positions from the board, and one lint reads both the plan and what Miro really drew.",
+  "implication": "Change content in the generator and drag cards in Miro: neither undoes the other.",
+  "entities": [
+    {
+      "id": "generator",
+      "label": "Generator",
+      "kind": "module",
+      "note": "says what is on the frame",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/project.mjs:52",
+      "hue": "blue"
+    },
+    {
+      "id": "layout",
+      "label": "Layout file",
+      "kind": "store",
+      "note": "miro/<frame>.layout.json",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/miro.mjs:19",
+      "hue": "violet"
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "kind": "script",
+      "note": "build.mjs",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/build.mjs:76"
+    },
+    {
+      "id": "board",
+      "label": "Miro board",
+      "kind": "board",
+      "note": "where people look, and drag",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/ROUTE.md:41"
+    },
+    {
+      "id": "dump",
+      "label": "Board dump",
+      "kind": "script",
+      "note": "runs in the board's tab",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/assets/board-dump.js:8"
+    },
+    {
+      "id": "lint",
+      "label": "Legibility lint",
+      "kind": "check",
+      "note": "25 checks of how Miro draws",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/lint.mjs:295"
+    }
+  ],
+  "flows": [
+    {
+      "id": "scene",
+      "from": "generator",
+      "to": "build",
+      "kind": "read",
+      "label": "scene",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/project.mjs:52"
+    },
+    {
+      "id": "place",
+      "from": "layout",
+      "to": "build",
+      "kind": "read",
+      "label": "x, y, size",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/build.mjs:76"
+    },
+    {
+      "id": "predict",
+      "from": "build",
+      "to": "lint",
+      "kind": "query",
+      "label": "predicted",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/build.mjs:98"
+    },
+    {
+      "id": "publish",
+      "from": "build",
+      "to": "board",
+      "kind": "write",
+      "label": "update.svg",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/build.mjs:130"
+    },
+    {
+      "id": "drawn",
+      "from": "board",
+      "to": "dump",
+      "kind": "read",
+      "label": "routes, captions",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/assets/board-dump.js:8"
+    },
+    {
+      "id": "relint",
+      "from": "dump",
+      "to": "lint",
+      "kind": "query",
+      "label": "live-dump.json",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/live.mjs:33"
+    },
+    {
+      "id": "pull",
+      "from": "board",
+      "to": "layout",
+      "kind": "write",
+      "label": "layout",
+      "source": "plugins/agentcraft/skills/system-map/routes/miro-board/scripts/pull.mjs:105"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "findings",
+      "label": "Blocking findings",
+      "of": "lint",
+      "unit": "findings",
+      "max": 4,
+      "start": 0,
+      "values": {
+        "gate": [
+          2,
+          2,
+          0
+        ],
+        "publish": 0,
+        "live": 0
+      }
+    }
+  ],
+  "data": {
+    "fields": [
+      {
+        "id": "title",
+        "label": "title",
+        "of": "generator",
+        "at": "draw",
+        "from": "code"
+      },
+      {
+        "id": "body",
+        "label": "body",
+        "of": "generator",
+        "at": "draw",
+        "from": "code"
+      },
+      {
+        "id": "color",
+        "label": "color",
+        "of": "generator",
+        "at": "draw",
+        "from": "code"
+      },
+      {
+        "id": "x",
+        "label": "x",
+        "of": "layout",
+        "at": "merge",
+        "from": "board"
+      },
+      {
+        "id": "y",
+        "label": "y",
+        "of": "layout",
+        "at": "merge",
+        "from": "board"
+      },
+      {
+        "id": "width",
+        "label": "width",
+        "of": "layout",
+        "at": "merge",
+        "from": "board"
+      },
+      {
+        "id": "height",
+        "label": "height",
+        "of": "layout",
+        "at": "merge",
+        "from": "board"
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "draw",
+      "title": "Code says what",
+      "plain": "A small program in the repo says what each card on the frame says: its title and its words.",
+      "technical": "project.mjs calls the view's generate(kit) and gets a scene: each card's title and body.",
+      "focus": [
+        "generator",
+        "build"
+      ],
+      "flows": [
+        "scene"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "merge",
+      "title": "Board says where",
+      "plain": "Where each card sits comes from the board, kept in a file in the repo, so a card someone dragged in Miro stays put.",
+      "technical": "applyLayout overwrites x, y, width and height (LAYOUT_FIELDS) with miro/<frame>.layout.json.",
+      "focus": [
+        "layout",
+        "build"
+      ],
+      "flows": [
+        "place"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "gate",
+      "title": "Lint before",
+      "plain": "A lint checks the frame as Miro would draw it. While it finds a problem, nothing is written.",
+      "technical": "build.mjs lints predictedModel(); a blocking finding exits 1 with nothing written.",
+      "focus": [
+        "build",
+        "lint"
+      ],
+      "flows": [
+        "predict"
+      ],
+      "ms": 4000
+    },
+    {
+      "id": "publish",
+      "title": "Publish the change",
+      "plain": "Once the lint is clean, the build sends the frame to the board.",
+      "technical": "build.mjs writes <frame>.update.svg, the items that changed, sent with canvas_update_from_svg.",
+      "focus": [
+        "build",
+        "board"
+      ],
+      "flows": [
+        "publish"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "live",
+      "title": "Lint after",
+      "plain": "A script running in Miro's browser tab reads what Miro really drew, and the same lint checks that too.",
+      "technical": "board-dump.js runs via evaluate_script; live.mjs check lints live-dump.json with liveModel().",
+      "focus": [
+        "board",
+        "dump",
+        "lint"
+      ],
+      "flows": [
+        "drawn",
+        "relint"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "pull",
+      "title": "Layout comes home",
+      "plain": "Every card's place on the board, dragged by hand or not, is copied back into the repo for the next build.",
+      "technical": "canvas_read_as_svg, then pull.mjs merges each item's geometry into <frame>.layout.json.",
+      "focus": [
+        "board",
+        "layout"
+      ],
+      "flows": [
+        "pull"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "merge",
+    "at": 0.5
+  }
+}

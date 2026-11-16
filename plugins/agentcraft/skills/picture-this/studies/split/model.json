@@ -1,0 +1,178 @@
+{
+  "schema": 1,
+  "title": "An upload, with and without a queue",
+  "mechanism": "The API either does the slow work itself before it replies, or hands it to a queue and replies at once.",
+  "lens": "difference",
+  "claim": "Hand slow work to a queue and the upload stops waiting for it.",
+  "implication": "When thumbnails fall behind, add workers, not API servers.",
+  "entities": [
+    {
+      "id": "app-before",
+      "label": "Your app",
+      "kind": "client",
+      "group": "Without a queue"
+    },
+    {
+      "id": "api-before",
+      "label": "API",
+      "kind": "service",
+      "note": "resizes while you wait",
+      "group": "Without a queue"
+    },
+    {
+      "id": "store-before",
+      "label": "Object store",
+      "kind": "store",
+      "group": "Without a queue"
+    },
+    {
+      "id": "app",
+      "label": "Your app",
+      "kind": "client",
+      "group": "With a queue"
+    },
+    {
+      "id": "api",
+      "label": "API",
+      "kind": "service",
+      "note": "answers at once",
+      "group": "With a queue"
+    },
+    {
+      "id": "queue",
+      "label": "Jobs",
+      "kind": "queue",
+      "group": "With a queue"
+    },
+    {
+      "id": "worker",
+      "label": "Resizer",
+      "kind": "worker",
+      "group": "With a queue"
+    },
+    {
+      "id": "store",
+      "label": "Object store",
+      "kind": "store",
+      "group": "With a queue"
+    }
+  ],
+  "flows": [
+    {
+      "id": "upload-before",
+      "from": "app-before",
+      "to": "api-before",
+      "kind": "write",
+      "label": "photo"
+    },
+    {
+      "id": "save-before",
+      "from": "api-before",
+      "to": "store-before",
+      "kind": "write",
+      "label": "thumbnail"
+    },
+    {
+      "id": "reply-before",
+      "from": "api-before",
+      "to": "app-before",
+      "kind": "event",
+      "label": "done, at last"
+    },
+    {
+      "id": "upload",
+      "from": "app",
+      "to": "api",
+      "kind": "write",
+      "label": "photo"
+    },
+    {
+      "id": "enqueue",
+      "from": "api",
+      "to": "queue",
+      "kind": "event",
+      "label": "job"
+    },
+    {
+      "id": "reply",
+      "from": "api",
+      "to": "app",
+      "kind": "event",
+      "label": "accepted"
+    },
+    {
+      "id": "take",
+      "from": "queue",
+      "to": "worker",
+      "kind": "event",
+      "label": "next job"
+    },
+    {
+      "id": "save",
+      "from": "worker",
+      "to": "store",
+      "kind": "write",
+      "label": "thumbnail"
+    }
+  ],
+  "beats": [
+    {
+      "id": "waiting",
+      "title": "Without",
+      "plain": "The API resizes the photo itself, so the upload waits until it is done.",
+      "focus": [
+        "app-before",
+        "api-before",
+        "store-before"
+      ],
+      "flows": [
+        "upload-before",
+        "save-before",
+        "reply-before"
+      ],
+      "ms": 3400
+    },
+    {
+      "id": "answer",
+      "title": "With",
+      "plain": "The API hands the job to a queue and replies right away.",
+      "focus": [
+        "app",
+        "api",
+        "queue"
+      ],
+      "flows": [
+        "upload",
+        "enqueue",
+        "reply"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "later",
+      "title": "Then",
+      "plain": "A worker makes the thumbnail afterwards, and nobody is waiting on it.",
+      "focus": [
+        "queue",
+        "worker",
+        "store"
+      ],
+      "flows": [
+        "take",
+        "save"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1400
+    }
+  ],
+  "hero": {
+    "beat": "answer",
+    "at": 0.5
+  }
+}

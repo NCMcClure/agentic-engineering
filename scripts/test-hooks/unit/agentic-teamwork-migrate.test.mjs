@@ -9,9 +9,9 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { makeFixture } from "../fixtures.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
-import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentic-teamwork/hooks/lib/config.mjs";
+import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentcraft/skills/agentic-teamwork/hooks/lib/config.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
 const HOOKS = path.join(PLUGIN, "hooks");
 const suite = { after };
 const HOME = tempDir(suite, "tw-migrate-home-");
@@ -30,7 +30,7 @@ const CLAUDE_MD = "# fixture\n\n## Team workflow rules\n\n- Full checklist: `.cl
 const SETTINGS = '{\n  "permissions": { "deny": ["Bash(git push --force:*)"] }\n}\n';
 
 const node = (code) => `"${process.execPath}" -e "${code}"`;
-const FAILING = node("console.log('1 failing: adds two numbers'); process.exit(1)");
+const FAILING = node("console.log('1 failing: adds two numbers'); process.exitCode = 1");
 
 const env = (dir) => ({ ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: dir, CLAUDE_PLUGIN_DATA: "", TMPDIR: TMP });
 const read = (dir, rel) => fs.readFileSync(path.join(dir, rel), "utf8");
@@ -61,7 +61,8 @@ function oldRepo(t, kind = "teamwork-only", { edit = (c) => c, mirror = true, ex
 function start(dir, { event = "SessionStart", extra = {} } = {}) {
   const input = JSON.stringify({ hook_event_name: event, source: "startup", session_id: "migrate", cwd: dir, ...extra });
   const began = Date.now();
-  const result = runNode(path.join(HOOKS, "session-start.mjs"), [], { cwd: dir, env: env(dir), input });
+  // The area's part alone, run through the plugin's helper (area-session.mjs says why).
+  const result = runNode(path.join(import.meta.dirname, "area-session.mjs"), ["agentic-teamwork"], { cwd: dir, env: env(dir), input });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(result.stderr, "");
   const out = result.stdout.trim() ? JSON.parse(result.stdout) : null;
@@ -162,7 +163,7 @@ test("a first-layout test command in its own folder becomes a lane that goes the
   const { context } = start(none.dir);
   assert.deepEqual(json(none.dir, ".agents/manifest.json").lanes, {});
   assert.equal(json(none.dir, ".agents/manifest.json").default_branch, "trunk");
-  assert.match(context, /names no lanes yet: ask the person to run \/agentic-teamwork:init-project --upgrade/);
+  assert.match(context, /names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade/);
 });
 
 test("it runs for the kinds of repo the first layout was used in", (t) => {

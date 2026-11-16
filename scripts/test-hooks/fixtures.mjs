@@ -1,14 +1,14 @@
 // Fixture repos for the live lane and the hook cases: small git repos in the
-// shapes a plugin meets in the wild. They are written here as static trees,
-// never by running a plugin's own setup, so the same builder describes a repo
-// before and after a plugin changes how it sets one up.
+// shapes the plugin meets in the wild. They are written here as static trees,
+// never by running an area's own setup, so the same builder describes a repo
+// before and after an area changes how it sets one up.
 //
 // A fixture carries one of two generations of marker files:
 //   the first   .claude/teamwork.json, .perceptual-loop/, .agents/agent-works.json,
 //               .agents/docs-parity.json, .agents/plan/ (`adopted`, `teamwork-only`, `unborn`)
 //   the current .agents/manifest.json, .agents/perceptual/, and the same
 //               .agents/ files (`standard`, `strict`, `unborn-standard`)
-// A plugin that still reads the first is tested on it; one that has moved is
+// An area that still reads the first is tested on it; one that has moved is
 // tested on the current, and on the first to prove it migrates.
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -167,7 +167,7 @@ export const KINDS = ["bare", "outside", "adopted", "teamwork-only", "standard",
  * One fixture repo, fresh under root, on a feature branch with one commit.
  *   bare           no remote, no markers
  *   outside        a remote, no markers
- *   adopted        every plugin's marker, a changed source file, a stray root file
+ *   adopted        every area's marker, a changed source file, a stray root file
  *   teamwork-only  the git-guardrail marker alone, with the same changed and stray files
  *   unborn         the git-guardrail marker in a repo with no commit yet, still on main
  *   standard       every marker in the current layout, with the same changed and stray files
@@ -195,7 +195,7 @@ export function makeFixture(root, kind) {
   return dir;
 }
 
-/** The plugins that owe a fixture of this kind their context: those whose marker it carries, and those that speak wherever a repo has opted in. */
+/** The areas that owe a fixture of this kind their context: those whose marker it carries, and those that speak wherever a repo has opted in. */
 export function adopted(kind) {
   if (["adopted", "standard", "strict"].includes(kind)) return ["agent-works", "agentic-teamwork", "but-first-planning", "code-diet", "docs-parity", "perceptual-loop"];
   if (kind === "teamwork-only" || kind === "portable") return ["agentic-teamwork", "but-first-planning", "code-diet", "perceptual-loop"];

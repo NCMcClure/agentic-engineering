@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "title": "How one plugin keeps 75 routes behind fourteen names",
+  "mechanism": "A person types start-here and an agent calls an area by name; either way the area reads one route document by path, and the other 74 stay unread.",
+  "lens": "path",
+  "claim": "A session lists fourteen names, not 75 routes: a route is a document that takes no room in the context window until an area reads it.",
+  "implication": "One thing to remember: /agentcraft:start-here. Or ask in plain words, and the agent picks the area.",
+  "entities": [
+    {
+      "id": "listing",
+      "label": "Skill listing",
+      "kind": "list",
+      "note": "fourteen names, and no route",
+      "source": "plugins/agentcraft/hooks/critical-context.mjs:181"
+    },
+    {
+      "id": "person",
+      "label": "A person",
+      "kind": "client",
+      "note": "types one thing",
+      "source": "plugins/agentcraft/skills/start-here/SKILL.md:11"
+    },
+    {
+      "id": "start",
+      "label": "start-here",
+      "kind": "skill",
+      "note": "asks, explains, hands off once",
+      "source": "plugins/agentcraft/skills/start-here/SKILL.md:2"
+    },
+    {
+      "id": "index",
+      "label": "Route index",
+      "kind": "hook",
+      "note": "each area's routes, by name",
+      "source": "plugins/agentcraft/hooks/critical-context.mjs:200"
+    },
+    {
+      "id": "agent",
+      "label": "An agent",
+      "kind": "client",
+      "note": "calls an area by name",
+      "source": "plugins/agentcraft/skills/start-here/SKILL.md:15"
+    },
+    {
+      "id": "area",
+      "label": "agentic-teamwork",
+      "kind": "skill",
+      "note": "an area: user-invocable: false",
+      "repeat": 13,
+      "source": "plugins/agentcraft/skills/agentic-teamwork/SKILL.md:4"
+    },
+    {
+      "id": "route",
+      "label": "routes/ship/ROUTE.md",
+      "kind": "document",
+      "note": "a route: read by path",
+      "parent": "area",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/routes/ship/ROUTE.md:2"
+    }
+  ],
+  "flows": [
+    {
+      "id": "type",
+      "from": "person",
+      "to": "start",
+      "kind": "event",
+      "label": "/agentcraft:start-here",
+      "source": "plugins/agentcraft/skills/start-here/SKILL.md:76"
+    },
+    {
+      "id": "handoff",
+      "from": "start",
+      "to": "area",
+      "kind": "event",
+      "label": "hands off",
+      "source": "plugins/agentcraft/skills/start-here/SKILL.md:122"
+    },
+    {
+      "id": "names",
+      "from": "index",
+      "to": "agent",
+      "kind": "event",
+      "label": "routes, by area",
+      "source": "plugins/agentcraft/hooks/session-start.mjs:20"
+    },
+    {
+      "id": "call",
+      "from": "agent",
+      "to": "area",
+      "kind": "event",
+      "label": "agentcraft:agentic-teamwork ship",
+      "source": "plugins/agentcraft/hooks/critical-context.mjs:185"
+    },
+    {
+      "id": "read",
+      "from": "area",
+      "to": "route",
+      "kind": "read",
+      "label": "read by path",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/SKILL.md:24"
+    }
+  ],
+  "beats": [
+    {
+      "id": "listed",
+      "title": "Fourteen names",
+      "plain": "The agentcraft plugin lists fourteen skills by name: start-here and thirteen areas. Its 75 routes are not on the list.",
+      "technical": "At a 200k window the host lists a plugin's skills by name alone: agentcraft:start-here and thirteen areas. No route is a skill.",
+      "focus": [
+        "listing"
+      ],
+      "flows": [],
+      "ms": 3200
+    },
+    {
+      "id": "typed",
+      "title": "A person types one",
+      "plain": "A person types /agentcraft:start-here. It asks what they want and explains the area that does it.",
+      "technical": "start-here is the only entry in the slash menu. An area typed by hand is refused by the host: each is user-invocable: false.",
+      "focus": [
+        "person",
+        "start"
+      ],
+      "flows": [
+        "type"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "handoff",
+      "title": "It hands off once",
+      "plain": "start-here names the area and route that fit, then calls the area, once. Calling an area loads its short table of routes.",
+      "technical": "It invokes agentcraft:agentic-teamwork with the Skill tool, ship as the first word. The area's SKILL.md loads: 4,898 characters.",
+      "focus": [
+        "start",
+        "area"
+      ],
+      "flows": [
+        "handoff"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "index",
+      "title": "A hook names the routes",
+      "plain": "When a session starts, one hook prints every area's routes by name, so an agent knows what it can ask for.",
+      "technical": "hooks/session-start.mjs prints routeIndex() from each door.json on SessionStart, and again after a compaction: 1,378 characters.",
+      "focus": [
+        "index",
+        "agent"
+      ],
+      "flows": [
+        "names"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "called",
+      "title": "An agent calls the area",
+      "plain": "An agent that knows its area goes straight to it. It calls the area by name, with the route as the first word.",
+      "technical": "Skill(agentcraft:agentic-teamwork, \"ship\"): the same call start-here makes. No route is a skill, so none is called by name.",
+      "focus": [
+        "agent",
+        "area"
+      ],
+      "flows": [
+        "call"
+      ],
+      "ms": 3200
+    },
+    {
+      "id": "read",
+      "title": "The area reads one route",
+      "plain": "The area is short. It reads one document by path, routes/ship/ROUTE.md, and the other 74 routes stay on disk.",
+      "technical": "SKILL.md: the first word is the route, read that route's ROUTE.md and follow it. 5,177 of the routes' 464,525 characters load.",
+      "focus": [
+        "area",
+        "route"
+      ],
+      "flows": [
+        "read"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "quantities": [
+    {
+      "id": "taken",
+      "label": "Routes read",
+      "of": "route",
+      "unit": "routes",
+      "max": 75,
+      "start": 0,
+      "values": {
+        "read": 1
+      }
+    }
+  ],
+  "data": {
+    "areas": [
+      {
+        "id": "agent-works",
+        "label": "agent-works",
+        "of": "area",
+        "routes": 14,
+        "chars": 78707
+      },
+      {
+        "id": "agentic-teamwork",
+        "label": "agentic-teamwork",
+        "of": "area",
+        "routes": 6,
+        "chars": 28746
+      },
+      {
+        "id": "but-first-planning",
+        "label": "but-first-planning",
+        "of": "area",
+        "routes": 18,
+        "chars": 147207
+      },
+      {
+        "id": "code-diet",
+        "label": "code-diet",
+        "of": "area",
+        "routes": 5,
+        "chars": 19192
+      },
+      {
+        "id": "codebase-optimizer",
+        "label": "codebase-optimizer",
+        "of": "area",
+        "routes": 3,
+        "chars": 30832
+      },
+      {
+        "id": "context-doctor",
+        "label": "context-doctor",
+        "of": "area",
+        "routes": 2,
+        "chars": 12349
+      },
+      {
+        "id": "docs-parity",
+        "label": "docs-parity",
+        "of": "area",
+        "routes": 5,
+        "chars": 20700
+      },
+      {
+        "id": "perceptual-loop",
+        "label": "perceptual-loop",
+        "of": "area",
+        "routes": 8,
+        "chars": 47366
+      },
+      {
+        "id": "picture-this",
+        "label": "picture-this",
+        "of": "area",
+        "routes": 2,
+        "chars": 16167
+      },
+      {
+        "id": "plugin-workbench",
+        "label": "plugin-workbench",
+        "of": "area",
+        "routes": 4,
+        "chars": 28648
+      },
+      {
+        "id": "system-map",
+        "label": "system-map",
+        "of": "area",
+        "routes": 4,
+        "chars": 24746
+      },
+      {
+        "id": "workflow-studio",
+        "label": "workflow-studio",
+        "of": "area",
+        "routes": 1,
+        "chars": 2123
+      },
+      {
+        "id": "write-like-me",
+        "label": "write-like-me",
+        "of": "area",
+        "routes": 3,
+        "chars": 7742
+      }
+    ],
+    "routes": [
+      {
+        "id": "tdd",
+        "label": "tdd",
+        "of": "route",
+        "chars": 3272,
+        "starts": "agent"
+      },
+      {
+        "id": "ship",
+        "label": "ship",
+        "of": "route",
+        "chars": 5177,
+        "starts": "agent",
+        "taken": true
+      },
+      {
+        "id": "land",
+        "label": "land",
+        "of": "route",
+        "chars": 6183,
+        "starts": "agent"
+      },
+      {
+        "id": "audit-project",
+        "label": "audit-project",
+        "of": "route",
+        "chars": 3945,
+        "starts": "agent"
+      },
+      {
+        "id": "bootstrap",
+        "label": "bootstrap",
+        "of": "route",
+        "chars": 3786,
+        "starts": "person"
+      },
+      {
+        "id": "init-project",
+        "label": "init-project",
+        "of": "route",
+        "chars": 6383,
+        "starts": "person"
+      }
+    ],
+    "loaded": [
+      {
+        "id": "index",
+        "label": "route index",
+        "of": "index",
+        "at": "index",
+        "chars": 1378
+      },
+      {
+        "id": "skill",
+        "label": "agentic-teamwork/SKILL.md",
+        "of": "area",
+        "at": "called",
+        "chars": 4898
+      },
+      {
+        "id": "route",
+        "label": "routes/ship/ROUTE.md",
+        "of": "route",
+        "at": "read",
+        "chars": 5177
+      }
+    ]
+  },
+  "hero": {
+    "beat": "read",
+    "at": 0.6
+  }
+}

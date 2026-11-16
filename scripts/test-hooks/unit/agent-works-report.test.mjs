@@ -4,8 +4,8 @@
 // line that breaks the grammar is a usage error, never a guess.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BoardError } from "../../../plugins/agent-works/lib/board.mjs";
-import { cardLineFormat, formatCardLine, parseCardLine } from "../../../plugins/agent-works/lib/report.mjs";
+import { BoardError } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { cardLineFormat, formatCardLine, parseCardLine } from "../../../plugins/agentcraft/skills/agent-works/lib/report.mjs";
 
 const usage = (fn, pattern) => assert.throws(fn, (e) => e instanceof BoardError && e.kind === "usage" && pattern.test(e.message));
 

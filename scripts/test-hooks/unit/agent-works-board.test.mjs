@@ -9,7 +9,7 @@ import {
   BoardError, abandon, addCard, boardConfig, briefLine, cardLine, configOf, doneColumn, editCard, epicProgress, findCard, findDuplicate, held, holdOf,
   inScope, isKnownStatus, lint, lintFix, listing, listingLines, nextSprintId, note, openEpics, owe, parseScope, planCard, planMove, progressBar, ready,
   reorder, roleIds, scopeLabel, serializeConfig, settle, sprintClose, sprintEdit, sprintLine, sprintNew, sprintStart, summary, timeOf,
-} from "../../../plugins/agent-works/lib/board.mjs";
+} from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
 
 const T0 = "2026-10-01T09:00:00.000Z";
 const AT = "2026-10-20T12:00:00.000Z";

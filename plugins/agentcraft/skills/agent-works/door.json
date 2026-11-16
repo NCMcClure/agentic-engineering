@@ -1,0 +1,49 @@
+{
+  "lead": "Use to run several tasks as child sessions from a kanban board, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.",
+  "default": "doctor",
+  "routes": {
+    "orchestrate": {
+      "cue": "run several tasks or a sprint in parallel, resume a round"
+    },
+    "board": {
+      "cue": "file out-of-scope work, read or move cards, owe a check"
+    },
+    "dispatch": {
+      "cue": "start an approved card as a child session in a worktree"
+    },
+    "work-card": {
+      "cue": "this session was started to build one card"
+    },
+    "review-card": {
+      "cue": "a child reports its card in review: check, land, close"
+    },
+    "sync-cards": {
+      "cue": "the board drifted from the work"
+    },
+    "resource-locks": {
+      "cue": "a port, simulator, GPU, or database one session may hold"
+    },
+    "coordinate": {
+      "cue": "a heavy job or timing run on a machine agents share"
+    },
+    "memory": {
+      "cue": "read project memory, record a lesson, update status"
+    },
+    "decisions": {
+      "cue": "a hard-to-reverse choice, a new term, a contract page"
+    },
+    "hubs": {
+      "cue": "a directory added or moved, an AGENTS.md hub finding"
+    },
+    "guard": {
+      "cue": "the guard refused or warned, or a mistake must not recur"
+    },
+    "doctor": {
+      "cue": "agent files bloated or repeated, or the machine lacks a tool"
+    },
+    "setup": {
+      "cue": "set a repository up for agent work, install the launcher",
+      "starts": "person"
+    }
+  }
+}

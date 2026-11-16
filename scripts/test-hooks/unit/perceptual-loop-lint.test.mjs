@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import test from "node:test";
-import { lint } from "../../../plugins/perceptual-loop/scripts/commands/lint.mjs";
+import { lint } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/commands/lint.mjs";
 import { PL, runNode, tempDir } from "./perceptual-loop-fixtures.mjs";
 
 const GOOD = `# Sky colour at dusk (#31)

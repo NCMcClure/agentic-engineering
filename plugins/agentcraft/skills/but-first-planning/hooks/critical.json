@@ -1,0 +1,8 @@
+{
+  "area": "but-first-planning",
+  "lines": [
+    {"for":"main","mode":"any","text":"Anything not fully specified gets /agentcraft:but-first-planning grill (one question at a time, each with a recommended answer) before it is planned or handed to a session you will not watch."},
+    {"for":"all","mode":"any","when":[".agents/plan",".plan/plan/plan-status.py",".plan/plan/verify-plan-tree.py",".plan/spec/scripts/verify-spec-tree.py"],"text":"The plan lives in .agents/plan/: a spec decision changes through /agentcraft:but-first-planning spec-edit, and an issue is built from its acceptance criteria as failing tests first (/agentcraft:but-first-planning build-tdd)."},
+    {"for":"main","mode":"any","when":[".agents/plan",".plan/plan/plan-status.py",".plan/plan/verify-plan-tree.py",".plan/spec/scripts/verify-spec-tree.py"],"text":"A published plan is worked through /agentcraft:agent-works orchestrate: its issues show on the board as cards."}
+  ]
+}

@@ -9,13 +9,13 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { boardConfig, listing, ready, summary } from "../../../plugins/agent-works/lib/board.mjs";
-import { parseCard } from "../../../plugins/agent-works/lib/cards.mjs";
-import { parseIssue, planCards } from "../../../plugins/agent-works/lib/plan.mjs";
+import { boardConfig, listing, ready, summary } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { parseCard } from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
+import { parseIssue, planCards } from "../../../plugins/agentcraft/skills/agent-works/lib/plan.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const AW = path.join(REPO, "plugins", "agent-works", "scripts", "aw.mjs");
-const FUNNEL = path.join(REPO, "plugins", "but-first-planning", "skills", "spec-init", "assets", "plan-status.mjs");
+const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
+const FUNNEL = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "assets", "plan-status.mjs");
 const P = ".agents/plan/plan";
 const S1 = `${P}/01-foundations/01-skeleton`;
 const S2 = `${P}/01-foundations/02-polish`;
@@ -334,7 +334,7 @@ test("grant, claim, and done on a plan card: the funnel runs in the worktree, th
   assert.equal(granted.status, 0, granted.stderr);
   const brief = board(r.main, "brief", "01-01-01");
   assert.equal(brief.status, 0, brief.stderr);
-  assert.match(brief.stdout, /`\/but-first-planning:build-tdd`/);
+  assert.match(brief.stdout, /`\/agentcraft:but-first-planning build-tdd`/);
   assert.match(brief.stdout, /- \[ \] Setup works/);
 
   const claimed = board(r.worktree, "claim", "01-01-01");

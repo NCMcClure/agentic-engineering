@@ -5,10 +5,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { render, walk } from "../../../plugins/agentic-teamwork/scripts/render.mjs";
+import { render, walk } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/render.mjs";
 import { REPO, runNode, tempDir } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
 const TEMPLATES = path.join(PLUGIN, "templates");
 const STARTERS = ["library", "node-service"];
 const LANE_TOKENS = ["UNIT_CMD", "INTEGRATION_CMD", "E2E_CMD", "LIVE_CMD"];

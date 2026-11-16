@@ -5,10 +5,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { CONFIG, exitCode, globRe, run } from "../../../plugins/docs-parity/scripts/docs-check.mjs";
+import { CONFIG, exitCode, globRe, run } from "../../../plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const CHECK = path.join(REPO, "plugins", "docs-parity", "scripts", "docs-check.mjs");
+const CHECK = path.join(REPO, "plugins", "agentcraft", "skills", "docs-parity", "scripts", "docs-check.mjs");
 const PAGE = (t, body) => `---\ntitle: ${t}\ndescription: Do the thing.\ntags: [a, b, c]\n---\n\nThis page explains ${t}. It has a summary.\n\n## Section\n\n${body}\n`;
 const codes = (report) => report.findings.map((f) => f.code).sort();
 
@@ -377,7 +377,7 @@ test("--json prints the report as one object", (t) => {
 
 test("a project without the config prints one line and exits 0", (t) => {
   const r = runNode(CHECK, ["--root", project(t, { "docs/a.md": "# A" })]);
-  assert.deepEqual([r.status, r.stdout], [0, `docs-check: no ${CONFIG} here; run /docs-parity:docs-init\n`]);
+  assert.deepEqual([r.status, r.stdout], [0, `docs-check: no ${CONFIG} here; the person asks for /agentcraft:docs-parity docs-init to adopt it\n`]);
 });
 
 test("a value follows its flag or an equals sign, and a note may start with a dash", (t) => {

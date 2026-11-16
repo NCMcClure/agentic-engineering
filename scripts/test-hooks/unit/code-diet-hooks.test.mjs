@@ -1,18 +1,21 @@
-// code-diet's hooks: the ladder the session hook prints from critical.json, and
-// the debt-marker nudge after an edit. Each runs as a host runs it, one payload
-// on stdin, with the person's settings in a temp CLAUDE_CONFIG_DIR so a
-// developer's own enabledPlugins never reach a test.
+// code-diet's hooks: the ladder the plugin's session command prints from the
+// area's critical.json, and the debt-marker nudge after an edit. The session
+// part runs alone, through the plugin's helper (area-session.mjs says why);
+// the nudge runs as a host runs it. Each gets one payload on stdin and an
+// empty home, so nothing of a developer's own reaches a test.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import { CONFIG_KEY, SHARED_LINE } from "../../shared/critical-context.mjs";
+import { CONFIG_KEY } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "code-diet");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
+const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
+const ROUTES = path.join(PLUGIN, "routes");
+const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const LADDER = CRITICAL.lines[0].text;
 
 /** A repo the person has answered for (`on`, `off`, `team`), or one that carries a marker, or one nobody has answered. */
@@ -26,7 +29,8 @@ function repo(t, kind) {
 
 function hook(t, script, payload, { cwd, env = {} } = {}) {
   const config = tempDir(t, "diet-settings-");
-  const out = runNode(path.join(PLUGIN, "hooks", script), [], {
+  const [file, args] = script === "session-start.mjs" ? [SESSION, ["code-diet"]] : [path.join(PLUGIN, "hooks", script), []];
+  const out = runNode(file, args, {
     cwd: cwd ?? payload?.cwd ?? config,
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
     env: { ...process.env, CLAUDE_CONFIG_DIR: config, HOME: config, USERPROFILE: config, CLAUDE_PROJECT_DIR: "", CLAUDE_PLUGIN_DATA: "", CLAUDE_CODE_PLUGIN_CACHE_DIR: "", ...env },
@@ -41,15 +45,12 @@ const edit = (t, dir, toolInput, options) => hook(t, "debt-nudge.mjs", { hook_ev
 
 // ---- what is registered -----------------------------------------------------
 
-test("hooks.json registers the session hook for every session start and every subagent, and the nudge after an edit", () => {
-  assert.deepEqual(Object.keys(HOOKS).sort(), ["PostToolUse", "SessionStart", "SubagentStart"]);
-  const [start] = HOOKS.SessionStart;
-  assert.equal(start.matcher, "startup|resume|clear|compact");
-  assert.equal(start.hooks[0].command, hookCommand("code-diet", "hooks/session-start.mjs", { loud: true }));
-  assert.ok(start.hooks[0].statusMessage);
-  assert.equal(HOOKS.SubagentStart[0].hooks[0].command, hookCommand("code-diet", "hooks/session-start.mjs"));
-  assert.equal(HOOKS.PostToolUse[0].matcher, "Edit|MultiEdit|Write");
-  assert.equal(HOOKS.PostToolUse[0].hooks[0].command, hookCommand("code-diet", "hooks/debt-nudge.mjs"));
+test("the plugin's hook map runs the nudge after an edit, and the area has no session hook or briefing of its own", () => {
+  const command = hookCommand("agentcraft", "skills/code-diet/hooks/debt-nudge.mjs");
+  const groups = HOOKS.PostToolUse.filter((g) => g.hooks.some((h) => h.command === command));
+  assert.deepEqual(groups.map((g) => g.matcher), ["Edit|MultiEdit|Write"]);
+  assert.deepEqual(fs.readdirSync(path.join(PLUGIN, "hooks")).sort(), ["critical.json", "debt-nudge.mjs"]);
+  assert.doesNotMatch(JSON.stringify(Object.entries(HOOKS).filter(([event]) => event !== "PostToolUse")), /skills\/code-diet\//, "the plugin's session command speaks for it");
 });
 
 test("the plugin ships no Python and no shell", () => {
@@ -60,12 +61,12 @@ test("the plugin ships no Python and no shell", () => {
 // ---- the ladder line --------------------------------------------------------
 
 test("critical.json is one ladder line for every agent in every opted-in mode, inside its budget", () => {
-  assert.equal(CRITICAL.plugin, "code-diet");
-  assert.deepEqual(CRITICAL.chains, []);
+  assert.equal(CRITICAL.area, "code-diet");
+  assert.equal("chains" in CRITICAL, false);
   assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [["all", "any", undefined]]);
-  const cap = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "plugins", "code-diet.json"), "utf8")).critical.cap;
+  // The cap is CRITICAL_CAPS in scripts/validate.mjs; a line this size says the ladder was not padded.
   const printed = "Critical, from code-diet:".length + CRITICAL.lines.reduce((n, l) => n + l.text.length + 3, 0);
-  assert.ok(printed <= cap, `the block prints ${printed} characters, over the ${cap} cap`);
+  assert.ok(printed <= 550, `the block prints ${printed} characters`);
 });
 
 test("the ladder line carries all seven rungs in order, the carve-outs, the root-cause rule, and the debt grammar", () => {
@@ -73,32 +74,34 @@ test("the ladder line carries all seven rungs in order, the carve-outs, the root
   const at = rungs.map((r) => LADDER.indexOf(r));
   assert.ok(at.every((i) => i !== -1), `a rung is missing: ${rungs.filter((_, i) => at[i] === -1).join(", ")}`);
   assert.deepEqual([...at].sort((a, b) => a - b), at, "the rungs are out of order");
-  for (const phrase of ["trust-boundary validation", "data-loss handling", "security", "accessibility", "root cause", "`debt: <ceiling>, <upgrade trigger>`", "/code-diet:reuse-first"]) {
+  for (const phrase of ["trust-boundary validation", "data-loss handling", "security", "accessibility", "root cause", "`debt: <ceiling>, <upgrade trigger>`", "/agentcraft:code-diet reuse-first"]) {
     assert.ok(LADDER.includes(phrase), `the ladder does not say: ${phrase}`);
   }
 });
 
-test("every skill the ladder and the skills name is one the plugin ships", () => {
-  const shipped = fs.readdirSync(path.join(PLUGIN, "skills"));
+test("every route the ladder and the routes name is one the area ships", () => {
+  const shipped = fs.readdirSync(ROUTES);
   assert.deepEqual(shipped.sort(), ["capture-reusable", "debt", "ladder", "reuse-first", "review-diet"]);
-  const texts = [LADDER, ...shipped.map((s) => fs.readFileSync(path.join(PLUGIN, "skills", s, "SKILL.md"), "utf8"))];
-  for (const text of texts) for (const m of text.matchAll(/\/code-diet:([a-z-]+)/g)) assert.ok(shipped.includes(m[1]), `/code-diet:${m[1]} is not a skill`);
+  const texts = [LADDER, ...shipped.map((r) => fs.readFileSync(path.join(ROUTES, r, "ROUTE.md"), "utf8"))];
+  assert.match(LADDER, /\/agentcraft:code-diet reuse-first/);
+  for (const text of texts) for (const m of text.matchAll(/\/agentcraft:code-diet ([a-z-]+)/g)) assert.ok(shipped.includes(m[1]), `/agentcraft:code-diet ${m[1]} is not a route`);
 });
 
-test("every script a skill runs exists in the plugin", () => {
-  for (const skill of fs.readdirSync(path.join(PLUGIN, "skills"))) {
-    const text = fs.readFileSync(path.join(PLUGIN, "skills", skill, "SKILL.md"), "utf8");
-    for (const m of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+\.m?js)/g)) assert.ok(fs.existsSync(path.join(PLUGIN, m[1])), `${skill} names ${m[1]}, which is not in the plugin`);
+test("every script a route runs exists in the plugin", () => {
+  const root = path.join(REPO, "plugins", "agentcraft");
+  for (const route of fs.readdirSync(ROUTES)) {
+    const text = fs.readFileSync(path.join(ROUTES, route, "ROUTE.md"), "utf8");
+    for (const m of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+\.m?js)/g)) assert.ok(fs.existsSync(path.join(root, m[1])), `${route} names ${m[1]}, which is not in the plugin`);
   }
 });
 
-// ---- session-start.mjs ------------------------------------------------------
+// ---- at session start -------------------------------------------------------
 
 test("a repo the person opted in gets the ladder at session start", (t) => {
   const out = session(t, repo(t, "on"));
   assert.equal(out.status, 0, out.stderr);
   assert.equal(out.parsed.hookSpecificOutput.hookEventName, "SessionStart");
-  assert.equal(out.context, `Critical, from code-diet:\n- ${SHARED_LINE}\n- ${LADDER}`);
+  assert.equal(out.context, `Critical, from code-diet:\n- ${LADDER}`);
 });
 
 test("a repo with the team marker, or any plugin's own marker, gets the same ladder", (t) => {
@@ -121,7 +124,7 @@ test("a repo nobody has answered for is asked once, and gets no ladder until it 
   const out = session(t, repo(t, "unanswered"));
   assert.ok(!out.context.includes("Ladder:"), "the ladder went to a repo that has not opted in");
   assert.match(out.context, /ask the person once/);
-  assert.ok(!out.context.includes("team conventions"), "the team conventions are offered without the plugin that sets them up");
+  assert.ok(out.context.includes("team conventions"), "the area that sets them up is always there, so they are always offered");
 });
 
 test("a subagent that writes code gets the ladder; a read-only agent type gets nothing", (t) => {
@@ -140,7 +143,7 @@ test("a subagent in a repo that has not opted in gets nothing, not even the ques
   for (const kind of ["off", "unanswered"]) assert.equal(subagent(t, repo(t, kind), "general-purpose").stdout, "", kind);
 });
 
-test("the session hook moves nothing and writes nothing in the repo", (t) => {
+test("the session start moves nothing and writes nothing in the repo", (t) => {
   const dir = repo(t, "on");
   write(dir, "src/app.py", "x = 1  # debt: no cache\n");
   const before = fs.readdirSync(dir, { recursive: true }).map(String).filter((f) => !f.startsWith(".git")).sort();
@@ -149,7 +152,7 @@ test("the session hook moves nothing and writes nothing in the repo", (t) => {
   assert.deepEqual(fs.readdirSync(dir, { recursive: true }).map(String).filter((f) => !f.startsWith(".git")).sort(), before);
 });
 
-test("the session hook fails open on empty and malformed stdin", (t) => {
+test("the session start fails open on empty and malformed stdin", (t) => {
   const dir = repo(t, "off");
   for (const input of ["", "{not json", "null", "[]"]) {
     const out = hook(t, "session-start.mjs", input, { cwd: dir });

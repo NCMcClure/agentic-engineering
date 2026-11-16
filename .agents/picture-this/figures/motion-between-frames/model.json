@@ -1,0 +1,198 @@
+{
+  "schema": 1,
+  "title": "Motion, measured between the frames",
+  "mechanism": "pl measures a clip across time, flags the frame whose step stands out, and draws the frames round it with the motion between them.",
+  "lens": "time",
+  "claim": "An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again.",
+  "implication": "Put the judder bound in the project's tests, and the stutter cannot come back unseen.",
+  "entities": [
+    {
+      "id": "clip",
+      "label": "The clip",
+      "kind": "clip",
+      "note": "24 frames, a ball rolling right",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/sequence.mjs:59"
+    },
+    {
+      "id": "still",
+      "label": "One still",
+      "kind": "picture",
+      "note": "all a model is handed",
+      "parent": "clip",
+      "source": "plugins/agentcraft/skills/perceptual-loop/references/doctrine.md:45"
+    },
+    {
+      "id": "trace",
+      "label": "Step per frame",
+      "kind": "plot",
+      "note": "how far it moved, frame by frame",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:328"
+    },
+    {
+      "id": "burst",
+      "label": "Burst",
+      "kind": "sheet",
+      "note": "the frames round frame 13",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/video.mjs:185"
+    },
+    {
+      "id": "arrows",
+      "label": "Flow sheet",
+      "kind": "sheet",
+      "note": "which way and how far, per pair",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:154"
+    },
+    {
+      "id": "numbers",
+      "label": "The numbers",
+      "kind": "report",
+      "note": "judder, dropped frames, speed",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:229"
+    },
+    {
+      "id": "agent",
+      "label": "The agent",
+      "kind": "person",
+      "note": "a model: it is handed stills",
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:65"
+    }
+  ],
+  "flows": [
+    {
+      "id": "see",
+      "from": "still",
+      "to": "agent",
+      "kind": "query",
+      "label": "looks fine",
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:8"
+    },
+    {
+      "id": "track",
+      "from": "clip",
+      "to": "trace",
+      "kind": "query",
+      "label": "pl sweep --track",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:162"
+    },
+    {
+      "id": "flagged",
+      "from": "trace",
+      "to": "numbers",
+      "kind": "event",
+      "label": "dropped 13",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sweep.mjs:239"
+    },
+    {
+      "id": "around",
+      "from": "clip",
+      "to": "burst",
+      "kind": "query",
+      "label": "pl video burst --frame 13",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/video.mjs:193"
+    },
+    {
+      "id": "between",
+      "from": "clip",
+      "to": "arrows",
+      "kind": "query",
+      "label": "pl flow",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:118"
+    },
+    {
+      "id": "speed",
+      "from": "arrows",
+      "to": "numbers",
+      "kind": "event",
+      "label": "16 px into 13",
+      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs:87"
+    },
+    {
+      "id": "worklist",
+      "from": "numbers",
+      "to": "agent",
+      "kind": "event",
+      "label": "frame 13, the ball",
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:42"
+    },
+    {
+      "id": "fix",
+      "from": "agent",
+      "to": "clip",
+      "kind": "write",
+      "label": "fixes the step",
+      "source": "plugins/agentcraft/skills/perceptual-loop/routes/check-motion/ROUTE.md:42"
+    }
+  ],
+  "quantities": [
+    {
+      "id": "judder",
+      "label": "Judder",
+      "of": "numbers",
+      "start": 0,
+      "values": { "trace": 0.195, "fix": 0 }
+    }
+  ],
+  "data": {
+    "x": [52, 60, 68, 76, 84, 92, 100, 108, 116, 124, 132, 140, 148, 164, 172, 180, 188, 196, 204, 212, 220, 228, 236, 244],
+    "x-fixed": [52, 60, 68, 76, 84, 92, 100, 108, 116, 124, 132, 140, 148, 156, 164, 172, 180, 188, 196, 204, 212, 220, 228, 236],
+    "steps": [0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.05, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025],
+    "steps-fixed": [0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025, 0.025],
+    "pairs": [
+      { "id": "into13", "of": "arrows", "at": "flow", "into": 13, "speed": 16.0, "speedFixed": 8.0, "direction": 359.95, "coherence": 1 },
+      { "id": "into14", "of": "arrows", "at": "flow", "into": 14, "speed": 8.0, "speedFixed": 8.0, "direction": 359.97, "coherence": 1 }
+    ],
+    "report": [
+      { "id": "before", "of": "numbers", "at": "trace", "judder": 0.195, "dropped": 13, "ratio": 2, "bound": 0.05, "passed": false },
+      { "id": "after", "of": "numbers", "at": "fix", "judder": 0, "dropped": -1, "ratio": 1, "bound": 0.05, "passed": true }
+    ]
+  },
+  "beats": [
+    {
+      "id": "clip",
+      "title": "One still at a time",
+      "plain": "The agent made a 24-frame clip. A model is handed one still at a time, and every still looks fine.",
+      "technical": "A clip is a folder of frames, 000000.png to 000023.png. A still shows only its instant (doctrine rule 7).",
+      "focus": ["clip", "still", "agent"],
+      "flows": ["see"],
+      "ms": 3200
+    },
+    {
+      "id": "trace",
+      "title": "Measure across time",
+      "plain": "perceptual-loop tracks the ball through every frame and plots each step it took. One stands out: frame 13.",
+      "technical": "pl sweep --track: the step into frame 13 is 2.00 x the median, past 1.75 x, so a dropped frame. Judder 0.195 fails --max-judder 0.05.",
+      "focus": ["clip", "trace", "numbers"],
+      "flows": ["track", "flagged"],
+      "ms": 3800
+    },
+    {
+      "id": "burst",
+      "title": "The frames round it",
+      "plain": "It lays out the frames round that moment, so the model looks at the three stills that matter, not all 24.",
+      "technical": "pl video burst --frame 13 --count 3 writes frames 12, 13 and 14 left to right, with the centre one marked.",
+      "focus": ["trace", "burst"],
+      "flows": ["around"],
+      "ms": 3000
+    },
+    {
+      "id": "flow",
+      "title": "What moved between",
+      "plain": "Between each pair it draws which way things moved, and how far. Into frame 13 the ball went twice as far.",
+      "technical": "pl flow: optical flow per pair. The ball moves 16.00 px into frame 13 and 8.00 px into the others, at 0 deg, coherence 1.00.",
+      "focus": ["burst", "arrows", "numbers"],
+      "flows": ["between", "speed"],
+      "ms": 3600
+    },
+    {
+      "id": "fix",
+      "title": "Fix it, measure again",
+      "plain": "Now the agent knows which frame, and where in it. It fixes that step, measures again, and the trace is flat.",
+      "technical": "The flagged frames are the work list. Run again: judder 0.000, dropped none, 8.00 px into every frame, and the gate passes.",
+      "focus": ["numbers", "agent", "clip", "trace", "burst", "arrows"],
+      "flows": ["worklist", "fix"],
+      "ms": 4200
+    },
+    { "id": "rest", "rest": true, "focus": [], "flows": [], "ms": 1600 }
+  ],
+  "hero": { "beat": "flow", "at": 0.5 }
+}

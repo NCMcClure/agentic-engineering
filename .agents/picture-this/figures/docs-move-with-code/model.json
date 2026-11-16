@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "title": "How the docs move when the code does",
+  "mechanism": "A changed line of code leaves its surface's page and screenshot behind; a check as the turn ends says so, and the agent rewrites one and retakes the other.",
+  "lens": "transformation",
+  "claim": "When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends.",
+  "implication": "The same check runs in CI, where a surface left behind fails the pull request.",
+  "entities": [
+    {
+      "id": "surface",
+      "label": "Surface: export",
+      "kind": "map",
+      "note": "one feature a reader meets",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:466"
+    },
+    {
+      "id": "code",
+      "label": "Code",
+      "kind": "source",
+      "note": "src/export/menu.tsx",
+      "parent": "surface",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:469"
+    },
+    {
+      "id": "page",
+      "label": "Page",
+      "kind": "page",
+      "note": "docs/exporting.md",
+      "parent": "surface",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:471"
+    },
+    {
+      "id": "shot",
+      "label": "Shot",
+      "kind": "image",
+      "note": "docs/images/export/menu.png",
+      "parent": "surface",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:472"
+    },
+    {
+      "id": "check",
+      "label": "docs-check",
+      "kind": "script",
+      "note": "the Stop hook runs it",
+      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:50"
+    },
+    {
+      "id": "agent",
+      "label": "Agent",
+      "kind": "agent",
+      "note": "told before the turn ends",
+      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:112"
+    }
+  ],
+  "flows": [
+    {
+      "id": "left-page",
+      "from": "code",
+      "to": "page",
+      "kind": "query",
+      "label": "page changed?",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:471"
+    },
+    {
+      "id": "left-shot",
+      "from": "code",
+      "to": "shot",
+      "kind": "query",
+      "label": "shot changed?",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:472"
+    },
+    {
+      "id": "tell",
+      "from": "check",
+      "to": "agent",
+      "kind": "event",
+      "label": "PARITY_MISSING",
+      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:112"
+    },
+    {
+      "id": "rewrite",
+      "from": "agent",
+      "to": "page",
+      "kind": "write",
+      "label": "rewrite",
+      "source": "plugins/agentcraft/skills/docs-parity/routes/docs-sync/ROUTE.md:36"
+    },
+    {
+      "id": "remind",
+      "from": "check",
+      "to": "shot",
+      "kind": "event",
+      "label": "SHOTS_UNCHANGED",
+      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:479"
+    },
+    {
+      "id": "retake",
+      "from": "agent",
+      "to": "shot",
+      "kind": "write",
+      "label": "retake",
+      "source": "plugins/agentcraft/skills/docs-parity/routes/docs-sync/ROUTE.md:51"
+    }
+  ],
+  "data": {
+    "words": [
+      {
+        "id": "old",
+        "of": "code",
+        "at": "surface",
+        "label": "CSV"
+      },
+      {
+        "id": "new",
+        "of": "code",
+        "at": "change",
+        "label": "Spreadsheet"
+      }
+    ],
+    "verdicts": [
+      {
+        "id": "v1",
+        "of": "surface",
+        "at": "behind",
+        "code": "PARITY_MISSING",
+        "severity": "warning",
+        "says": "1 surface changed without its docs",
+        "summary": "docs-check: 0 critical, 1 warning, 0 info",
+        "exit": 1
+      },
+      {
+        "id": "v2",
+        "of": "surface",
+        "at": "rewrite",
+        "code": "SHOTS_UNCHANGED",
+        "severity": "info",
+        "says": "pages changed, shots did not; retake (capture group export)",
+        "summary": "docs-check: 0 critical, 0 warning, 1 info",
+        "exit": 0
+      },
+      {
+        "id": "v3",
+        "of": "surface",
+        "at": "retake",
+        "code": "",
+        "severity": "clean",
+        "says": "",
+        "summary": "docs-check: 0 critical, 0 warning, 0 info",
+        "exit": 0
+      }
+    ]
+  },
+  "beats": [
+    {
+      "id": "surface",
+      "title": "One feature, three ways",
+      "plain": "A surface ties one feature's code to the page that describes it and the screenshot that shows it.",
+      "technical": "One surface in .agents/docs-parity.json: code src/export/**, pages docs/exporting.md, shots docs/images/export/**, group export.",
+      "focus": [
+        "surface",
+        "code",
+        "page",
+        "shot"
+      ],
+      "flows": [],
+      "ms": 2800
+    },
+    {
+      "id": "change",
+      "title": "The code changes",
+      "plain": "The agent renames a menu item in the code. The page and the screenshot still say CSV.",
+      "technical": "src/export/menu.tsx:8 changes. changedFiles(root, \"HEAD\") lists it, and it matches the surface's code glob.",
+      "focus": [
+        "code"
+      ],
+      "flows": [],
+      "ms": 3200
+    },
+    {
+      "id": "behind",
+      "title": "The docs are behind",
+      "plain": "As the turn ends, a hook checks the change: the code moved, its page and screenshot did not. The agent is told at once.",
+      "technical": "stop-check.mjs runs docs-check on --changed HEAD: PARITY_MISSING, a warning, goes to the agent as additionalContext, once a session.",
+      "focus": [
+        "page",
+        "shot",
+        "check",
+        "agent"
+      ],
+      "flows": [
+        "left-page",
+        "left-shot",
+        "tell"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "rewrite",
+      "title": "The page is rewritten",
+      "plain": "The agent rewrites the sentence in the screen's own words. The check now only notes that the screenshot is the old one.",
+      "technical": "docs-sync step 2 rewrites the passage to .agents/docs-contract.md. docs-check now reports SHOTS_UNCHANGED, info only, exit 0.",
+      "focus": [
+        "page",
+        "check"
+      ],
+      "flows": [
+        "remind",
+        "rewrite"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "retake",
+      "title": "The shot is retaken",
+      "plain": "The capture harness retakes the screenshot from the built product. Code, page and picture agree again, in one change.",
+      "technical": "The config's capture command reruns group export and rewrites docs/images/export/menu.png. docs-check: 0 critical, 0 warning, 0 info.",
+      "focus": [
+        "shot",
+        "check"
+      ],
+      "flows": [
+        "retake"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "hero": {
+    "beat": "rewrite",
+    "at": 0.5
+  }
+}

@@ -1,29 +1,32 @@
-// but-first-planning's hooks: the session hook (its two critical lines, the
-// move of an older workspace to the current layout, the one-line briefing
-// about stale scripts) and the plan gate on TaskCompleted, which is off unless
-// a repo asks for it. Each runs as a host runs it, one payload on stdin, with
-// the person's settings in a temp CLAUDE_CONFIG_DIR so a developer's own
-// enabledPlugins never reach a test.
+// but-first-planning's hooks: its part of the session start (its critical
+// lines, the move of an older workspace to the current layout, the one-line
+// briefing about stale scripts) and the plan gate on TaskCompleted, which is
+// off unless a repo asks for it. The session part runs alone, through the
+// plugin's helper (area-session.mjs says why); the gate runs as a host runs
+// it. Each gets one payload on stdin and an empty home, so nothing of a
+// developer's own reaches a test.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { hookCommand } from "../../lib.mjs";
-import { CONFIG_KEY } from "../../shared/critical-context.mjs";
+import { CONFIG_KEY } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "but-first-planning");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-const HOOKS = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "hooks.json"), "utf8")).hooks;
-const META = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "plugins", "but-first-planning.json"), "utf8"));
-const { SCRIPTS, scaffold } = await import(pathToFileURL(path.join(PLUGIN, "skills", "spec-init", "scaffold.mjs")).href);
-const [GRILL, PLAN] = CRITICAL.lines.map((l) => l.text);
+const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
+const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
+const { SCRIPTS, scaffold } = await import(pathToFileURL(path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs")).href);
+const [GRILL, PLAN, BOARD] = CRITICAL.lines.map((l) => l.text);
+const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const RETIRED = ".agents/retired/but-first-planning";
 
 function hook(t, script, payload, { cwd, env = {} } = {}) {
   const config = tempDir(t, "bfp-settings-");
-  const out = runNode(path.join(PLUGIN, "hooks", script), [], {
+  const [file, args] = script === "session-start.mjs" ? [SESSION, ["but-first-planning"]] : [path.join(PLUGIN, "hooks", script), []];
+  const out = runNode(file, args, {
     cwd: cwd ?? payload?.cwd ?? config,
     input: typeof payload === "string" ? payload : JSON.stringify(payload),
     env: { ...process.env, CLAUDE_CONFIG_DIR: config, HOME: config, USERPROFILE: config, CLAUDE_PROJECT_DIR: "", CLAUDE_PLUGIN_DATA: "", CLAUDE_CODE_PLUGIN_CACHE_DIR: "", ...env },
@@ -52,28 +55,27 @@ function planRepo(t, { broken = false } = {}) {
 
 // ---- what is registered -----------------------------------------------------
 
-test("hooks.json registers the session hook for every session start and every subagent, and the gate on TaskCompleted", () => {
-  assert.deepEqual(Object.keys(HOOKS).sort(), ["SessionStart", "SubagentStart", "TaskCompleted"]);
-  const [start] = HOOKS.SessionStart;
-  assert.equal(start.matcher, "startup|resume|clear|compact");
-  assert.equal(start.hooks[0].command, hookCommand("but-first-planning", "hooks/session-start.mjs", { loud: true }));
-  assert.ok(start.hooks[0].statusMessage);
-  assert.equal(HOOKS.SubagentStart[0].hooks[0].command, hookCommand("but-first-planning", "hooks/session-start.mjs"));
-  assert.equal(HOOKS.TaskCompleted[0].hooks[0].command, hookCommand("but-first-planning", "hooks/plan-gate.mjs"));
-  assert.equal(HOOKS.TaskCompleted[0].matcher, undefined, "TaskCompleted takes no matcher");
+test("the plugin's hook map runs the gate on TaskCompleted, and the area has no session hook of its own", () => {
+  const gates = HOOKS.TaskCompleted.flatMap((g) => g.hooks.map((h) => ({ matcher: g.matcher, command: h.command })));
+  assert.deepEqual(gates, [{ matcher: undefined, command: hookCommand("agentcraft", "skills/but-first-planning/hooks/plan-gate.mjs") }], "TaskCompleted takes no matcher");
+  assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "briefing.mjs")), "its briefing is a part of the plugin's");
+  assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);
+  assert.doesNotMatch(JSON.stringify(HOOKS), /but-first-planning\/hooks\/(session-start|briefing)/, "the plugin's two session commands speak for it");
 });
 
-test("critical.json: two lines under the cap, a chain to agent-works, and every skill a line names exists", () => {
-  assert.equal(CRITICAL.plugin, "but-first-planning");
-  assert.equal(CRITICAL.lines.length, 2);
-  assert.deepEqual(CRITICAL.chains.map((c) => c.partner), ["agent-works"]);
-  const size = CRITICAL.lines.reduce((n, l) => n + l.text.length, 0);
-  assert.ok(size <= META.critical.cap, `${size} characters, cap ${META.critical.cap}`);
-  for (const skill of CRITICAL.lines.flatMap((l) => [...l.text.matchAll(/\/but-first-planning:([a-z-]+)/g)].map((m) => m[1]))) {
-    const file = path.join(PLUGIN, "skills", skill, "SKILL.md");
-    assert.ok(fs.existsSync(file), skill);
-    // The model is sent to these by a line, so it has to be able to invoke them.
-    assert.doesNotMatch(fs.readFileSync(file, "utf8").split("\n---")[0], /disable-model-invocation:\s*true/, skill);
+test("critical.json: three lines, none waiting on another plugin, and every route a line names is one the model may start", () => {
+  assert.equal(CRITICAL.area, "but-first-planning");
+  assert.equal(CRITICAL.lines.length, 3);
+  assert.equal("chains" in CRITICAL, false);
+  assert.ok(CRITICAL.lines.every((l) => !("partner" in l)));
+  // The line that hands a published plan to the board stands behind the plan itself.
+  assert.deepEqual(CRITICAL.lines.map((l) => [l.for, Boolean(l.when)]), [["main", false], ["all", true], ["main", true]]);
+  const named = CRITICAL.lines.flatMap((l) => [...l.text.matchAll(/\/agentcraft:but-first-planning ([a-z-]+)/g)].map((m) => m[1]));
+  assert.deepEqual([...new Set(named)].sort(), ["build-tdd", "grill", "spec-edit"]);
+  for (const route of named) {
+    assert.ok(fs.existsSync(path.join(PLUGIN, "routes", route, "ROUTE.md")), route);
+    // The model is sent to these by a line, so it has to be able to start them.
+    assert.notEqual(DOOR.routes[route]?.starts, "person", route);
   }
 });
 
@@ -82,14 +84,14 @@ test("critical.json: two lines under the cap, a chain to agent-works, and every 
 test("a repo with a plan workspace hears both lines; one that only opted in hears the grill line", (t) => {
   const withPlan = session(t, planRepo(t));
   assert.equal(withPlan.status, 0);
-  assert.ok(withPlan.context.includes(GRILL) && withPlan.context.includes(PLAN));
+  assert.ok(withPlan.context.includes(GRILL) && withPlan.context.includes(PLAN) && withPlan.context.includes(BOARD));
   assert.match(withPlan.context, /^Critical, from but-first-planning:/m);
 
   const { dir, git } = tempRepo(t, "bfp-on-");
   git("config", "--local", CONFIG_KEY, "on Test 2026-01-01T00:00Z");
   const portable = session(t, dir);
   assert.ok(portable.context.includes(GRILL));
-  assert.ok(!portable.context.includes(PLAN));
+  assert.ok(!portable.context.includes(PLAN) && !portable.context.includes(BOARD));
 });
 
 test("a repo that answered off hears nothing, and neither does a read-only subagent", (t) => {
@@ -103,7 +105,7 @@ test("a repo that answered off hears nothing, and neither does a read-only subag
   assert.equal(subagent(t, plan, "Explore").stdout.trim(), "");
   const builder = subagent(t, plan, "general-purpose");
   assert.ok(builder.context.includes(PLAN), "a subagent that builds is told where the plan lives");
-  assert.ok(!builder.context.includes(GRILL), "the grill line is the main session's");
+  assert.ok(!builder.context.includes(GRILL) && !builder.context.includes(BOARD), "the grill line and the board line are the main session's");
 });
 
 test("empty and malformed stdin exit 0 with nothing on stderr", (t) => {

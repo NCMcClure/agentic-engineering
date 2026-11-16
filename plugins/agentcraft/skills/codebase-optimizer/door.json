@@ -1,0 +1,15 @@
+{
+  "lead": "Restructures a repository that has already accreted, in stages behind its own tests with revert on red: use for a sprawling file tree, god-files, or shallow, tightly coupled modules.",
+  "default": "optimize-codebase",
+  "routes": {
+    "optimize-codebase": {
+      "cue": "the whole sweep: organize, split god-files, deepen"
+    },
+    "codebase-organizer": {
+      "cue": "the file tree alone: a bloated root, AGENTS.md hubs"
+    },
+    "improve-codebase-architecture": {
+      "cue": "the seams alone: shallow modules, leaky interfaces"
+    }
+  }
+}

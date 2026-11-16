@@ -1,0 +1,35 @@
+---
+name: {{ENTRY_NAME}}
+description: "Use when a person asks what {{PLUGIN_NAME}} offers, which of its areas does a job, or how to begin with it. An agent with a task calls the area whose name fits ({{AREA_LIST}}) and does not come here first."
+argument-hint: "[what you want to do]"
+---
+
+# {{ENTRY_NAME}}
+
+The one skill of {{PLUGIN_NAME}} a person types. Its areas are for agents to
+call and stay out of the slash menu, so this is how a person finds the one
+they want.
+
+## With a person and no arguments
+
+TODO(author): the questions to ask, at most four, each with two to four
+options, so that every area sits behind exactly one option. Then, for the
+area chosen: say in a line what it does, ask which of its uses they want, and
+hand off once.
+
+## With arguments, or with nobody to ask
+
+Ask nothing. Name the area and the route that fit the task, and hand off.
+
+## The areas
+
+| Area | Use it to | Routes |
+| --- | --- | --- |
+{{AREA_ROWS}}
+
+## Handing off
+
+Call the area with the Skill tool, the route as the first word of its
+arguments: `{{PLUGIN_NAME}}:<area>` with `<route> <the task>`. One hand-off
+per run. To explain an area without starting it, read its route table; never
+call it for that.

@@ -10,7 +10,7 @@ import path from "node:path";
 import { REPO } from "../fixtures.mjs";
 
 export { REPO };
-export const PLUGIN = path.join(REPO, "plugins", "perceptual-loop");
+export const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "perceptual-loop");
 export const PL = path.join(PLUGIN, "scripts", "pl.mjs");
 
 // One exit handler for every temp folder, rather than one per folder: a suite makes dozens.

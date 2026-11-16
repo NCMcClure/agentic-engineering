@@ -9,9 +9,9 @@ import { REPO, tempRepo, write } from "./helpers.mjs";
 import {
   DEFAULTS, ENV_EXAMPLE, FIRST_LAYOUT, MANIFEST, RULES, SECRET_PATTERNS, SOURCE_FILE,
   anyOf, blockFromFirstLayout, globTest, loadConfig, modeFor, notWired, settings, toRegExp,
-} from "../../../plugins/agentic-teamwork/hooks/lib/config.mjs";
+} from "../../../plugins/agentcraft/skills/agentic-teamwork/hooks/lib/config.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
 const manifest = (extra = {}) => JSON.stringify({ standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test" }, owned: {}, ...extra }, null, 2);
 
 // ---- the defaults --------------------------------------------------------

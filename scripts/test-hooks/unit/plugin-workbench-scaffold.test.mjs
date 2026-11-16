@@ -7,10 +7,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter, walk } from "../../lib.mjs";
-import { runScan } from "../../../plugins/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO, runNode, tempDir, tree, write } from "./helpers.mjs";
 
-const SCAFFOLD = path.join(REPO, "plugins", "plugin-workbench", "skills", "create-plugin", "scripts", "plugin-scaffold.mjs");
+const SCAFFOLD = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench", "routes", "create-plugin", "scripts", "plugin-scaffold.mjs");
 const CATALOG = ".claude-plugin/marketplace.json";
 const NAME = "fresh-kit2go";
 
@@ -124,21 +124,27 @@ test("the script stub is a Node script that runs as written", (t) => {
 });
 
 // The structural gate, on a copy of this checkout with the skeleton added and
-// a catalog entry for it: exactly what adding a new plugin here means.
+// a catalog entry for it. The skeleton is a plugin for a marketplace of its
+// author's, and this one ships a single plugin, so the gate refuses it as a
+// second: that refusal is all it has to say. Every rule it holds any plugin
+// directory to (the manifest, the README, the history, a skill's frontmatter,
+// Node only, the paths a file names) finds nothing in the skeleton.
 const added = (dir, extra = {}) => ({
   json: { [CATALOG]: (m) => ({ ...m, plugins: [...m.plugins, { name: NAME, source: `./plugins/${NAME}`, description: SPEC.description, category: "testing" }] }) },
   write: { ...Object.fromEntries(files(dir).map((rel) => [`plugins/${NAME}/${rel}`, read(dir, rel)])), ...extra },
 });
 const failures = (stdout) => stdout.split("\n").filter((line) => line.startsWith("FAIL:"));
+const SECOND_PLUGIN = /: a plugin directory is \w+ or the stub of a plugin that became one of its areas|: a stub's plugin\.json carries "dependencies"|: a stub's description says where it moved|: a stub holds its manifest, a README\.md, a CHANGELOG\.md, and nothing else/;
 
-test("the skeleton, added to this marketplace with a catalog entry, passes the structural gate", (t) => {
+test("the skeleton, added to this marketplace with a catalog entry, is refused as a second plugin and for nothing else", (t) => {
   const { dir } = scaffold(t);
-  const result = runNode("scripts/validate.mjs", ["--root", tree(t, added(dir))]);
-  const fails = failures(result.stdout);
-  assert.deepEqual(fails.filter((line) => line.includes(NAME)), [], result.stdout);
-  // Whatever else the tree fails on is not the skeleton's doing; with nothing else failing, the gate is green.
-  assert.equal(result.status, fails.length ? 1 : 0, result.stdout);
-  if (!fails.length) assert.match(result.stdout, /^validate: all green$/m);
+  const tidy = tree(t, added(dir));
+  runNode("scripts/gen-guide.mjs", ["--root", tidy, "--write"]);
+  const result = runNode("scripts/validate.mjs", ["--root", tidy]);
+  const mine = failures(result.stdout).filter((line) => line.includes(NAME));
+  assert.ok(mine.some((line) => SECOND_PLUGIN.test(line)), result.stdout);
+  assert.deepEqual(mine.filter((line) => !SECOND_PLUGIN.test(line)), [], result.stdout);
+  assert.deepEqual(failures(result.stdout).filter((line) => !line.includes(NAME)), [], "and the tree fails on nothing else");
 });
 
 test("the gate does name the skeleton when it is broken, so the test above is not passing by silence", (t) => {
@@ -148,7 +154,7 @@ test("the gate does name the skeleton when it is broken, so the test above is no
   assert.equal(result.status, 1);
   const mine = failures(result.stdout).filter((line) => line.includes(NAME));
   assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}: missing CHANGELOG.md`)), result.stdout);
-  assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}/restock: frontmatter key "license" is not one of the four allowed`)), result.stdout);
+  assert.ok(mine.some((line) => line.startsWith(`FAIL: ${NAME}/restock: frontmatter key "license" is not one of the five allowed`)), result.stdout);
 });
 
 test("the skeleton scores clean on every mechanical check of the workbench's own scanner", (t) => {
@@ -212,9 +218,142 @@ test("a spec that cannot be scaffolded is refused with one JSON line and exit 1,
   assert.equal(refused(SPEC, { dirName: "somewhere-else" }), `spec name '${NAME}' != target dir basename 'somewhere-else'`);
   assert.equal(refused({ ...SPEC, version: "1.0" }), "version '1.0' is not semver");
   assert.equal(refused({ ...SPEC, skills: [{ name: "Bad Name" }] }), "skill name 'Bad Name' is not a lowercase-hyphen slug");
-  assert.equal(refused({ ...SPEC, skills: [{ name: "ok", mode: "auto" }] }), "skill ok: mode must be model or user");
+  assert.equal(refused({ ...SPEC, skills: [{ name: "ok", mode: "auto" }] }), "skill ok: mode must be model, callable, or user");
   assert.equal(refused("[1, 2]", { dirName: "x" }), "spec must be a JSON object");
   assert.match(refused("{ not json", { dirName: "x" }), /^spec unreadable: /);
+});
+
+// ---- a plugin of areas --------------------------------------------------------
+
+const AREAS_NAME = "shop-kit";
+const AREAS_SPEC = {
+  name: AREAS_NAME,
+  description: "Runs a small shop's back office: stock and orders.",
+  author: { name: "Sam Example", email: "sam@example.com" },
+  areas: [
+    { name: "stock", lead: "Use when stock is counted, reordered, or written off.", routes: [
+      { name: "count", cue: "count a shelf against the ledger", withScripts: true },
+      { name: "reorder", cue: "raise an order for what is low", starts: "person", argumentHint: "<supplier> [--dry-run]" },
+    ] },
+    { name: "orders", default: "pack", routes: [{ name: "take", cue: "take an order: who, what, when" }, { name: "pack", cue: "pick and pack an open order" }] },
+  ],
+  entry: "start-here",
+};
+
+test("a spec of areas becomes one skill per body of work, a document per route, and the one skill a person types", (t) => {
+  const { dir, result, out } = scaffold(t, AREAS_SPEC);
+  assert.equal(result.status, 0, result.stdout);
+  assert.deepEqual(out.created, [
+    ".claude-plugin/plugin.json",
+    "skills/stock/SKILL.md",
+    "skills/stock/routes/count/ROUTE.md",
+    "skills/stock/routes/count/scripts/count.mjs",
+    "skills/stock/routes/reorder/ROUTE.md",
+    "skills/orders/SKILL.md",
+    "skills/orders/routes/take/ROUTE.md",
+    "skills/orders/routes/pack/ROUTE.md",
+    "skills/start-here/SKILL.md",
+    "README.md",
+    "CHANGELOG.md",
+  ]);
+  assert.deepEqual(files(dir), [...out.created].sort());
+});
+
+test("an area comes out callable and out of the slash menu, its routes listed as route (cue), with the compaction line", (t) => {
+  const { dir } = scaffold(t, AREAS_SPEC);
+  const stock = read(dir, "skills/stock/SKILL.md");
+  assert.deepEqual(parseFrontmatter(stock), {
+    name: "stock",
+    description: "Use when stock is counted, reordered, or written off. Routes are its arguments, not skills: count (count a shelf against the ledger); reorder (raise an order for what is low).",
+    "user-invocable": "false",
+    "argument-hint": "[route] [the route's arguments]",
+  });
+  assert.match(stock, /^description: "/m, "quoted: it holds a colon and a space");
+  assert.match(stock, /when none plainly does, the default, `count`\./, "the first route, where the spec names none");
+  assert.match(stock, /^\| `count` \| count a shelf against the ledger \| an agent \|$/m);
+  assert.match(stock, /^\| `reorder` \| raise an order for what is low \| a person \|$/m);
+  assert.match(stock, /After a compaction, read your route's `ROUTE\.md` again/);
+  assert.doesNotMatch(stock, /disable-model-invocation/);
+  // No lead in the spec: the description is the author's to finish, and the default is the one the spec named.
+  const orders = read(dir, "skills/orders/SKILL.md");
+  assert.match(parseFrontmatter(orders).description, /^TODO\(author\), when to reach for this area\. Routes are its arguments, not skills: take \(take an order: who, what, when\); pack \(/);
+  assert.match(orders, /the default, `pack`\./);
+});
+
+test("a route carries a route's three keys at most, names its directory from its own file, and runs its script under it", (t) => {
+  const { dir } = scaffold(t, AREAS_SPEC);
+  const count = read(dir, "skills/stock/routes/count/ROUTE.md");
+  assert.deepEqual(parseFrontmatter(count), { name: "count", description: "TODO(author), what this route does, then when to take it." });
+  assert.match(count, /^`W` below is `\.\.\/\.\.` from the directory this file is in: the area's own directory\./m);
+  assert.match(count, /^node "W\/routes\/count\/scripts\/count\.mjs"$/m);
+  assert.doesNotMatch(count, /CLAUDE_PLUGIN_ROOT/, "a file read by path gets no variable");
+  const script = path.join(dir, "skills", "stock", "routes", "count", "scripts", "count.mjs");
+  assert.match(fs.readFileSync(script, "utf8"), /deterministically for\n\/\/ the count route of stock,/);
+  assert.deepEqual([runNode(script).status, runNode(script).stdout.trim()], [0, "{\"ok\":true}"]);
+  const reorder = read(dir, "skills/stock/routes/reorder/ROUTE.md");
+  assert.deepEqual(Object.keys(parseFrontmatter(reorder)), ["name", "description", "argument-hint"]);
+  assert.ok(reorder.endsWith("*Done when: TODO(author), an observable completion criterion.*\n"), "a route with no script gets no extra section");
+});
+
+test("the entry skill is the one a person types: it names every area and how a hand-off is made", (t) => {
+  const { dir } = scaffold(t, AREAS_SPEC);
+  const entry = read(dir, "skills/start-here/SKILL.md");
+  const fields = parseFrontmatter(entry);
+  assert.deepEqual(Object.keys(fields), ["name", "description", "argument-hint"], "typed and listed: neither hiding key");
+  assert.match(fields.description, /^Use when a person asks what shop-kit offers.* calls the area whose name fits \(stock, orders\) and does not come here first\.$/);
+  assert.match(entry, /^\| `stock` \| TODO\(author\) \| `count`, `reorder` \|$/m);
+  assert.match(entry, /`shop-kit:<area>` with `<route> <the task>`/);
+  const readme = read(dir, "README.md");
+  assert.match(readme, /^\| `start-here` \| `\/shop-kit:start-here`, the one skill to type \| TODO\(author\) \|$/m);
+  assert.match(readme, /^\| `orders` \| an agent calls it; routes: `take`, `pack` \| TODO\(author\) \|$/m);
+  assert.doesNotMatch(readme, /\/shop-kit:(stock|orders)/, "a person cannot type an area, so the README never shows one typed");
+});
+
+test("the skeleton of areas scores clean on every mechanical check, the area and route checks among them", (t) => {
+  const { dir } = scaffold(t, AREAS_SPEC);
+  const scan = runScan(dir);
+  assert.equal(scan.components.shape, "areas");
+  assert.deepEqual(Object.entries(scan.mechanical_grades).filter(([, g]) => g.grade !== 4), []);
+  for (const check of ["SQ8", "SQ9", "AN6", "CF4", "CS3"]) assert.ok(check in scan.mechanical_grades, check);
+  assert.deepEqual([scan.gates, scan.orphans], [[], []]);
+  assert.deepEqual(scan.areas.map((a) => [a.area, a.routes, a.problems]), [["orders", ["pack", "take"], []], ["stock", ["count", "reorder"], []]]);
+  assert.deepEqual(scan.route_paths.problems, []);
+});
+
+test("skills and areas sit in one plugin, and a skill only agents call is callable, not hidden", (t) => {
+  const { dir, result } = scaffold(t, { ...AREAS_SPEC, entry: undefined, skills: [{ name: "audit", mode: "callable" }] });
+  assert.equal(result.status, 0, result.stdout);
+  assert.deepEqual(parseFrontmatter(read(dir, "skills/audit/SKILL.md")), {
+    name: "audit",
+    description: "TODO(author), what this skill does AND when to trigger it. This sits in context every turn and must earn it.",
+    "user-invocable": "false",
+  });
+  assert.match(read(dir, "README.md"), /^\| `audit` \| called by agents \| TODO\(author\) \|$/m);
+  assert.ok(!fs.existsSync(path.join(dir, "skills", "start-here")), "no entry skill unless the spec names one");
+});
+
+test("a spec of areas that cannot be scaffolded is refused with what is wrong, and nothing is written", (t) => {
+  const refused = (spec) => {
+    const run = scaffold(t, spec);
+    assert.equal(run.result.status, 1, run.result.stdout);
+    assert.ok(!fs.existsSync(run.dir), "a refused run leaves no directory behind");
+    return run.out.error;
+  };
+  const area = (extra) => ({ ...AREAS_SPEC, areas: [{ ...AREAS_SPEC.areas[0], ...extra }] });
+  const route = (extra) => area({ routes: [{ name: "count", cue: "count a shelf", ...extra }] });
+  assert.equal(refused(area({ name: "Stock Room" })), "area name 'Stock Room' is not a lowercase-hyphen slug");
+  assert.equal(refused(area({ routes: [] })), "area stock: routes must list at least one route");
+  assert.equal(refused(route({ name: "Count It" })), "area stock: route name 'Count It' is not a lowercase-hyphen slug");
+  assert.equal(refused(route({ cue: "" })), "area stock: route count needs a cue, the route in a few words");
+  assert.equal(refused(route({ cue: "c".repeat(61) })), "area stock: route count: cue is 61 characters, over 60");
+  assert.equal(refused(route({ cue: "count (again)" })), "area stock: route count: a cue holds no bracket and no semicolon");
+  assert.equal(refused(route({ starts: "model" })), "area stock: route count: starts is \"person\" or left out");
+  assert.equal(refused(area({ default: "restock" })), "area stock: default 'restock' is not one of its routes");
+  assert.equal(refused(area({ routes: [{ name: "count", cue: "a" }, { name: "count", cue: "b" }] })), "area stock: route 'count' is listed twice");
+  assert.equal(refused({ ...AREAS_SPEC, entry: "stock" }), "entry 'stock' shares its name with another skill: each is a directory under skills/");
+  assert.equal(refused({ ...AREAS_SPEC, skills: [{ name: "orders" }] }), "area 'orders' shares its name with another skill: each is a directory under skills/");
+  assert.equal(refused({ ...AREAS_SPEC, areas: undefined, skills: [{ name: "only" }] }), "spec.entry is the way in to a plugin's areas, and this spec lists none");
+  assert.equal(refused({ ...AREAS_SPEC, areas: "stock" }), "spec.areas must be a list of areas");
 });
 
 test("a call with no spec or no target says how to call it", (t) => {

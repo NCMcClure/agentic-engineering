@@ -5,80 +5,98 @@
     "email": "contact@protospatial.com"
   },
   "metadata": {
-    "description": "Plugins that solve foundational engineering problems in the brave new world of agentic engineering."
+    "description": "One plugin, agentcraft, whose areas solve foundational engineering problems in the brave new world of agentic engineering. The plugins it replaced are stubs that depend on it."
   },
   "plugins": [
     {
+      "name": "agentcraft",
+      "source": "./plugins/agentcraft",
+      "description": "A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentcraft:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.",
+      "category": "engineering"
+    },
+    {
       "name": "agent-works",
       "source": "./plugins/agent-works",
-      "description": "Agent workflows rot the same way in every repo: a bloated AGENTS.md, the same rule stated four times, task state in six places, a round of parallel work that lives in one conversation, and no word between sessions sharing one machine. agent-works gives each kind of fact one home under .agents/ with a size budget, checks them with one command (aw doctor), keeps tasks and owed checks on a kanban board the person and the agents share, runs a large goal as child sessions in their own worktrees from that board, guards the files and runs that need it, and coordinates locks, leases and learnings across projects through the aw command line.",
-      "category": "orchestration"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agent-works area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agent-works <route>.",
+      "category": "moved"
     },
     {
       "name": "but-first-planning",
       "source": "./plugins/but-first-planning",
-      "description": "Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.",
-      "category": "planning"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the but-first-planning area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:but-first-planning <route>.",
+      "category": "moved"
     },
     {
       "name": "codebase-optimizer",
       "source": "./plugins/codebase-optimizer",
-      "description": "Staged optimizer for a repository that has already drifted: organize the file tree into AGENTS.md hubs, split god-files behind compatibility shims, and deepen shallow modules. Nothing moves until you have seen the plan, and every stage is validated against the repo's own tests and reverted on red. Detects Python, JS/TS, Go, and Rust; anything else runs generic.",
-      "category": "refactoring"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the codebase-optimizer area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:codebase-optimizer <route>.",
+      "category": "moved"
     },
     {
       "name": "agentic-teamwork",
       "source": "./plugins/agentic-teamwork",
-      "description": "Team git conventions that hold whoever is typing: session hooks judge every commit and push, a pre-commit hook covers the terminal, and a CI gate backs both, with skills that scaffold a repo, ship and land a change, and keep tests honest. GitHub and GitLab.",
-      "category": "collaboration"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agentic-teamwork area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agentic-teamwork <route>.",
+      "category": "moved"
     },
     {
       "name": "workflow-studio",
       "source": "./plugins/workflow-studio",
-      "description": "Unreal-Blueprint-style visual studio for Claude Code dynamic workflows: node canvas, typed pins, variables, and lossless graph-to-.js compilation. Bundles the app plus skills to launch it and to hand-author workflows.",
-      "category": "workflow"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the workflow-studio area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:workflow-studio <route>.",
+      "category": "moved"
     },
     {
-      "name": "animated-storytelling",
-      "source": "./plugins/animated-storytelling",
-      "description": "Make ideas land at the intersection of narrative arc, visual design, and motion: NCP story structure, hierarchy/typography/color craft, and tasteful Motion (Framer Motion v12) animation — with a catalog of showcase recipes.",
-      "category": "creative"
+      "name": "picture-this",
+      "source": "./plugins/picture-this",
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the picture-this area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:picture-this <route>.",
+      "category": "moved"
     },
     {
       "name": "write-like-me",
       "source": "./plugins/write-like-me",
-      "description": "Reshapes how Claude writes human-facing prose — emails, docs, READMEs, posts, chat replies — so it sounds like you instead of like a language model. A calibrated, tightly line-budgeted voice profile auto-loads into every session; skills audit text for AI tells and rebuild the profile; reflective hooks fold your style feedback back in.",
-      "category": "writing"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the write-like-me area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:write-like-me <route>.",
+      "category": "moved"
     },
     {
       "name": "code-diet",
       "source": "./plugins/code-diet",
-      "description": "Your agent's code is tomorrow's context: code-diet makes the agent stop at the first rung that works, check what already exists before building, land its cuts one commit at a time behind validate-or-revert, and mark every shortcut with the condition that ends it.",
-      "category": "code-quality"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the code-diet area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:code-diet <route>.",
+      "category": "moved"
     },
     {
       "name": "plugin-workbench",
       "source": "./plugins/plugin-workbench",
-      "description": "A plugin's real cost is invisible until installed, and authoring one means guessing at unwritten standards, so make, measure, and fix plugins around one six-dimension rubric: scaffold and author against it, score any plugin into an HTML scorecard with an adopt or rework verdict, apply the fixes ranked by the point delta a script computes, read back what each plugin put in a session's context, and reinstall a marketplace checkout from the working tree.",
-      "category": "authoring"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the plugin-workbench area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:plugin-workbench <route>.",
+      "category": "moved"
     },
     {
       "name": "perceptual-loop",
       "source": "./plugins/perceptual-loop",
-      "description": "An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.",
-      "category": "evaluation"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the perceptual-loop area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:perceptual-loop <route>.",
+      "category": "moved"
     },
     {
       "name": "docs-parity",
       "source": "./plugins/docs-parity",
-      "description": "User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.",
-      "category": "documentation"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the docs-parity area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:docs-parity <route>.",
+      "category": "moved"
+    },
+    {
+      "name": "system-map",
+      "source": "./plugins/system-map",
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the system-map area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:system-map <route>.",
+      "category": "moved"
     },
     {
       "name": "marvelous-miro",
       "source": "./plugins/marvelous-miro",
-      "description": "Diagrams that stay true: a system map extracted from @system annotations in the code and checked against the real import graph, drawn on a Miro board by generators, with a legibility lint before anything is published, a live check of what Miro actually drew, and board layout pulled back into the repo.",
-      "category": "documentation"
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the system-map area there. The plugin was renamed system-map before the move. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:system-map <route>.",
+      "category": "moved"
+    },
+    {
+      "name": "animated-storytelling",
+      "source": "./plugins/animated-storytelling",
+      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the picture-this area there. The plugin was renamed picture-this before the move. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:picture-this <route>.",
+      "category": "moved"
     }
   ]
 }

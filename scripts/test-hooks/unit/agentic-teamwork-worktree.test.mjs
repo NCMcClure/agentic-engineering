@@ -9,7 +9,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOKS = path.join(REPO, "plugins", "agentic-teamwork", "hooks");
+const HOOKS = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "hooks");
 const suite = { after };
 const HOME = tempDir(suite, "tw-worktree-home-");
 const TMP = tempDir(suite, "tw-worktree-tmp-");
@@ -34,7 +34,9 @@ function checkoutWithWorktree(t) {
 let sessions = 0;
 /** Run a hook the way a worktree session does: the cwd in the payload, the main checkout in the environment. */
 function hook(script, payload, { main, cwd = main }) {
-  const result = runNode(path.join(HOOKS, script), [], {
+  // The session briefing is the area's part alone, run through the plugin's helper (area-session.mjs says why).
+  const [file, args] = script === "session-start.mjs" ? [path.join(import.meta.dirname, "area-session.mjs"), ["agentic-teamwork"]] : [path.join(HOOKS, script), []];
+  const result = runNode(file, args, {
     cwd,
     env: { ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: main, CLAUDE_PLUGIN_DATA: "", TMPDIR: TMP },
     input: JSON.stringify({ session_id: `worktree-${process.pid}-${sessions += 1}`, ...payload }),

@@ -1,0 +1,38 @@
+{
+  "schema": 1,
+  "title": "How a rolling deploy keeps a site up",
+  "mechanism": "Each server leaves the pool, takes the new version, passes its check and rejoins, one stage per tick, before the next one leaves.",
+  "lens": "time",
+  "claim": "Only one server is ever out, so the site keeps two thirds of its capacity from the first tick to the last.",
+  "implication": "A deploy takes longer the more servers there are, and never costs more than one of them.",
+  "entities": [
+    { "id": "old", "label": "In service, v1", "kind": "stage", "note": "takes traffic" },
+    { "id": "drain", "label": "Draining", "kind": "stage", "note": "finishes what it has" },
+    { "id": "update", "label": "Updating", "kind": "stage", "note": "takes the new version" },
+    { "id": "check", "label": "Health check", "kind": "stage", "note": "must pass to rejoin" },
+    { "id": "new", "label": "In service, v2", "kind": "stage", "note": "takes traffic again" },
+    { "id": "server", "label": "web", "kind": "unit", "repeat": 3 }
+  ],
+  "flows": [],
+  "quantities": [
+    { "id": "serving", "label": "In service", "of": "server", "unit": "servers", "max": 3, "start": 3,
+      "values": { "one": [3, 2, 2, 2], "last": [2, 2, 2, 2, 3] } }
+  ],
+  "data": {
+    "ticks": [
+      { "at": "one", "from": 0, "to": 3 },
+      { "at": "next", "from": 3, "to": 5 },
+      { "at": "last", "from": 5, "to": 9 }
+    ]
+  },
+  "beats": [
+    { "id": "one", "title": "One leaves", "plain": "The first server stops taking traffic, takes the new version, and is checked, a stage per tick.",
+      "focus": ["server", "drain", "update", "check"], "flows": [], "ms": 3600 },
+    { "id": "next", "title": "Back, then the next", "plain": "It rejoins on the new version, and only then does the second server leave.",
+      "focus": ["server", "new", "old"], "flows": [], "ms": 3000 },
+    { "id": "last", "title": "The rest follow", "plain": "The others go the same way, one behind the other, until every server runs the new version.",
+      "focus": ["server", "new"], "flows": [], "ms": 4200 },
+    { "id": "rest", "rest": true, "focus": [], "flows": [], "ms": 1500 }
+  ],
+  "hero": { "beat": "next", "at": 0.5 }
+}

@@ -12,8 +12,8 @@ import path from "node:path";
 import test from "node:test";
 import { PL, PLUGIN, runNode, scene, tempDir, u8, write } from "./perceptual-loop-fixtures.mjs";
 
-import { encodePng, decodePng } from "../../../plugins/perceptual-loop/scripts/lib/png.mjs";
-import { lint } from "../../../plugins/perceptual-loop/scripts/commands/lint.mjs";
+import { encodePng, decodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import { lint } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/commands/lint.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 const ENV = { PL_RUN: "", PL_DIR: "", PL_SHOTS_DIR: "" };
 
@@ -196,7 +196,7 @@ test("lint: a claim needs an artefact nearby; hedged and planned claims are left
   assert.deepEqual(rules("It works."), ["bare-claim"]);
   assert.deepEqual(rules("Verified."), ["bare-claim"]);
   assert.deepEqual(rules("Verified with `npm test`."), []);
-  assert.deepEqual(rules("The bug is fixed in plugins/perceptual-loop/scripts/lib/jpeg.mjs."), []);
+  assert.deepEqual(rules("The bug is fixed in plugins/agentcraft/skills/perceptual-loop/scripts/lib/jpeg.mjs."), []);
   assert.deepEqual(rules("It works. See `runs/iterate/sky_0/sheet.candidate.png`."), [], "the artefact in the next sentence");
   assert.deepEqual(rules("The gate passes:\n\n- 12 of 12 entries ok"), [], "the artefact under a line ending in a colon");
   assert.deepEqual(rules("The tests should pass once merged."), []);
@@ -258,7 +258,7 @@ test("timing reports per phase, the runs over budget, and advice, from the two l
 
 // ---- the critique workflow, with stub agents -------------------------------------------------
 
-const WORKFLOW = path.join(PLUGIN, "skills", "judge-and-queue", "workflows", "critique.js");
+const WORKFLOW = path.join(PLUGIN, "routes", "judge-and-queue", "workflows", "critique.js");
 const AsyncFunction = (async () => {}).constructor;
 
 /** Run the workflow script as the Workflow tool would, with stub agents and the same pipeline and parallel semantics. */
@@ -316,7 +316,9 @@ test("the critique workflow keeps the key out of every prompt and translates let
     const { result, calls, logs } = runWorkflow(JSON.stringify({ pluginRoot: "/plugins/pl/", items: [{ id: "sky_0", images: neutral(), aIs, observables: ["is the sky blue?"], box: "0,0,0.5,0.5" }] }), answer);
     const out = await result;
     for (const c of calls) {
-      assert.equal(c.opts.agentType, "perceptual-loop:vision-critic");
+      // An agent is named by the plugin that ships it, and that file is there.
+      assert.equal(c.opts.agentType, "agentcraft:vision-critic");
+      assert.ok(fs.existsSync(path.join(PLUGIN, "..", "..", "agents", "vision-critic.md")), "the plugin ships the critic");
       assert.doesNotMatch(c.prompt, /\b(before|after|aIs)\b/i, "no prompt names a state or carries the key");
       assert.match(c.prompt, /The plugin root, for a crop, is \/plugins\/pl\./);
     }

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+/* The house style (picture-this): neutrals carry the page, one orange accent marks what a person
+   chose and the one action, hairlines and face tones stand in for shadows. The names are this
+   page's own: --line is the house's rule, --edge its strong line, --muted its second ink,
+   --accent-ink the text on an accent fill, --accent-text the accent as text, --soft the accent's
+   tint, --stage the sunk face a picture sits on. Every colour in a rule below is one of these. */
+:root {
+  color-scheme: light dark;
+  --bg: #f5f5f3; --card: #ffffff; --stage: #ebebe8; --ink: #171716; --muted: #5c5c58;
+  --edge: #1c1c1b; --line-2: #b4b4ae; --line: #dcdcd7;
+  --accent: #ff5a1f; --accent-ink: #171716; --accent-text: #c2410c; --soft: #ffe9df; --done: #171716;
+  --radius: 14px;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #0e0e0f; --card: #1e1e20; --stage: #161617; --ink: #f1f1ee; --muted: #a3a39d;
+          --edge: #e9e9e5; --line-2: #47474a; --line: #262628;
+          --accent: #ff6b2c; --accent-text: #ff8a57; --soft: #3a1c10; --done: #f1f1ee; }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 68px; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+header { position: sticky; top: 0; z-index: 5; background: var(--card); border-bottom: 1px solid var(--line); }
+.top { max-width: 1200px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+.top h1 { font-size: 15px; margin: 0; font-weight: 600; }
+.progress { flex: 1; min-width: 160px; display: flex; align-items: center; gap: 12px; color: var(--muted); font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+.track { flex: 1; height: 4px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--done); transition: width .15s; }
+.btn { border: 1px solid var(--line-2); background: none; border-radius: 6px; padding: 5px 12px; cursor: pointer; }
+.btn:hover { background: var(--stage); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.btn.primary:hover { background: var(--accent); border-color: var(--edge); }
+/* the view in use: a heavier ink hairline, so the accent stays with the person's answers */
+.btn.on { background: var(--stage); border: 1.5px solid var(--edge); padding: 4.5px 11.5px; }
+main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 8px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px 22px; margin: 0 0 16px; }
+.card.active { border: 1.5px solid var(--edge); padding: 19.5px 21.5px; }
+.head { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+.head h2 { font-size: 17px; line-height: 1.35; font-weight: 600; margin: 0; flex: 1; min-width: 200px; }
+.num { color: var(--muted); font: 12px var(--mono); font-variant-numeric: tabular-nums; }
+/* an id is spelled as it was queued; only the state is a label in capitals */
+.chip { font: 500 11px/1.5 var(--mono); padding: 1px 7px; border-radius: 6px; border: 1px solid var(--line-2); color: var(--muted); white-space: nowrap; }
+.chip.state { font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; }
+.chip.done { color: var(--ink); border-color: var(--edge); }
+.context { color: var(--muted); white-space: pre-wrap; margin: 8px 0 0; max-width: 96ch; }
+.modes { display: flex; gap: 6px; margin: 16px 0 8px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+.modes .lab, figcaption { font: 500 10.5px/1.4 var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+.modes .lab { margin-right: 4px; }
+.shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 12px; margin-top: 16px; align-items: start; }
+.modes + .shots { margin-top: 0; }
+.shots.one { grid-template-columns: 1fr; }
+/* A picture sits whole on the sunk face, inside a hairline: its name is beside it, never over it,
+   and nothing rounds its corners or lies behind it but a neutral. */
+figure { margin: 0; background: var(--stage); border: 1px solid var(--line); border-radius: 8px; padding: 0 8px 8px; }
+figcaption { display: flex; justify-content: space-between; gap: 12px; padding: 7px 2px 6px; }
+figure img { display: block; width: 100%; height: auto; cursor: zoom-in; }
+.missing { padding: 28px 12px; color: var(--muted); font: 12px var(--mono); text-align: center; word-break: break-all; }
+.cmp { position: relative; user-select: none; }
+.cmp:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cmp img { cursor: inherit; }
+.cmp img.over { position: absolute; inset: 0; height: 100%; }
+/* the cut: an ink hairline between two of the panel face, so it shows on a light and on a dark picture */
+.cmp .rule { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--edge); border: solid var(--card); border-width: 0 1px; pointer-events: none; }
+.cmp input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.question { font-size: 16px; line-height: 1.4; font-weight: 600; margin: 18px 0 10px; }
+table.evidence { border-collapse: collapse; margin: 0 0 12px; }
+/* a metric keeps its own spelling (dE, EV, px), so its name is mono and not capitals */
+table.evidence th { text-align: left; font: 400 12px/1.5 var(--mono); color: var(--muted); padding: 3px 20px 3px 0; vertical-align: top; }
+table.evidence td { padding: 3px 0; font: 12.5px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+.verdicts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13px; color: var(--muted); margin: 0 0 14px; }
+.verdicts b { color: var(--ink); font: 500 12px var(--mono); }
+/* a verdict that leaves work to do is the finding a person should see first */
+.verdicts b.todo { color: var(--accent-text); }
+fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 6px; }
+legend { position: absolute; left: -9999px; }
+label.opt { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px; border: 1px solid var(--line-2); border-radius: 8px; cursor: pointer; }
+label.opt:hover { background: var(--stage); }
+label.opt.picked { border: 1.5px solid var(--accent); padding: 8.5px 11.5px; background: var(--soft); }
+label.opt input { margin: 4px 0 0; accent-color: var(--accent); }
+/* the ring goes round the whole option where the browser can say which one holds the focus */
+@supports selector(:has(a)) {
+  label.opt:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+  label.opt input:focus-visible { outline: none; }
+}
+kbd { font: 11px/1.5 var(--mono); border: 1px solid var(--line-2); border-radius: 4px; padding: 0 5px; color: var(--muted); }
+.mark { font: 500 10.5px var(--mono); letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); margin-left: 10px; white-space: nowrap; }
+textarea { width: 100%; background: var(--card); border: 1px solid var(--line-2); border-radius: 6px; padding: 8px 10px; resize: vertical; }
+textarea::placeholder { color: var(--muted); }
+textarea.note { min-height: 62px; margin-top: 10px; }
+.row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 12.5px; color: var(--muted); gap: 12px; }
+.link { background: none; border: 0; padding: 0; color: var(--muted); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.link:hover { color: var(--ink); }
+code { font: 12.5px var(--mono); background: var(--stage); border-radius: 4px; padding: 1px 5px; }
+#out { max-width: 1200px; margin: 0 auto 16px; padding: 0 16px; }
+#out .card { margin: 0; }
+#out textarea { min-height: 220px; font: 12.5px/1.45 var(--mono); background: var(--stage); border-color: var(--line); }
+footer { max-width: 1200px; margin: 0 auto; padding: 0 16px 40px; color: var(--muted); font-size: 12.5px; }
+/* a picture opened large stands on the page colour, the same neutral it was judged on */
+#zoom { position: fixed; inset: 0; z-index: 20; background: var(--bg); overflow: auto; cursor: zoom-out; display: grid; place-items: center; }
+#zoom img { max-width: 100%; height: auto; image-rendering: auto; }
+#zoom.full { display: block; }
+#zoom.full img { max-width: none; image-rendering: pixelated; }
+.empty { text-align: center; color: var(--muted); padding: 60px 0; }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+</style>
+</head>
+<body>
+<header><div class="top">
+  <h1>__TITLE__</h1>
+  <div class="progress"><div class="track"><div class="fill" id="fill"></div></div><span id="count"></span></div>
+  <button class="btn primary" id="export" type="button">Export decisions</button>
+</div></header>
+<main id="cards"></main>
+<section id="out" hidden><div class="card">
+  <div class="question" style="margin-top:0">decisions.json</div>
+  <p class="context" style="margin:0 0 10px">Downloaded as <b>decisions.json</b>. If the download did not start, copy the text below into a file of that name and hand it to the agent, which applies it with <code>pl.mjs review apply decisions.json</code>.</p>
+  <textarea id="json" readonly spellcheck="false" aria-label="decisions.json"></textarea>
+  <div class="row"><span id="summary"></span><button class="btn" id="copy" type="button">Copy</button></div>
+</div></section>
+<footer><kbd>j</kbd> <kbd>k</kbd> next and previous question, <kbd>1</kbd> to <kbd>9</kbd> pick an option, <kbd>b</kbd> blink between two pictures, <kbd>Esc</kbd> close a picture. Answers stay in this browser until you export them. Built __BUILT__.</footer>
+<div id="zoom" hidden><img alt=""></div>
+<script type="application/json" id="pl-data">__DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const data = JSON.parse(document.getElementById('pl-data').textContent);
+  const items = data.items;
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(data.storageKey) || '{}') || {}; } catch (e) { state = {}; }
+  // private browsing can refuse storage: the answers then last as long as the tab
+  const save = () => { try { localStorage.setItem(data.storageKey, JSON.stringify(state)); } catch (e) { /* kept in memory */ } };
+  const answer = id => state[id] || (state[id] = { option: null, note: '' });
+  const el = (tag, attrs, ...kids) => {
+    const n = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === 'class') n.className = v;
+      else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) n.setAttribute(k, v === true ? '' : v);
+    }
+    for (const kid of kids) if (kid != null) n.append(kid);
+    return n;
+  };
+  const cards = [];
+  let active = 0;
+  const glide = () => (matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth');
+
+  const zoom = document.getElementById('zoom');
+  const openZoom = src => { zoom.firstElementChild.src = src; zoom.classList.remove('full'); zoom.hidden = false; };
+  // first click on the picture shows it at its own size; anything else closes
+  zoom.addEventListener('click', e => { if (e.target === zoom.firstElementChild && !zoom.classList.contains('full')) zoom.classList.add('full'); else zoom.hidden = true; });
+
+  const figure = im => im.src
+    ? el('figure', {}, el('figcaption', {}, im.label), el('img', { src: im.src, alt: im.label, loading: 'lazy', onclick: () => openZoom(im.src) }))
+    : el('figure', {}, el('div', { class: 'missing' }, 'missing: ' + im.label + ' (' + im.path + ')'));
+
+  function pictures(item) {
+    const box = el('div', {});
+    const images = item.images || [];
+    if (!images.length) return box;
+    const grid = el('div', { class: 'shots' }, ...images.map(figure));
+    const pair = images.filter(im => im.compare);
+    if (pair.length !== 2 || !pair.every(im => im.src)) { box.append(grid); return box; }
+    const [a, b] = pair;
+    const others = images.filter(im => !pair.includes(im));
+    // the slider: b underneath, a over it, cut at the rule
+    const over = el('img', { class: 'over', src: a.src, alt: a.label });
+    const rule = el('div', { class: 'rule' });
+    const range = el('input', { type: 'range', min: 0, max: 100, value: 50, 'aria-label': 'Where ' + a.label + ' gives way to ' + b.label });
+    const place = () => { over.style.clipPath = 'inset(0 ' + (100 - range.value) + '% 0 0)'; rule.style.left = 'calc(' + range.value + '% - 1.5px)'; };
+    range.addEventListener('input', place); place();
+    const slider = el('figure', {}, el('figcaption', {}, el('span', {}, a.label), el('span', {}, b.label)), el('div', { class: 'cmp' }, el('img', { src: b.src, alt: b.label }), over, rule, range));
+    // blink: one picture at a time in one place, so the eye sees what moves
+    let showB = false;
+    const blinkImg = el('img', { src: a.src, alt: a.label });
+    const blinkTag = el('span', {}, a.label);
+    const flip = () => { showB = !showB; const im = showB ? b : a; blinkImg.src = im.src; blinkImg.alt = im.label; blinkTag.textContent = im.label; };
+    const blink = el('figure', {}, el('figcaption', {}, blinkTag), el('div', { class: 'cmp', onclick: flip, title: 'Click, or press b, to switch' }, blinkImg));
+    blink.lastElementChild.style.cursor = 'pointer';
+    const views = { side: grid, slider: el('div', { class: 'shots one' }, slider), blink: el('div', { class: 'shots one' }, blink) };
+    for (const v of ['slider', 'blink']) for (const o of others) views[v].append(figure(o));
+    const buttons = {};
+    const show = mode => { for (const [k, v] of Object.entries(views)) { v.hidden = k !== mode; buttons[k].classList.toggle('on', k === mode); } box.dataset.mode = mode; };
+    const modes = el('div', { class: 'modes' }, el('span', { class: 'lab' }, 'Compare'));
+    for (const [k, text] of [['side', 'Side by side'], ['slider', 'Slider'], ['blink', 'Blink']]) modes.append(buttons[k] = el('button', { class: 'btn', type: 'button', onclick: () => show(k) }, text));
+    box.append(modes, views.side, views.slider, views.blink);
+    box.blink = () => { if (box.dataset.mode !== 'blink') show('blink'); else flip(); };
+    show('side');
+    return box;
+  }
+
+  function card(item, index) {
+    const a = answer(item.id);
+    const status = el('span', { class: 'chip state' });
+    const node = el('article', { class: 'card', id: 'item-' + index, tabindex: -1, 'data-id': item.id });
+    node.append(el('div', { class: 'head' }, el('span', { class: 'num' }, (index + 1) + ' / ' + items.length), el('h2', {}, item.title || item.id), el('span', { class: 'chip' }, item.id), status));
+    if (item.context) node.append(el('p', { class: 'context' }, item.context));
+    const pics = pictures(item);
+    node.append(pics, el('div', { class: 'question' }, item.question || ''));
+    if ((item.evidence || []).length) node.append(el('table', { class: 'evidence' }, el('tbody', {}, ...item.evidence.map(e => el('tr', {}, el('th', { scope: 'row' }, e.label), el('td', {}, String(e.value)))))));
+    if ((item.verdicts || []).length) node.append(el('div', { class: 'verdicts' }, ...item.verdicts.map(v => el('span', {}, v.by ? v.by + ': ' : '', el('b', { class: /^(wrong|less-plausible)$/.test(v.verdict || '') ? 'todo' : false }, v.verdict || ''), v.note ? ', ' + v.note : ''))));
+    const labels = [];
+    const refresh = () => {
+      for (const [id, label, input] of labels) { input.checked = a.option === id; label.classList.toggle('picked', a.option === id); }
+      status.textContent = a.option ? 'decided' : (a.note.trim() ? 'note only' : 'open');
+      status.classList.toggle('done', !!a.option);
+      progress();
+    };
+    const set = (field, value) => { a[field] = value; save(); refresh(); };
+    const fs = el('fieldset', {}, el('legend', {}, 'Options'));
+    (item.options || []).forEach((o, i) => {
+      const input = el('input', { type: 'radio', name: 'opt-' + index, value: o.id, onchange: () => set('option', o.id) });
+      const label = el('label', { class: 'opt' }, input, el('span', {}, i < 9 ? el('kbd', {}, String(i + 1)) : null, ' ', o.label,
+        o.id === item.recommended ? el('span', { class: 'mark' }, 'recommended') : null,
+        o.id === item.defaultOption ? el('span', { class: 'mark' }, 'taken if unanswered') : null));
+      labels.push([o.id, label, input]);
+      fs.append(label);
+    });
+    const note = el('textarea', { class: 'note', placeholder: 'A note for the agents (optional): what you saw, what to do instead', 'aria-label': 'Note' });
+    note.value = a.note || '';
+    note.addEventListener('input', () => set('note', note.value));
+    node.append(fs, note, el('div', { class: 'row' }, el('span', {}, ''), el('button', { class: 'link', type: 'button', onclick: () => set('option', null) }, 'clear the choice')));
+    node.addEventListener('focusin', () => setActive(index, false));
+    node.addEventListener('click', () => setActive(index, false));
+    node.pick = n => { const o = (item.options || [])[n]; if (o) set('option', o.id); };
+    node.blink = () => pics.blink && pics.blink();
+    refresh();
+    return node;
+  }
+
+  function progress() {
+    const done = items.filter(i => state[i.id] && state[i.id].option).length;
+    document.getElementById('fill').style.width = (items.length ? 100 * done / items.length : 0) + '%';
+    document.getElementById('count').textContent = done + ' of ' + items.length + ' decided';
+  }
+
+  function setActive(i, scroll) {
+    if (!cards.length) return;
+    active = Math.max(0, Math.min(cards.length - 1, i));
+    cards.forEach((c, k) => c.classList.toggle('active', k === active));
+    if (scroll) cards[active].scrollIntoView({ block: 'start', behavior: glide() });
+  }
+
+  function exportDecisions() {
+    const out = { decidedAt: new Date().toISOString(), items: [] };
+    for (const item of items) {
+      const a = state[item.id];
+      if (a && (a.option || (a.note || '').trim())) out.items.push({ id: item.id, option: a.option || null, note: a.note || '' });
+    }
+    const text = JSON.stringify(out, null, 2);
+    document.getElementById('json').value = text;
+    document.getElementById('summary').textContent = out.items.length + ' of ' + items.length + ' questions answered';
+    const section = document.getElementById('out');
+    section.hidden = false;
+    section.scrollIntoView({ block: 'start', behavior: glide() });
+    try {
+      const url = URL.createObjectURL(new Blob([text + '\n'], { type: 'application/json' }));
+      const link = el('a', { href: url, download: 'decisions.json' });
+      document.body.append(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (e) { /* the text is on the page to copy */ }
+    return out;
+  }
+
+  const main = document.getElementById('cards');
+  if (!items.length) main.append(el('p', { class: 'empty' }, 'No open questions.'));
+  items.forEach((item, i) => { const c = card(item, i); cards.push(c); main.append(c); });
+  progress();
+  setActive(0, false);
+  document.getElementById('export').addEventListener('click', exportDecisions);
+  document.getElementById('copy').addEventListener('click', () => {
+    const box = document.getElementById('json');
+    const copied = () => { document.getElementById('copy').textContent = 'Copied'; };
+    box.select();
+    const legacy = () => { try { document.execCommand('copy'); copied(); } catch (e) { /* select-all is the fallback */ } };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(box.value).then(copied, legacy);
+    else legacy();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { zoom.hidden = true; return; }
+    const t = e.target;
+    if (e.ctrlKey || e.metaKey || e.altKey || (t && (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'radio' && t.type !== 'range')))) return;
+    if (e.key === 'j') { setActive(active + 1, true); e.preventDefault(); }
+    else if (e.key === 'k') { setActive(active - 1, true); e.preventDefault(); }
+    else if (e.key === 'b' && cards[active]) cards[active].blink();
+    else if (/^[1-9]$/.test(e.key) && cards[active]) { cards[active].pick(Number(e.key) - 1); e.preventDefault(); }
+  });
+  window.plReview = { state, exportDecisions }; // for a test in a browser to read
+})();
+</script>
+</body>
+</html>

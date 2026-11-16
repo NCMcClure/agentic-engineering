@@ -1,0 +1,278 @@
+{
+  "schema": 1,
+  "title": "How the git guard judges one shell call",
+  "mechanism": "The guard splits one shell call into its commands, finds the repo each runs in, judges each by that repo's rules, and the strictest verdict decides.",
+  "lens": "transformation",
+  "claim": "A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line.",
+  "implication": "Chaining with cd, git -C or bash -c is no way round a rule, and each repo keeps its own settings.",
+  "entities": [
+    {
+      "id": "line",
+      "label": "One Bash call",
+      "kind": "command",
+      "note": "what the agent sends",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:332"
+    },
+    {
+      "id": "segments",
+      "label": "Commands",
+      "kind": "list",
+      "note": "cut where the shell cuts",
+      "parent": "line",
+      "born": "split",
+      "source": "plugins/agentcraft/lib/shell-words.mjs:293"
+    },
+    {
+      "id": "folder",
+      "label": "Working folder",
+      "kind": "tracker",
+      "note": "moved by cd and git -C",
+      "source": "plugins/agentcraft/lib/shell-words.mjs:450"
+    },
+    {
+      "id": "app",
+      "label": "app on feat/login",
+      "kind": "repo",
+      "note": "where the session sits",
+      "hue": "blue",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+    },
+    {
+      "id": "docs",
+      "label": "docs on fix/typo",
+      "kind": "repo",
+      "note": "no push grant",
+      "hue": "green",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+    },
+    {
+      "id": "site",
+      "label": "site on main",
+      "kind": "repo",
+      "note": "main is protected",
+      "hue": "violet",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+    },
+    {
+      "id": "judge",
+      "label": "Judge",
+      "kind": "function",
+      "note": "judgeCommit / judgePush",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:351"
+    },
+    {
+      "id": "verdict",
+      "label": "Verdict",
+      "kind": "decision",
+      "note": "deny beats ask beats allow",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:328"
+    }
+  ],
+  "flows": [
+    {
+      "id": "split",
+      "from": "line",
+      "to": "segments",
+      "kind": "event",
+      "label": "&&",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:335"
+    },
+    {
+      "id": "track",
+      "from": "segments",
+      "to": "folder",
+      "kind": "query",
+      "label": "cwd",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:335"
+    },
+    {
+      "id": "to-app",
+      "from": "folder",
+      "to": "app",
+      "kind": "query",
+      "label": "commit",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+    },
+    {
+      "id": "to-docs",
+      "from": "folder",
+      "to": "docs",
+      "kind": "query",
+      "label": "push",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+    },
+    {
+      "id": "to-site",
+      "from": "folder",
+      "to": "site",
+      "kind": "query",
+      "label": "push",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+    },
+    {
+      "id": "rules-app",
+      "from": "app",
+      "to": "judge",
+      "kind": "read",
+      "label": "no objection",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:354"
+    },
+    {
+      "id": "rules-docs",
+      "from": "docs",
+      "to": "judge",
+      "kind": "read",
+      "label": "ask",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:356"
+    },
+    {
+      "id": "rules-site",
+      "from": "site",
+      "to": "judge",
+      "kind": "read",
+      "label": "deny",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:356"
+    },
+    {
+      "id": "decide",
+      "from": "judge",
+      "to": "verdict",
+      "kind": "write",
+      "label": "strongest",
+      "source": "plugins/agentcraft/skills/agentic-teamwork/hooks/git-guard.mjs:358"
+    }
+  ],
+  "beats": [
+    {
+      "id": "whole",
+      "title": "One line",
+      "plain": "The agent sends what looks like one command, but it chains four.",
+      "technical": "PreToolUse hands git-guard.mjs the Bash call's tool_input.command.",
+      "focus": [
+        "line"
+      ],
+      "flows": [],
+      "ms": 3000
+    },
+    {
+      "id": "split",
+      "title": "Cut like a shell",
+      "plain": "The guard cuts it where a shell would; the git push inside the quoted message stays words.",
+      "technical": "splitCommand cuts on unquoted &&, ;, | and expands bash -c; the quoted -m message is one word, so its git push is never a push.",
+      "focus": [
+        "segments"
+      ],
+      "flows": [
+        "split"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "where",
+      "title": "Where each one runs",
+      "plain": "It follows the folder along the chain: git -C moves one command, cd moves the rest.",
+      "technical": "trackCwd gives each segment its cwd: git -C moves only its own, cd every one after; repoState reads that folder's branch and rules.",
+      "focus": [
+        "folder",
+        "app",
+        "docs",
+        "site"
+      ],
+      "flows": [
+        "track",
+        "to-app",
+        "to-docs",
+        "to-site"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "judge",
+      "title": "Each by its own rules",
+      "plain": "The commit raises no objection, the docs push asks first since nobody pre-approved it, and the push to main is refused.",
+      "technical": "judgeCommit returns null with no junk or key staged; judgePush asks for docs (no branch grant) and denies site (protected).",
+      "focus": [
+        "judge"
+      ],
+      "flows": [
+        "rules-app",
+        "rules-docs",
+        "rules-site"
+      ],
+      "ms": 4800
+    },
+    {
+      "id": "strictest",
+      "title": "The strictest wins",
+      "plain": "One refusal outranks everything else, so the whole call is stopped before it runs.",
+      "technical": "RANK = { allow: 1, ask: 2, deny: 3 }; the highest becomes permissionDecision: deny.",
+      "focus": [
+        "verdict"
+      ],
+      "flows": [
+        "decide"
+      ],
+      "ms": 3600
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "quantities": [
+    {
+      "id": "strictness",
+      "label": "Strictest so far",
+      "of": "verdict",
+      "unit": "rank",
+      "max": 3,
+      "start": 0,
+      "values": {
+        "judge": 3
+      }
+    }
+  ],
+  "data": {
+    "commands": [
+      {
+        "id": "c1",
+        "label": "git commit -m \"then git push\"",
+        "of": "app",
+        "at": "split",
+        "verb": "commit",
+        "decision": "none"
+      },
+      {
+        "id": "c2",
+        "label": "git -C ../docs push",
+        "of": "docs",
+        "at": "split",
+        "verb": "push",
+        "decision": "ask"
+      },
+      {
+        "id": "c3",
+        "label": "cd ../site",
+        "of": "folder",
+        "at": "split",
+        "verb": "cd",
+        "decision": "not judged"
+      },
+      {
+        "id": "c4",
+        "label": "git push",
+        "of": "site",
+        "at": "split",
+        "verb": "push",
+        "decision": "deny"
+      }
+    ]
+  },
+  "hero": {
+    "beat": "strictest",
+    "at": 0.6
+  }
+}

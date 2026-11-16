@@ -8,7 +8,10 @@ import { before, test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agent-works");
+/** The plugin, which holds the launchers and the manifest, and the area of it the command line is in. */
+const ROOT = path.join(REPO, "plugins", "agentcraft");
+const AREA = path.join("skills", "agent-works");
+const PLUGIN = path.join(ROOT, AREA);
 const real = (p) => fs.realpathSync.native(p);
 
 /** A command module that prints what it was given as one JSON line and exits with its `--exit` (0 without one). */
@@ -43,15 +46,19 @@ const UNAVAILABLE = ["setup", "doctor", "twins", "decisions", "dup", "lease, lea
 const EVERY_COMMAND = ["setup", "doctor", "status", "hubs", "twins", "memory", "decisions", "links", "dup", "board", "kanban", "lock", "lease", "leases",
   "sys", "note", "notes", "claim", "claims", "learn", "who", "agent"];
 
+let root;
 let plugin;
 let aw;
 let common;
 
 before(async (t) => {
-  plugin = real(tempDir(t, "aw-dispatch-"));
-  for (const f of ["lib/common.mjs", "lib/config.mjs", "scripts/aw.mjs", "bin/aw", "bin/aw.cmd"]) write(plugin, f, fs.readFileSync(path.join(PLUGIN, f)));
-  fs.chmodSync(path.join(plugin, "bin", "aw"), 0o755);
-  write(plugin, ".claude-plugin/plugin.json", '{ "name": "agent-works", "version": "9.8.7" }\n');
+  // A copy of the plugin's shape: bin/ and the manifest at its root, the area two folders down.
+  root = real(tempDir(t, "aw-dispatch-"));
+  plugin = path.join(root, AREA);
+  for (const f of ["lib/common.mjs", "lib/config.mjs", "scripts/aw.mjs"]) write(plugin, f, fs.readFileSync(path.join(PLUGIN, f)));
+  for (const f of ["bin/aw", "bin/aw.cmd"]) write(root, f, fs.readFileSync(path.join(ROOT, f)));
+  fs.chmodSync(path.join(root, "bin", "aw"), 0o755);
+  write(root, ".claude-plugin/plugin.json", '{ "name": "agentcraft", "version": "9.8.7" }\n');
   for (const [file, text] of Object.entries(STUBS)) write(plugin, file, text);
   aw = await import(pathToFileURL(path.join(plugin, "scripts", "aw.mjs")).href);
   common = await import(pathToFileURL(path.join(plugin, "lib", "common.mjs")).href);
@@ -103,7 +110,7 @@ test("agent-works aw: --version prints the plugin's version", async () => {
   assert.deepEqual(await call(["--version"]), [0, "aw 9.8.7\n", ""]);
   assert.deepEqual(await call(["--version", "hubs"]), [0, "aw 9.8.7\n", ""]);
   const own = runNode(path.join(PLUGIN, "scripts", "aw.mjs"), ["--version"]);
-  const version = JSON.parse(fs.readFileSync(path.join(PLUGIN, ".claude-plugin", "plugin.json"), "utf8")).version;
+  const version = JSON.parse(fs.readFileSync(path.join(ROOT, ".claude-plugin", "plugin.json"), "utf8")).version;
   assert.deepEqual([own.status, own.stdout, own.stderr], [0, `aw ${version}\n`, ""]);
 });
 
@@ -228,7 +235,7 @@ test("agent-works aw: a command module run by itself is the same command", () =>
 });
 
 test("agent-works aw: the launcher in bin/ is the same command line", () => {
-  const launcher = path.join(plugin, "bin", "aw");
+  const launcher = path.join(root, "bin", "aw");
   const viaNode = runNode(launcher, ["kanban", "list", "--exit", "1"], { cwd: plugin });
   assert.deepEqual([viaNode.status, viaNode.stderr, JSON.parse(viaNode.stdout).command], [1, "", "kanban"]);
   assert.equal(runNode(launcher, ["--version"], { cwd: plugin }).stdout, "aw 9.8.7\n");
@@ -238,26 +245,26 @@ test("agent-works aw: the launcher in bin/ is the same command line", () => {
 test("agent-works aw: bin/aw runs by its own name", { skip: process.platform === "win32" && "a script has no interpreter line there: aw.cmd is the launcher" }, () => {
   // The launcher's `env node` finds the Node that runs this test.
   const env = { ...process.env, PATH: `${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH ?? ""}` };
-  const r = spawnSync(path.join(plugin, "bin", "aw"), ["note", "hello", "--exit", "2"], { cwd: plugin, env, encoding: "utf8" });
+  const r = spawnSync(path.join(root, "bin", "aw"), ["note", "hello", "--exit", "2"], { cwd: plugin, env, encoding: "utf8" });
   assert.deepEqual([r.status, r.stderr, JSON.parse(r.stdout).argv], [2, "", ["hello", "--exit", "2"]]);
 });
 
 test("agent-works aw: aw.cmd runs the command line under cmd", { skip: process.platform !== "win32" && "cmd is the Windows shell" }, () => {
   const env = { ...process.env, PATH: `${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH ?? process.env.Path ?? ""}` };
-  const r = spawnSync(`"${path.join(plugin, "bin", "aw.cmd")}" hubs --json --exit 2`, { shell: true, cwd: plugin, env, encoding: "utf8" });
+  const r = spawnSync(`"${path.join(root, "bin", "aw.cmd")}" hubs --json --exit 2`, { shell: true, cwd: plugin, env, encoding: "utf8" });
   assert.deepEqual([r.status, JSON.parse(r.stdout).argv], [2, ["--json", "--exit", "2"]]);
 });
 
 test("agent-works aw: the launchers that ship", () => {
-  const sh = fs.readFileSync(path.join(PLUGIN, "bin", "aw"), "utf8");
-  const cmd = fs.readFileSync(path.join(PLUGIN, "bin", "aw.cmd"), "utf8");
+  const sh = fs.readFileSync(path.join(ROOT, "bin", "aw"), "utf8");
+  const cmd = fs.readFileSync(path.join(ROOT, "bin", "aw.cmd"), "utf8");
   assert.ok(sh.startsWith("#!/usr/bin/env node\n"));
-  assert.match(sh, /\.\.\/scripts\/aw\.mjs/);
-  assert.match(cmd, /^node "%~dp0\.\.\\scripts\\aw\.mjs" %\*$/m);
+  assert.match(sh, /import\("\.\.\/skills\/agent-works\/scripts\/aw\.mjs"\)/);
+  assert.match(cmd, /^node "%~dp0\.\.\\skills\\agent-works\\scripts\\aw\.mjs" %\*$/m);
   assert.match(cmd, /no Node\.js on the PATH/);
   assert.match(cmd, /exit \/b 127/);
   for (const text of [sh, cmd]) assert.doesNotMatch(text, /\r/);
-  if (process.platform !== "win32") assert.ok(fs.statSync(path.join(PLUGIN, "bin", "aw")).mode & 0o111, "bin/aw is executable");
+  if (process.platform !== "win32") assert.ok(fs.statSync(path.join(ROOT, "bin", "aw")).mode & 0o111, "bin/aw is executable");
   assert.ok(fs.readFileSync(path.join(PLUGIN, "scripts", "aw.mjs"), "utf8").startsWith("#!/usr/bin/env node\n"));
 });
 

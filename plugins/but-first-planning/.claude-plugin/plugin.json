@@ -2,11 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "but-first-planning",
   "displayName": "But First, Planning",
-  "version": "5.0.0",
-  "description": "Spec, plan, build, as files: author a spec as a browsable docs site, grill and pressure-test it, decompose it into an epic to issue backlog with acceptance criteria, publish it to GitHub or GitLab, and build it issue by issue behind one deterministic status script. Everything lands in .agents/plan/.",
+  "version": "6.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the but-first-planning area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:but-first-planning <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["planning", "spec", "architecture", "backlog", "tdd", "workflow", "github", "gitlab"]
+  "dependencies": [
+    "agentcraft"
+  ]
 }

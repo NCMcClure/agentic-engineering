@@ -31,12 +31,21 @@ const FORCE = flag("--force");
 const UNINSTALL = flag("--uninstall");
 
 // An external entry has no tree here to copy, so only the ./plugins/ entries
-// install from a checkout.
-const all = CATALOG.plugins.filter((p) => typeof p.source === "string").map((p) => p.name);
+// install from a checkout. A stub is what is left of a plugin that moved into
+// another: a manifest that depends on it, for a host that resolves
+// dependencies. This installer copies trees, so it installs the plugin a stub
+// points at and never the stub, and it retires what an earlier run left under
+// a stub's name: that copy is the old plugin whole, and beside the new one
+// every hook would run twice.
+const local = CATALOG.plugins.filter((p) => typeof p.source === "string").map((p) => p.name);
+const dependsOn = (plugin) => [].concat(readJson(path.join(REPO, "plugins", plugin, ".claude-plugin", "plugin.json")).dependencies ?? []);
+const stubs = local.filter((p) => dependsOn(p).some((d) => d !== p && local.includes(d)));
+const all = local.filter((p) => !stubs.includes(p));
 const wanted = value("--plugins")?.split(",").map((s) => s.trim()).filter(Boolean) ?? all;
 const unknown = wanted.filter((p) => !all.includes(p));
 if (unknown.length) {
-  console.error(`not in this checkout: ${unknown.join(", ")}; it ships ${all.join(", ")}`);
+  const moved = unknown.filter((p) => stubs.includes(p));
+  console.error(`not in this checkout: ${unknown.join(", ")}; it ships ${all.join(", ")}${moved.length ? ` (${moved.join(", ")} moved into ${[...new Set(moved.flatMap(dependsOn))].join(", ")})` : ""}`);
   process.exitCode = 2;
 }
 
@@ -93,6 +102,40 @@ const FILES = {
 const cacheOf = (plugin) => path.join(plugins, "cache", NAME, plugin);
 /** The user-scope install only: a project's own install of the same plugin is not ours to touch. */
 const others = (data, key) => (data.plugins?.[key] ?? []).filter((e) => e.scope !== "user");
+
+/**
+ * Drop what an earlier run of this installer, or the host, left under each
+ * stub's name: the cached copy, the user-scope install record, the enable
+ * flag. Only for a name that has a directory under this marketplace's cache;
+ * a name with none is not touched, so an enable flag set by hand stays. The
+ * old plugin's data directory is left where it is: an area that inherits
+ * state copies it from there.
+ */
+function retire(list) {
+  const left = list.filter((p) => exists(cacheOf(p)));
+  if (!left.length) return;
+  const installed = exists(FILES.installed) ? readJson(FILES.installed) : {};
+  for (const plugin of left) {
+    // A version another scope's install still points at stays on disk.
+    const kept = new Set(others(installed, `${plugin}@${NAME}`).map((e) => e.installPath));
+    const root = cacheOf(plugin);
+    for (const version of fs.readdirSync(root)) if (!kept.has(path.join(root, version))) removeTree(path.join(root, version));
+    if (!DRY && exists(root) && !fs.readdirSync(root).length) fs.rmdirSync(root);
+  }
+  editJson(FILES.installed, { version: 2, plugins: {} }, (data) => {
+    for (const plugin of left) {
+      const key = `${plugin}@${NAME}`;
+      const rest = others(data, key);
+      if (rest.length) data.plugins[key] = rest;
+      else delete (data.plugins ?? {})[key];
+    }
+    return `dropped the user-scope install of ${left.join(", ")}, which moved into ${all.join(", ")}`;
+  });
+  editJson(FILES.settings, {}, (data) => {
+    for (const plugin of left) delete (data.enabledPlugins ?? {})[`${plugin}@${NAME}`];
+    return `dropped enabledPlugins for ${left.join(", ")}`;
+  });
+}
 
 function install(list) {
   const now = new Date().toISOString();
@@ -190,6 +233,8 @@ function uninstall(list) {
 if (!process.exitCode) {
   console.log(`${UNINSTALL ? "uninstalling" : "installing"} ${wanted.join(", ")}${DRY ? " (dry run)" : ""}`);
   try {
+    // Before either direction: an earlier copy under a stub's name.
+    retire(stubs);
     if (UNINSTALL) uninstall(wanted);
     else install(wanted);
   } catch (e) {

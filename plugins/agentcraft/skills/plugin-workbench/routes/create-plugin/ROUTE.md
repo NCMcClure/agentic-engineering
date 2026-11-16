@@ -1,0 +1,176 @@
+---
+name: create-plugin
+description: "Author a new plugin end to end: interview for intent, choose its shape (a skill per job, or areas with routes and one skill a person types), scaffold the layout with a script, write the skills against the evaluation rubric, then score and fix until the verdict is adopt. Use when someone wants to make a plugin, turn existing skills or scripts into one, or asks what a good plugin needs."
+argument-hint: "<plugin idea | existing dir to wrap> [--dir <parent>] [--bar <composite>]"
+---
+
+# create-plugin
+
+`W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
+Author one new plugin, then prove it: the same rubric that scores plugins is
+the spec you write against, and the same scanner that grades them is the
+referee that says you're done. Core dir below means
+`W/core`; this route's dir means
+`W/routes/create-plugin`.
+
+**Safety rule:** never scaffold into a directory that already contains a
+plugin unless the user explicitly confirms overwriting; the scaffolder
+refuses authored files without `--force`, and you don't pass `--force`
+without that confirmation.
+
+## Step 1: Interview
+
+Collect the spec, in one round of questions where possible:
+
+1. **The problem, in one sentence.** This becomes the plugin's pitch. If it
+   can't be said in a sentence, the plugin isn't scoped yet.
+2. **The distinct jobs** the user wants done. One per genuinely distinct
+   job; every extra one is context the user pays for.
+3. **The shape.** Group the jobs into bodies of work: jobs that share a
+   subject and usually a script. Read `W/core/references/shapes.md` before
+   you propose one.
+   - **Plain**, the default: one body of work and about eight jobs or fewer.
+     Each job is a skill.
+   - **Areas**: two or more bodies of work, or more than about eight jobs.
+     Each body of work is one skill agents call, each job a route it reads,
+     and one entry skill is what a person types. Offer it and say what it
+     costs (a route is named only where the plugin names it); never choose it
+     for reach, which it does not buy.
+4. **Per job: who starts it?** Three answers, and the scaffolder writes each:
+   - *the model, from conversation*: a listed skill (`mode: "model"`), or a
+     route. Its description must say *when*.
+   - *agents only, never typed*: `mode: "callable"`
+     (`user-invocable: false`). Every area is this.
+   - *a person only*: in a plain plugin a hidden skill (`mode: "user"`,
+     `disable-model-invocation: true`), and only when nothing else in the
+     plugin sends an agent to it: the host refuses a call on a hidden skill
+     and tells the model to stop. In a plugin of areas it is a route with
+     `"starts": "person"`, which cannot be refused.
+5. **Components:** map what the user described onto scripts, assets,
+   hooks, and workflows with `references/authoring-notes.md`'s
+   interview-to-design table. Read it rather than re-deriving the mapping.
+6. **Distribution target:** personal use, the user's own marketplace, or a
+   marketplace repo they name. This decides Step 5's branch.
+
+Wrapping an existing directory: read it first, then propose the mapping
+(which files become which skills/scripts) instead of asking abstract
+questions about content that already exists.
+
+Write the confirmed spec as `spec.json` per the shape documented at the top
+of `scripts/plugin-scaffold.mjs`.
+
+*Done when: the user has confirmed a spec: name, pitch, author, the shape,
+its skills or its areas with their routes and who starts each, components,
+target directory.*
+
+## Step 2: Scaffold
+
+```bash
+node "W/routes/create-plugin/scripts/plugin-scaffold.mjs" <target-dir> --spec <spec.json>
+```
+
+The script validates the spec (name == dir basename, semver, slug rules),
+fills the bundled stubs, refuses to overwrite authored files, and prints the
+created tree as JSON. What it writes already meets a marketplace's
+structural gate: a manifest, a README with no changelog in it, a
+`CHANGELOG.md` whose top entry is the manifest version, SKILL.md frontmatter
+of four keys at most, and a Node script stub. For areas it also writes what
+the area checks hold a plugin to: each area callable and out of the slash
+menu, its description listing routes as `<route> (<cue>)`, its body with the
+route table and the line about a compaction, each `ROUTE.md` naming its
+directory from its own file, and the entry skill with every area in its
+table. Don't hand-write boilerplate the scaffolder emits.
+
+*Done when: the script exits 0 and every skill, area, and route has its
+stub.*
+
+## Step 3: Author
+
+The rubric is the spec. Before writing each SKILL.md, read the core rubric's
+SQ, CS, and CF sections in full (`core/references/rubric.md`); before
+writing any workflow, its WQ section; before adding a hook, CS7.
+For a plugin of areas, also SQ9 and AN6 in
+`W/core/references/mechanical-checks.md`: an area's opening is short because
+it is appended on every call, and a route never writes the plugin-root
+variable: it names its directory from its own file.
+`references/authoring-notes.md` covers only what the rubric doesn't: the
+interview-to-design mapping, stub conventions, and the authoring order.
+Follow its order, and replace every `TODO(author)` marker; the scaffolder
+treats a file without markers as authored and protects it.
+
+*Done when: no `TODO(author)` marker remains in the target tree.*
+
+## Step 4: Self-eval loop
+
+Score what you built, with the same tools the evaluate-plugin route uses:
+
+1. `node "W/core/scripts/plugin-scan.mjs" <target-dir> > scan.json`
+2. Grade every applicable judgment check per the grading contract at the end
+   of `core/references/rubric.md`, evidence quotes and all.
+3. `plugin-scan.mjs <target-dir> --score grades.json > score.json`. The
+   script owns the arithmetic.
+4. Below the bar? score.json's `fix_deltas` ranks every improvable check by
+   the composite gain of fixing it. Apply the biggest, re-scan, re-grade
+   only touched checks, re-score.
+
+**Bar: verdict `adopt`, zero gates, zero critical findings**, or the
+`--bar` composite the user set. The score is what the plugin should cost,
+from its files. Whether an agent reaches a skill or a route is not in it:
+say so in your report, and see `W/core/references/measuring.md` for what
+would measure it. Spend at most 3 fix rounds, then report the
+residual findings honestly instead of grinding.
+
+*Done when: the bar is met, or 3 rounds are spent and residuals are listed
+in chat.*
+
+## Step 5: Ship (by distribution target)
+
+- **Personal use:** run `claude plugin validate <target-dir>`, then give the
+  user the two local-install commands (`/plugin marketplace add <dir-parent>`
+  works with local paths).
+- **A marketplace repo:** add the catalog entry (name, source, one-sentence
+  pitch, category, and **no version field**: the plugin.json version is the
+  only version), a root-README section if the repo has one, then run that
+  repo's validation before handing off. Later releases bump `plugin.json`
+  and add one line on top of the plugin's `CHANGELOG.md`.
+
+*Done when: validation passes for the chosen target and the user knows how
+to install.*
+
+## Autonomous mode
+
+For multi-skill plugins where inline authoring would grind, run the bundled
+workflow after Step 1. The interview stays with you; the workflow takes the
+confirmed spec.
+
+```
+Workflow({
+  scriptPath: "W/routes/create-plugin/workflows/create.js",
+  args: {
+    spec: <the confirmed spec object from Step 1>,
+    targetDir: "<absolute plugin dir to create>",
+    coreDir: "W/core",
+    createSkillDir: "W/routes/create-plugin",
+    outDir: "<absolute dir for scan/grades/score artifacts>",
+    dateToday: "<YYYY-MM-DD, run date +%F yourself>",
+    bar: 85,
+    context: "<optional notes for the authors>"
+  }
+})
+```
+
+It blueprints a brief per skill, area, and entry skill, scaffolds
+deterministically, fans out one author for each (an area's author writes its
+opening and every route under it), then loops scan → rubric reviewers →
+score → targeted fixers until the bar or round limit. Its internal grades steer fixes only.
+For a scorecard worth publishing, offer the person the autonomous mode of
+`/agentcraft:plugin-workbench evaluate-plugin`, which is theirs to start: an independent
+audit, not the author grading itself.
+
+**Where there is no Workflow tool:** run the same phases with parallel
+subagents instead. The contract is in
+[../../core/references/subagent-fallback.md](../../core/references/subagent-fallback.md):
+phases stay sequential barriers, fan out only where the workflow calls
+`parallel()`, the parent owns every shared file, and the score still comes
+from `plugin-scan.mjs --score` rather than from prose.

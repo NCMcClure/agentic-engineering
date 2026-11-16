@@ -8,7 +8,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { REPO } from "./helpers.mjs";
 
-export const PLUGIN = path.join(REPO, "plugins", "agent-works");
+export const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 const load = (rel) => import(pathToFileURL(path.join(PLUGIN, rel)).href);
 
 export const common = await load("lib/common.mjs");

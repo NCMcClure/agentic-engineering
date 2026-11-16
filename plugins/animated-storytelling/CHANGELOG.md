@@ -1,7 +1,3 @@
 # Changelog
 
-- **1.0.0**: Node 22, no Python. The contrast checker is now `scripts/contrast-check.mjs`, run with `node`: same arguments, same output, same exit codes. `contrast_check.py` is gone, and with it the `python`/`python3` footnote.
-- **0.1.3**: the contrast-checker examples note the `python` fallback for machines without `python3`.
-- **0.1.2**: README reworded.
-- **0.1.1**: enter recipe and reduced-motion implementation single-sourced (jakub-krehel.md / accessibility.md own them; other files point); bundled contrast_check.py so the audit's WCAG arithmetic is scripted; skill description trimmed (~324 → ~127 est passive tokens); Motion version pinned only in motion-api/overview.md; README install section added.
-- **0.1.0**: Promoted to a plugin; added the visual-design pillar.
+- **2.0.0**: Moved into `agentcraft`, as its `picture-this` area. The plugin was renamed picture-this before the move. This plugin is now a stub that depends on `agentcraft` and ships nothing of its own: updating it installs and enables that plugin (Claude Code 2.1.321 or later). Install `agentcraft` by name too, so it stays when the stubs are removed. The area's history up to the move is its own `CHANGELOG.md` in `agentcraft`, under `skills/picture-this/`.

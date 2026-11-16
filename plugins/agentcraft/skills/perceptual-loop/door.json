@@ -1,0 +1,31 @@
+{
+  "lead": "Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound.",
+  "default": "define-success",
+  "routes": {
+    "define-success": {
+      "cue": "about to start, or nothing says what will prove it"
+    },
+    "iterate-shots": {
+      "cue": "a change is being made and checked: a few proving shots"
+    },
+    "judge-and-queue": {
+      "cue": "a difference needs a verdict, or taste waits for the owner"
+    },
+    "probe-the-source": {
+      "cue": "a colour, shape, or timing differs and the cause is unknown"
+    },
+    "calibrate-gate": {
+      "cue": "a gate fails on something untouched, or numbers wobble"
+    },
+    "check-motion": {
+      "cue": "what a still cannot show: animation, smoothness, a clip"
+    },
+    "check-audio": {
+      "cue": "sound is produced or changed, or must stay in sync"
+    },
+    "shot-harness": {
+      "cue": "no .agents/perceptual/ folder, or no shot renders on command",
+      "starts": "person"
+    }
+  }
+}

@@ -98,7 +98,7 @@ test("agent-works lock: a silent waiter is passed over but stays listed", async 
 test("agent-works lock: run passes the exit code through, sets the agent variable, and always releases", (t) => {
   const w = world(t, CONFIG);
   const run = (...command) => lock(w, ["run", "sim", "--as", "runner", "--for", "a run", "--wait", "0", "--", ...command]);
-  const failing = run(NODE, "-e", "console.log('agent=' + process.env.AW_AGENT); process.exit(7)");
+  const failing = run(NODE, "-e", "console.log('agent=' + process.env.AW_AGENT); process.exitCode = 7");
   assert.equal(failing.status, 7, failing.stderr);
   assert.match(failing.stdout, /agent=runner/);
   assert.match(failing.stderr, /^sim: held by runner; limit 30 min\nsim: released by runner \(exit 7\)\n$/);

@@ -7,8 +7,8 @@
 // always proposes the same set.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boardConfig } from "../../../plugins/agent-works/lib/board.mjs";
-import { conflictConfig, locksFor, propose } from "../../../plugins/agent-works/lib/conflicts.mjs";
+import { boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { conflictConfig, locksFor, propose } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
 
 // The rules as a repo's .agents/agent-works.json holds them: the conflict rules under kanban.conflicts, the locks beside them.
 const conflicts = ({ rederived, merge, shared, resources, lockOrder } = {}) => conflictConfig({ kanban: { conflicts: { rederived, merge, shared } }, resources, lockOrder });
@@ -25,7 +25,7 @@ const held = (p) => Object.fromEntries(p.held.map((c) => [c.id, c.reasons.join("
 
 const REPO_CONFIG = conflicts({
   rederived: [
-    { path: "plugins/agentic-teamwork/skills/marketplace-guide/SKILL.md", command: "node scripts/gen-guide.mjs --write" },
+    { path: "plugins/agentcraft/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", command: "node scripts/gen-guide.mjs --write" },
     { path: "diagrams/system-map.json", command: "node .agents/scripts/system-map.mjs --write" },
   ],
   merge: [".claude-plugin/marketplace.json", "plugins/AGENTS.md", "README.md"],
@@ -70,8 +70,8 @@ test("cards in flight hold their files and their slots", () => {
 
 test("a regenerated file is ignored and a merge file only warns", () => {
   const b = board([
-    card("0001", { files: ["plugins/agentic-teamwork/skills/marketplace-guide/SKILL.md", "README.md", "plugins/a/lib/x.mjs"] }),
-    card("0002", { files: ["plugins/agentic-teamwork/skills/marketplace-guide/SKILL.md", "README.md", "plugins/b/lib/y.mjs"] }),
+    card("0001", { files: ["plugins/agentcraft/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/a/lib/x.mjs"] }),
+    card("0002", { files: ["plugins/agentcraft/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/b/lib/y.mjs"] }),
   ]);
   const p = propose(b, { config: REPO_CONFIG });
   assert.deepEqual(ran(p), ["0001", "0002"]);
@@ -88,13 +88,13 @@ test("a broad path that only meets another card on a merge file warns rather tha
 
 test("a shared path always holds: two cards in one plugin both bump its version line", () => {
   const b = board([
-    card("0001", { files: ["plugins/agent-works/hooks/kanban/"] }),
-    card("0002", { files: ["plugins/agent-works/lib/conflicts.mjs"] }),
-    card("0003", { files: ["plugins/perceptual-loop/lib/motion.mjs"] }),
+    card("0001", { files: ["plugins/boards/hooks/kanban/"] }),
+    card("0002", { files: ["plugins/boards/lib/conflicts.mjs"] }),
+    card("0003", { files: ["plugins/shots/lib/motion.mjs"] }),
   ]);
   const p = propose(b, { config: REPO_CONFIG, max: 3 });
   assert.deepEqual(ran(p), ["0001", "0003"]);
-  assert.match(held(p)["0002"], /meets 0001 \(proposed\) on plugins\/agent-works\/\.claude-plugin\/plugin\.json, plugins\/agent-works\/README\.md/);
+  assert.match(held(p)["0002"], /meets 0001 \(proposed\) on plugins\/boards\/\.claude-plugin\/plugin\.json, plugins\/boards\/README\.md/);
 });
 
 test("a shared path holds even where a merge entry would only warn", () => {

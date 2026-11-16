@@ -1,8 +1,0 @@
-{
-  "critical": {
-    "cap": 500
-  },
-  "shared": [
-    "hooks/critical-context.mjs"
-  ]
-}

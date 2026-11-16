@@ -1,0 +1,22 @@
+{
+  "lead": "Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code.",
+  "default": "docs-sync",
+  "routes": {
+    "docs-sync": {
+      "cue": "bring user docs level with a diff before it is committed"
+    },
+    "docs-audit": {
+      "cue": "are the user docs current: report only"
+    },
+    "docs-shots": {
+      "cue": "the docs screenshot harness: add, retake, repair a shot"
+    },
+    "readme": {
+      "cue": "write or cut down a README"
+    },
+    "docs-init": {
+      "cue": "adopt the user-docs checks in a repo",
+      "starts": "person"
+    }
+  }
+}

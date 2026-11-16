@@ -8,7 +8,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { REPO, tempDir } from "./helpers.mjs";
 
-export const PLUGIN = path.join(REPO, "plugins", "agent-works");
+export const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
 export const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 export const NODE = process.execPath;
 /** Import a module of the plugin by its path under the plugin folder. */

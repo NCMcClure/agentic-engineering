@@ -9,11 +9,11 @@ import path from "node:path";
 import test from "node:test";
 import { PL, runNode, squareFrame, tempDir } from "./perceptual-loop-fixtures.mjs";
 
-import { decodePng, encodePng } from "../../../plugins/perceptual-loop/scripts/lib/png.mjs";
-import { resize } from "../../../plugins/perceptual-loop/scripts/lib/image.mjs";
-import { boxSsimPsnr, PSNR_CAP } from "../../../plugins/perceptual-loop/scripts/lib/metrics.mjs";
-import * as seqLib from "../../../plugins/perceptual-loop/scripts/lib/sequence.mjs";
-import { rawFrames, selectFilter } from "../../../plugins/perceptual-loop/scripts/lib/ffmpeg.mjs";
+import { decodePng, encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import { resize } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/image.mjs";
+import { boxSsimPsnr, PSNR_CAP } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/metrics.mjs";
+import * as seqLib from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/sequence.mjs";
+import { rawFrames, selectFilter } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/ffmpeg.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 const ENV = { PL_DIR: "", PL_SHOTS_DIR: "", PL_FFMPEG: "", PL_FFPROBE: "" };
 

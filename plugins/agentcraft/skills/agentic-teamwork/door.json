@@ -1,0 +1,26 @@
+{
+  "lead": "Use for the team's git conventions: setting a repo up or auditing it, writing tests across the lanes, and taking finished work to an open pull or merge request and then to merged.",
+  "default": "tdd",
+  "routes": {
+    "tdd": {
+      "cue": "tests: red, green, refactor, across the repo's lanes"
+    },
+    "ship": {
+      "cue": "commit, push, open the pull or merge request"
+    },
+    "land": {
+      "cue": "merge a reviewed request once its checks are green"
+    },
+    "audit-project": {
+      "cue": "check this repo against the conventions, repair drift"
+    },
+    "bootstrap": {
+      "cue": "put a new repo on the conventions before code is written",
+      "starts": "person"
+    },
+    "init-project": {
+      "cue": "scaffold a repo from a template, or upgrade one in place",
+      "starts": "person"
+    }
+  }
+}

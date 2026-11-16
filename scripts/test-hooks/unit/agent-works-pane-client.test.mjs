@@ -5,8 +5,8 @@
 // module and carried out by the real board CLI.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CARD_ROWS, LANE_HEAD, MIN_LANE, cardAt, find as place, fits, keyIntent, keyStep, laneAt, layout, pointerStep, slotAt, walk } from "../../../plugins/agent-works/hooks/kanban/layout.mjs";
-import { DISPATCH, board, boardOf, find, lines, mount, need, repo, walk as walkTree, words } from "./agent-works-pane-host.mjs";
+import { CARD_ROWS, LANE_HEAD, MIN_LANE, cardAt, find as place, fits, keyIntent, keyStep, laneAt, layout, pointerStep, slotAt, walk } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/layout.mjs";
+import { AREA, board, boardOf, find, lines, mount, need, repo, walk as walkTree, words } from "./agent-works-pane-host.mjs";
 
 const lane = (id, role, ...cards) => ({ id, title: id, role, cards: cards.map((c) => ({ id: c })) });
 // Five lanes of 20 cells in a 100-cell region: suggested holds one card, backlog three, review and done one each.
@@ -200,7 +200,7 @@ test("a ready card dropped on the start lane asks for the dispatch and stays put
   await m.tick();
   const c = await m.client(await draw());
   await c.drag(cell(0, 0), cell(1, 0));
-  assert.deepEqual(m.seen.commandRuns, [{ command: DISPATCH, args: "0001" }]);
+  assert.deepEqual(m.seen.commandRuns, [{ command: AREA, args: "dispatch 0001" }]);
   assert.deepEqual(lanes()["in-progress"], [], "the dispatch moves it once its session has it");
   await c.drag(cell(0, 1), cell(1, 0));
   assert.equal(m.seen.commandRuns.length, 1);
@@ -248,7 +248,7 @@ test("keys on the board: walk, open, move a lane over, nudge, start, and the pan
   await c.key("h");
   assert.equal(c.state.selected, "0001", "left, to the same slot of the nearest lane with cards");
   await c.key("s");
-  assert.deepEqual(m.seen.commandRuns.map((x) => x.args), ["0001"], "s starts the selected card");
+  assert.deepEqual(m.seen.commandRuns.map((x) => x.args), ["dispatch 0001"], "s starts the selected card");
   await c.key("return");
   assert.match(words(await draw()), /^One 0001$/m, "Enter opens it");
   await m.press(await draw(), "back");

@@ -2,11 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "perceptual-loop",
   "displayName": "Perceptual Loop",
-  "version": "1.0.0",
-  "description": "An agent can't iterate on what it can't measure: perceptual-loop turns image, video and audio work into reproducible shots, numbers that gate a candidate against its own accepted run, sheets the agent and you can look at, a blind critic, a render budget, and one review page for the judgements only a person should make, in Node with ffmpeg as the one external tool.",
+  "version": "2.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the perceptual-loop area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:perceptual-loop <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["perceptual-loop", "vision", "visual-regression", "image-metrics", "video", "audio", "iteration", "review", "evals"]
+  "dependencies": [
+    "agentcraft"
+  ]
 }

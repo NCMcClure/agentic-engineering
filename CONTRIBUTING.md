@@ -16,16 +16,24 @@ macOS and Windows under Node 22 and 24.
 
 ## The dev loop
 
-Edit a plugin in this checkout, then:
+Everything that ships is in `plugins/agentcraft/`. Edit it in this checkout,
+then:
 
 ```bash
-node scripts/refresh.mjs                               # validate, then install every plugin for your user
-node scripts/refresh.mjs -- --plugins agentic-teamwork # or just one
-node scripts/install.mjs --dry-run                     # print every write, touch nothing
+node scripts/refresh.mjs             # validate, then install agentcraft for your user
+node scripts/install.mjs --dry-run   # print every write, touch nothing
 ```
 
 `refresh.mjs` installs nothing on a red gate. Claude Code loads plugins at
 session start, so start a new session to see the change.
+
+The installer copies `agentcraft` and never a stub: a stub is a manifest for a
+host that resolves dependencies, and this one copies trees. If an earlier run
+left one of the old plugins installed under a stub's name, the installer
+retires that copy first (its cache folder, its install record, its enable
+flag), so no hook runs twice. It leaves the old plugin's data folder where it
+is. `--plugins <name>` still takes a list, and a stub's name there is refused
+with where it moved.
 
 If you already installed this marketplace from GitHub, the installer stops and
 says so: Claude Code allows one source per marketplace name. `--force` repoints
@@ -35,51 +43,63 @@ the name at your checkout and parks the old entry; `--uninstall` puts it back.
 node scripts/install.mjs --uninstall
 ```
 
-## The plugin guide
+## What is generated
 
-`docs/plugins.md` is generated. After a version bump, a new skill, or a
-reworded description:
+Three things are written from the tree and never by hand:
+
+- `docs/plugins.md`, the guide.
+- Each area's `SKILL.md` frontmatter and `## Route` table, from the
+  `door.json` beside it and each route's own frontmatter.
+- The areas section of the entry skill, from `start-here.json`.
+
+After a version bump, a new or renamed route, or a reworded description or cue:
 
 ```bash
 npm run guide
 ```
 
-The gate fails a stale copy.
+The gate fails a stale copy of any of them.
 
-## Shared files
+## One copy of a shared file
 
-A file under `scripts/shared/` ships inside every plugin that lists it. Edit it
-there, never in a plugin, then rewrite the copies:
+What several areas use lives once, in `plugins/agentcraft/lib/`, and each area
+imports it from there. There is nothing to sync.
 
-```bash
-npm run sync-shared
-```
-
-The gate fails a copy that has drifted. Bump every plugin whose copy changed.
+One file is still held as a copy, because a user's repo gets it:
+`skills/but-first-planning/routes/spec-init/assets/provider.mjs` has to equal
+`lib/provider.mjs`. Edit the one in `lib/`, copy it over, and the gate fails a
+copy that has drifted.
 
 ## When a change alters what an agent sees
 
-A hook, a skill description, a rule a hook injects: run the live lane. It
-starts real sessions against this checkout's plugins and reports, per plugin,
-what reached the model. It costs a few cents and never runs in CI.
+A hook, an area's description, a route's cue, a rule a hook injects: run the
+live lane. It starts real sessions against this checkout's plugin and reports
+what reached the model, and whether a plainly worded prompt still ends in the
+right area and route. It spends model quota and never runs in CI.
 
 ```bash
 npm run test:live
-npm run test:live -- --write-baseline   # record the new numbers in the same change
+npm run test:live -- --write-baseline          # record the new numbers in the same change
+npm run test:live -- --write-baseline=skills   # record only what each prompt reached
 ```
 
 `scripts/test-hooks/README.md` covers both lanes.
 
 ## Releasing
 
+There is one version, in `plugins/agentcraft/.claude-plugin/plugin.json`, and
+`plugins/agentcraft/CHANGELOG.md` has it as its top entry. An area has no
+version of its own: its `CHANGELOG.md` is its history as a plugin and takes no
+new line.
+
 A change is released the moment it reaches `main` with a version bump:
-`/plugin marketplace update` picks it up. Tags are the history. Cut one per
-plugin, on the commit that carries that plugin's version:
+`/plugin marketplace update` picks it up. Tags are the history, and there is
+one form, on the commit that carries the version:
 
 ```bash
-git tag agent-works/v0.3.0 main
-git push origin agent-works/v0.3.0
+git tag agentcraft/v1.0.1 main
+git push origin agentcraft/v1.0.1
 ```
 
-CI checks the tag against `plugins/<plugin>/.claude-plugin/plugin.json` and
-fails on a mismatch.
+CI checks the tag against that `plugin.json` and fails on a mismatch. A stub
+gets no tag: its version moved once, when it became a stub.

@@ -1,0 +1,732 @@
+{
+  "schema": 1,
+  "title": "How a plugin becomes one score",
+  "mechanism": "The model grades each judgment check with a quote; the script folds every grade into six weighted dimensions, one composite, and a verdict.",
+  "lens": "transformation",
+  "claim": "Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote.",
+  "implication": "Two runs that agree on the grades agree on the score, and fix_deltas, not intuition, says which fix buys the most.",
+  "entities": [
+    {
+      "id": "target",
+      "label": "Target plugin",
+      "kind": "folder",
+      "note": "read as data, never instructions",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:905"
+    },
+    {
+      "id": "scanner",
+      "label": "plugin-scan.mjs",
+      "kind": "script",
+      "note": "scan mode",
+      "hue": "blue",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:903"
+    },
+    {
+      "id": "mcheck",
+      "label": "Mechanical checks",
+      "kind": "check",
+      "note": "15, graded by code",
+      "parent": "dims",
+      "repeat": 15,
+      "hue": "blue",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:754"
+    },
+    {
+      "id": "grader",
+      "label": "Model grader",
+      "kind": "model",
+      "note": "reads against rubric.md anchors",
+      "hue": "yellow",
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:58"
+    },
+    {
+      "id": "jcheck",
+      "label": "Judgment checks",
+      "kind": "check",
+      "note": "22, each a grade and a quote",
+      "parent": "dims",
+      "repeat": 22,
+      "hue": "yellow",
+      "born": "grade",
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:62"
+    },
+    {
+      "id": "dims",
+      "label": "Six dimensions",
+      "kind": "group",
+      "note": "weights 30/15/10/15/20/10",
+      "repeat": 6,
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:40"
+    },
+    {
+      "id": "composite",
+      "label": "Composite",
+      "kind": "number",
+      "note": "0-100, renormalized",
+      "born": "weigh",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1041"
+    },
+    {
+      "id": "verdict",
+      "label": "Verdict",
+      "kind": "tier",
+      "note": "a gate can cap it",
+      "born": "verdict",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1044"
+    },
+    {
+      "id": "fixdeltas",
+      "label": "fix_deltas",
+      "kind": "list",
+      "note": "each fix's gain, ranked",
+      "born": "rank",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:945"
+    }
+  ],
+  "flows": [
+    {
+      "id": "scan",
+      "from": "target",
+      "to": "scanner",
+      "kind": "read",
+      "label": "files",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:905"
+    },
+    {
+      "id": "mgrade",
+      "from": "scanner",
+      "to": "mcheck",
+      "kind": "write",
+      "label": "grade 0-4",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:933"
+    },
+    {
+      "id": "read",
+      "from": "target",
+      "to": "grader",
+      "kind": "read",
+      "label": "file + quote",
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:62"
+    },
+    {
+      "id": "jgrade",
+      "from": "grader",
+      "to": "jcheck",
+      "kind": "write",
+      "label": "grades.json",
+      "source": "plugins/agentcraft/skills/plugin-workbench/routes/evaluate-plugin/ROUTE.md:75"
+    },
+    {
+      "id": "foldm",
+      "from": "mcheck",
+      "to": "dims",
+      "kind": "write",
+      "label": "grade x 25, weighted",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1029"
+    },
+    {
+      "id": "foldj",
+      "from": "jcheck",
+      "to": "dims",
+      "kind": "write",
+      "label": "mean over skills",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1026"
+    },
+    {
+      "id": "weigh",
+      "from": "dims",
+      "to": "composite",
+      "kind": "write",
+      "label": "weights over applicable",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:1039"
+    },
+    {
+      "id": "tier",
+      "from": "composite",
+      "to": "verdict",
+      "kind": "write",
+      "label": "85 / 70 / 50",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:942"
+    },
+    {
+      "id": "rescore",
+      "from": "composite",
+      "to": "fixdeltas",
+      "kind": "write",
+      "label": "raise one to 4, re-score",
+      "source": "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs:967"
+    }
+  ],
+  "beats": [
+    {
+      "id": "scan",
+      "title": "Code grades what code can",
+      "plain": "A script reads the plugin and scores, from 0 to 4, every check a fixed rule can settle: links, paths, the manifest, file sizes.",
+      "technical": "runScan() walks the tree; mechanicalGrades() sets SQ7, SQ8, CS3, CS7, AN2, CF1, MH3 and the rest to 0-4.",
+      "focus": [
+        "target",
+        "scanner",
+        "mcheck"
+      ],
+      "flows": [
+        "scan",
+        "mgrade"
+      ],
+      "ms": 3800
+    },
+    {
+      "id": "grade",
+      "title": "The model grades the rest",
+      "plain": "The model scores the checks that need judgment, 0 to 4, and must back each with a file and a quote. That is all it decides.",
+      "technical": "evaluate-plugin Step 3: every applicable_judgment_check gets {check, grade, evidence} in grades.json, SQ1-SQ6 once per skill.",
+      "focus": [
+        "grader",
+        "jcheck"
+      ],
+      "flows": [
+        "read",
+        "jgrade"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "fold",
+      "title": "Grades fold into dimensions",
+      "plain": "From here on it is all the script. Each row of grades becomes one score for its area, counting heavier checks for more.",
+      "technical": "runScore(): points = grade * 25, per-skill entries averaged, then score = sum(points * weight) / sum(weight) for each dimension.",
+      "focus": [
+        "mcheck",
+        "jcheck",
+        "dims"
+      ],
+      "flows": [
+        "foldm",
+        "foldj"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "weigh",
+      "title": "Six into one",
+      "plain": "Each dimension adds its score times its weight. One that does not apply drops out, and the others scale up to fill its share.",
+      "technical": "composite = sum(score * weight) / totalW over applicable dimensions; WQ is N/A with no workflows, so totalW is 90 and SQ counts 33.3%.",
+      "focus": [
+        "dims",
+        "composite"
+      ],
+      "flows": [
+        "weigh"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "verdict",
+      "title": "The composite lands in a band",
+      "plain": "The composite lands in a band: 85 and up is adopt, 70 to 85 adopt with fixes, 50 to 70 rework, below that avoid.",
+      "technical": "tierFor(composite) against VERDICT_TIERS 85/70/50; a gate from computeGates() or a finding would then cap it via worstTier(). None is drawn here.",
+      "focus": [
+        "composite",
+        "verdict"
+      ],
+      "flows": [
+        "tier"
+      ],
+      "ms": 4200
+    },
+    {
+      "id": "rank",
+      "title": "What each fix buys",
+      "plain": "The script re-scores once for each weak check as if it scored 4, and ranks the gains. The top one is the fix to make first.",
+      "technical": "computeFixDeltas(): each check under 4 raised to 4 in a clone, runScore() again, sorted by delta; a tie keeps judgment checks first.",
+      "focus": [
+        "composite",
+        "fixdeltas"
+      ],
+      "flows": [
+        "rescore"
+      ],
+      "ms": 4400
+    },
+    {
+      "id": "rest",
+      "rest": true,
+      "focus": [],
+      "flows": [],
+      "ms": 1600
+    }
+  ],
+  "quantities": [
+    {
+      "id": "composite",
+      "label": "Composite",
+      "of": "composite",
+      "unit": "points",
+      "max": 100,
+      "start": 0,
+      "values": {
+        "weigh": 79.1
+      }
+    }
+  ],
+  "data": {
+    "checks": [
+      {
+        "id": "SQ1",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 3,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ2",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 2,
+        "grade": 4,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ3",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 2,
+        "grade": 2,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ4",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 2,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ5",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 2,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ6",
+        "dim": "SQ",
+        "kind": "j",
+        "weight": 1,
+        "grade": 4,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "SQ7",
+        "dim": "SQ",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "SQ8",
+        "dim": "SQ",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CS1",
+        "dim": "CS",
+        "kind": "j",
+        "weight": 2,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CS2",
+        "dim": "CS",
+        "kind": "j",
+        "weight": 3,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CS3",
+        "dim": "CS",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CS4",
+        "dim": "CS",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CS5",
+        "dim": "CS",
+        "kind": "j",
+        "weight": 1,
+        "grade": 2,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CS6",
+        "dim": "CS",
+        "kind": "j",
+        "weight": 2,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CS7",
+        "dim": "CS",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "WQ1",
+        "dim": "WQ",
+        "kind": "m",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "WQ2",
+        "dim": "WQ",
+        "kind": "m",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "WQ3",
+        "dim": "WQ",
+        "kind": "j",
+        "weight": 2,
+        "grade": "n/a",
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "WQ4",
+        "dim": "WQ",
+        "kind": "j",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "WQ5",
+        "dim": "WQ",
+        "kind": "j",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "WQ6",
+        "dim": "WQ",
+        "kind": "j",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "WQ7",
+        "dim": "WQ",
+        "kind": "m",
+        "weight": 1,
+        "grade": "n/a",
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "AN1",
+        "dim": "AN",
+        "kind": "j",
+        "weight": 2,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "AN2",
+        "dim": "AN",
+        "kind": "m",
+        "weight": 2,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "AN3",
+        "dim": "AN",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "AN4",
+        "dim": "AN",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "AN5",
+        "dim": "AN",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CF1",
+        "dim": "CF",
+        "kind": "m",
+        "weight": 2,
+        "grade": 2,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CF2",
+        "dim": "CF",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CF3",
+        "dim": "CF",
+        "kind": "j",
+        "weight": 2,
+        "grade": 2,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "CF4",
+        "dim": "CF",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "CF5",
+        "dim": "CF",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "MH1",
+        "dim": "MH",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "MH2",
+        "dim": "MH",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "MH3",
+        "dim": "MH",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      },
+      {
+        "id": "MH4",
+        "dim": "MH",
+        "kind": "j",
+        "weight": 1,
+        "grade": 3,
+        "of": "jcheck",
+        "at": "grade"
+      },
+      {
+        "id": "MH5",
+        "dim": "MH",
+        "kind": "m",
+        "weight": 1,
+        "grade": 4,
+        "of": "mcheck",
+        "at": "scan"
+      }
+    ],
+    "dimensions": [
+      {
+        "id": "SQ",
+        "label": "Skill quality",
+        "weight": 30,
+        "applicable": true,
+        "score": 80.4,
+        "of": "dims",
+        "at": "fold"
+      },
+      {
+        "id": "CS",
+        "label": "Component symbiosis",
+        "weight": 15,
+        "applicable": true,
+        "score": 77.3,
+        "of": "dims",
+        "at": "fold"
+      },
+      {
+        "id": "WQ",
+        "label": "Workflow quality",
+        "weight": 10,
+        "applicable": false,
+        "score": "n/a",
+        "of": "dims",
+        "at": "fold"
+      },
+      {
+        "id": "AN",
+        "label": "Architecture",
+        "weight": 15,
+        "applicable": true,
+        "score": 85.7,
+        "of": "dims",
+        "at": "fold"
+      },
+      {
+        "id": "CF",
+        "label": "Context footprint",
+        "weight": 20,
+        "applicable": true,
+        "score": 67.9,
+        "of": "dims",
+        "at": "fold"
+      },
+      {
+        "id": "MH",
+        "label": "Distribution hygiene",
+        "weight": 10,
+        "applicable": true,
+        "score": 90,
+        "of": "dims",
+        "at": "fold"
+      }
+    ],
+    "tiers": [
+      {
+        "id": "adopt",
+        "floor": 85,
+        "of": "verdict",
+        "at": "verdict"
+      },
+      {
+        "id": "adopt-with-fixes",
+        "floor": 70,
+        "of": "verdict",
+        "at": "verdict"
+      },
+      {
+        "id": "rework",
+        "floor": 50,
+        "of": "verdict",
+        "at": "verdict"
+      },
+      {
+        "id": "avoid",
+        "floor": 0,
+        "of": "verdict",
+        "at": "verdict"
+      }
+    ],
+    "fix-deltas": [
+      {
+        "id": "f1",
+        "check": "CF3",
+        "kind": "j",
+        "delta": 3.1,
+        "verdict_after": "adopt-with-fixes",
+        "of": "fixdeltas",
+        "at": "rank"
+      },
+      {
+        "id": "f2",
+        "check": "CF1",
+        "kind": "m",
+        "delta": 3.1,
+        "verdict_after": "adopt-with-fixes",
+        "of": "fixdeltas",
+        "at": "rank"
+      },
+      {
+        "id": "f3",
+        "check": "SQ3",
+        "kind": "j",
+        "delta": 2.3,
+        "verdict_after": "adopt-with-fixes",
+        "of": "fixdeltas",
+        "at": "rank"
+      },
+      {
+        "id": "f4",
+        "check": "SQ1",
+        "kind": "j",
+        "delta": 1.7,
+        "verdict_after": "adopt-with-fixes",
+        "of": "fixdeltas",
+        "at": "rank"
+      }
+    ]
+  },
+  "hero": {
+    "beat": "verdict",
+    "at": 0.6
+  }
+}

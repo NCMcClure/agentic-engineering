@@ -1,16 +1,17 @@
-// agentic-teamwork's session-start.mjs: the briefing it puts in front of its
-// critical lines. What the kernel decides (who asks, which lines, subagents)
-// has its own suite; pinned here is what this plugin says about the repo, and
-// the silence where it has nothing to say.
+// agentic-teamwork's part of the session briefing, beside its critical lines.
+// What the plugin's helper decides (the question, which lines, subagents) has
+// its own suite; pinned here is what this area says about the repo, and the
+// silence where it has nothing to say.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agentic-teamwork", "hooks", "session-start.mjs");
+// The area's part alone, run through the plugin's helper (area-session.mjs says why).
+const HOOK = path.join(import.meta.dirname, "area-session.mjs");
 const suite = { after };
-// An empty settings dir: only this plugin is enabled, so it is the one that asks.
+// An empty home, so nothing of the developer's own is read.
 const HOME = tempDir(suite, "tw-start-home-");
 write(HOME, ".claude/settings.json", "{}\n");
 
@@ -19,7 +20,7 @@ const manifest = (extra = {}) => JSON.stringify({ standard: "agentic-engineering
 
 function session(dir, { event = "SessionStart", env = {}, extra = {} } = {}) {
   const input = JSON.stringify({ hook_event_name: event, source: "startup", session_id: "start", cwd: dir, ...extra });
-  const result = runNode(HOOK, [], {
+  const result = runNode(HOOK, ["agentic-teamwork"], {
     cwd: dir, input,
     env: { ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: dir, CLAUDE_PLUGIN_DATA: "", ...env },
   });
@@ -94,12 +95,12 @@ test("a detached HEAD is named as one", (t) => {
 
 test("a manifest with no lanes yet is told to upgrade, since the lanes come from it", (t) => {
   const { context } = session(marked(t, { manifestExtra: { lanes: {} } }).dir);
-  assert.match(context, /This repo's manifest names no lanes yet: ask the person to run \/agentic-teamwork:init-project --upgrade on a branch, then commit what it changes\./);
+  assert.match(context, /This repo's manifest names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade, on a branch, then commit what it changes\./);
 });
 
 test("rule files the manifest owns and still carries are told to upgrade, since they load twice", (t) => {
   const { context } = session(marked(t, { manifestExtra: { owned: { ".agents/rules/ladder.md": "0".repeat(64) } }, files: { ".agents/rules/ladder.md": "# The ladder\n" } }).dir);
-  assert.match(context, /still carries rule files the plugin now delivers at session start, so they load twice: ask the person to run \/agentic-teamwork:init-project --upgrade on a branch/);
+  assert.match(context, /still carries rule files the plugin now delivers at session start, so they load twice: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade, on a branch/);
 });
 
 test("a repo's own rules are not mistaken for the plugin's", (t) => {
@@ -110,7 +111,7 @@ test("a repo's own rules are not mistaken for the plugin's", (t) => {
 // ---- the pre-commit mirror -----------------------------------------------
 
 test("a committed mirror that git would skip gets one line, and one that can run gets none", (t) => {
-  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
+  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
   const { dir, git } = marked(t, { files: { ".githooks/pre-commit": mirror } });
   git("update-index", "--chmod=-x", ".githooks/pre-commit");
   assert.match(session(dir).context, /\.githooks\/pre-commit is not executable, so git skips it and commits made in a terminal go unchecked: chmod \+x \.githooks\/pre-commit && git add --chmod=\+x \.githooks\/pre-commit\./);
@@ -134,7 +135,7 @@ test("answered team with no manifest: bootstrap before writing code", (t) => {
   const { dir, git } = tempRepo(t, "tw-start-team-");
   git("config", "--local", "agentic-engineering.plugins", "team Test 2026-01-01T00:00Z");
   const { context } = session(dir);
-  assert.match(context, /^This repo is not on the team conventions yet: no \.agents\/manifest\.json\. Before writing code, ask the person to run \/agentic-teamwork:bootstrap, which works locally and pushes nothing\./);
+  assert.match(context, /^This repo is not on the team conventions yet: no \.agents\/manifest\.json\. Before writing code, ask the person whether to put it on them: on their yes that is \/agentcraft:agentic-teamwork bootstrap, which works locally and pushes nothing\./);
   assert.match(context, /Critical, from agentic-teamwork:/);
 });
 
@@ -150,7 +151,7 @@ test("answered on: the portable lines and no briefing at all", (t) => {
 test("nobody answered: the question, never the bootstrap nudge", (t) => {
   const { dir } = tempRepo(t, "tw-start-none-");
   const { context } = session(dir);
-  assert.match(context, /^Before other work, ask the person once whether to use the agentic-engineering plugins in this repo/);
+  assert.match(context, /^Before other work, ask the person once whether to use the agentcraft plugin in this repo/);
   assert.doesNotMatch(context, /not on the team conventions/);
 });
 
@@ -213,7 +214,7 @@ test("the provider a repo names decides the CLI, whatever the remote's host is c
 test("empty and malformed stdin still brief the project dir's repo, and never fail", (t) => {
   const { dir } = marked(t);
   for (const input of ["", "{\"hook_event_name\": \"SessionStart\","]) {
-    const result = runNode(HOOK, [], { cwd: dir, input, env: { ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: dir, CLAUDE_PLUGIN_DATA: "" } });
+    const result = runNode(HOOK, ["agentic-teamwork"], { cwd: dir, input, env: { ...process.env, HOME, USERPROFILE: HOME, CLAUDE_CONFIG_DIR: path.join(HOME, ".claude"), CLAUDE_PROJECT_DIR: dir, CLAUDE_PLUGIN_DATA: "" } });
     assert.equal(result.status, 0);
     assert.equal(result.stderr, "");
     assert.match(JSON.parse(result.stdout).hookSpecificOutput.additionalContext, /^Team conventions v1\. Branch: feat\/x\./);

@@ -1,0 +1,498 @@
+/*
+ * Inline commenting UI for the spec site (paired with spec-comments.js), in
+ * the house style.
+ *
+ * Quiet until used: commented text carries a dashed ink underline and no
+ * fill, the header button is a plain ghost button, and the rail is a hairline
+ * sheet with no shadow. The orange accent appears where the reader is acting:
+ * the thread they just opened (the mark and its card), the Add comment
+ * button over a selection, and Save.
+ *
+ * Every colour is a token. Each one reads the house token from house.css,
+ * then the mkdocs-shadcn variable for the same job, then the house light
+ * value, so the UI still reads if a project swaps the theme file.
+ */
+
+:root {
+  --sc-radius: 8px; /* a card, the editor */
+  --sc-radius-md: 6px; /* a button, an input */
+  --sc-radius-sm: 6px; /* a chip */
+  --sc-rail-width: 340px;
+  --sc-page: var(--house-page, var(--background, #f5f5f3));
+  --sc-panel: var(--house-panel, var(--card, #ffffff));
+  --sc-sunk: var(--house-sunk, var(--muted, #ebebe8));
+  --sc-deeper: var(--house-deeper, var(--muted, #dededa)); /* a pressed face */
+  --sc-ink: var(--house-ink, var(--foreground, #171716));
+  --sc-ink-2: var(--house-ink-2, var(--muted-foreground, #5c5c58));
+  --sc-ink-3: var(--house-ink-3, var(--muted-foreground, #8e8e89)); /* meta only */
+  --sc-line-2: var(--house-line-2, var(--input, #b4b4ae));
+  --sc-rule: var(--house-rule, var(--border, #dcdcd7));
+  --sc-accent: var(--house-accent, var(--primary, #ff5a1f));
+  --sc-accent-ink: var(--house-accent-ink, var(--primary, #c2410c));
+  --sc-on-accent: var(--house-on-accent, var(--primary-foreground, #171716));
+  /* the fill behind text whose thread is open */
+  --sc-highlight: var(--house-accent-soft, var(--muted, #ffe9df));
+  --sc-mono: var(--house-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+}
+
+/* --- highlights in the prose ---------------------------------------------- */
+/* Only UNRESOLVED comments are marked (the JS doesn't wrap resolved ones, so a
+   resolved comment leaves the prose completely unmarked).
+
+   At rest the mark is an underline only, dashed, in secondary ink: enough to
+   say "there is a note here" without colouring the page. Hovering it, or
+   opening its thread from the rail (the JS adds .flash for a moment), gives
+   it the selected look: the accent tint and a solid accent underline. */
+
+mark.spec-comment-highlight {
+  /* !important so a theme's own `mark {…}` reset can't blank it out */
+  background-color: transparent !important;
+  color: inherit !important;
+  border-bottom: 1.5px dashed var(--sc-ink-2) !important;
+  border-radius: 2px;
+  cursor: pointer;
+  padding: 0 1px;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+mark.spec-comment-highlight:hover,
+mark.spec-comment-highlight.flash {
+  background-color: var(--sc-highlight) !important;
+  border-bottom: 1.5px solid var(--sc-accent) !important;
+}
+
+/* --- root / shared -------------------------------------------------------- */
+
+.spec-comments-root {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 9000;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--sc-ink);
+  pointer-events: none;
+}
+.spec-comments-root > * {
+  pointer-events: auto;
+}
+
+/* Open/close toggle, integrated into the site header's actions group so it
+   reads as a header action: no fill, ink text, the sunk face on hover. */
+.sc-header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 10px;
+  margin: 0;
+  background: transparent;
+  color: var(--sc-ink);
+  border: 1.5px solid transparent;
+  border-radius: var(--sc-radius-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.sc-header-btn:hover {
+  background: var(--sc-sunk);
+}
+/* While the rail is open the button is pressed: the deeper face, no accent. */
+body:has(.spec-comments-root:not(.collapsed)) .sc-header-btn {
+  background: var(--sc-deeper);
+  border-color: var(--sc-line-2);
+}
+.sc-header-btn svg {
+  display: block;
+}
+.sc-header-btn:focus-visible,
+.sc-btn:focus-visible,
+.sc-add-btn:focus-visible,
+.sc-fab:focus-visible,
+.sc-rail-close:focus-visible,
+.sc-link:focus-visible,
+.sc-textarea:focus-visible,
+.sc-resolve input:focus-visible,
+.sc-show-resolved input:focus-visible {
+  outline: 2px solid var(--sc-accent);
+  outline-offset: 2px;
+}
+
+/* Count of open (unresolved) comments: a small mono chip, ink on the sunk face. */
+.sc-badge {
+  display: inline-flex;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--sc-radius-sm);
+  border: 1px solid var(--sc-line-2);
+  background: var(--sc-sunk);
+  color: var(--sc-ink);
+  font-family: var(--sc-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating fallback: only used if no site header is detected. A floating
+   thing is the panel face with a quiet hairline, not a shadow. */
+.sc-fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9200;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
+  border-radius: var(--sc-radius-md);
+  padding: 9px 14px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.sc-fab:hover {
+  background: var(--sc-sunk);
+}
+
+/* On a cramped header, keep the icon + count and drop the word. */
+@media (max-width: 600px) {
+  .sc-header-btn .sc-btn-label {
+    display: none;
+  }
+}
+
+/* --- rail: a sheet on the page face, edged with a hairline ----------------- */
+
+.sc-rail {
+  width: var(--sc-rail-width);
+  /* sit below the site header (height measured in JS) so the header + search stay
+     visible and usable while the panel is open */
+  margin-top: var(--sc-rail-top, 0px);
+  height: calc(100% - var(--sc-rail-top, 0px));
+  background: var(--sc-page);
+  border-left: 1px solid var(--sc-line-2);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease;
+}
+.spec-comments-root.collapsed .sc-rail {
+  transform: translateX(100%);
+}
+
+.sc-rail-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--sc-rule);
+}
+.sc-rail-title {
+  margin-right: auto;
+  font-family: var(--sc-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sc-ink);
+}
+.sc-rail-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  border: none;
+  border-radius: var(--sc-radius-sm);
+  color: var(--sc-ink-2);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.sc-rail-close:hover {
+  background: var(--sc-sunk);
+  color: var(--sc-ink);
+}
+.sc-show-resolved {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--sc-ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.sc-rail-status {
+  padding: 0 16px;
+  color: var(--sc-ink-2);
+  font-size: 12px;
+}
+.sc-rail-status:not(:empty) {
+  padding: 8px 16px;
+}
+/* a warning is ink in a heavier weight */
+.sc-rail-status.offline {
+  color: var(--sc-ink);
+  font-weight: 600;
+}
+
+.sc-rail-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sc-empty {
+  color: var(--sc-ink-2);
+  text-align: center;
+  padding: 28px 16px;
+  font-size: 13px;
+}
+
+/* --- comment cards: the panel face and a hairline --------------------------- */
+
+.sc-card {
+  background: var(--sc-panel);
+  border: 1px solid var(--sc-rule);
+  border-radius: var(--sc-radius);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+/* the thread just opened from the prose: the selected look */
+.sc-card.flash {
+  border: 1.5px solid var(--sc-accent);
+  background: var(--sc-highlight);
+  padding: 11.5px; /* the half pixel the heavier border takes */
+}
+/* resolved dims by colour, not opacity, so nothing behind shows through:
+   the note itself stays readable, what frames it fades */
+.sc-card.resolved .sc-card-body {
+  color: var(--sc-ink-2);
+}
+.sc-card.resolved .sc-card-quote {
+  color: var(--sc-ink-3);
+}
+.sc-card.orphaned {
+  border-style: dashed;
+  border-color: var(--sc-line-2);
+}
+
+.sc-card-quote {
+  border-left: 2px solid var(--sc-line-2);
+  padding-left: 10px;
+  color: var(--sc-ink-2);
+  font-size: 13px;
+  cursor: pointer;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.sc-card.flash .sc-card-quote {
+  border-left-color: var(--sc-accent);
+}
+.sc-card.resolved .sc-card-quote {
+  border-left-color: var(--sc-rule);
+}
+.sc-card-body {
+  font-size: 14px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.sc-card-meta {
+  display: flex;
+  gap: 6px;
+}
+/* a warning: ink on the accent tint */
+.sc-orphan-tag {
+  font-family: var(--sc-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--sc-ink);
+  background: var(--sc-highlight);
+  border-radius: var(--sc-radius-sm);
+  padding: 2px 6px;
+}
+
+.sc-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--sc-rule);
+  padding-top: 10px;
+}
+.sc-resolve {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+  font-size: 12px;
+  color: var(--sc-ink-2);
+  cursor: pointer;
+  user-select: none;
+}
+/* ticked is done, and done is ink */
+.sc-resolve input,
+.sc-show-resolved input {
+  accent-color: var(--sc-ink);
+  cursor: pointer;
+}
+.sc-link {
+  background: none;
+  border: none;
+  color: var(--sc-ink-2);
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  transition: color 0.15s ease;
+}
+.sc-link:hover {
+  color: var(--sc-ink);
+  text-decoration: underline;
+}
+.sc-link.sc-danger:hover {
+  color: var(--sc-accent-ink);
+}
+
+/* --- selection "Add comment" button: the primary action of the moment ------ */
+
+.sc-add-btn {
+  position: absolute;
+  z-index: 9100;
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  background: var(--sc-accent);
+  color: var(--sc-on-accent);
+  border: none;
+  border-radius: var(--sc-radius-md);
+  padding: 0 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* --- editor popover: a floating panel with a quiet hairline ----------------- */
+
+.sc-editor {
+  position: absolute;
+  z-index: 9100;
+  width: 320px;
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
+  border-radius: var(--sc-radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sc-editor-quote {
+  border-left: 2px solid var(--sc-accent);
+  padding-left: 10px;
+  color: var(--sc-ink-2);
+  font-size: 12px;
+  max-height: 4.5em;
+  overflow: hidden;
+}
+.sc-textarea {
+  width: 100%;
+  min-height: 76px;
+  resize: vertical;
+  box-sizing: border-box;
+  background: var(--sc-panel);
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
+  border-radius: var(--sc-radius-md);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.sc-textarea::placeholder {
+  color: var(--sc-ink-2);
+}
+.sc-textarea:focus {
+  outline: 2px solid var(--sc-accent);
+  outline-offset: 2px;
+}
+
+.sc-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Buttons: a quiet hairline and no fill; the primary one is the accent. */
+.sc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 14px;
+  background: transparent;
+  color: var(--sc-ink);
+  border: 1px solid var(--sc-line-2);
+  border-radius: var(--sc-radius-md);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.sc-btn:hover {
+  background: var(--sc-sunk);
+}
+.sc-btn-primary,
+.sc-btn-primary:hover {
+  background: var(--sc-accent);
+  color: var(--sc-on-accent);
+  border-color: var(--sc-accent);
+  font-weight: 600;
+}
+.sc-btn-primary:hover {
+  border-color: var(--sc-ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  mark.spec-comment-highlight,
+  .sc-header-btn,
+  .sc-rail,
+  .sc-rail-close,
+  .sc-card,
+  .sc-link,
+  .sc-btn {
+    transition: none;
+  }
+}
+
+/* --- narrow screens: rail becomes a full-height slide-over ---------------- */
+
+@media (max-width: 900px) {
+  :root {
+    --sc-rail-width: 86vw;
+  }
+}

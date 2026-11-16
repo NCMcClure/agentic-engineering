@@ -1,0 +1,1424 @@
+/* ── The house style ──────────────────────────────────────────────────────
+   Monochrome first: page, panel and sunk faces, ink, hairlines. One orange
+   accent (--sel) for the selected thing, the primary action and a diagnostic.
+   Five hues tell node categories and pin types apart, small: a 2px edge on a
+   node's header, a pin's ring, a wire's hairline. No gradients, no shadows.
+   Light by default, dark under prefers-color-scheme.
+
+   Names are this app's own. --sel is the house accent. --accent-<kind> is the
+   hue the catalog names for a node kind, and --accent is that hue on one node. */
+
+:root {
+  color-scheme: light dark;
+
+  /* faces */
+  --bg: #f5f5f3;        /* page: app shell, canvas */
+  --bg-elev: #ffffff;   /* panel: toolbar, panels, nodes, inputs */
+  --bg-soft: #ebebe8;   /* sunk: node headers, hover, wells */
+  --bg-deep: #dededa;   /* deeper: a pressed face */
+  --graph-bg: var(--bg);
+  --grid: var(--border);
+
+  /* ink */
+  --fg: #171716;
+  --fg-dim: #5c5c58;
+  --fg-faint: #8e8e89;  /* meta only */
+
+  /* hairlines */
+  --line: #1c1c1b;      /* strong: an outline that matters */
+  --line-2: #b4b4ae;    /* quiet: inputs, buttons, floating panels */
+  --border: #dcdcd7;    /* rule: dividers, card borders */
+
+  /* the accent: selection, the primary action, a diagnostic */
+  --sel: #ff5a1f;
+  --sel-ink: #c2410c;   /* the accent as text */
+  --sel-soft: #ffe9df;  /* the accent as a fill */
+  --on-sel: #171716;    /* text on an accent fill, in both themes */
+
+  /* hues: for telling kinds apart and nothing else */
+  --blue: #2563eb;
+  --green: #15803d;
+  --purple: #7c3aed;
+  --yellow: #a16207;
+  --pink: #be185d;
+
+  /* node surfaces */
+  --node-bg: var(--bg-elev);
+  --node-edge: var(--line-2);
+  --node-head-fg: var(--fg);
+
+  /* exec wires are ink. Data wires take their value type: a hue for five of
+     them, an ink tone for the rest (bool and struct wires are also dashed, and
+     a struct pin is square). */
+  --exec-wire: var(--fg);
+  --type-exec: var(--exec-wire);
+  --type-string: var(--pink);
+  --type-number: var(--green);
+  --type-object: var(--blue);
+  --type-array: var(--purple);
+  --type-schema: var(--yellow);
+  --type-bool: var(--fg);
+  --type-agent-result: var(--fg-dim);
+  --type-struct: var(--fg-dim);
+  --type-any: var(--fg-faint);
+  --type-gray: var(--type-any);
+
+  /* node kinds, by category: workflow steps blue, flow control violet, async
+     yellow, variables green, utilities an ink tone. A literal takes the hue of
+     its type. */
+  --accent-start: var(--blue);
+  --accent-end: var(--blue);
+  --accent-agent: var(--blue);
+  --accent-parallel: var(--blue);
+  --accent-pipeline: var(--blue);
+  --accent-verify: var(--blue);
+  --accent-synthesize: var(--blue);
+  --accent-gate: var(--blue);
+  --accent-schema: var(--blue);
+  --accent-log: var(--blue);
+  --accent-sequence: var(--purple);
+  --accent-branch: var(--purple);
+  --accent-doonce: var(--purple);
+  --accent-loop: var(--purple);
+  --accent-multigate: var(--purple);
+  --accent-switch: var(--purple);
+  --accent-async: var(--yellow);
+  --accent-litString: var(--type-string);
+  --accent-litNumber: var(--type-number);
+  --accent-litBool: var(--type-bool);
+  --accent-litArray: var(--type-array);
+  --accent-litObject: var(--type-object);
+  --accent-getvar: var(--green);
+  --accent-setvar: var(--green);
+  --accent-reroute: var(--fg-faint);
+  --accent-getfield: var(--fg-faint);
+  --accent-function: var(--fg-faint);
+  --accent-input: var(--fg-faint);
+  --accent-output: var(--fg-faint);
+
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e0f;
+    --bg-elev: #1e1e20;
+    --bg-soft: #161617;
+    --bg-deep: #111112;
+    --fg: #f1f1ee;
+    --fg-dim: #a3a39d;
+    --fg-faint: #74746f;
+    --line: #e9e9e5;
+    --line-2: #47474a;
+    --border: #262628;
+    --sel: #ff6b2c;
+    --sel-ink: #ff8a57;
+    --sel-soft: #3a1c10;
+    --blue: #6ea0ff;
+    --green: #4ade80;
+    --purple: #a78bfa;
+    --yellow: #facc15;
+    --pink: #f472b6;
+  }
+}
+
+/* ── layout ───────────────────────────────────────────────────────────── */
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+body {
+  font-family: var(--font);
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.canvas-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Every control shows where the keyboard is. */
+:focus-visible {
+  outline: 2px solid var(--sel);
+  outline-offset: 2px;
+}
+
+/* React Flow reads its own look from these. */
+.react-flow {
+  background: var(--graph-bg);
+  --xy-background-color: var(--graph-bg);
+  --xy-edge-stroke: var(--type-any);
+  --xy-edge-stroke-selected: var(--sel);
+  --xy-connectionline-stroke: var(--fg-dim);
+  --xy-connectionline-stroke-width: 1.5;
+  --xy-attribution-background-color: var(--graph-bg);
+  --xy-minimap-background-color: var(--bg-elev);
+  --xy-minimap-mask-background-color: color-mix(in srgb, var(--bg-soft) 72%, transparent);
+  --xy-minimap-node-background-color: var(--line-2);
+  --xy-minimap-node-stroke-color: transparent;
+  --xy-controls-button-background-color: var(--bg-elev);
+  --xy-controls-button-background-color-hover: var(--bg-soft);
+  --xy-controls-button-color: var(--fg-dim);
+  --xy-controls-button-color-hover: var(--fg);
+  --xy-controls-button-border-color: var(--border);
+  --xy-controls-box-shadow: none;
+  --xy-node-boxshadow-hover: none;    /* our `input`/`output` kinds share a */
+  --xy-node-boxshadow-selected: none; /* class name with React Flow's own   */
+  --xy-selection-background-color: color-mix(in srgb, var(--sel) 10%, transparent);
+  --xy-selection-border: 1px solid var(--sel);
+  --xy-resize-background-color: var(--sel);
+  --xy-edge-label-background-color: var(--graph-bg);
+  --xy-edge-label-color: var(--fg-dim);
+}
+.react-flow__attribution a {
+  color: var(--fg-faint);
+}
+
+/* React Flow ships default styling for its reserved node types (input/output/
+   default/group). Our `input`/`output` kinds collide with those names, so the
+   default wrapper would render behind our nodes: neutralize it and let BaseNode
+   own the look. */
+.react-flow__node-input,
+.react-flow__node-output,
+.react-flow__node-default,
+.react-flow__node-group {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  width: auto;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+}
+/* A node the keyboard is on: React Flow removes the ring, so put it back. */
+.react-flow__node.selectable:focus-visible {
+  outline: 2px solid var(--sel);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── nodes: a panel with a hairline, its header the sunk face ─────────── */
+
+.wf-node {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  background: var(--node-bg);
+  color: var(--fg);
+  border: 1px solid var(--node-edge);
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.25;
+  overflow: visible;
+}
+/* Selected: a 1.5px accent hairline (the margin keeps the box where it was)
+   and the accent-soft header. */
+.wf-node.is-selected {
+  border: 1.5px solid var(--sel);
+  margin: -0.5px;
+}
+.wf-node.is-selected .wf-node__head {
+  background: var(--sel-soft);
+}
+.wf-node__head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 12px 6px;
+  border-radius: 7px 7px 0 0;
+  background: var(--bg-soft);
+  border-top: 2px solid var(--accent, var(--fg-faint)); /* the node's kind */
+  border-bottom: 1px solid var(--border);
+}
+.wf-node__tag {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.wf-node__label {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--node-head-fg);
+  overflow-wrap: anywhere;
+}
+.wf-node__subtitle {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+  overflow-wrap: anywhere;
+}
+.wf-node__pins {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 7px 0 9px;
+}
+.wf-node__col {
+  display: flex;
+  flex-direction: column;
+}
+.wf-pinrow {
+  position: relative; /* each handle's 50% offset centers on this row */
+  display: flex;
+  align-items: center;
+  height: var(--row-h, 22px);
+  padding: 0 13px;
+}
+.wf-pinrow--out {
+  justify-content: flex-end;
+}
+.wf-pin__name {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+
+/* ── pins: exec triangles, data rings; filled when connected ──────────── */
+
+.react-flow__handle.wf-pin {
+  border: none;
+  border-radius: 0;
+}
+/* exec: a right-pointing triangle (flow direction), quiet until wired */
+.wf-pin--exec {
+  --pin-color: var(--exec-wire);
+  width: 11px;
+  height: 12px;
+  background: var(--line-2);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+.wf-pin--exec.is-connected {
+  background: var(--pin-color);
+}
+/* data: a ring in its type's colour on the panel face, filled when wired */
+.react-flow__handle.wf-pin--data {
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--node-bg);
+  border: 1.5px solid var(--pin-color, var(--type-any));
+}
+.react-flow__handle.wf-pin--data.is-connected {
+  background: var(--pin-color, var(--type-any));
+}
+.wf-pin--string { --pin-color: var(--type-string); }
+.wf-pin--number { --pin-color: var(--type-number); }
+.wf-pin--bool { --pin-color: var(--type-bool); }
+.wf-pin--object { --pin-color: var(--type-object); }
+.wf-pin--array { --pin-color: var(--type-array); }
+.wf-pin--agent-result { --pin-color: var(--type-agent-result); }
+.wf-pin--schema { --pin-color: var(--type-schema); }
+.wf-pin--any { --pin-color: var(--type-any); }
+.wf-pin--struct { --pin-color: var(--type-struct); }
+/* a struct shares an ink tone with an agent result, so its pin is square */
+.react-flow__handle.wf-pin--struct {
+  border-radius: 2px;
+}
+
+/* ── edges: an ink exec spine, data wires a hairline in their type ────── */
+
+.react-flow__edge-path {
+  stroke: var(--type-any);
+  stroke-width: 1.25;
+}
+.react-flow__edge.edge-exec .react-flow__edge-path {
+  stroke: var(--exec-wire);
+  stroke-width: 2;
+}
+.react-flow__edge.edge-data .react-flow__edge-path {
+  stroke-width: 1.25;
+}
+.react-flow__edge.edge-type-string .react-flow__edge-path { stroke: var(--type-string); }
+.react-flow__edge.edge-type-number .react-flow__edge-path { stroke: var(--type-number); }
+.react-flow__edge.edge-type-bool .react-flow__edge-path { stroke: var(--type-bool); stroke-dasharray: 2 3; }
+.react-flow__edge.edge-type-object .react-flow__edge-path { stroke: var(--type-object); }
+.react-flow__edge.edge-type-array .react-flow__edge-path { stroke: var(--type-array); }
+.react-flow__edge.edge-type-agent-result .react-flow__edge-path { stroke: var(--type-agent-result); }
+.react-flow__edge.edge-type-schema .react-flow__edge-path { stroke: var(--type-schema); }
+.react-flow__edge.edge-type-any .react-flow__edge-path { stroke: var(--type-any); }
+.react-flow__edge.edge-type-struct .react-flow__edge-path { stroke: var(--type-struct); stroke-dasharray: 6 3; }
+/* a selected wire carries the accent, whatever its type */
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: var(--sel);
+}
+.react-flow__edge-text {
+  fill: var(--fg-dim);
+  font-size: 10px;
+  font-family: var(--mono);
+}
+.react-flow__edge-textbg {
+  fill: var(--graph-bg);
+}
+
+/* ── comment frame: a sunk region under the nodes it groups ───────────── */
+
+.wf-comment {
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-soft);
+}
+.wf-comment.is-selected {
+  border: 1.5px solid var(--sel);
+}
+.wf-comment__label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px 2px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+/* the frame's colour, kept to a dot */
+.wf-comment__label::before {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent, var(--type-any));
+}
+.wf-comment__body {
+  padding: 0 14px 6px;
+  font-size: 11px;
+  color: var(--fg-dim);
+  white-space: pre-wrap;
+}
+
+/* ── controls / minimap ───────────────────────────────────────────────── */
+
+.react-flow__controls {
+  box-shadow: none;
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.react-flow__controls-button {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  fill: var(--fg-dim);
+  color: var(--fg-dim);
+}
+.react-flow__controls-button:hover {
+  background: var(--bg-soft);
+}
+.react-flow__controls-button:focus-visible {
+  outline-offset: -2px;
+}
+.react-flow__minimap {
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* ── toolbar ──────────────────────────────────────────────────────────── */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+}
+.toolbar__title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-right: 6px;
+}
+.toolbar__spacer {
+  flex: 1;
+}
+/* Every button but the primary one: a quiet hairline, no fill. */
+.btn {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 5px 11px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.btn:hover {
+  background: var(--bg-soft);
+}
+.btn:active {
+  background: var(--bg-deep);
+}
+/* The primary action: the accent fill, dark ink on it. */
+.btn--accent {
+  border-color: var(--sel);
+  background: var(--sel);
+  color: var(--on-sel);
+  font-weight: 600;
+}
+.btn--accent:hover,
+.btn--accent:active {
+  background: var(--sel);
+  border-color: var(--line);
+}
+.btn:disabled {
+  border-color: var(--border);
+  background: transparent;
+  color: var(--fg-faint);
+  font-weight: inherit;
+  cursor: not-allowed;
+}
+.select {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+}
+
+/* ── side panels (variables on the left, details on the right) ────────── */
+
+.panel {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 264px;
+  max-height: calc(100% - 28px);
+  overflow-y: auto;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 14px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+}
+.panel__head > :first-child {
+  color: var(--fg);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.panel input,
+.panel select,
+.panel textarea {
+  font: inherit;
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+}
+.panel input:disabled,
+.panel select:disabled,
+.panel textarea:disabled {
+  border-color: var(--border);
+  background: var(--bg-soft);
+  color: var(--fg-faint);
+}
+.panel textarea {
+  resize: vertical;
+  min-height: 48px;
+  font-family: var(--mono);
+}
+/* The panel's own Save repeats the toolbar's, so it stays a plain button:
+   one primary action per view. */
+.panel .btn--accent {
+  border-color: var(--line-2);
+  background: transparent;
+  color: var(--fg);
+  font-weight: inherit;
+}
+.panel .btn--accent:hover {
+  background: var(--bg-soft);
+  border-color: var(--line-2);
+}
+.panel--left {
+  left: 14px;
+  right: auto;
+  width: 224px;
+}
+.vp-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.vp-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.vp-empty {
+  font-size: 11.5px;
+  color: var(--fg-dim);
+  padding: 2px 0 4px;
+}
+.vp-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border: 1.5px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font: inherit;
+}
+.vp-item:hover {
+  background: var(--bg-soft);
+}
+.vp-item.is-active {
+  border-color: var(--sel);
+  background: var(--sel-soft);
+}
+.vp-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.vp-name {
+  font-size: 12px;
+  font-family: var(--mono);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vp-type {
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+}
+.param-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.panel__section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+.panel__section-title {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+}
+.pinrow-edit {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 5px;
+  align-items: center;
+}
+.pinrow-edit input,
+.pinrow-edit select {
+  min-width: 0;
+}
+.icon-btn {
+  font: inherit;
+  font-size: 12px;
+  line-height: 1;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.icon-btn:hover {
+  background: var(--bg-soft);
+}
+.stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.stepper__value {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* ── recursive value editor + schema builder ─────────────────────────────── */
+.ve-input,
+.ve-key {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 7px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+  width: 100%;
+  box-sizing: border-box;
+}
+.ve-bool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.ve-bool input,
+.sb-req input {
+  accent-color: var(--fg); /* a ticked box is a fact, not a call for attention */
+}
+.ve-array,
+.ve-object,
+.ve-struct,
+.sb-node {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+.ve-array__head,
+.sb-node__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ve-label,
+.sb-label {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+}
+.ve-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 5px;
+  align-items: center;
+}
+.ve-object > .ve-row {
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+}
+.ve-row__idx {
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg-faint);
+  font-family: var(--mono);
+}
+.ve-field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.ve-field__name {
+  font-size: 11px;
+  color: var(--fg-dim);
+}
+.ve-field__type {
+  font-size: 9.5px;
+  color: var(--fg-faint);
+  font-family: var(--mono);
+}
+.ve-note {
+  font-size: 11px;
+  color: var(--fg-dim);
+}
+.sb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 4px;
+}
+.sb-field__head {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.sb-fname,
+.sb-desc {
+  font: inherit;
+  font-size: 11.5px;
+  padding: 3px 6px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+  min-width: 0;
+}
+.sb-req {
+  font-size: 10px;
+  color: var(--fg-dim);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+}
+.sb-child {
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+}
+
+/* ── right-click palette (context node finder) ───────────────────────────── */
+
+.palette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+}
+.palette {
+  position: fixed;
+  z-index: 21;
+  width: 280px;
+  max-height: 360px;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.palette__search {
+  font: inherit;
+  font-size: 13px;
+  padding: 9px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--fg);
+}
+.palette__search:focus-visible {
+  outline-offset: -2px; /* the palette clips, so the ring sits inside */
+  border-radius: 7px 7px 0 0;
+}
+.palette__list {
+  overflow-y: auto;
+}
+.palette__item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 12px;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+  font: inherit;
+}
+.palette__item.is-active {
+  background: var(--sel-soft);
+}
+.palette__item:focus-visible {
+  outline-offset: -2px;
+}
+.palette__kind {
+  font-weight: 600;
+  font-size: 12.5px;
+}
+.palette__cat {
+  justify-self: end;
+  align-self: center;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+}
+.palette__blurb {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--fg-dim);
+}
+.palette__empty {
+  padding: 12px;
+  font-size: 12px;
+  color: var(--fg-dim);
+}
+
+/* ── subgraph breadcrumb ─────────────────────────────────────────────────── */
+
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.breadcrumb__path {
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+}
+
+/* ── toast (save / compile confirmation) ─────────────────────────────────── */
+
+.toast {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  z-index: 8;
+  max-width: 460px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  color: var(--fg);
+  font-size: 12px;
+  font-family: var(--mono);
+  overflow-wrap: anywhere;
+}
+
+/* ── canvas empty-state hint ─────────────────────────────────────────────── */
+
+.canvas-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  pointer-events: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  border: 1px dashed var(--line-2);
+  color: var(--fg-dim);
+  font-size: 13px;
+  background: var(--bg);
+}
+
+.launcher__name-input {
+  width: 100%;
+  font-size: 13px;
+}
+
+/* ── compile diagnostics: they need a person, so they carry the accent ──── */
+
+.diag-panel {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 8;
+  width: 520px;
+  max-height: 260px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  overflow: hidden;
+}
+.diag-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 11px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  background: var(--bg-soft);
+  border-bottom: 1px solid var(--border);
+}
+.diag-panel__list {
+  overflow-y: auto;
+  padding: 4px;
+}
+.diag-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 6px;
+  background: none;
+  color: var(--fg);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.diag-item:hover {
+  background: var(--bg-soft);
+}
+.diag-item:focus-visible {
+  outline-offset: -2px;
+}
+/* the severity, as a word: a warning in heavy ink, an error in the accent */
+.diag-item__sev {
+  flex: none;
+  min-width: 52px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg);
+}
+.diag-item--error .diag-item__sev {
+  color: var(--sel-ink);
+}
+.diag-item__msg {
+  overflow-wrap: anywhere;
+}
+
+/* a node with a diagnostic: a mark on its corner */
+.wf-node__diag {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--sel);
+  background: var(--sel-soft);
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+.wf-node__diag--error {
+  background: var(--sel);
+  color: var(--on-sel);
+}
+
+.field-error {
+  display: block;
+  margin-top: 3px;
+  font-family: var(--font);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--sel-ink);
+}
+
+/* ── save status chip + disk-conflict bar ────────────────────────────────── */
+
+.save-status {
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  font-family: var(--mono);
+  color: var(--fg-dim);
+  white-space: nowrap;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: none;
+}
+.save-status--dirty {
+  color: var(--fg);
+  font-weight: 700;
+}
+.save-status--error {
+  cursor: pointer;
+  color: var(--sel-ink);
+  border: 1.5px solid var(--sel);
+}
+
+.conflict-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 13px;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  border: 1.5px solid var(--sel);
+}
+.conflict-bar__msg {
+  font-size: 12.5px;
+  color: var(--fg);
+}
+
+/* ── Studio: shared input ─────────────────────────────────────────────── */
+
+.input {
+  font: inherit;
+  font-size: 12.5px;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: var(--bg-elev);
+  color: var(--fg);
+}
+.input::placeholder,
+.panel input::placeholder,
+.palette__search::placeholder {
+  color: var(--fg-faint);
+}
+.input:disabled {
+  border-color: var(--border);
+  background: var(--bg-soft);
+  color: var(--fg-faint);
+  cursor: not-allowed;
+}
+
+/* ── Studio: toolbar export field ─────────────────────────────────────── */
+
+.export-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.export-field__label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  white-space: nowrap;
+}
+.export-field__input {
+  width: 240px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+/* ── Studio: project / workflow switcher ──────────────────────────────── */
+
+.switcher {
+  position: relative;
+  margin-right: 4px;
+}
+.switcher__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.switcher__btn:hover {
+  background: var(--bg-soft);
+}
+.switcher__project {
+  font-weight: 600;
+}
+.switcher__sep {
+  color: var(--fg-faint);
+}
+.switcher__workflow {
+  color: var(--fg-dim);
+}
+.switcher__caret {
+  color: var(--fg-dim);
+  font-size: 10px;
+}
+.switcher__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-elev);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 5px;
+  z-index: 20;
+}
+.switcher__menu-label {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--fg-dim);
+  padding: 6px 9px 3px;
+}
+.switcher__menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 9px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.switcher__menu-item:hover {
+  background: var(--bg-soft);
+}
+.switcher__menu-item:focus-visible {
+  outline-offset: -2px;
+}
+/* the workflow that is open */
+.switcher__menu-item--active,
+.switcher__menu-item--active:hover {
+  background: var(--sel-soft);
+  font-weight: 600;
+}
+.switcher__menu-item--back {
+  color: var(--fg-dim);
+  border-bottom: 1px solid var(--border);
+  border-radius: 6px 6px 0 0;
+  margin-bottom: 4px;
+}
+
+/* ── Studio: launcher / home screen ───────────────────────────────────── */
+
+.studio-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.launcher {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--fg);
+}
+.launcher__header {
+  padding: 18px 28px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+.launcher__brand {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+.launcher__error {
+  margin: 12px 28px 0;
+  padding: 10px 14px;
+  border: 1.5px solid var(--sel);
+  border-radius: 8px;
+  background: var(--bg-elev);
+  color: var(--sel-ink);
+  font-size: 13px;
+  font-family: var(--mono);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.launcher__body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(360px, 1.6fr);
+  gap: 1px;
+  background: var(--border);
+  overflow: hidden;
+}
+.launcher__col {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  overflow: hidden;
+}
+.launcher__col-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.launcher__col-head h2 {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+}
+.launcher__list {
+  list-style: none;
+  margin: 0;
+  padding: 10px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.launcher__empty {
+  padding: 16px 12px;
+  color: var(--fg-dim);
+  font-size: 13px;
+}
+.launcher__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+}
+.launcher__item:hover {
+  background: var(--bg-soft);
+}
+.launcher__item:focus-visible {
+  outline-offset: -2px;
+}
+.launcher__item--active,
+.launcher__item--active:hover {
+  background: var(--sel-soft);
+  border-color: var(--sel);
+}
+.launcher__item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.launcher__item-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+.launcher__item-sub {
+  font-size: 11.5px;
+  color: var(--fg-dim);
+  font-family: var(--mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.launcher__item-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.launcher__icon-btn {
+  font: inherit;
+  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--line-2);
+  background: transparent;
+  color: var(--fg-dim);
+  cursor: pointer;
+}
+.launcher__icon-btn:hover {
+  background: var(--bg-elev);
+  color: var(--fg);
+}
+
+/* ── motion: a hover may ease; nothing else moves, and that stops too ─── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}

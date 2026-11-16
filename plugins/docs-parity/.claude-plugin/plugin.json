@@ -2,11 +2,13 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "docs-parity",
   "displayName": "Docs Parity",
-  "version": "1.0.0",
-  "description": "User docs drift because they ship after the code, so docs-parity makes them move in the same change: a writer contract with audiences and a page shape, screenshots made only by a deterministic capture harness for any stack, one checker that maps code to pages and finds missing, stale and broken docs in session and in CI, and a README check that keeps the front page written for people.",
+  "version": "2.0.0",
+  "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the docs-parity area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:docs-parity <route>.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"
   },
-  "keywords": ["documentation", "docs", "screenshots", "parity", "user-docs", "wiki", "readme"]
+  "dependencies": [
+    "agentcraft"
+  ]
 }

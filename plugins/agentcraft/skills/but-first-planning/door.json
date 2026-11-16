@@ -1,0 +1,64 @@
+{
+  "lead": "Use to pin down a vague request by interview, and to take a project from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint.",
+  "default": "grill",
+  "routes": {
+    "grill": {
+      "cue": "a vague or ambiguous ask: one question at a time"
+    },
+    "spec-init": {
+      "cue": "scaffold .agents/plan/ where no spec exists yet",
+      "starts": "person"
+    },
+    "spec-write": {
+      "cue": "author the spec from a brief or a codebase"
+    },
+    "spec-grill": {
+      "cue": "interrogate the spec for gaps and contradictions"
+    },
+    "spec-architect": {
+      "cue": "pressure-test the design, record ADRs"
+    },
+    "spec-edit": {
+      "cue": "change a spec page, keep plan and tracker level"
+    },
+    "spec-open": {
+      "cue": "serve the spec site to read and comment on",
+      "starts": "person"
+    },
+    "plan-decompose": {
+      "cue": "the spec into epics, sprints, and issues"
+    },
+    "plan-publish": {
+      "cue": "a sprint of the plan tree into GitHub or GitLab issues"
+    },
+    "build-next-issue": {
+      "cue": "what is next: the unblocked issue, or a dispatch plan"
+    },
+    "build-tdd": {
+      "cue": "one plan issue: criteria to failing tests to done"
+    },
+    "build-sprint": {
+      "cue": "a sprint's issues in parallel, by subagents"
+    },
+    "build-audit": {
+      "cue": "a finished plan tree: what the plan missed",
+      "starts": "person"
+    },
+    "build-assess-drift": {
+      "cue": "where spec, plan, and code disagree"
+    },
+    "build-improve-architecture": {
+      "cue": "deepening refactors in built code, fed back to ADRs"
+    },
+    "build-rubber-duck": {
+      "cue": "talk a stuck problem through, changing no file"
+    },
+    "build-user-docs": {
+      "cue": "end-user docs from the spec and what shipped"
+    },
+    "autopilot": {
+      "cue": "every phase in order, spec to docs, one human gate",
+      "starts": "person"
+    }
+  }
+}

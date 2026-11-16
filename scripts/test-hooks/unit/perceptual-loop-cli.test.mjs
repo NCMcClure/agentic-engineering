@@ -11,7 +11,7 @@ import test from "node:test";
 import { pathToFileURL } from "node:url";
 import { PL, PLUGIN, runNode, scene, tempDir, u8, write } from "./perceptual-loop-fixtures.mjs";
 
-import { decodePng, encodePng } from "../../../plugins/perceptual-loop/scripts/lib/png.mjs";
+import { decodePng, encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 
 const SHOTS = ["sky_0", "sky_1", "sky_2", "sky_3", "road_a"];
@@ -169,7 +169,7 @@ test("an argv render command is spawned without a shell, one argument per shot",
   const bad = pl(dir, ["iterate", "odd name"]);
   assert.equal(bad.status, 2);
   assert.match(bad.stderr, /odd name/);
-  // exitCode, not process.exit(): exit() after start-up segfaults now and then on node 24 / macOS (dev-rules)
+  // exitCode, never an exit call: see "Stack" in dev-rules
   const failing = project({ render: "node -e \"process.exitCode = 3\"" });
   const f = pl(failing, ["iterate", "sky_0"]);
   assert.equal(f.status, 2);

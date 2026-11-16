@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { BOARD } from "../../../plugins/agent-works/hooks/kanban/commands.mjs";
+import { BOARD } from "../../../plugins/agentcraft/skills/agent-works/hooks/kanban/commands.mjs";
 import { KANBAN, board, boardOf, cardText, repo } from "./agent-works-pane-host.mjs";
 
 /** Run one entry of the map; fails with the CLI's own words unless it exits `status`. */
@@ -26,12 +26,12 @@ test("every pane action is a real aw board action, and the board shows what it d
 
   await t.test("add files a card, in a column or as a suggestion, with its fields", () => {
     assert.match(run(r, "add", { title: "Draw the lanes" }), /^Added card 0001 \[backlog\]: Draw the lanes$/);
-    run(r, "add", { title: "Second card", status: "review", details: "- starts with a dash", priority: "high", labels: ["ui", "pane"], skills: ["agent-works:board"], files: ["a.mjs", "b.mjs"] });
+    run(r, "add", { title: "Second card", status: "review", details: "- starts with a dash", priority: "high", labels: ["ui", "pane"], skills: ["agentcraft:agent-works"], files: ["a.mjs", "b.mjs"] });
     run(r, "add", { title: "Spotted in passing", suggest: true, source: "claude" });
     const b = boardOf(r.dir);
     assert.deepEqual(b.cards.map((c) => [c.id, c.status, c.source]), [["0003", "suggested", "claude"], ["0001", "backlog", "user"], ["0002", "review", "user"]]);
     const second = b.card("0002");
-    assert.deepEqual([second.priority, second.labels, second.skills, second.files, second.body], ["high", ["ui", "pane"], ["agent-works:board"], ["a.mjs", "b.mjs"], "- starts with a dash"]);
+    assert.deepEqual([second.priority, second.labels, second.skills, second.files, second.body], ["high", ["ui", "pane"], ["agentcraft:agent-works"], ["a.mjs", "b.mjs"], "- starts with a dash"]);
     assert.match(run(r, "add", { title: "draw the LANES" }, 1), /^Already on the kanban board as card 0001/, "a title already on the board is not filed twice");
   });
 
