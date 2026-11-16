@@ -105,10 +105,14 @@ test("a repo with a plan workspace hears both lines; one that only opted in hear
   assert.ok(!portable.context.includes(PLAN) && !portable.context.includes(BOARD));
 });
 
+// The line names both homes and gives no order of its own. One that ended "say which you are in before touching
+// it" cost the grill route half its reach in live sessions (33 of 74 against 75 of 100 with the line before it), so
+// which workspace a run is in is settled by the area's SKILL.md, where a session that has picked a route reads it.
 test("a repo whose only workspace is a named one hears the plan lines too, and the line says a plan has two homes", (t) => {
   const named = session(t, namedRepo(t));
   assert.ok(named.context.includes(GRILL) && named.context.includes(PLAN) && named.context.includes(BOARD));
-  assert.match(PLAN, /^A plan lives in \.agents\/plan\/ \(the project's\) or \.agents\/plans\/<name>\/ \(one feature's\); say which you are in before touching it\./);
+  assert.match(PLAN, /^A plan lives in \.agents\/plan\/, or in \.agents\/plans\/<name>\/ for one feature or task: a spec decision changes through \/agentcraft:but-first-planning spec-edit, /);
+  assert.doesNotMatch(PLAN, /say which/);
 });
 
 test("a repo that answered off hears nothing, and neither does a read-only subagent", (t) => {

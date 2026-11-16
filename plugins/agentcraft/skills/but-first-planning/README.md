@@ -176,7 +176,7 @@ Two lines reach the agent, and only where the repo has opted in to the
 agentic-engineering plugins (it carries `.agents/plan/`, `.agents/plans/` or
 another plugin's marker, or you answered the one-time question a session asks): grill what is
 not fully specified before planning it or handing it off, and, in a repo with
-a workspace, say which one you are in, change a decision through `spec-edit` and build an issue from
+a workspace, change a decision through `spec-edit` and build an issue from
 its acceptance criteria as failing tests. Answer `off` and it says nothing.
 
 The skills work in any repo.
