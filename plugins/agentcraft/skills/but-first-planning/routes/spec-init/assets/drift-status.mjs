@@ -2,8 +2,9 @@
 // Drift listing: a fast, read-only index of the cross-cutting drift items, so
 // an agent can triage WHICH drift files to open rather than reading them all.
 //
-// Lives in `.agents/plan/progress/` and roots itself there, reading the sibling
-// `drift/` directory's `drift-*.md` files. Node 22 stdlib only; never writes.
+// Lives in a workspace's `progress/` (a copy in `.agents/plan/`, a launcher
+// onto the shared copy in `.agents/plans/<name>/`) and reads the `drift/`
+// directory there, its `drift-*.md` files. Node 22 stdlib only; never writes.
 // `build-assess-drift` owns advancing a drift item's status; this only reports.
 //
 // Each drift file carries greppable frontmatter (the format owned by
@@ -39,8 +40,31 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const PROGRESS_ROOT = import.meta.dirname; // .agents/plan/progress/
-const DRIFT_DIR = path.join(PROGRESS_ROOT, "drift");
+// ---- workspace -------------------------------------------------------------
+// The project workspace (.agents/plan/) holds its own copy of this script, and
+// the script roots itself where it sits. A named workspace
+// (.agents/plans/<name>/) holds a launcher at the same relative path: it runs
+// the one copy in .agents/plans/_scripts/ with `--workspace <dir>`.
+/** `{ ws, rest }`: the named workspace's directory (null for the one this script sits in) and argv without the flag, or `{ error }`. */
+export function workspaceArg(argv, here = import.meta.dirname) {
+  const i = argv.indexOf("--workspace");
+  if (i === -1) {
+    if (path.basename(here) !== "_scripts") return { ws: null, rest: [...argv] };
+    let names = [];
+    try { names = fs.readdirSync(path.dirname(here), { withFileTypes: true }).filter((e) => e.isDirectory() && /^[a-z]/.test(e.name)).map((e) => e.name).sort(); } catch { /* none */ }
+    return { error: `this is the copy every named workspace shares, and it was not told which one: run the script inside a workspace instead (${names.length ? names.map((n) => `.agents/plans/${n}`).join(", ") : "no named workspace exists yet"})` };
+  }
+  const given = argv[i + 1] ?? "";
+  const ws = path.resolve(given);
+  const plans = path.dirname(ws);
+  const named = given && path.basename(plans) === "plans" && path.basename(path.dirname(plans)) === ".agents";
+  if (!named || !fs.existsSync(ws)) return { error: `--workspace takes the directory of a named workspace, .agents/plans/<name> (got '${given}')` };
+  return { ws, rest: [...argv.slice(0, i), ...argv.slice(i + 2)] };
+}
+// ----------------------------------------------------------------------------
+
+// Set by `main`: the workspace's progress/drift/.
+let DRIFT_DIR;
 
 // The drift lifecycle vocabulary (owned by build-next-issue). CORE is always
 // shown in the summary so "is there work?" reads at a glance even at zero; the
@@ -130,7 +154,10 @@ function printTable(items) {
   console.log(`\n${items.length} item${items.length === 1 ? "" : "s"}: ${parts.join(", ")}`);
 }
 
-export function main(argv) {
+export function main(rawArgv) {
+  const { ws, rest: argv, error } = workspaceArg(rawArgv);
+  if (error) { console.error(`drift-status.mjs: ${error}`); return 2; }
+  DRIFT_DIR = path.join(ws ? path.join(ws, "progress") : import.meta.dirname, "drift");
   let statuses = null;
   let json = false;
   let openOnly = false;

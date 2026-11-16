@@ -1,11 +1,11 @@
 // tracker.mjs: where a plan issue lives outside the plan tree, on GitHub or GitLab.
 //
-// Lands in `.agents/plan/plan/` beside `plan-status.mjs` and
+// Lands in a workspace's `plan/` (or the shared `.agents/plans/_scripts/`) beside `plan-status.mjs` and
 // `publish-issues.mjs`, which are its two callers, and `provider.mjs`, the
 // layer over `gh` and `glab` it is written on. Node 22 stdlib only.
 //
-// `.agents/plan/tracker.md` says which forge and how. This module reads that
-// file and turns the plan's vocabulary into the forge's:
+// The workspace's `tracker.md` says which forge and how. This module reads
+// that file and turns the plan's vocabulary into the forge's:
 //
 //   GitHub   an issue per plan issue, labelled by type with the triage label
 //            tracker.md names (ready-for-agent, ready-for-human,
@@ -18,6 +18,12 @@
 //
 // On both, a blocked reason is posted as a comment and a cancelled issue is
 // closed as not planned (GitHub's close reason, a comment on GitLab).
+//
+// A repo may hold several plans, and they publish to one forge. A sprint of a
+// named workspace carries its name (`sprint.ws`), and what it hangs from is
+// said with it: `epic::<name>.EE-<slug>`, a milestone `<name>.EE-SS <slug>`,
+// and on GitHub, which has neither, a `plan:<name>` label. The project
+// workspace's names are the bare ones above.
 //
 // Every function takes the provider's `{ run, env }` as its last argument, so
 // a test hands in a runner and nothing here starts a process on its own.
@@ -81,13 +87,18 @@ export function providerFor(config, root, opts = {}) {
 /** The number in a `**Tracker**:` value: `#42` gives "42", `<unassigned>` gives null. */
 export const refNumber = (ref) => /^#(\d+)\b/.exec(String(ref ?? "").trim())?.[1] ?? null;
 
-export const epicLabel = (sprint) => `epic::${sprint.enum}-${sprint.eslug}`;
-export const milestoneTitle = (sprint) => `${sprint.enum}-${sprint.snum} ${sprint.sslug}`;
+/** `<name>.` before a named workspace's coordinates; nothing before the project's. */
+const of = (sprint) => (sprint.ws ? `${sprint.ws}.` : "");
+export const epicLabel = (sprint) => `epic::${of(sprint)}${sprint.enum}-${sprint.eslug}`;
+export const milestoneTitle = (sprint) => `${of(sprint)}${sprint.enum}-${sprint.snum} ${sprint.sslug}`;
+/** The GitHub label that says which named workspace a ticket belongs to. */
+export const planLabel = (sprint) => (sprint.ws ? `plan:${sprint.ws}` : null);
 
 /** The labels a new ticket is created with. */
 export function ticketLabels(config, sprint, issue) {
   if (config.mode === "gitlab") return [epicLabel(sprint), `type::${issue.type}`, ...(issue.decision ? ["decision"] : [])];
-  return [issue.type === "REVIEW" ? config.labels.review : issue.type === "HITL" ? config.labels.human : config.labels.agent];
+  const triage = issue.type === "REVIEW" ? config.labels.review : issue.type === "HITL" ? config.labels.human : config.labels.agent;
+  return sprint.ws ? [triage, planLabel(sprint)] : [triage];
 }
 
 /**
@@ -118,8 +129,10 @@ export function ensureSprintObjects(provider, config, sprint, issue, state, opts
       if (r.ok) made.push(`milestone ${title}`);
     }
   } else {
-    const failed = label(ticketLabels(config, sprint, issue)[0], {});
-    if (failed) return failed;
+    for (const name of ticketLabels(config, sprint, issue)) {
+      const failed = label(name, name === planLabel(sprint) ? { description: `Plan issues of the ${sprint.ws} workspace` } : {});
+      if (failed) return failed;
+    }
   }
   return { ok: true, value: made };
 }

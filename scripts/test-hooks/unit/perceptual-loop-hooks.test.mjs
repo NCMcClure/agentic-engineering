@@ -14,7 +14,7 @@ import { PL, PLUGIN, runNode, tempDir, write } from "./perceptual-loop-fixtures.
 const HOOK = path.join(import.meta.dirname, "area-session.mjs");
 const ROOT = path.join(PLUGIN, "..", "..");
 const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
-const PLAN = [".agents/plan", ".plan/plan/plan-status.py", ".plan/plan/verify-plan-tree.py", ".plan/spec/scripts/verify-spec-tree.py"];
+const PLAN = [".agents/plan", ".agents/plans", ".plan/plan/plan-status.py", ".plan/plan/verify-plan-tree.py", ".plan/spec/scripts/verify-spec-tree.py"];
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const TASTE = "Defects are yours to fix; taste (how bright, how much, which of two plausible looks) is the owner's to decide.";
 

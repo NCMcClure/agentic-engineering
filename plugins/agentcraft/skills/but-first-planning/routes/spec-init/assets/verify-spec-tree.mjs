@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 // Spec-tree structural verifier, count-agnostic. Read-only, Node 22 stdlib only.
-// Validates the progressive-disclosure specification under `.agents/plan/spec/`
+// Validates the progressive-disclosure specification under a workspace's
+// `spec/` (`.agents/plan/spec/`, or a named workspace's through its launcher)
 // authored by the `spec-write` skill:
 //
 //   * every content file (non-index, non-README) carries valid frontmatter
 //     (tags, summary, created, updated; relates-to optional);
 //   * `index.md` files are navigation hubs and carry NO frontmatter;
 //   * `relates-to` cross-links resolve to real files;
-//   * a root `spec/index.md` exists.
+//   * a root `spec/index.md` exists;
+//   * the project workspace's spec carries the two mandatory pages. A named
+//     workspace is one feature's or task's: it reads those from the project.
 //
 // Exits 0 clean, 1 on warnings only, 2 on any critical violation. Reports the
 // discovered counts:
@@ -18,7 +21,41 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const SPEC_ROOT = path.dirname(import.meta.dirname); // .agents/plan/spec/ (the script sits in spec/scripts/)
+// ---- workspace -------------------------------------------------------------
+// The project workspace (.agents/plan/) holds its own copy of this script, and
+// the script roots itself where it sits. A named workspace
+// (.agents/plans/<name>/) holds a launcher at the same relative path: it runs
+// the one copy in .agents/plans/_scripts/ with `--workspace <dir>`.
+/** `{ ws, rest }`: the named workspace's directory (null for the one this script sits in) and argv without the flag, or `{ error }`. */
+export function workspaceArg(argv, here = import.meta.dirname) {
+  const i = argv.indexOf("--workspace");
+  if (i === -1) {
+    if (path.basename(here) !== "_scripts") return { ws: null, rest: [...argv] };
+    let names = [];
+    try { names = fs.readdirSync(path.dirname(here), { withFileTypes: true }).filter((e) => e.isDirectory() && /^[a-z]/.test(e.name)).map((e) => e.name).sort(); } catch { /* none */ }
+    return { error: `this is the copy every named workspace shares, and it was not told which one: run the script inside a workspace instead (${names.length ? names.map((n) => `.agents/plans/${n}`).join(", ") : "no named workspace exists yet"})` };
+  }
+  const given = argv[i + 1] ?? "";
+  const ws = path.resolve(given);
+  const plans = path.dirname(ws);
+  const named = given && path.basename(plans) === "plans" && path.basename(path.dirname(plans)) === ".agents";
+  if (!named || !fs.existsSync(ws)) return { error: `--workspace takes the directory of a named workspace, .agents/plans/<name> (got '${given}')` };
+  return { ws, rest: [...argv.slice(0, i), ...argv.slice(i + 2)] };
+}
+// ----------------------------------------------------------------------------
+
+// Set by `locate`. The project's copy sits in spec/scripts/.
+let SPEC_ROOT; //  the workspace's spec/
+let NAMED; //      whether it is a named workspace's
+
+/** Says where the spec is, or `{ error }`. */
+export function locate(argv = []) {
+  const { ws, error } = workspaceArg(argv);
+  if (error) return { error };
+  SPEC_ROOT = ws ? path.join(ws, "spec") : path.dirname(import.meta.dirname);
+  NAMED = Boolean(ws);
+  return { root: SPEC_ROOT };
+}
 
 const SKIP_DIRS = new Set(["assets", "scripts", ".site", "prototypes"]);
 const DATE_RE = /^\d{4}-\d{2}(-\d{2})?$/;
@@ -74,6 +111,7 @@ function markdownFiles(dir, out = []) {
 }
 
 export function verify() {
+  if (!SPEC_ROOT) locate();
   const failures = []; // critical -> exit 2
   const warnings = []; // exit 1 when there are no failures
 
@@ -126,7 +164,7 @@ export function verify() {
   // Mandatory contract pages (exact filenames; owned by spec-write's
   // CODEBASE-LAYOUT.md and USER-DOCS-SPEC.md). Warn level: legacy specs pass.
   const contentNames = new Set(contentFiles.map((p) => path.basename(p)));
-  for (const page of ["repository-layout.md", "user-docs-plan.md"]) {
+  for (const page of NAMED ? [] : ["repository-layout.md", "user-docs-plan.md"]) {
     if (!contentNames.has(page)) warnings.push(`spec/: no content file named ${page} (mandatory page, see spec-write)`);
   }
 
@@ -142,7 +180,11 @@ export function verify() {
 
 const realpath = (p) => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
 if (process.argv[1] && realpath(process.argv[1]) === realpath(import.meta.filename)) {
-  if (isDir(SPEC_ROOT)) {
+  const at = locate(process.argv.slice(2));
+  if (at.error) {
+    console.log(`FAIL: ${at.error}`);
+    process.exitCode = 2;
+  } else if (isDir(SPEC_ROOT)) {
     process.exitCode = verify();
   } else {
     console.log(`FAIL: no spec tree at ${SPEC_ROOT}`);

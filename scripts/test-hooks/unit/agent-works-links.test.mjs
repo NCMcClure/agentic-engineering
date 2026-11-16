@@ -104,6 +104,7 @@ test("agent-works links: what is read by default and what is not", async (t) => 
   p.write(".agents/decisions/0001-x.md", BAD); // both
   p.write(".agents/kanban/0001-card.md", BAD); // not read
   p.write(".agents/plan/spec/a.md", BAD); // not read
+  p.write(".agents/plans/billing/spec/a.md", BAD); // a named workspace: not read either
   p.write("docs/guide.md", BAD); // user docs: not an agent file
   p.write("src/notes.md", BAD); // not an agent file
   assert.deepEqual(found(p)[1].map(([code, where]) => [code, where]), [

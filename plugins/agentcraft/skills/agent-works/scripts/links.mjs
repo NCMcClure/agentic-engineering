@@ -90,9 +90,9 @@ export function expandTargets(root, targets) {
   return out;
 }
 
-/** What is read without targets: every AGENTS.md, the Markdown under .agents/ outside the board and the plan, and `links.files`. */
+/** What is read without targets: every AGENTS.md, the Markdown under .agents/ outside the board and the plans (the project's and the named ones beside it), and `links.files`. */
 export function defaultTargets(root, cfg) {
-  const skip = [boardDir(cfg, root), configPath(cfg, root, "plan"), path.join(root, OLD_BOARD)];
+  const skip = [boardDir(cfg, root), configPath(cfg, root, "plan"), path.join(root, ".agents", "plans"), path.join(root, OLD_BOARD)];
   const files = [];
   for (const md of markdownFiles(root)) {
     if ((path.basename(md) === "AGENTS.md" || rel(md, root).startsWith(".agents/")) && !skip.some((s) => under(md, s))) files.push(md);
