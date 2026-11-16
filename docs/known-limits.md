@@ -6,10 +6,14 @@ true of a build, not forever.
 
 ## Host behaviors the one-plugin cutover leans on
 
-The twelve plugins are becoming areas of one plugin, `agentcraft`, with the
-old names left as stubs that depend on it. That leans on host behaviors nobody
-here had run. Each was run on 2026-11-15 on Claude Code 2.1.325, in a
-throwaway marketplace against scratch config, never a person's own.
+The twelve plugins became areas of one plugin, `agentcraft`. For a time each
+old name stayed in the catalog as a stub, a manifest that depended on
+`agentcraft` and shipped nothing else; the stubs are gone now, and the catalog
+lists the one plugin. The move leaned on host behaviors nobody here had run.
+Each was run on 2026-11-15 on Claude Code 2.1.325, in a throwaway marketplace
+against scratch config, never a person's own. Findings 5 to 7 say what the
+host does with a stub and with a plugin the catalog drops, which is what an
+install under an old name meets today.
 
 The setup bounds what these runs prove. Every `claude` command ran with a
 scrubbed environment, a scratch `HOME`, and a scratch `CLAUDE_CONFIG_DIR`. The
@@ -111,8 +115,10 @@ in the real plugin.
      of it fails with `not found`, and `prune` refuses to run while it fails
      to load. The plugin it depended on kept working throughout.
 
-   So before the stubs are deleted, a person has to have installed
-   `agentcraft` by name, or one `prune` takes it away.
+   The stubs are deleted now. So an install under an old name reports
+   `not found` until it is uninstalled, and an `agentcraft` that arrived as a
+   stub's dependency stays one `prune` from removal until a person installs
+   it by name.
 
 6. **A plugin's data directory is `<config>/plugins/data/<plugin>-<marketplace>`,
    and an uninstall deletes it.** The hook's `CLAUDE_PLUGIN_DATA` was
@@ -121,8 +127,8 @@ in the real plugin.
    directory, and a file the hook wrote in it, survived the update that made
    `old-a` a stub and were gone after `claude plugin uninstall old-a@spike-mkt`.
    `uninstall --keep-data` exists to preserve it. So state an area inherits
-   from its old plugin is copied while the stub is still installed, by the
-   first session that runs the new plugin, not later.
+   from its old plugin is copied while the old name is still installed, by
+   the first session that runs the new plugin, not later.
 
 7. **An update of a stub installs and enables the plugin it depends on in the
    same step, unless non-essential traffic is turned off.** With `old-b` at

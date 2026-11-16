@@ -38,9 +38,9 @@ This is the twelve as one plugin. A person remembers one thing,
 /plugin install agentcraft@agentic-engineering
 ```
 
-Each old plugin name still installs: it is now a stub that depends on
-`agentcraft` and brings it in (Claude Code 2.1.321 or later). Install `agentcraft` by name all the
-same, so it stays when the stubs are retired.
+The areas were plugins of their own once, and the catalog no longer lists
+those. If one is still installed, install `agentcraft` by name, then remove
+the old one with `/plugin uninstall <old-name>@agentic-engineering`.
 
 ## The areas
 

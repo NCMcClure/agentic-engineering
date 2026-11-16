@@ -13,8 +13,7 @@
 //   there, and whether only a person starts it, is read from the tree. The
 //   rest of that skill is written by hand and never touched.
 // - docs/plugins.md: the plugin and its version from the catalog and the
-//   manifest, every area with its routes, and the old plugin names that are
-//   stubs now, each with the area it became.
+//   manifest, and every area with its routes.
 //
 // Usage: node scripts/gen-guide.mjs [--write] [--root <dir>]
 //
@@ -23,27 +22,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { AREA_PLUGIN, ENTRY_SKILL as ENTRY, STUB_AREA, parseFrontmatter, readJson, skillBody } from "./lib.mjs";
+import { AREA_PLUGIN, ENTRY_SKILL as ENTRY, parseFrontmatter, readJson, skillBody } from "./lib.mjs";
 
 export const GUIDE = "docs/plugins.md";
 
 const cell = (text) => String(text ?? "").replace(/\s+/g, " ").replaceAll("|", "\\|").trim();
-
-/**
- * The stubs in the tree: every catalog entry sourced from this checkout
- * whose manifest depends on the one plugin, as `{ name, version, area }`,
- * `area` being the area the plugin became. That is how the installer tells
- * one too: a stub is never installed, and never offered.
- */
-export function stubs(root) {
-  const catalog = readJson(path.join(root, ".claude-plugin", "marketplace.json"));
-  return catalog.plugins.filter((p) => typeof p.source === "string" && p.name && p.name !== AREA_PLUGIN).flatMap((p) => {
-    let manifest = null;
-    try { manifest = readJson(path.join(root, "plugins", p.name, ".claude-plugin", "plugin.json")); } catch { /* the gate fails a manifest that does not read */ }
-    const depends = [].concat(manifest?.dependencies ?? []).some((d) => (typeof d === "string" ? d : d?.name) === AREA_PLUGIN);
-    return depends ? [{ name: p.name, version: manifest.version ?? "", area: STUB_AREA[p.name] ?? p.name }] : [];
-  });
-}
 
 /** The whole guide as text, for the checkout at `root`. */
 export function guide(root) {
@@ -83,13 +66,6 @@ export function guide(root) {
     // A route by the address that reaches it: the area, then the route as its first argument.
     out.push("", "| An agent's address | Started | When |", "|---|---|---|");
     for (const r of a.routes) out.push(`| \`/${AREA_PLUGIN}:${a.area} ${r.name}${r.hint ? ` ${cell(r.hint)}` : ""}\` | ${r.person ? "when you ask for it" : "by the agent"} | ${cell(r.description)} |`);
-  }
-  const old = stubs(root);
-  if (old.length) {
-    out.push("", "## Old names", "",
-      `Each of these was a plugin of its own and is an area of ${AREA_PLUGIN} now. What is left under the old name is a stub: it depends on ${AREA_PLUGIN} and ships nothing that runs, so a copy installed before the move updates into ${AREA_PLUGIN}. A stub is never the thing to install.`,
-      "", "| Old name | Stub version | Now |", "|---|---|---|",
-      ...old.map((s) => `| ${s.name} | ${s.version} | the [${s.area}](#${s.area}) area |`));
   }
   return `${out.join("\n")}\n`;
 }

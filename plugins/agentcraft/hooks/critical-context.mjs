@@ -222,10 +222,9 @@ function catalog(env) {
 }
 
 /**
- * Installed copies older than the catalog: this plugin, and any plugin under
- * an older name that has not yet become the stub that depends on it, which is
- * what still runs its own hooks beside this one's. A marketplace registered
- * from a local checkout is never behind.
+ * Installed copies older than the catalog: this plugin, and any other the
+ * catalog lists. A marketplace registered from a local checkout is never
+ * behind.
  */
 export function behindCatalog(env = process.env) {
   const cat = catalog(env);

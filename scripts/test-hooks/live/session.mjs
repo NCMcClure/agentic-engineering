@@ -11,8 +11,7 @@ import { KINDS, REPO, makeFixture } from "../fixtures.mjs";
 import { parseTranscript } from "./reach.mjs";
 
 export { REPO, makeFixture };
-// The one plugin, loaded from the checkout. A stub beside it is never loaded:
-// it ships nothing a session would see, and its dependency is the plugin itself.
+// The one plugin, loaded from the checkout.
 export const PLUGIN = AREA_PLUGIN;
 const PLUGIN_DIR = path.join(REPO, "plugins", PLUGIN);
 // The lens is the one the context-doctor area ships, so the lane reads

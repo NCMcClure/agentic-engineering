@@ -1,8 +1,8 @@
 # plugins: what the agents load
 
 One plugin ships everything: `agentcraft`, installed as
-`agentcraft@agentic-engineering`. Every other directory here is a stub, what
-is left of a plugin that became one of its areas.
+`agentcraft@agentic-engineering`. It is the only directory here: what is new
+goes in as one of its areas.
 
 A plugin never references a file outside its own directory: installs are
 cached copies, so `../` paths out of it break.
@@ -32,17 +32,6 @@ cached copies, so `../` paths out of it break.
     (an area's folder in the plugin's data directory).
   - `agents/`, `.mcp.json`, `bin/` - the subagents, the MCP server, and the
     `aw` launcher, each the plugin's own and named with no area.
-- A stub (`agent-works/`, `agentic-teamwork/`, `animated-storytelling/`,
-  `but-first-planning/`, `code-diet/`, `codebase-optimizer/`, `docs-parity/`,
-  `marvelous-miro/`, `perceptual-loop/`, `picture-this/`, `plugin-workbench/`,
-  `system-map/`, `workflow-studio/`, `write-like-me/`) - a manifest whose
-  `dependencies` is `["agentcraft"]`, a one-paragraph `README.md`, and a
-  `CHANGELOG.md`. It ships no hook, agent, or MCP server. Three keep alias
-  skills, each `user-invocable: false` and a pointer to the route an old
-  address meant: `agentic-teamwork` (`init-project`), `but-first-planning`
-  (`plan-decompose`, `spec-open`), `write-like-me` (`review`).
-  `but-first-planning/install.mjs` installs nothing and says where to go.
-  Nothing new goes into a stub.
 
 ## The areas
 

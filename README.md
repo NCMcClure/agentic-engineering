@@ -22,9 +22,9 @@ that ship in someone else's voice.
 
 Then type `/agentcraft:start-here`, or just ask for the work in words.
 
-Coming from the separate plugins? Each old name is now a stub that brings
-`agentcraft` in when it updates (Claude Code 2.1.321 or later). Install
-`agentcraft` by name as well, so it stays when the stubs are retired.
+Coming from the separate plugins? The catalog no longer lists them, so they
+do not update into this one. Install `agentcraft` by name, then remove each
+old one with `/plugin uninstall <old-name>@agentic-engineering`.
 
 ## How the areas work together
 
@@ -191,7 +191,7 @@ picture. Describe how something works, or point at a feature in your
 codebase, and get three rough animated drafts to choose from, each a
 different picture designed from that subject and not from a template. The one you pick becomes a React component that embeds in MDX,
 with light and dark stills for a plain README. It replaces
-`animated-storytelling`, which is now a stub that brings `agentcraft` in.
+`animated-storytelling`.
 [Read more →](plugins/agentcraft/skills/picture-this/README.md)
 
 <picture>

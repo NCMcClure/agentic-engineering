@@ -27,13 +27,12 @@ node scripts/install.mjs --dry-run   # print every write, touch nothing
 `refresh.mjs` installs nothing on a red gate. Claude Code loads plugins at
 session start, so start a new session to see the change.
 
-The installer copies `agentcraft` and never a stub: a stub is a manifest for a
-host that resolves dependencies, and this one copies trees. If an earlier run
-left one of the old plugins installed under a stub's name, the installer
-retires that copy first (its cache folder, its install record, its enable
-flag), so no hook runs twice. It leaves the old plugin's data folder where it
-is. `--plugins <name>` still takes a list, and a stub's name there is refused
-with where it moved.
+The installer copies `agentcraft`, the one plugin. If an earlier run left one
+of the old plugins installed under the name an area had as a plugin of its
+own, the installer retires that copy first (its cache folder, its install
+record, its enable flag), so no hook runs twice. It leaves the old plugin's
+data folder where it is. `--plugins <name>` still takes a list, and an old
+name there is refused with where it moved.
 
 If you already installed this marketplace from GitHub, the installer stops and
 says so: Claude Code allows one source per marketplace name. `--force` repoints
@@ -101,5 +100,5 @@ git tag agentcraft/v1.0.1 main
 git push origin agentcraft/v1.0.1
 ```
 
-CI checks the tag against that `plugin.json` and fails on a mismatch. A stub
-gets no tag: its version moved once, when it became a stub.
+CI checks the tag against that `plugin.json` and fails on a mismatch, and on a
+tag that names anything but `agentcraft`.

@@ -8,7 +8,7 @@ Install it with `/plugin install agentcraft@agentic-engineering` after `/plugin 
 
 A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentcraft:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.
 
-Version 1.2.2. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
+Version 1.2.3. [README](../plugins/agentcraft/README.md), [changelog](../plugins/agentcraft/CHANGELOG.md).
 
 | Area | Routes | For |
 |---|---|---|
@@ -223,24 +223,3 @@ Use every time you are about to write or rewrite prose a human will read (emails
 | `/agentcraft:write-like-me audit` | by the agent | Analyze existing text for AI-writing tells, report a verdict, and optionally rewrite it in the person's voice. Use when the person asks for a text to be audited, asks whether it sounds AI-written, or wants a draft checked for AI tells. Fresh prose is the area's own job, not this route's. |
 | `/agentcraft:write-like-me calibrate` | when you ask for it | Build or rebuild the person's writing voice profile through sample analysis and a short interview. Use when the person asks to calibrate their voice: the one-time setup, and the full rebuild when the profile has drifted. |
 | `/agentcraft:write-like-me review` | when you ask for it | Show, prune, revert, or configure the person's writing profile and its auto-refinement history. Use when the person asks to see what the learning loop changed, to undo a revision, or to pause learning. |
-
-## Old names
-
-Each of these was a plugin of its own and is an area of agentcraft now. What is left under the old name is a stub: it depends on agentcraft and ships nothing that runs, so a copy installed before the move updates into agentcraft. A stub is never the thing to install.
-
-| Old name | Stub version | Now |
-|---|---|---|
-| agent-works | 2.0.0 | the [agent-works](#agent-works) area |
-| but-first-planning | 6.0.0 | the [but-first-planning](#but-first-planning) area |
-| codebase-optimizer | 2.0.0 | the [codebase-optimizer](#codebase-optimizer) area |
-| agentic-teamwork | 2.0.0 | the [agentic-teamwork](#agentic-teamwork) area |
-| workflow-studio | 2.0.0 | the [workflow-studio](#workflow-studio) area |
-| picture-this | 1.0.0 | the [picture-this](#picture-this) area |
-| write-like-me | 2.0.0 | the [write-like-me](#write-like-me) area |
-| code-diet | 2.0.0 | the [code-diet](#code-diet) area |
-| plugin-workbench | 3.0.0 | the [plugin-workbench](#plugin-workbench) area |
-| perceptual-loop | 2.0.0 | the [perceptual-loop](#perceptual-loop) area |
-| docs-parity | 2.0.0 | the [docs-parity](#docs-parity) area |
-| system-map | 1.0.0 | the [system-map](#system-map) area |
-| marvelous-miro | 1.0.0 | the [system-map](#system-map) area |
-| animated-storytelling | 2.0.0 | the [picture-this](#picture-this) area |
