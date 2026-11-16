@@ -3,14 +3,14 @@
 // frontmatter), the entry skill's table, and the plugin guide. An area is a
 // skill directory that holds `routes/`; the committed tree's own files are the
 // generator's output. The fixture is a marketplace of the same shape: the
-// one plugin, holding an area named `demo`, and a stub left under that name.
+// one plugin, holding an area named `demo`.
 // An address under the plugin is built here, never written out, so the gate
 // does not read this file's own lines as addresses of this checkout.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { ENTRY_PLUGIN, GUIDE, ROUTE_END, ROUTE_TABLE_HEAD, areaData, areaFile, areas, generate, generated, guide, readArea, readEntry, routeFile, routeNames, stubs } from "../../gen-guide.mjs";
+import { ENTRY_PLUGIN, GUIDE, ROUTE_END, ROUTE_TABLE_HEAD, areaData, areaFile, areas, generate, generated, guide, readArea, readEntry, routeFile, routeNames } from "../../gen-guide.mjs";
 import { parseFrontmatter } from "../../lib.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
@@ -34,15 +34,13 @@ const ROUTES = {
 const skill = (name, description, extra = "") =>
   `---\nname: ${name}\ndescription: ${JSON.stringify(description)}\n${extra}---\n\n# ${name}\n\nWhat ${name} does.\n`;
 
-// A marketplace of the one shape: the plugin, which holds an area, and the stub left under that area's old name as a plugin.
+// A marketplace of the one shape: the plugin, which holds an area.
 function fixture(t, door = ROUTES) {
   const dir = tempDir(t, "gen-guide-");
   write(dir, ".claude-plugin/marketplace.json", JSON.stringify({ name: "fixture-market", owner: { name: "test" }, plugins: [
     { name: ONE, source: `./plugins/${ONE}`, description: "Every area in one plugin.", category: "testing" },
-    { name: "demo", source: "./plugins/demo", description: "Moved.", category: "moved" },
   ] }));
   write(dir, `plugins/${ONE}/.claude-plugin/plugin.json`, JSON.stringify({ name: ONE, version: "0.1.0", description: "The one plugin." }));
-  write(dir, "plugins/demo/.claude-plugin/plugin.json", JSON.stringify({ name: "demo", version: "2.0.0", description: `Moved into ${ONE}.`, dependencies: [ONE] }));
   write(dir, ALPHA, skill("alpha", "Starts the alpha thing from a card. Use when a card is ready to start. Reads the board first.", 'argument-hint: "<card id> [--now|--later]"\n'));
   write(dir, routeFile(ONE, "demo", "beta"), skill("beta", "Sets beta up in a project. Use when CLAUDE.md is missing or the .agents/ tree is stale."));
   if (door) write(dir, AREA_DATA, `${JSON.stringify(door, null, 2)}\n`);
@@ -63,7 +61,7 @@ test("every file the generator writes in this checkout is its output", () => {
   assert.deepEqual(results.filter((r) => r.state !== "current").map(generated), []);
 });
 
-test("every area and every route is in the committed guide, and every other catalog plugin as a stub with the area it became", () => {
+test("every area and every route is in the committed guide, and no plugin but the one", () => {
   const text = fs.readFileSync(path.join(REPO, GUIDE), "utf8");
   const found = areas(REPO);
   assert.equal(found.length, 13);
@@ -72,14 +70,9 @@ test("every area and every route is in the committed guide, and every other cata
     for (const route of routeNames(REPO, plugin, area)) assert.ok(text.includes(`\`/${plugin}:${area} ${route}`), `${area} ${route}`);
   }
   const catalog = JSON.parse(fs.readFileSync(path.join(REPO, ".claude-plugin", "marketplace.json"), "utf8"));
-  const old = stubs(REPO);
-  assert.deepEqual(old.map((s) => s.name), catalog.plugins.filter((p) => typeof p.source === "string" && p.name !== ONE).map((p) => p.name), "every local entry but the plugin is a stub");
-  for (const s of old) {
-    assert.ok(found.some((a) => a.area === s.area), `${s.name} became ${s.area}, which is not an area`);
-    assert.ok(text.includes(`\n| ${s.name} | ${s.version} | the [${s.area}](#${s.area}) area |\n`), s.name);
-    // A stub's alias is an address nothing should be sent to, so the guide prints none.
-    assert.equal(text.includes(`\`/${s.name}:`), false, `an address under ${s.name}`);
-  }
+  // An area was a plugin once, and the guide gives no address under that name.
+  for (const { area } of found) assert.equal(text.includes(`\`/${area}:`), false, `an address under ${area}`);
+  assert.doesNotMatch(text, /Old names/);
   assert.match(text, new RegExp(`^Install it with \`/plugin install ${ONE}@${catalog.name}\``, "m"));
   assert.doesNotMatch(text, /install <name>@/);
 });
@@ -89,12 +82,11 @@ test("every area and every route is in the committed guide, and every other cata
 test("an area is a skill directory of the one plugin that holds routes/, and a route a directory there with a ROUTE.md", (t) => {
   const dir = fixture(t);
   write(dir, `plugins/${ONE}/skills/demo/routes/empty/notes.md`, "No ROUTE.md, so no route.\n");
-  // A skill with no routes/ is no area, and neither is anything a stub holds.
+  // A skill with no routes/ is no area, and neither is anything in another directory.
   write(dir, `plugins/${ONE}/skills/start-here/SKILL.md`, skill("start-here", "Use when a person asks what is here."));
-  write(dir, "plugins/demo/skills/alpha/routes/alpha/ROUTE.md", skill("alpha", "An alias gone wrong."));
+  write(dir, "plugins/demo/skills/alpha/routes/alpha/ROUTE.md", skill("alpha", "A route with no plugin to be in."));
   assert.deepEqual(areas(dir), [{ plugin: ONE, area: "demo" }]);
   assert.deepEqual(routeNames(dir, ONE, "demo"), ["alpha", "beta"]);
-  assert.deepEqual(stubs(dir), [{ name: "demo", version: "2.0.0", area: "demo" }]);
 });
 
 test("--write gives an area a skill whose description is the lead, then each route as an argument with its cue, callable by a model and out of the slash menu", (t) => {
@@ -277,7 +269,7 @@ test("an abbreviation's dot does not end the use-when sentence", (t) => {
 
 // ---- the guide ---------------------------------------------------------------
 
-test("the guide names the plugin to install, lists each area with its routes by an agent's address, and each stub by the area it became", (t) => {
+test("the guide names the plugin to install, and lists each area with its routes by an agent's address", (t) => {
   const { dir } = written(t);
   const text = guide(dir);
   assert.equal(text, read(dir, GUIDE));
@@ -291,18 +283,8 @@ test("the guide names the plugin to install, lists each area with its routes by 
   // A route is never an address of its own, and the area is listed once, by its section.
   assert.doesNotMatch(text, new RegExp(`/${ONE}:(alpha|beta)`));
   assert.equal(count(text, "\n## demo\n"), 1);
-  // The stub: where it moved, and nothing that reads as something to install or call.
-  has("## Old names");
-  has("| demo | 2.0.0 | the [demo](#demo) area |");
-  assert.doesNotMatch(text, /demo@fixture-market|`\/demo:/);
-});
-
-test("the guide of a tree with no stub has no section for old names", (t) => {
-  const dir = fixture(t);
-  fs.rmSync(path.join(dir, "plugins", "demo"), { recursive: true });
-  write(dir, ".claude-plugin/marketplace.json", JSON.stringify({ name: "fixture-market", owner: { name: "test" }, plugins: [{ name: ONE, source: `./plugins/${ONE}`, description: "Every area in one plugin.", category: "testing" }] }));
-  gen(dir, "--write");
-  assert.doesNotMatch(guide(dir), /Old names/);
+  // The area's name is no plugin's: nothing reads as one to install or call.
+  assert.doesNotMatch(text, /Old names|demo@fixture-market|`\/demo:/);
 });
 
 // ---- the entry skill ----------------------------------------------------------
@@ -313,32 +295,30 @@ const entryFixture = (t, data) => {
   const home = `plugins/${ENTRY_PLUGIN}`;
   write(dir, ".claude-plugin/marketplace.json", JSON.stringify({ name: "fixture-market", owner: { name: "test" }, plugins: [
     { name: ENTRY_PLUGIN, source: `./${home}`, description: "Every area in one plugin.", category: "testing" },
-    { name: "plain", source: "./plugins/plain", description: "Moved.", category: "moved" },
   ] }));
   write(dir, `plugins/${ENTRY_PLUGIN}/.claude-plugin/plugin.json`, JSON.stringify({ name: ENTRY_PLUGIN, version: "0.1.0", description: "The one plugin." }));
-  write(dir, "plugins/plain/.claude-plugin/plugin.json", JSON.stringify({ name: "plain", version: "2.0.0", description: `Moved into ${ENTRY_PLUGIN}.`, dependencies: [ENTRY_PLUGIN] }));
   write(dir, routeFile(ENTRY_PLUGIN, "demo", "alpha"), skill("alpha", "Starts alpha. Use when a card is ready."));
   write(dir, routeFile(ENTRY_PLUGIN, "demo", "beta"), skill("beta", "Sets beta up. Use when asked."));
   write(dir, areaData(ENTRY_PLUGIN, "demo"), JSON.stringify(ROUTES));
-  // An alias, the one skill a stub may hold: it is never something a use hands off to.
-  write(dir, "plugins/plain/skills/gamma/SKILL.md", skill("gamma", "Moved.", "user-invocable: false\n"));
+  // A skill of the plugin that holds no routes/ is no area: a use never hands off to it.
+  write(dir, `${home}/skills/plain/SKILL.md`, skill("plain", "A plain skill.", "user-invocable: false\n"));
   write(dir, `${home}/skills/start-here/start-here.json`, JSON.stringify(data));
   return dir;
 };
 
-test("a use is read against its area: a route of it, or the area named alone, by the address that reaches it; a stub is no area, and its alias reaches nothing", (t) => {
+test("a use is read against its area: a route of it, or the area named alone, by the address that reaches it; a skill that is no area reaches nothing", (t) => {
   const dir = entryFixture(t, {
     groups: [{ title: "Work", header: "Work", areas: ["demo", "plain"] }],
     areas: {
       demo: { cue: "do demo work", how: "Two steps.", uses: [{ want: "start any demo work", to: "demo" }, { want: "start alpha", to: "alpha" }, { want: "set beta up", to: "beta" }, { want: "a route that is not there", to: "ghost" }] },
-      plain: { cue: "do gamma", how: "A stub.", uses: [{ want: "run gamma", to: "gamma" }, { want: "the stub itself", to: "plain" }] },
+      plain: { cue: "do gamma", how: "No area.", uses: [{ want: "run gamma", to: "gamma" }, { want: "the skill itself", to: "plain" }] },
     },
   });
   const entry = readEntry(dir);
   assert.deepEqual(entry.areas.map((a) => a.name), ["demo", "plain"]);
   const one = `/${ENTRY_PLUGIN}:demo`;
   assert.deepEqual(entry.areas[0].uses.map((u) => [u.address, u.found, u.person]), [[one, true, false], [`${one} alpha`, true, false], [`${one} beta`, true, true], [`${one} ghost`, false, false]]);
-  const stub = `/${ENTRY_PLUGIN}:plain`;
-  assert.deepEqual(entry.areas[1].uses.map((u) => [u.address, u.found, u.person]), [[`${stub} gamma`, false, false], [stub, false, false]]);
+  const plain = `/${ENTRY_PLUGIN}:plain`;
+  assert.deepEqual(entry.areas[1].uses.map((u) => [u.address, u.found, u.person]), [[`${plain} gamma`, false, false], [plain, false, false]]);
   assert.deepEqual(entry.unknown, []);
 });

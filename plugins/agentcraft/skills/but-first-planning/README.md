@@ -192,8 +192,7 @@ Its routes are then the agent's to take: `spec-init`, `spec-write`, and so on.
 
 The standalone installer is retired. It copied each skill into a project's
 `.claude/skills/`, and a route is a document its area reads, not a skill to
-copy. The script still at `plugins/but-first-planning/install.mjs` installs
-nothing and says where to go.
+copy.
 
 ## Coming from 4.x
 

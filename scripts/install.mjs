@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { readJson, writeJson } from "./lib.mjs";
+import { OLD_NAMES, readJson, writeJson } from "./lib.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 const CONFIG = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
@@ -31,21 +31,22 @@ const FORCE = flag("--force");
 const UNINSTALL = flag("--uninstall");
 
 // An external entry has no tree here to copy, so only the ./plugins/ entries
-// install from a checkout. A stub is what is left of a plugin that moved into
-// another: a manifest that depends on it, for a host that resolves
-// dependencies. This installer copies trees, so it installs the plugin a stub
-// points at and never the stub, and it retires what an earlier run left under
-// a stub's name: that copy is the old plugin whole, and beside the new one
-// every hook would run twice.
-const local = CATALOG.plugins.filter((p) => typeof p.source === "string").map((p) => p.name);
-const dependsOn = (plugin) => [].concat(readJson(path.join(REPO, "plugins", plugin, ".claude-plugin", "plugin.json")).dependencies ?? []);
-const stubs = local.filter((p) => dependsOn(p).some((d) => d !== p && local.includes(d)));
-const all = local.filter((p) => !stubs.includes(p));
+// install from a checkout. Each area of a plugin here was a plugin of its own
+// once, under the area's name or one of OLD_NAMES, and the catalog lists none
+// of them now. So the installer never installs one, and it retires what an
+// earlier run left under such a name: that copy is the old plugin whole, and
+// beside the new one every hook would run twice.
+const all = CATALOG.plugins.filter((p) => typeof p.source === "string").map((p) => p.name);
+const areasOf = (plugin) => {
+  const skills = path.join(REPO, "plugins", plugin, "skills");
+  return fs.existsSync(skills) ? fs.readdirSync(skills).filter((name) => fs.existsSync(path.join(skills, name, "routes"))) : [];
+};
+const old = [...new Set([...all.flatMap(areasOf), ...Object.keys(OLD_NAMES)])].filter((p) => !all.includes(p));
 const wanted = value("--plugins")?.split(",").map((s) => s.trim()).filter(Boolean) ?? all;
 const unknown = wanted.filter((p) => !all.includes(p));
 if (unknown.length) {
-  const moved = unknown.filter((p) => stubs.includes(p));
-  console.error(`not in this checkout: ${unknown.join(", ")}; it ships ${all.join(", ")}${moved.length ? ` (${moved.join(", ")} moved into ${[...new Set(moved.flatMap(dependsOn))].join(", ")})` : ""}`);
+  const moved = unknown.filter((p) => old.includes(p));
+  console.error(`not in this checkout: ${unknown.join(", ")}; it ships ${all.join(", ")}${moved.length ? ` (${moved.join(", ")} moved into ${all.join(", ")})` : ""}`);
   process.exitCode = 2;
 }
 
@@ -105,7 +106,7 @@ const others = (data, key) => (data.plugins?.[key] ?? []).filter((e) => e.scope 
 
 /**
  * Drop what an earlier run of this installer, or the host, left under each
- * stub's name: the cached copy, the user-scope install record, the enable
+ * old name: the cached copy, the user-scope install record, the enable
  * flag. Only for a name that has a directory under this marketplace's cache;
  * a name with none is not touched, so an enable flag set by hand stays. The
  * old plugin's data directory is left where it is: an area that inherits
@@ -233,8 +234,8 @@ function uninstall(list) {
 if (!process.exitCode) {
   console.log(`${UNINSTALL ? "uninstalling" : "installing"} ${wanted.join(", ")}${DRY ? " (dry run)" : ""}`);
   try {
-    // Before either direction: an earlier copy under a stub's name.
-    retire(stubs);
+    // Before either direction: an earlier copy under an old name.
+    retire(old);
     if (UNINSTALL) uninstall(wanted);
     else install(wanted);
   } catch (e) {

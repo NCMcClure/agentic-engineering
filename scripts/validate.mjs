@@ -6,8 +6,7 @@
 //
 // --root points the checks at another checkout, which is how they get tested
 // against a tree that is meant to fail. --tag checks one thing only: that the
-// tag is the one plugin's, at the version its plugin.json carries. A stub is
-// never tagged: one under an old name starts no release.
+// tag is the one plugin's, at the version its plugin.json carries.
 //
 // The one plugin's session hooks are held to budgets kept here: CRITICAL_CAPS
 // (each area's critical lines) and the totals a hook's output must stay
@@ -16,7 +15,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { AREA_PLUGIN, HASH_PAIRS, STUB_AREA, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
+import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -64,7 +63,7 @@ const HOOK_OUTPUT_CAP = 10000;
 const QUESTION_ALLOWANCE = 800;
 const ENVELOPE_ALLOWANCE = 200;
 // The one plugin, the one copy of the session helper, and the two commands built on it.
-// Every other directory under plugins/ is a stub left under a plugin's old name.
+// plugins/ holds no other directory.
 const ONE_PLUGIN = AREA_PLUGIN;
 const HELPER = `plugins/${ONE_PLUGIN}/hooks/critical-context.mjs`;
 const LINES_HOOK = "hooks/session-start.mjs";
@@ -79,13 +78,6 @@ const ROUTE_KEYS = new Set(["name", "description", "argument-hint"]);
 const AREA_DESCRIPTION_CAP = 1536;
 const AREA_BODY_CAP = 8000;
 const CUE_CAP = 60;
-// The addresses a stub still answers: the ones a file copied into a user's
-// repo, or their own rules file, still prints. An alias points at a route and
-// holds none of its steps.
-const ALIASES = { "agentic-teamwork": ["init-project"], "but-first-planning": ["plan-decompose", "spec-open"], "write-like-me": ["review"] };
-const ALIAS_BODY_CAP = 600;
-// What else a stub may hold: the README publishes a curl to this path, so it stays and says where to go.
-const STUB_EXTRAS = { "but-first-planning": ["install.mjs"] };
 // A marker one plugin writes into a user's AGENTS.md, which reads like an address and is not one.
 const NOT_ADDRESSES = new Set(["agent-works:plugins"]);
 // The area that is a Claude Code mod: the handlers that answer its tools, and
@@ -102,7 +94,7 @@ if (arg("--tag")) {
   const tag = arg("--tag");
   const m = /^([a-z0-9-]+)\/v(\d+\.\d+\.\d+)$/.exec(tag);
   if (!m) fail(`tag "${tag}" is not ${ONE_PLUGIN}/v<version>`);
-  else if (m[1] !== ONE_PLUGIN) fail(`tag "${tag}" names ${m[1]}; the one release tag is ${ONE_PLUGIN}/v<version>, and a stub is never tagged`);
+  else if (m[1] !== ONE_PLUGIN) fail(`tag "${tag}" names ${m[1]}; the one release tag is ${ONE_PLUGIN}/v<version>`);
   else if (versionOf(m[1]) !== m[2]) fail(`tag "${tag}" says ${m[2]}, but plugins/${m[1]}/.claude-plugin/plugin.json is at ${versionOf(m[1])}`);
   else ok(`tag ${tag} matches plugin.json`);
   process.exitCode = failures() ? 1 : 0;
@@ -144,7 +136,11 @@ async function validate() {
 
   // ---- per plugin ------------------------------------------------------
   const entryNames = new Set(catalog.plugins.map((p) => p.name));
-  for (const dir of pluginDirs) if (!entryNames.has(dir)) fail(`plugins/${dir} has no catalog entry`, `plugins/${dir}`);
+  // One plugin, so one directory: a second with something of its own to ship is an area that has not moved in.
+  for (const dir of pluginDirs) {
+    if (dir !== ONE_PLUGIN) fail(`plugins/${dir}: the marketplace ships one plugin, plugins/${ONE_PLUGIN}, and plugins/ holds no other directory; what is new goes in as an area, plugins/${ONE_PLUGIN}/skills/<area>/`, `plugins/${dir}`);
+    else if (!entryNames.has(dir)) fail(`plugins/${dir} has no catalog entry`, `plugins/${dir}`);
+  }
 
   const pluginFailures = failures();
   const allowed = NON_NODE_ALLOWLIST;
@@ -378,8 +374,7 @@ async function validate() {
       const before = failures();
       const data = entry.ENTRY_DATA, file = entry.ENTRY_FILE;
       const front = entry.readEntry(ROOT);
-      // A person is asked about the plugin's areas, each once. A stub is an old
-      // name for one of them, never something to offer.
+      // A person is asked about the plugin's areas, each once.
       const areas = entry.areas(ROOT).map((a) => a.area);
       const asked = front.groups.flatMap((g) => g.areas);
       for (const name of areas) if (!asked.includes(name)) fail(`${data}: no group asks about ${name}, so a person is never offered it`, data);
@@ -424,15 +419,13 @@ async function validate() {
 
   // ---- one plugin of areas ------------------------------------------------
   // The marketplace ships one plugin, whose skills are the entry skill and
-  // the areas. Every other plugin directory is a stub: what is left under a
-  // plugin's old name once it became an area.
+  // the areas, and nothing else is under plugins/.
   let gen = null;
   try { gen = await import(pathToFileURL(at("scripts", "gen-guide.mjs")).href); } catch { /* reported with the guide */ }
   const textFiles = tracked.filter((f) => exists(at(f)) && !fs.lstatSync(at(f)).isSymbolicLink() && !fs.readFileSync(at(f)).includes(0));
   const foundAreas = gen ? gen.areas(ROOT) : [];
   const local = catalog.plugins.filter((p) => !isExternal(p) && p.name && isDir(at("plugins", p.name)));
   if (!isDir(at("plugins", ONE_PLUGIN))) fail(`plugins/${ONE_PLUGIN} is missing: it is the one plugin this marketplace ships`, "plugins");
-  const stubs = local.filter((p) => p.name !== ONE_PLUGIN).map((p) => ({ name: p.name, owner: ONE_PLUGIN, area: STUB_AREA[p.name] ?? p.name }));
 
   // ---- areas ---------------------------------------------------------------
   // An area is a skill directory that holds routes/. It is user-invocable:
@@ -498,57 +491,23 @@ async function validate() {
     if (foundAreas.length && failures() === before) ok(`${foundAreas.length} area${foundAreas.length === 1 ? "" : "s"}: current, within the caps, user-invocable: false and callable, every route a ROUTE.md in its table, no SKILL.md below`);
   }
 
-  // ---- stubs ----------------------------------------------------------------
-  // An install of the old name has to end up running the plugin it moved
-  // into, once: so the stub depends on that plugin, which a host then
-  // installs and enables, and it ships nothing that would run or be listed
-  // beside the real thing. The one exception is an alias, a skill at an
-  // address that a copied file still prints, which gives the new address.
+  // ---- old names -------------------------------------------------------------
+  // Each area was a plugin of its own, and the catalog lists none of them now:
+  // a line that tells its reader to install one sends them to a plugin that is
+  // not there. A changelog, a recording, and a template copy keep what they
+  // say.
+  const oldNames = [...new Set([...foundAreas.map((a) => a.area), ...Object.keys(OLD_NAMES)])].filter((name) => name !== ONE_PLUGIN);
   {
     const before = failures();
-    for (const { name, owner, area } of stubs) {
-      const dir = `plugins/${name}`;
-      // The tree has one shape: a second plugin with something of its own to ship is an area that has not moved in.
-      if (gen && !foundAreas.some((a) => a.area === area)) fail(`${name}: a plugin directory is ${owner} or the stub of a plugin that became one of its areas, and ${area} is not an area; what is new goes in as one, plugins/${owner}/skills/<area>/`, dir);
-      let manifest = {};
-      try { manifest = readJson(at(dir, ".claude-plugin", "plugin.json")); } catch { /* reported with the plugin */ }
-      if (JSON.stringify(manifest.dependencies) !== JSON.stringify([owner])) fail(`${name}: a stub's plugin.json carries "dependencies": ["${owner}"], so an install of the old name brings the plugin it moved into`, dir);
-      if (manifest.description && !manifest.description.includes(owner)) fail(`${name}: a stub's description says where it moved: it names ${owner}`, dir);
-      for (const key of ["hooks", "agents", "mcpServers", "commands", "userConfig"]) if (key in manifest) fail(`${name}: a stub's plugin.json names ${key}, and a stub ships none`, dir);
-      const aliases = ALIASES[name] ?? [], extras = STUB_EXTRAS[name] ?? [];
-      const allowed = new Set([".claude-plugin/plugin.json", "README.md", "CHANGELOG.md", ...extras, ...aliases.map((a) => `skills/${a}/SKILL.md`)]);
-      for (const f of tracked.filter((t) => t.startsWith(`${dir}/`))) {
-        if (!allowed.has(f.slice(dir.length + 1))) fail(`${f}: a stub holds its manifest, a README.md, a CHANGELOG.md${aliases.length ? `, its aliases (${aliases.join(", ")})` : ""}${extras.length ? `, and ${extras.join(", ")}` : ""}, and nothing else; this belongs in plugins/${owner}/skills/${area}/`, f);
-      }
-      const routes = new Set(gen ? gen.routeNames(ROOT, owner, area) : []);
-      for (const alias of aliases) {
-        const md = `${dir}/skills/${alias}/SKILL.md`;
-        if (!exists(at(md))) { fail(`${name}: the alias ${alias} is missing; a file copied into a user's repo still prints its old address`, dir); continue; }
-        const text = fs.readFileSync(at(md), "utf8");
-        const fm = parseFrontmatter(text) ?? {};
-        // A model follows an old address too, and a hidden skill refuses it
-        // and tells it to stop: so an alias is callable, out of the slash
-        // menu, and says only where to go.
-        if (fm["disable-model-invocation"] === "true") fail(`${name}/${alias}: an alias stays callable by a model: hidden, the host refuses the old address and tells the model to stop`, md);
-        if (fm["user-invocable"] !== "false") fail(`${name}/${alias}: an alias carries user-invocable: false, which keeps it out of the slash menu`, md);
-        if (skillBody(text).length > ALIAS_BODY_CAP) fail(`${name}/${alias}: an alias says where the route moved and nothing else; its body is ${skillBody(text).length} characters, over ${ALIAS_BODY_CAP}`, md);
-        if (!routes.has(alias)) fail(`${name}/${alias}: an alias is named after a route of the ${area} area, and ${alias} is not one`, md);
-        else if (!text.includes(`/${owner}:${area} ${alias}`)) fail(`${name}/${alias}: an alias gives the new address, /${owner}:${area} ${alias}`, md);
-      }
-    }
-    // A stub installs, and on a build that does not resolve its dependency it
-    // loads nothing: a line that tells its reader to install one sends them to
-    // an empty plugin. A stub's own files, a changelog, a recording, and a
-    // template copy keep what they say.
-    const install = stubs.length ? new RegExp(`\\binstall\\b[^\\n]*?(?<![\\w-])(${stubs.map((s) => s.name).join("|")})@${catalog.name}(?![\\w-])`) : null;
+    const install = oldNames.length ? new RegExp(`\\binstall\\b[^\\n]*?(?<![\\w-])(${oldNames.join("|")})@${catalog.name}(?![\\w-])`) : null;
     for (const f of install ? textFiles : []) {
-      if (stubs.some((s) => f.startsWith(`plugins/${s.name}/`)) || path.basename(f) === "CHANGELOG.md" || isRecording(f) || isTemplateCopy(f)) continue;
+      if (path.basename(f) === "CHANGELOG.md" || isRecording(f) || isTemplateCopy(f)) continue;
       fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
         const hit = install.exec(line);
-        if (hit) fail(`${f}:${i + 1}: tells its reader to install ${hit[1]}@${catalog.name}, a stub; the plugin to install is ${ONE_PLUGIN}@${catalog.name}`, f);
+        if (hit) fail(`${f}:${i + 1}: tells its reader to install ${hit[1]}@${catalog.name}, which the catalog does not list; the plugin to install is ${ONE_PLUGIN}@${catalog.name}`, f);
       });
     }
-    if (stubs.length && failures() === before) ok(`${stubs.length} stub${stubs.length === 1 ? "" : "s"}: each depends on the plugin it moved into and ships no hook, agent, or MCP server, and no skill but its aliases; no install line names one`);
+    if (install && failures() === before) ok(`no install line names an area or a plugin's old name: the one to install is ${ONE_PLUGIN}@${catalog.name}`);
   }
 
   // ---- addresses ------------------------------------------------------------
@@ -562,8 +521,8 @@ async function validate() {
   // is held to the area's routes: a sentence that names the area alone ends
   // the address with punctuation or the end of its code span. A route's own
   // name as a skill, `/<plugin>:<route>`, names nothing and fails with what to
-  // write. So does an area's old name as a plugin, `/<area>:<route>`: the stub
-  // left under that name ships no such skill. A recording names a skill as
+  // write. So does an area's old name as a plugin, `/<area>:<route>`: no
+  // plugin of that name is left. A recording names a skill as
   // data and is not held to that, a template copy is another repo's file, and
   // a CHANGELOG.md is history.
   {
@@ -583,7 +542,8 @@ async function validate() {
     }
     // An area was a plugin, and what named it then names nothing now: the old
     // name is read as a plugin's too, so an address left behind is found.
-    const owners = new Map([...targets].flatMap(([plugin, target]) => [...target.areas.keys()].filter((area) => area !== plugin).map((area) => [area, plugin])));
+    const owners = new Map([...targets].flatMap(([plugin, target]) => [...target.areas.keys()].filter((area) => area !== plugin).map((area) => [area, { owner: plugin, area }])));
+    for (const [old, area] of Object.entries(OLD_NAMES)) if (owners.has(area) && !targets.has(old)) owners.set(old, owners.get(area));
     const find = addressFinder([...new Set([...targets.keys(), ...owners.keys()])]);
     const counted = { skill: 0, agent: 0, server: 0, route: 0 };
     for (const f of textFiles) {
@@ -593,19 +553,17 @@ async function validate() {
           if (NOT_ADDRESSES.has(`${a.plugin}:${a.name}`)) continue;
           // The area's old name as a plugin: `/<area>:<route>`, or through the
           // skill named after it, `/<area>:<area> <route>`.
-          const owner = owners.get(a.plugin);
+          const { owner, area } = owners.get(a.plugin) ?? {};
           if (owner) {
             if (isRecording(f)) continue;
             const through = a.name === a.plugin, route = through ? a.route : a.name;
             // An agent and an MCP server are the one plugin's own now, named
             // with no area: `<plugin>:<name>`, which is not a route to pass.
             const own = targets.get(owner), shipped = !through && (own.agent.has(a.name) || own.server.has(a.name));
-            const known = shipped || (route ? own.areas.get(a.plugin).has(route) : through);
-            const write = shipped ? `${a.slash ? "/" : ""}${owner}:${a.name}` : `/${owner}:${a.plugin}${route ? ` ${route}` : ""}`;
-            // A stub's alias answers its own old address.
-            if (f.startsWith(`plugins/${a.plugin}/skills/`) && (ALIASES[a.plugin] ?? []).includes(a.name)) continue;
-            if (!isTemplateCopy(f)) fail(`${f}:${i + 1}: ${a.text} names ${a.plugin} as a plugin, and it is an area of ${owner}; write ${write}`, f);
-            else if (!known) fail(`${f}:${i + 1}: ${a.text} names nothing: ${route} is not a route of the ${a.plugin} area`, f);
+            const known = shipped || (route ? own.areas.get(area).has(route) : through);
+            const write = shipped ? `${a.slash ? "/" : ""}${owner}:${a.name}` : `/${owner}:${area}${route ? ` ${route}` : ""}`;
+            if (!isTemplateCopy(f)) fail(`${f}:${i + 1}: ${a.text} names ${a.plugin} as a plugin, and it is ${area === a.plugin ? "an area" : `the ${area} area`} of ${owner}; write ${write}`, f);
+            else if (!known) fail(`${f}:${i + 1}: ${a.text} names nothing: ${route} is not a route of the ${area} area`, f);
             continue;
           }
           const target = targets.get(a.plugin);

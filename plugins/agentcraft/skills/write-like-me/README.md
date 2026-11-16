@@ -72,7 +72,7 @@ the area's data directory          ~/.claude/plugins/data/agentcraft-agentic-eng
 
 The data dir survives plugin updates. What the write-like-me plugin kept in its
 own data directory is copied here once, by the first session that runs the
-area while that plugin's stub is still installed. Override locations with `WLM_HOME`
+area while that plugin is still installed. Override locations with `WLM_HOME`
 (data dir) and `WLM_PROFILE` (profile path).
 
 ## Uninstall / cleanup

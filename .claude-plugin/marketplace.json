@@ -5,7 +5,7 @@
     "email": "contact@protospatial.com"
   },
   "metadata": {
-    "description": "One plugin, agentcraft, whose areas solve foundational engineering problems in the brave new world of agentic engineering. The plugins it replaced are stubs that depend on it."
+    "description": "One plugin, agentcraft, whose areas solve foundational engineering problems in the brave new world of agentic engineering."
   },
   "plugins": [
     {
@@ -13,90 +13,6 @@
       "source": "./plugins/agentcraft",
       "description": "A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentcraft:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.",
       "category": "engineering"
-    },
-    {
-      "name": "agent-works",
-      "source": "./plugins/agent-works",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agent-works area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agent-works <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "but-first-planning",
-      "source": "./plugins/but-first-planning",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the but-first-planning area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:but-first-planning <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "codebase-optimizer",
-      "source": "./plugins/codebase-optimizer",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the codebase-optimizer area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:codebase-optimizer <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "agentic-teamwork",
-      "source": "./plugins/agentic-teamwork",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the agentic-teamwork area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:agentic-teamwork <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "workflow-studio",
-      "source": "./plugins/workflow-studio",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the workflow-studio area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:workflow-studio <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "picture-this",
-      "source": "./plugins/picture-this",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the picture-this area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:picture-this <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "write-like-me",
-      "source": "./plugins/write-like-me",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the write-like-me area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:write-like-me <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "code-diet",
-      "source": "./plugins/code-diet",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the code-diet area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:code-diet <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "plugin-workbench",
-      "source": "./plugins/plugin-workbench",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the plugin-workbench area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:plugin-workbench <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "perceptual-loop",
-      "source": "./plugins/perceptual-loop",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the perceptual-loop area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:perceptual-loop <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "docs-parity",
-      "source": "./plugins/docs-parity",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the docs-parity area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:docs-parity <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "system-map",
-      "source": "./plugins/system-map",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the system-map area there. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:system-map <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "marvelous-miro",
-      "source": "./plugins/marvelous-miro",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the system-map area there. The plugin was renamed system-map before the move. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:system-map <route>.",
-      "category": "moved"
-    },
-    {
-      "name": "animated-storytelling",
-      "source": "./plugins/animated-storytelling",
-      "description": "Moved into the agentcraft plugin, which this one now only depends on: it is the picture-this area there. The plugin was renamed picture-this before the move. A person starts at /agentcraft:start-here; an agent reaches it as /agentcraft:picture-this <route>.",
-      "category": "moved"
     }
   ]
 }
