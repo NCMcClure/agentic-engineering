@@ -69,6 +69,11 @@ file host order them deterministically. Don't put content files directly at the
 spec root, the root holds only `index.md`, the category directories, and the
 reserved `reference/`, `prototypes/`, `assets/`, `scripts/`.
 
+A named workspace's spec (`.agents/plans/<name>/spec/`) is the exception: it is
+a handful of pages about one feature or task, and they sit flat beside
+`index.md`, which lists them. Give them categories when there are more than
+about seven.
+
 Start with a few categories (three is plenty). Add a category only when an
 existing one starts holding files that obviously don't belong together, not
 preemptively. A category with a single content file is a smell: fold it into a
@@ -76,11 +81,12 @@ sibling.
 
 ### 4. Two mandatory content pages
 
-Every spec carries a `repository-layout.md` (agent-optimized source-tree
+Every project spec carries a `repository-layout.md` (agent-optimized source-tree
 organization, [CODEBASE-LAYOUT.md](CODEBASE-LAYOUT.md)) and a
 `user-docs-plan.md` (end-user docs stack + page map, [USER-DOCS-SPEC.md](USER-DOCS-SPEC.md)), each in whichever category fits. The
 exact filenames are the machine contract; `verify-spec-tree.mjs` warns while
-either is missing.
+either is missing. A named workspace reads both from the project's spec and
+carries neither.
 
 ### 5. Content files: named, sized, self-contained
 

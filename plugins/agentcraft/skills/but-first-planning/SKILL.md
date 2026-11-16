@@ -1,13 +1,13 @@
 ---
 name: but-first-planning
-description: "Use to pin down a vague request by interview, and to take a project from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. Routes are its arguments, not skills: grill (a vague or ambiguous ask: one question at a time); spec-init (scaffold .agents/plan/ where no spec exists yet); spec-write (author the spec from a brief or a codebase); spec-grill (interrogate the spec for gaps and contradictions); spec-architect (pressure-test the design, record ADRs); spec-edit (change a spec page, keep plan and tracker level); spec-open (serve the spec site to read and comment on); plan-decompose (the spec into epics, sprints, and issues); plan-publish (a sprint of the plan tree into GitHub or GitLab issues); build-next-issue (what is next: the unblocked issue, or a dispatch plan); build-tdd (one plan issue: criteria to failing tests to done); build-sprint (a sprint's issues in parallel, by subagents); build-audit (a finished plan tree: what the plan missed); build-assess-drift (where spec, plan, and code disagree); build-improve-architecture (deepening refactors in built code, fed back to ADRs); build-rubber-duck (talk a stuck problem through, changing no file); build-user-docs (end-user docs from the spec and what shipped); autopilot (every phase in order, spec to docs, one human gate)."
+description: "Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. Routes are its arguments, not skills: grill (a vague or ambiguous ask: one question at a time); spec-init (scaffold a workspace: the project's, or a named one); spec-write (author the spec from a brief or a codebase); spec-grill (interrogate the spec for gaps and contradictions); spec-architect (pressure-test the design, record ADRs); spec-edit (change a spec page, keep plan and tracker level); spec-open (serve the spec site to read and comment on); plan-decompose (the spec into epics, sprints, and issues); plan-publish (a sprint of the plan tree into GitHub or GitLab issues); build-next-issue (what is next: the unblocked issue, or a dispatch plan); build-tdd (one plan issue: criteria to failing tests to done); build-sprint (a sprint's issues in parallel, by subagents); build-audit (a finished plan tree: what the plan missed); build-assess-drift (where spec, plan, and code disagree); build-improve-architecture (deepening refactors in built code, fed back to ADRs); build-rubber-duck (talk a stuck problem through, changing no file); build-user-docs (end-user docs from the spec and what shipped); autopilot (every phase in order, spec to docs, one human gate)."
 user-invocable: false
 argument-hint: "[route] [the route's arguments]"
 ---
 
 # but-first-planning
 
-A project built straight from a conversation drifts: the intent sits in a chat that gets compacted, the plan in someone's head, and "done" is whatever the last session said. This area keeps a spec site, a plan tree of epics, sprints, and issues, and the tracker (GitHub or GitLab issues, or none) level with each other, on disk under `.agents/plan/`.
+A project built straight from a conversation drifts: the intent sits in a chat that gets compacted, the plan in someone's head, and "done" is whatever the last session said. This area keeps a spec, a plan tree of epics, sprints, and issues, and the tracker (GitHub or GitLab issues, or none) level with each other, on disk in a workspace: one for the project, and one for any feature or task big enough to need its own.
 
 The routes are phases, and they run in order: the spec (`spec-init`, `spec-write`, `spec-grill`, `spec-architect`, then `spec-edit` for every later change), the plan (`plan-decompose`, `plan-publish`), and the build (`build-next-issue` or `build-sprint`, each issue through `build-tdd`, a finished tree checked by `build-audit`). `grill` stands outside the phases: it is for anything not fully specified, with a plan or without one, which is why it is the route when no row plainly fits.
 
@@ -17,6 +17,17 @@ What the routes share, each in its own file's words, so read your route before y
 - **The spec is the source.** A decision changes there first, and the plan and the tracker follow it. Neither is edited to match the code.
 - **Done is checked, not claimed.** An issue is done when its acceptance criteria have tests that pass, and a done-claim is verified before the next issue starts.
 - **A route that hands on to another names it through this area**, `/agentcraft:but-first-planning <route>`: a file to read next, never a skill to call.
+
+## Workspace
+
+A repo holds one project workspace, `.agents/plan/`, and any number of named ones, `.agents/plans/<name>/`, each for one feature or task: a spec, the plan cut from it, its progress. A route writes `P` for the one this run works in. Settle `P` before the first read or command, and say which it is in your first line:
+
+1. the arguments name it: `--plan <name>` after the route (`--plan project` is `.agents/plan`);
+2. else what is at hand sits in one: an issue file's path, a card id (`<name>.EE-SS-II` is a named one's, a bare `EE-SS-II` the project's), a brief or branch that names one;
+3. else the repo has exactly one;
+4. else ask, listing them. Never fall back to `.agents/plan/` because it is the familiar one.
+
+A named workspace is light: pages and a plan tree, no interview, no site. It reads `tracker.md`, the posture ADRs and the glossary from `.agents/plan/` where it has none of its own, and goes without where there is none. Its scripts are launchers at the project's paths, so a command reads the same in both. Write nothing in another workspace through `P`, and hand on to another route with `--plan <name>`.
 
 ## Route
 
@@ -29,12 +40,12 @@ A route is a document to read, never a skill to call: no skill is named after on
 | Route | In short | Use when | Arguments | Starts it |
 | --- | --- | --- | --- | --- |
 | `grill` | a vague or ambiguous ask: one question at a time | Use before planning or building anything not fully specified, before handing work off, and after a round of work to reflect. |  | agent |
-| `spec-init` | scaffold .agents/plan/ where no spec exists yet | Scaffolds the `.agents/plan/` workspace: spec site, empty plan tree, glossary and ADRs, tracker config, status scripts. Run once per project, when the user wants to spec or plan it and no workspace exists; `--refresh` updates a workspace's scripts. | `[--refresh]` | person |
+| `spec-init` | scaffold a workspace: the project's, or a named one | Scaffolds a planning workspace: with no argument the project's, `.agents/plan/` (spec site, plan tree, glossary and ADRs, tracker config, scripts); with `--plan <name>` a light one for a feature or task. Run once per project, when the user wants to spec or plan it; `--refresh` updates the scripts. | `[--plan <name>] [--refresh]` | person |
 | `spec-write` | author the spec from a brief or a codebase | Use when the user wants to write or grow a spec ("spec this out", "document the design"); it makes a named workspace itself where the work has none. |  | agent |
 | `spec-grill` | interrogate the spec for gaps and contradictions | Use after spec-write and before planning, or when asked to grill or stress-test the spec. |  | agent |
 | `spec-architect` | pressure-test the design, record ADRs | Use after spec-grill, or when asked to review the design. |  | agent |
 | `spec-edit` | change a spec page, keep plan and tracker level | Use for any change once a spec exists ("the design changed", "add a feature") and to turn inline spec comments into edits. |  | agent |
-| `spec-open` | serve the spec site to read and comment on | Serves the `.agents/plan/` spec site locally (reusing a running server) and opens it in the browser, with inline comments and the live Plan page. Run when the user wants to read, review, or comment on the spec. |  | person |
+| `spec-open` | serve the spec site to read and comment on | Serves the project workspace's spec site (`.agents/plan/`) locally, reusing a running server, and opens it in the browser, with inline comments and the live Plan page. Run when the user wants to read, review, or comment on the spec. |  | person |
 | `plan-decompose` | the spec into epics, sprints, and issues | Use when the spec is settled and the user wants a backlog or a plan. |  | agent |
 | `plan-publish` | a sprint of the plan tree into GitHub or GitLab issues | Use when a sprint is about to start or the user asks to publish issues; local-markdown mode publishes nothing. |  | agent |
 | `build-next-issue` | what is next: the unblocked issue, or a dispatch plan | Use when build work starts or resumes, the user asks what is next, or a done-claim needs checking. |  | agent |

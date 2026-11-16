@@ -133,6 +133,16 @@ test("spec-open with no spec site says to run spec-init and exits 1", (t) => {
   assert.match(r.stderr, /No spec site found \(.*comments-server\.py missing\), run spec-init first\./);
 });
 
+test("spec-open in a repo with only named workspaces says they have no site and where their pages are", (t) => {
+  const dir = tempDir(t, "bfp-open-named-");
+  write(dir, ".agents/plans/billing/spec/index.md", "# Billing\n");
+  write(dir, ".agents/plans/auth-migration/spec/index.md", "# Auth\n");
+  write(dir, ".agents/plans/_scripts/plan-status.mjs", "");
+  const r = runNode(SPEC_OPEN, [], { cwd: path.join(dir, ".agents"), env: { ...process.env, SPEC_PORT: "9", SPEC_ROOT: "", CLAUDE_PROJECT_DIR: "" } });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /No spec site found \(.*comments-server\.py missing\), run spec-init first\.\nA named workspace has no site; its pages are markdown: \.agents\/plans\/auth-migration\/spec\/index\.md, \.agents\/plans\/billing\/spec\/index\.md\.\n/);
+});
+
 // ---- install ----------------------------------------------------------------
 // Before the plugins were one, this script copied each skill into a project's
 // .claude/skills for a host with no plugins. A route is a document its area

@@ -24,6 +24,16 @@ state, verifies completion, records it through the status funnel and into
 also includes a **dispatch plan**: the parallel-safe build frontier, that
 `build-sprint` consumes to fan builders out across a sprint.
 
+## Which plan
+
+This route reads one workspace, `P`. Where the repo has several and nothing
+settles which (the area's `SKILL.md` has the rule), do not pick one: give the
+person one line per workspace, from `node <workspace>/plan/plan-status.mjs check`
+in each (`.agents/plan`, then every directory of `.agents/plans/` that holds a
+`plan/index.md`), and ask which to go on with. Say an issue of a named
+workspace with its name, `<name>.EE-SS-II`, in the report and in anything you
+hand on.
+
 ## What it reads
 
 - The plan tree under `P/plan/`, `Status:` fields and `Blocked by` chains.

@@ -51,6 +51,11 @@ from the brief alone.
 - **The work is on the spec route** (`P/spec/` exists and the
   answers change what the spec says): through `/agentcraft:but-first-planning spec-edit`, which keeps
   the plan and the tracker in step. Grilling the spec itself is `spec-grill`.
+- **The work turned out bigger than a card** (several sessions, several
+  issues, someone else picking part of it up) and has no workspace: say so,
+  propose a named one by name (`.agents/plans/<name>/`), and on the person's
+  yes hand the brief to `/agentcraft:but-first-planning spec-write --plan <name>`, which
+  makes it and writes the brief up as its first pages.
 - **Neither:** a short summary in the conversation.
 
 ## Reflect mode

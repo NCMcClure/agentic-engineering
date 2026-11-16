@@ -1,12 +1,12 @@
 {
-  "lead": "Use to pin down a vague request by interview, and to take a project from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint.",
+  "lead": "Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint.",
   "default": "grill",
   "routes": {
     "grill": {
       "cue": "a vague or ambiguous ask: one question at a time"
     },
     "spec-init": {
-      "cue": "scaffold .agents/plan/ where no spec exists yet",
+      "cue": "scaffold a workspace: the project's, or a named one",
       "starts": "person"
     },
     "spec-write": {

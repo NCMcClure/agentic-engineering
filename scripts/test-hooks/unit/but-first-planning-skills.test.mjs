@@ -145,3 +145,76 @@ test("but-first-planning routes: the docs checker is named as docs-parity's, and
     }
   }
 });
+
+// ---- the workspace -----------------------------------------------------------
+// A repo holds a project workspace and any number of named ones, so no route
+// may assume which it is in: it writes `P`, the area's SKILL.md settles it, and
+// the literal path is left only where the project's own is meant.
+
+const P_ROUTE = "`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.";
+const usesP = (text) => /(?<![A-Za-z0-9_./-])P\/[a-z]/.test(text);
+
+test("but-first-planning routes: the area's SKILL.md settles the workspace before a route runs, by four rules in order", () => {
+  const skill = fs.readFileSync(path.join(AREA.dir, "SKILL.md"), "utf8");
+  const section = /^## Workspace\n([\s\S]*?)^## Route$/m.exec(skill)?.[1] ?? "";
+  assert.match(section, /one project workspace, `\.agents\/plan\/`, and any number of named ones, `\.agents\/plans\/<name>\/`/);
+  assert.match(section, /Settle `P` before the first read or command, and say which it is in your first line/);
+  const rules = [...section.matchAll(/^(\d)\. (.*)$/gm)].map((m) => m[2]);
+  assert.equal(rules.length, 4);
+  assert.match(rules[0], /^the arguments name it: `--plan <name>`/);
+  assert.match(rules[1], /^else what is at hand sits in one/);
+  assert.match(rules[2], /^else the repo has exactly one;$/);
+  assert.match(rules[3], /^else ask, listing them\. Never fall back to `\.agents\/plan\/`/);
+  assert.match(section, /Write nothing in another workspace through `P`, and hand on to another route with `--plan <name>`\./);
+});
+
+test("but-first-planning routes: a file that writes a path under P says what P is, in the one sentence", () => {
+  for (const doc of docs.filter((d) => d.rel.endsWith(".md") && usesP(d.text))) {
+    if (doc.rel.endsWith("/ROUTE.md")) assert.ok(doc.text.includes(P_ROUTE), `${doc.rel} writes P and does not declare it`);
+    else assert.match(doc.text, /`P` (below is )?the workspace this run works in/, `${doc.rel} writes P and does not say what it is`);
+  }
+  // The two routes that are the project workspace's own write its path out and bind no P.
+  for (const own of ["spec-init", "spec-open"]) assert.ok(!AREA.route(own).text.includes(P_ROUTE), own);
+});
+
+test("but-first-planning routes: the literal project path is written only where the project workspace is meant", () => {
+  // Whole files that are about the project workspace, or about how the two differ.
+  const WHOLE = ["routes/spec-init/ROUTE.md", "routes/spec-init/NAMED.md", "routes/spec-open/ROUTE.md"];
+  // Elsewhere a line may name it for one of these reasons: the sentence that binds P, what a named workspace
+  // reads from the project's, the project's site and its comment queue, the gate's config, and a workflow's own default.
+  const MEANT = [
+    /`\.agents\/plan` or `\.agents\/plans\/<name>`/, /reference\/|tracker\.md|--plan project|named workspace|project workspace|the project's/,
+    /mkdocs\.yml|spec-comments\.json|config\.json/, /WSREL|ONE_WORKSPACE|args\.workspace|default \.agents\/plan\)|leave it out when P is|\.agents\/plan\/ and \.agents\/plans\//,
+    /^`\.agents\/plan`, then every directory|in each \(`\.agents\/plan`/,
+    /any number of named ones|^  `\.agents\/plan`\), refuses any other shape/,
+  ];
+  for (const doc of docs.filter((d) => !WHOLE.includes(d.rel))) {
+    doc.text.split("\n").forEach((line, i) => {
+      if (!/\.agents\/plan(?!s)/.test(line)) return;
+      assert.ok(MEANT.some((re) => re.test(line)), `${doc.rel}:${i + 1} writes the project workspace's path where P belongs: ${line.trim().slice(0, 140)}`);
+    });
+  }
+});
+
+test("but-first-planning routes: every workflow takes the workspace, refuses any other shape, and opens its context with the one-workspace rule", () => {
+  for (const doc of docs.filter((d) => d.rel.endsWith(".js"))) {
+    assert.match(doc.text, /^const WSREL = String\(A\.workspace \|\| '\.agents\/plan'\)/m, doc.rel);
+    assert.match(doc.text, /\^\\\.agents\\\/\(plan\|plans\\\/\[a-z\]\[a-z0-9-\]\*\)\$/, `${doc.rel}: the shape it accepts`);
+    assert.match(doc.text, /^const (CTX|CONTEXT) = `\n\$\{ONE_WORKSPACE\}\n/m, doc.rel);
+    assert.match(doc.text, /Args: \{[^}]*workspace\?\}/, `${doc.rel}: the signature in meta`);
+    assert.doesNotMatch(doc.text.replace(/^const ONE_WORKSPACE = .*$/m, ""), /\$\{ROOT\}\/\.agents\/plan/, `${doc.rel}: a path built from the literal`);
+    const route = doc.rel.split("/")[1];
+    if (route !== "spec-edit") assert.match(AREA.route(route).text, /workspace: "P", \/\/ repo-relative; leave it out when P is \.agents\/plan/, `${route}/ROUTE.md shows the argument`);
+  }
+});
+
+test("but-first-planning routes: a named workspace is made by spec-write itself, and the project's is still the person's", () => {
+  const write = AREA.route("spec-write").body;
+  assert.match(write, /\*\*A named workspace\*\*.*Make it yourself, saying its name and what it is for in one line first: `node "W\/routes\/spec-init\/scaffold\.mjs" --workspace <name> --title/s);
+  assert.match(write, /\*\*The project workspace\*\*.*is the person's to start\. Ask them, and take it on their yes first\./s);
+  const named = fs.readFileSync(path.join(ROUTES, "spec-init", "NAMED.md"), "utf8");
+  assert.match(named, /node "W\/routes\/spec-init\/scaffold\.mjs" --workspace <name> --title/);
+  assert.match(AREA.route("spec-init").body, /follow \[NAMED\.md\]\(NAMED\.md\)/);
+  assert.equal(AREA.route("spec-init").fields["argument-hint"], "[--plan <name>] [--refresh]");
+  assert.match(AREA.route("spec-open").body, /\*\*A named workspace has no site\.\*\*/);
+});

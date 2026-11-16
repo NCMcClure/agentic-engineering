@@ -25,7 +25,10 @@ per run; publish more only if the user asks.
 ## Read the tracker config first
 
 `P/tracker.md` (written by `spec-init`) says where issues go and
-how. Read it before doing anything. It is one of:
+how. A named workspace that has none publishes where the project does: read
+`.agents/plan/tracker.md` instead, and where that is missing too the workspace
+is local markdown. `publish-issues.mjs` resolves the file the same way. Read it
+before doing anything. It is one of:
 
 - **GitHub** (the default): `gh`, with a triage label per issue type and an
   optional Project board. Recipe in [TRACKER-GITHUB.md](TRACKER-GITHUB.md).
@@ -34,6 +37,11 @@ how. Read it before doing anything. It is one of:
   [TRACKER-GITLAB.md](TRACKER-GITLAB.md).
 - **Local markdown**: no external tracker; the plan tree is the tracker.
   Procedure in [TRACKER-LOCAL.md](TRACKER-LOCAL.md).
+
+A named workspace's tickets say its name, so two plans on one forge never
+share a label or a milestone: a `plan:<name>` label on GitHub, and on GitLab
+`epic::<name>.EE-<slug>` and a milestone `<name>.EE-SS <slug>`. The script
+writes them; do not add or strip them by hand.
 
 ## Process
 

@@ -119,6 +119,11 @@ its own change request, make the flip the last commit before it ships, so
 the issue reads done on the base branch when the change merges and not
 before.
 
+An issue of a named workspace is cited with the workspace's name wherever it
+is written down, `<name>.EE-SS-II`: in the commit, the branch, and the change
+request. Two plans may both have an issue 01-01-01, and `build-next-issue`
+finds the work by that citation.
+
 ## Done when
 
 Every acceptance criterion maps to a named passing test; the issue's

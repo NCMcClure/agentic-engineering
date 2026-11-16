@@ -55,6 +55,10 @@ Before writing any files, sketch the decomposition and confirm it:
 
 Present this as a tree and iterate with the user until the shape feels right.
 
+A named workspace's plan is usually **one epic** of one to three sprints: the
+feature or task is the epic. Do not invent a second to make the tree look like
+a project's.
+
 ### 3. Draft the issues per sprint
 
 For each sprint, draft its issues as tracer-bullet slices. For each, decide:
@@ -65,12 +69,14 @@ For each sprint, draft its issues as tracer-bullet slices. For each, decide:
 - **Spec anchors**: the spec file(s) this slice realises. Every issue carries at least one. See [SPEC-ANCHORS.md](SPEC-ANCHORS.md) for why and how (the relative-path shape matters, the verifier checks it).
 - **User-facing?**: one **required**, link-free line at the end of `## What to build` on every AFK/HITL issue: `**User-facing**: yes - <the surface>` or `no - internal`. The verifier enforces it (critically on a tree carrying the plan-format marker); it's what lets `build-user-docs` document deliberately instead of guessing which slices need end-user documentation.
 
-**Cut the docs-skeleton issue.** Every plan carries one early AFK issue that
+**Cut the docs-skeleton issue.** Every project plan carries one early AFK issue that
 stands up the end-user docs stack, the site config plus landing page per the
 spec's `user-docs-plan.md` ([USER-DOCS-SPEC.md](../spec-write/USER-DOCS-SPEC.md)),
 anchored to that page. It belongs in the first sprint alongside the project
 skeleton: the docs structure has to exist before `build-user-docs`'s first
-per-sprint pass has anywhere to write.
+per-sprint pass has anywhere to write. A named workspace's plan cuts one only
+if its own spec carries a `user-docs-plan.md`; otherwise the docs stack is the
+project's, already standing or not this plan's to stand up.
 
 **Route every open question.** Sweep the spec for "Open questions" sections and
 inline `**Open question:**` blocks, each one is routed **exactly once**:
@@ -87,7 +93,11 @@ inline `**Open question:**` blocks, each one is routed **exactly once**:
 An unrouted open question is a planning bug: it resurfaces mid-build as an
 improvised decision nobody approved.
 
-**Cut the REVIEW gates.** Read `P/spec/reference/adr/0002-ui-posture.md`.
+**Cut the REVIEW gates.** Read `P/spec/reference/adr/0002-ui-posture.md`; a
+named workspace without one reads the project's
+(`.agents/plan/spec/reference/adr/0002-ui-posture.md`), and where neither
+exists the posture is `headless` unless the spec itself describes a surface a
+person looks at.
 Under `headless`, cut none. Otherwise add one `REVIEW` issue per **verification
 boundary**, a user-visible feature or system capability a human can confirm by
 looking, typically 1–3 per sprint, `Blocked by` the slices that implement it,

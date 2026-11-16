@@ -45,7 +45,11 @@ Key principles (full list in [LANGUAGE.md](LANGUAGE.md)):
 
 This route is *informed* by the project's vocabulary: the glossary
 (`P/spec/reference/glossary.md`) names good seams; the ADRs
-(`P/spec/reference/adr/`) record decisions you should not re-litigate.
+(`P/spec/reference/adr/`) record decisions you should not re-litigate. In a
+named workspace both are the project's too (`.agents/plan/spec/reference/`,
+where the repo has it), and a term or decision the review produces is filed as
+`spec-grill` says: here if it belongs to this work alone, in the project's
+through `spec-edit --plan project` if it reaches past it.
 
 ## Process
 

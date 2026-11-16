@@ -36,6 +36,16 @@ has a recorded resolution, and no two spec files contradict each other.
 Both the glossary and the ADR folder were scaffolded by `spec-init`. Create
 individual ADR files lazily, only when one is warranted.
 
+**In a named workspace** (`.agents/plans/<name>/`) the vocabulary and the
+decisions are first of all the project's: read `.agents/plan/spec/reference/`
+where the repo has it, and challenge against that. What the grilling settles
+goes one of two places. A term or decision that belongs to this work alone goes
+in `P/spec/reference/` (`glossary.md`, `adr/NNNN-slug.md` numbered from 0001
+there), made when the first one is. One that reaches past this work, or that
+contradicts a project record, is the project's: say so, change it there
+through `spec-edit --plan project`, and link to it from the page that leans on
+it. Never copy a project term into the workspace to redefine it.
+
 ## During the session
 
 ### Challenge against the glossary

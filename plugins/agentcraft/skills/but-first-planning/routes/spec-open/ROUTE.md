@@ -1,9 +1,10 @@
 ---
 name: spec-open
 description: >
-  Serves the `.agents/plan/` spec site locally (reusing a running server) and
-  opens it in the browser, with inline comments and the live Plan page. Run
-  when the user wants to read, review, or comment on the spec.
+  Serves the project workspace's spec site (`.agents/plan/`) locally, reusing a
+  running server, and opens it in the browser, with inline comments and the
+  live Plan page. Run when the user wants to read, review, or comment on the
+  spec.
 ---
 
 # spec-open: view the spec site
@@ -29,6 +30,12 @@ The served site includes a live **Plan** page at `<url>/plan/`: the plan tree
 rendered with statuses, blockers, acceptance progress, and the next unblocked
 issue, refreshed as `plan-status.mjs` flips statuses. For local-tracker
 projects it is the issue board.
+
+**A named workspace has no site.** If the spec the person means is one under
+`.agents/plans/<name>/`, start nothing: tell them its pages are markdown, give
+them `.agents/plans/<name>/spec/index.md` to open, and offer the plan's status
+(`node .agents/plans/<name>/plan/plan-status.mjs check`). The script says the
+same when it finds named workspaces and no site.
 
 Relay whatever the script prints. If it reports no spec site, the project is
 not scaffolded yet: that is the `spec-init` route (`/agentcraft:but-first-planning spec-init`),

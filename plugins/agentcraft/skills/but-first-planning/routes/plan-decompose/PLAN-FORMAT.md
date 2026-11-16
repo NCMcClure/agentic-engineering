@@ -196,7 +196,8 @@ plan tree carrying a `plan-format` marker of 3.7 or later, a warning on older an
 Keep it link-free: a markdown link containing `spec/` on this line would be
 picked up by the verifier's spec-anchor check.
 
-Every plan also cuts an early AFK **docs-skeleton issue**: the end-user docs
+Every project plan also cuts an early AFK **docs-skeleton issue** (a named
+workspace's only when its own spec carries a `user-docs-plan.md`): the end-user docs
 site config plus landing page, per the spec's `user-docs-plan.md` (contract:
 [USER-DOCS-SPEC.md](../spec-write/USER-DOCS-SPEC.md)), anchored to that
 page, so the docs stack exists from sprint one.

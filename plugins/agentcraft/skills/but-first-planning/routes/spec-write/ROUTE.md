@@ -19,7 +19,22 @@ markdown. You are writing **what the system is and how it behaves**, not code.
 The deliverable is a knowledge base, not one long document: many small, self-
 contained files, each findable by its frontmatter and reachable by navigation.
 
-If `P/` doesn't exist, stop: the `spec-init` route (`/agentcraft:but-first-planning spec-init`) scaffolds it and is the person's to start. Ask them, and take it on their yes first.
+If `P` doesn't exist, it is made first, and which workspace it is decides who makes it:
+
+- **The project workspace** (`.agents/plan/`: the spec is the whole system's). Stop: the `spec-init` route (`/agentcraft:but-first-planning spec-init`) scaffolds it and is the person's to start. Ask them, and take it on their yes first.
+- **A named workspace** (`.agents/plans/<name>/`: one feature or task, in a repo with no workspace, or work the person asked to have on its own). Make it yourself, saying its name and what it is for in one line first: `node "W/routes/spec-init/scaffold.mjs" --workspace <name> --title "<what the team calls it>"`. [NAMED.md](../spec-init/NAMED.md) has how to pick the name, what the command writes, and when a named workspace is the wrong home.
+
+In a repo whose project workspace already specs the system, a new feature is a change to that spec (`spec-edit`), not a named workspace, unless the person asks for one.
+
+## In a named workspace
+
+The same method, lighter:
+
+- **A few flat pages are the right shape.** `index.md` lists them one line each; numbered category directories arrive when there are too many to read as one list ([FILE-LAYOUT.md](FILE-LAYOUT.md) rule 3 says when).
+- **The two mandatory pages are the project's.** Write no `repository-layout.md` or `user-docs-plan.md` here, and the verifier does not ask for them. Where the work changes the source layout or the docs plan and the repo has a project workspace, that is a change there (`spec-edit --plan project`).
+- **Postures, glossary and decision records are read from `.agents/plan/spec/reference/`** where the repo has them. Where it has none, there is no posture to honour but the code that is there: its language, its UI, its docs convention.
+- **Say what done is.** The index's opening lines name what a reader can check to call the work finished; `plan-decompose` cuts the plan from that.
+- **There is no site to serve.** The pages are read as markdown.
 
 ## The mental model: five-level progressive disclosure
 
@@ -100,7 +115,7 @@ file, exit 1 and are worth addressing).
 
 ### 5. Offer to serve and hand off
 
-Offer to serve the site (`mkdocs serve -f .agents/plan/mkdocs.yml`) so the user can read
+In the project workspace, offer to serve the site (`mkdocs serve -f .agents/plan/mkdocs.yml`) so the user can read
 what you wrote. Then point at the natural next step: `spec-grill` to stress-
 test and sharpen, `spec-architect` to pressure-test the system design before
 any code exists, or `plan-decompose` once the spec is solid enough to decompose.
@@ -155,7 +170,7 @@ becoming a different, unverified run.
 `verify-spec-tree.mjs` exits 0; every file you created or edited has a current
 `summary`/`updated` frontmatter and exactly one line in its category index; no
 content file exceeds ~200 lines without being flagged to the user; the spec
-carries `repository-layout.md` and `user-docs-plan.md` (or the user explicitly
-deferred them, reported, never silent); and any fork or fuzzy concept you hit
+carries `repository-layout.md` and `user-docs-plan.md` (the project workspace's
+only; or the user explicitly deferred them, reported, never silent); and any fork or fuzzy concept you hit
 is either resolved in the text or explicitly handed to `spec-grill`, not
 silently guessed.
