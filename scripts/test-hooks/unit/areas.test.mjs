@@ -46,15 +46,10 @@ test("agentcraft: the entry skill asks about every area once, and names each to 
   for (const name of AREAS) assert.ok(description.includes(name), `the entry skill's description does not name ${name}`);
 });
 
-test("agentcraft: every other plugin directory is a stub that depends on it, and ships no skill of an area's name", () => {
-  const plugins = path.join(REPO, "plugins");
-  const others = dirs(plugins).filter((name) => name !== AREA_PLUGIN);
-  assert.ok(others.length >= 12, "the twelve old names are still there to update from");
-  for (const name of others) {
-    const manifest = JSON.parse(fs.readFileSync(path.join(plugins, name, ".claude-plugin", "plugin.json"), "utf8"));
-    assert.ok((manifest.dependencies ?? []).some((d) => (typeof d === "string" ? d : d.name) === AREA_PLUGIN), `${name} does not depend on ${AREA_PLUGIN}`);
-    for (const dir of ["hooks", "agents", "bin", "lib", "scripts"]) assert.equal(fs.existsSync(path.join(plugins, name, dir)), false, `${name}/${dir}: a stub runs nothing`);
-  }
+test("agentcraft: it is the only directory under plugins/, and the only plugin the catalog lists", () => {
+  assert.deepEqual(dirs(path.join(REPO, "plugins")), [AREA_PLUGIN]);
+  const catalog = JSON.parse(fs.readFileSync(path.join(REPO, ".claude-plugin", "marketplace.json"), "utf8"));
+  assert.deepEqual(catalog.plugins.map((p) => p.name), [AREA_PLUGIN]);
 });
 
 // The root README's figure of the plugin draws one page per route, to the

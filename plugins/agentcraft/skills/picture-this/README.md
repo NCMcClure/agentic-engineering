@@ -96,8 +96,8 @@ The first figure installs the studio: Node 20+, network access, and a headless
 browser (about 100 MB to download), once. It asks before it downloads anything.
 After an update that changes the studio's packages it asks once more.
 
-This area replaces `animated-storytelling`. That name is now a stub: updating
-it brings `agentcraft` in.
+This area replaces `animated-storytelling`, which the catalog no longer lists:
+if it is still installed, uninstall it.
 
 ## Routes
 

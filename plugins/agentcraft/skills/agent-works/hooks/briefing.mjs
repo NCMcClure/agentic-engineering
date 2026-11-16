@@ -170,7 +170,7 @@ async function mayHaveBoard(cwd) {
 
 /**
  * One line where the `aw` a shell would run is a launcher written before this area moved into the one plugin:
- * it looks under the old plugin's cache folder, which holds a stub now, so it answers "not installed". Only in a
+ * it looks under the old plugin's cache folder, which holds nothing of it now, so it answers "not installed". Only in a
  * repo set up for agent work, where `aw` is what a session and its person type. "" otherwise.
  */
 async function launcherLine(cwd) {

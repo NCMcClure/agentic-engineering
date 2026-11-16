@@ -134,7 +134,7 @@ const added = (dir, extra = {}) => ({
   write: { ...Object.fromEntries(files(dir).map((rel) => [`plugins/${NAME}/${rel}`, read(dir, rel)])), ...extra },
 });
 const failures = (stdout) => stdout.split("\n").filter((line) => line.startsWith("FAIL:"));
-const SECOND_PLUGIN = /: a plugin directory is \w+ or the stub of a plugin that became one of its areas|: a stub's plugin\.json carries "dependencies"|: a stub's description says where it moved|: a stub holds its manifest, a README\.md, a CHANGELOG\.md, and nothing else/;
+const SECOND_PLUGIN = /: the marketplace ships one plugin, plugins\/\w+, and plugins\/ holds no other directory/;
 
 test("the skeleton, added to this marketplace with a catalog entry, is refused as a second plugin and for nothing else", (t) => {
   const { dir } = scaffold(t);

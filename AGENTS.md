@@ -2,9 +2,8 @@
 
 One plugin, `agentcraft`. Each of its thirteen areas is a fix for a problem
 that keeps turning up when engineering with agents, and `start-here` is the
-one skill a person types to find the right one. The names the areas had as
-plugins of their own stay in the catalog as stubs that depend on it. Nothing
-here runs in production; it runs in the agents, so a mistake ships to every
+one skill a person types to find the right one. The catalog lists that one
+plugin and nothing else. Nothing here runs in production; it runs in the agents, so a mistake ships to every
 session that has the plugin installed.
 
 Read the rules below before editing anything under `plugins/` or the catalog.
@@ -24,15 +23,14 @@ enforces.
   sources name its area's files, and `pt still <figure> --gif --dark --out
   plugins/agentcraft/skills/<area>/assets/figures` retakes what that area's
   README shows.
-- `.claude-plugin/marketplace.json` - the catalog: `agentcraft` first, then
-  one entry per stub. Never a `version` key.
-- `plugins/` - `agentcraft/`, the one plugin that ships anything, and a stub
-  directory per old plugin name. Its `AGENTS.md` says what each area is for.
-  Descend to change what an agent does.
+- `.claude-plugin/marketplace.json` - the catalog: one entry, `agentcraft`.
+  Never a `version` key.
+- `plugins/` - `agentcraft/`, the one plugin, and nothing beside it. Its
+  `AGENTS.md` says what each area is for. Descend to change what an agent
+  does.
 - `scripts/` - repo tooling, never shipped: `validate.mjs` (the structural
   gate), `gen-guide.mjs` (what `npm run guide` writes), `install.mjs` and
-  `refresh.mjs` (the local dev loop; they install `agentcraft` and never a
-  stub), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its README
+  `refresh.mjs` (the local dev loop; they install `agentcraft`), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its README
   has the detail).
 - `docs/assets/` - the pictures only the root README shows: two figures of
   the plugin as a whole (`goal-to-main`, how a goal moves through the areas,

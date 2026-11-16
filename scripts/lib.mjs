@@ -128,15 +128,18 @@ export function namedPaths(line, names) {
 // ---- one plugin of areas -------------------------------------------------
 // The marketplace ships one plugin whose skills are areas. An area is a skill
 // directory that holds `routes/`, and each route is a document there,
-// `routes/<route>/ROUTE.md`. Every other directory under plugins/ is a stub
-// left under a plugin's old name.
+// `routes/<route>/ROUTE.md`. plugins/ holds no other directory.
 
 /** The one plugin, and the skill a person types, which is the one skill of it that is not an area. */
 export const AREA_PLUGIN = "agentcraft";
 export const ENTRY_SKILL = "start-here";
 
-/** A stub is named after the area its plugin became, bar the two whose plugin was renamed before it moved in. */
-export const STUB_AREA = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
+/**
+ * An area was a plugin of its own once, under the area's name, bar the two
+ * whose plugin went by another: that name, and the area it is now. The
+ * catalog lists none of them, so a file that still names one names nothing.
+ */
+export const OLD_NAMES = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
 
 // Files duplicated on purpose: a canonical file, and the copies held
 // hash-equal to it. The plugin keeps one copy of what its areas share (in its

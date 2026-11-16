@@ -12,8 +12,6 @@ import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
 const SCAFFOLD = path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs");
 const SPEC_OPEN = path.join(PLUGIN, "routes", "spec-open", "spec-open.mjs");
-// The path a README once published a curl to. It is the stub's now, and installs nothing.
-const INSTALL = path.join(REPO, "plugins", "but-first-planning", "install.mjs");
 const { EMPTY_DIRS, SCRIPTS, SITE, WORKSPACE, scaffold, staleScripts } = await import(pathToFileURL(SCAFFOLD).href);
 const { findRoot } = await import(pathToFileURL(SPEC_OPEN).href);
 
@@ -134,21 +132,10 @@ test("spec-open with no spec site says to run spec-init and exits 1", (t) => {
 });
 
 // ---- install ----------------------------------------------------------------
-// Before the plugins were one, this script copied each skill into a project's
+// Before the plugins were one, a script copied each skill into a project's
 // .claude/skills for a host with no plugins. A route is a document its area
-// reads, not a skill to copy, so there is nothing left to install: the script
-// stays at the path that was published, and says where to go.
+// reads, not a skill to copy, so there is nothing left to install.
 
-test("the install script at the published path installs nothing and names the plugin to install", (t) => {
-  const project = tempDir(t, "bfp-install-");
-  for (const args of [[], [project], ["--global"], ["--help"]]) {
-    const run = runNode(INSTALL, args, { cwd: project });
-    assert.equal(run.status, 0, run.stderr);
-    assert.equal(run.stderr, "");
-    assert.match(run.stdout, /^but-first-planning is now an area of the agentcraft plugin, and this script installs nothing\.$/m);
-    assert.match(run.stdout, /^ {2}\/plugin install agentcraft@agentic-engineering$/m);
-    assert.match(run.stdout, /\/agentcraft:start-here/);
-  }
-  assert.deepEqual(fs.readdirSync(project), [], "nothing was written");
-  assert.equal(fs.existsSync(path.join(PLUGIN, "install.mjs")), false, "the area ships no installer of its own");
+test("the area ships no installer of its own", () => {
+  assert.equal(fs.existsSync(path.join(PLUGIN, "install.mjs")), false);
 });

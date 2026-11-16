@@ -30,7 +30,7 @@ delete the line.
 `unit/` holds the rest:
 
 - `areas.test.mjs` pins the plugin's skills: `start-here` and the thirteen
-  areas, and that every other plugin directory is a stub.
+  areas, and that no other directory sits under `plugins/`.
 - `<area>-skills.test.mjs` pins one area's route list and what its routes say,
   through `area-routes.mjs`, which reads an area as a model does (its
   `SKILL.md`, its `door.json`, each `routes/<route>/ROUTE.md`). The other
@@ -51,7 +51,7 @@ too, and holds every address written out to what the plugin ships.
 ## Live lane: `npm run test:live`
 
 Starts real headless Claude Code sessions with this checkout's plugin
-(`claude -p --plugin-dir plugins/agentcraft`, on haiku; no stub is loaded), one
+(`claude -p --plugin-dir plugins/agentcraft`, on haiku), one
 per fixture repo: a prompt, a forced `/compact`, then a prompt that starts
 three kinds of subagent, the plugin's own `agentcraft:vision-critic` among
 them. It reads each transcript back through the context-doctor area's lens and

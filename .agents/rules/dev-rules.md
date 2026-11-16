@@ -16,8 +16,8 @@ and PR. When a rule changes, change the check in the same commit.
 
 ## Layout invariants
 
-- The marketplace ships one plugin, `plugins/agentcraft/`. Every other
-  directory under `plugins/` is a stub. The tree has no third shape.
+- The marketplace ships one plugin, `plugins/agentcraft/`, and `plugins/`
+  holds no other directory. What is new goes in as an area.
 - The plugin holds `.claude-plugin/plugin.json`, `README.md`, `CHANGELOG.md`,
   `hooks/`, `lib/`, `agents/`, `bin/`, `.mcp.json`, and `skills/`: the entry
   skill and the areas, nothing else.
@@ -29,7 +29,9 @@ and PR. When a rule changes, change the check in the same commit.
   has to last goes under `${CLAUDE_PLUGIN_DATA}/<area>/` (`lib/data-home.mjs`).
 - No absolute machine path, `.DS_Store`, `node_modules/`, build artifact, or
   cache in the tree. LF line endings.
-- The catalog has one entry per plugin directory and never a `version` key.
+- The catalog has one entry, `agentcraft`, and never a `version` key. An
+  area's name, or the name its plugin had before it moved in (`OLD_NAMES` in
+  `scripts/lib.mjs`), is not a plugin: nothing tells a reader to install one.
 
 ## Areas
 
@@ -63,18 +65,6 @@ and PR. When a rule changes, change the check in the same commit.
   question of two to four options, every area in exactly one group, and per
   area a cue, a one-line how, and one to four uses that each hand off to a
   route. Its areas section is generated; the rest is written by hand.
-
-## Stubs
-
-- A stub is what is left under a plugin's old name: a `plugin.json` with
-  `"dependencies": ["agentcraft"]` and a description that says where it moved,
-  a `README.md`, and a `CHANGELOG.md`. An update of the old plugin then brings
-  `agentcraft` in. It ships no hook, agent, MCP server, or command.
-- The only skills a stub may hold are the aliases in `ALIASES` in validate: an
-  old address a copied file still prints. An alias is callable,
-  `user-invocable: false`, at most 600 characters, and gives the new address.
-- Nothing tells a reader to install a stub. `scripts/install.mjs` never
-  installs one, and retires a copy an earlier install left under its name.
 
 ## Addresses
 
@@ -130,7 +120,7 @@ and PR. When a rule changes, change the check in the same commit.
 - One line at the top of `plugins/agentcraft/CHANGELOG.md`, newest first:
   validate fails a top entry that is not the `plugin.json` version.
 - An area has no version: its `CHANGELOG.md` is its history as a plugin of its
-  own and takes no new line. A stub's version moved once, when it became one.
+  own and takes no new line.
 
 ## Adding or changing an area or a route
 
@@ -167,7 +157,7 @@ and PR. When a rule changes, change the check in the same commit.
 - `npm run validate && npm test` before every commit, then one tag form,
   `agentcraft/v<version>`, on the commit that bumps the version. CI fails a
   tag whose version is not the one in `plugin.json`, and a tag that names
-  anything else. A stub is never tagged.
+  anything else.
 - Users get updates from `main` through `/plugin marketplace update`. Tags are
   for history and diffing, not distribution.
 
