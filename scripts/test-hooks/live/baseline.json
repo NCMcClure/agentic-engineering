@@ -1,18 +1,18 @@
 {
   "claudeCodeVersion": "2.1.325",
-  "date": "2026-11-15",
+  "date": "2026-11-16",
   "model": "claude-haiku-5-5",
-  "pluginsTree": "22b6a7466b3be08fd983acb369378f9c8aadec5a",
-  "costUsd": 0.185,
+  "pluginsTree": "2a00cbcc8896de49640f3d1d6acd67d3482a98be",
+  "costUsd": 0.1815,
   "expectedFailures": {},
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 29813,
+      "firstRequestTokens": 28967,
       "start": {
         "agent-works": 319,
-        "agentcraft": 791,
+        "agentcraft": 481,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -28,7 +28,7 @@
         "agent-works": 319,
         "agentcraft": 791,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -61,7 +61,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -170,18 +170,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5267,
+          "firstRequestTokens": 4646,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18024,
+          "firstRequestTokens": 16138,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -197,12 +197,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20275,
+          "firstRequestTokens": 18388,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -220,12 +220,12 @@
       }
     },
     "outside": {
-      "firstRequestTokens": 30289,
+      "firstRequestTokens": 29460,
       "start": {
         "agent-works": 319,
         "agentcraft": 791,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -241,7 +241,7 @@
         "agent-works": 319,
         "agentcraft": 791,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -274,7 +274,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -333,31 +333,31 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         },
         "docs-parity": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         },
         "system-map": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 3,
+          "silent": 4,
           "error": 0
         }
       },
@@ -383,18 +383,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5270,
+          "firstRequestTokens": 4646,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 16234,
+          "firstRequestTokens": 14836,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -410,12 +410,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 18486,
+          "firstRequestTokens": 17087,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -433,12 +433,12 @@
       }
     },
     "adopted": {
-      "firstRequestTokens": 33405,
+      "firstRequestTokens": 32607,
       "start": {
         "agent-works": 1171,
         "agentcraft": 2118,
         "agentic-teamwork": 709,
-        "but-first-planning": 635,
+        "but-first-planning": 691,
         "code-diet": 395,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -454,7 +454,7 @@
         "agent-works": 745,
         "agentcraft": 1187,
         "agentic-teamwork": 434,
-        "but-first-planning": 493,
+        "but-first-planning": 525,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -471,7 +471,7 @@
         "agent-works": 852,
         "agentcraft": 1451,
         "agentic-teamwork": 550,
-        "but-first-planning": 284,
+        "but-first-planning": 332,
         "code-diet": 238,
         "docs-parity": 226,
         "perceptual-loop": 500
@@ -493,7 +493,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -604,18 +604,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5638,
+          "firstRequestTokens": 5008,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18026,
+          "firstRequestTokens": 16138,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -631,12 +631,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 22017,
+          "firstRequestTokens": 20155,
           "focus": {
             "agent-works": 467,
             "agentcraft": 546,
             "agentic-teamwork": 434,
-            "but-first-planning": 417,
+            "but-first-planning": 449,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -653,7 +653,7 @@
             "agent-works": 148,
             "agentcraft": 17,
             "agentic-teamwork": 275,
-            "but-first-planning": 66,
+            "but-first-planning": 90,
             "code-diet": 119,
             "docs-parity": 86,
             "perceptual-loop": 250
@@ -662,12 +662,12 @@
       }
     },
     "teamwork-only": {
-      "firstRequestTokens": 32412,
+      "firstRequestTokens": 31580,
       "start": {
         "agent-works": 1057,
         "agentcraft": 1558,
         "agentic-teamwork": 709,
-        "but-first-planning": 465,
+        "but-first-planning": 473,
         "code-diet": 395,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -683,7 +683,7 @@
         "agent-works": 688,
         "agentcraft": 1047,
         "agentic-teamwork": 434,
-        "but-first-planning": 408,
+        "but-first-planning": 416,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -721,7 +721,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -831,18 +831,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5306,
+          "firstRequestTokens": 4680,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18029,
+          "firstRequestTokens": 16141,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -858,12 +858,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 21336,
+          "firstRequestTokens": 19444,
           "focus": {
             "agent-works": 409,
             "agentcraft": 546,
             "agentic-teamwork": 434,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -887,12 +887,12 @@
       }
     },
     "standard": {
-      "firstRequestTokens": 32751,
+      "firstRequestTokens": 31958,
       "start": {
         "agent-works": 1171,
         "agentcraft": 1558,
         "agentic-teamwork": 709,
-        "but-first-planning": 635,
+        "but-first-planning": 691,
         "code-diet": 395,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -908,7 +908,7 @@
         "agent-works": 745,
         "agentcraft": 1089,
         "agentic-teamwork": 434,
-        "but-first-planning": 493,
+        "but-first-planning": 525,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -925,7 +925,7 @@
         "agent-works": 852,
         "agentcraft": 891,
         "agentic-teamwork": 550,
-        "but-first-planning": 284,
+        "but-first-planning": 332,
         "code-diet": 238,
         "docs-parity": 226,
         "perceptual-loop": 500
@@ -947,7 +947,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -1058,18 +1058,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5570,
+          "firstRequestTokens": 4946,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18024,
+          "firstRequestTokens": 16137,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1085,12 +1085,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 21949,
+          "firstRequestTokens": 20093,
           "focus": {
             "agent-works": 467,
             "agentcraft": 546,
             "agentic-teamwork": 434,
-            "but-first-planning": 417,
+            "but-first-planning": 449,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1107,7 +1107,7 @@
             "agent-works": 148,
             "agentcraft": 17,
             "agentic-teamwork": 275,
-            "but-first-planning": 66,
+            "but-first-planning": 90,
             "code-diet": 119,
             "docs-parity": 86,
             "perceptual-loop": 250
@@ -1116,12 +1116,12 @@
       }
     },
     "portable": {
-      "firstRequestTokens": 31976,
+      "firstRequestTokens": 31147,
       "start": {
         "agent-works": 652,
         "agentcraft": 1029,
         "agentic-teamwork": 336,
-        "but-first-planning": 408,
+        "but-first-planning": 416,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -1137,7 +1137,7 @@
         "agent-works": 652,
         "agentcraft": 1029,
         "agentic-teamwork": 336,
-        "but-first-planning": 408,
+        "but-first-planning": 416,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -1175,7 +1175,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -1234,31 +1234,31 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "docs-parity": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "system-map": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         }
       },
@@ -1285,18 +1285,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5279,
+          "firstRequestTokens": 4657,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18024,
+          "firstRequestTokens": 14836,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1312,12 +1312,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 21163,
+          "firstRequestTokens": 17974,
           "focus": {
             "agent-works": 409,
             "agentcraft": 546,
             "agentic-teamwork": 336,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1341,12 +1341,12 @@
       }
     },
     "unplugged": {
-      "firstRequestTokens": 30125,
+      "firstRequestTokens": 29294,
       "start": {
         "agent-works": 319,
         "agentcraft": 667,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -1362,7 +1362,7 @@
         "agent-works": 319,
         "agentcraft": 667,
         "agentic-teamwork": 159,
-        "but-first-planning": 351,
+        "but-first-planning": 359,
         "code-diet": 157,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -1393,7 +1393,7 @@
           "bare": 0
         },
         "but-first-planning": {
-          "tokens": 351,
+          "tokens": 359,
           "skills": 1,
           "bare": 0
         },
@@ -1501,18 +1501,18 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5283,
+          "firstRequestTokens": 4659,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 18027,
+          "firstRequestTokens": 16140,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1528,12 +1528,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20291,
+          "firstRequestTokens": 18401,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
             "agentic-teamwork": 159,
-            "but-first-planning": 351,
+            "but-first-planning": 359,
             "code-diet": 157,
             "codebase-optimizer": 121,
             "context-doctor": 117,
