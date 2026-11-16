@@ -9,13 +9,15 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { boardConfig, listing, ready, summary } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
 import { parseCard } from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
-import { parseIssue, planCards } from "../../../plugins/agentcraft/skills/agent-works/lib/plan.mjs";
+import { SHADOW_FILE, isPlanSource, parseIssue, planCards, planHome, shadowFile } from "../../../plugins/agentcraft/skills/agent-works/lib/plan.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
 const FUNNEL = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "assets", "plan-status.mjs");
+const { scaffoldNamed } = await import(pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
 const P = ".agents/plan/plan";
 const S1 = `${P}/01-foundations/01-skeleton`;
 const S2 = `${P}/01-foundations/02-polish`;
@@ -92,6 +94,11 @@ const TREE = {
   }, null, 2)}\n`,
 };
 
+/** The same tree as a named workspace's: every path under `.agents/plans/<name>/`, so both plans have an issue 01-01-01. */
+const named = (name) => Object.fromEntries(Object.entries(TREE).map(([rel, text]) => [rel.replace(/^\.agents\/plan\//, `.agents/plans/${name}/`), text]));
+const BILLING = named("billing");
+const B1 = ".agents/plans/billing/plan/01-foundations/01-skeleton";
+
 const sources = (tree = TREE) => Object.entries(tree).map(([p, text]) => ({ path: p, text }));
 const shadow = (text) => parseCard(`---\n${text}---\n`, "plan-x.md");
 const byId = (cards) => Object.fromEntries(cards.map((c) => [c.id, c]));
@@ -100,11 +107,12 @@ const byId = (cards) => Object.fromEntries(cards.map((c) => [c.id, c]));
  * A repo whose main branch carries the plan tree and the real funnel, pushed
  * to a local bare origin, with a child worktree on its own branch.
  */
-function planRepo(t, { remote = true, base = "main" } = {}) {
+function planRepo(t, { remote = true, base = "main", also = () => {} } = {}) {
   const main = tempRepo(t, "board-plan-");
   if (base !== "main") main.git("symbolic-ref", "HEAD", `refs/heads/${base}`);
   for (const [rel, text] of Object.entries(TREE)) write(main.dir, rel, text);
   fs.copyFileSync(FUNNEL, path.join(main.dir, P, "plan-status.mjs"));
+  also(main.dir);
   write(main.dir, ".gitignore", ".claude/\n");
   if (base !== "main") write(main.dir, ".agents/manifest.json", `${JSON.stringify({ default_branch: base })}\n`);
   main.git("add", "-A");
@@ -202,7 +210,71 @@ test("dispatch files are picked up, and a broken dispatch file is an error rathe
   assert.deepEqual(broken.errors.map((e) => e.file), [".agents/plan/progress/dispatch/01-02.json"]);
 });
 
+test("a named workspace's issue says the workspace's name before its coordinates, in its id, its blockers and its dispatch plan", () => {
+  const rel = `${B1}/issues/02_issue_WIRING.md`;
+  const parsed = parseIssue(BILLING[rel], rel);
+  assert.equal(parsed.coords, "billing.01-01-02");
+  assert.deepEqual(parsed.blockedBy, ["billing.01-01-01"]);
+  assert.equal(parseIssue("# x\n", ".agents/plans/_scripts/plan/01-a/01-b/issues/01_issue_X.md"), null, "the shared scripts' folder is no workspace");
+  assert.equal(isPlanSource(".agents/plans/billing/progress/dispatch/01-01.json"), true);
+  assert.equal(isPlanSource(".agents/plans/billing/spec/events.md"), false);
+
+  // Both plans on one board: fourteen cards, no id twice, each with its own dispatch files and blockers.
+  const { cards, errors } = planCards(sources({ ...TREE, ...BILLING }), { shadows: { "billing.01-01-01": { session: "card-1" } }, columns: boardConfig().columns });
+  assert.deepEqual(errors, []);
+  assert.equal(cards.length, 14);
+  assert.equal(new Set(cards.map((c) => c.id)).size, 14);
+  const c = byId(cards);
+  assert.deepEqual(c["billing.01-01-01"].files, ["lib/plan.mjs", "scripts/io.mjs"]);
+  assert.deepEqual(c["billing.01-01-02"].after, ["billing.01-01-01"]);
+  assert.equal(c["billing.01-01-01"].status, "in-progress", "its shadow is keyed by its id");
+  assert.equal(c["01-01-01"].status, "backlog", "and the project's issue at the same coordinates has none");
+  assert.deepEqual(c["01-01-02"].after, ["01-01-01"]);
+  assert.equal(c["billing.01-01-01"].file, `${B1}/issues/01_issue_SETUP.md`);
+});
+
+test("a plan card's id says where its funnel is, and its shadow file is named for it", () => {
+  assert.deepEqual(planHome("01-02-03"), { name: null, coords: "01-02-03", dir: ".agents/plan" });
+  assert.deepEqual(planHome("auth-migration.01-02-03"), { name: "auth-migration", coords: "01-02-03", dir: ".agents/plans/auth-migration" });
+  for (const no of ["0007", "01-02", "Billing.01-02-03", ".01-02-03", "billing.1-2-3", "", null]) assert.equal(planHome(no), null, String(no));
+  assert.equal(shadowFile("billing.01-02-03"), "plan-billing.01-02-03.md");
+  assert.equal(SHADOW_FILE.exec("plan-billing.01-02-03.md")[1], "billing.01-02-03");
+  assert.equal(SHADOW_FILE.exec("plan-01-02-03.md")[1], "01-02-03");
+  assert.equal(SHADOW_FILE.test("plan-billing-01-02-03.md"), false);
+});
+
 // ---- through the CLI, against a real repo -----------------------------
+
+test("a named workspace's cards sit beside the project's, and a bound move runs that workspace's own funnel", (t) => {
+  const r = planRepo(t, { also: (dir) => { for (const [rel, text] of Object.entries(BILLING)) write(dir, rel, text); scaffoldNamed(dir, "billing"); } });
+  const ids = listJson(r.main, "list", "--scope", "plan", "--json").map((c) => c.id);
+  assert.equal(ids.length, 14);
+  assert.ok(ids.includes("01-01-01") && ids.includes("billing.01-01-01"));
+
+  bind(r, "billing.01-01-01", `session: card-0003\nbranch: feat/plan-setup\nworktree: ${r.worktree}\n`);
+  const out = board(r.main, "move", "billing.01-01-01", "in-progress");
+  assert.equal(out.status, 0, out.stderr);
+  assert.match(out.stdout, /^Card billing\.01-01-01 is now in in-progress: /);
+  assert.equal(issueStatus(r.worktree, `${B1}/issues/01_issue_SETUP.md`), "in-progress", "the named workspace's funnel ran, through its launcher");
+  assert.equal(issueStatus(r.worktree, `${S1}/issues/01_issue_SETUP.md`), "not-started", "the project's issue at the same coordinates is untouched");
+  assert.equal(issueStatus(r.main, `${B1}/issues/01_issue_SETUP.md`), "not-started", "and so is the main checkout");
+
+  const review = board(r.main, "move", "billing.01-01-01", "review", "--mr", "12");
+  assert.equal(review.status, 0, review.stderr);
+  assert.match(fs.readFileSync(path.join(r.kanban, "plan-billing.01-01-01.md"), "utf8"), /^mr: 12$/m);
+  const cards = byId(listJson(r.main, "list", "--scope", "plan", "--json"));
+  assert.equal(cards["billing.01-01-01"].status, "review");
+  assert.equal(cards["01-01-01"].status, "backlog");
+});
+
+test("a named plan card whose worktree has no launcher is refused, naming the script that is missing", (t) => {
+  const r = planRepo(t, { also: (dir) => { for (const [rel, text] of Object.entries(BILLING)) write(dir, rel, text); } });
+  bind(r, "billing.01-01-01", `session: card-0003\nbranch: feat/plan-setup\nworktree: ${r.worktree}\n`);
+  const out = board(r.main, "move", "billing.01-01-01", "in-progress");
+  assert.equal(out.status, 1, out.stdout);
+  assert.match(out.stderr, /has no \.agents\/plans\/billing\/plan\/plan-status\.mjs to run/);
+});
+
 
 test("status, list, show, and ready include plan cards, and list --scope plan shows them alone", (t) => {
   const r = planRepo(t);

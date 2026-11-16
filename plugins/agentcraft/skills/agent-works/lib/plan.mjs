@@ -1,20 +1,29 @@
-// Plan issues as board cards. The planning plugin keeps its backlog in issue
-// files under .agents/plan/plan/<EE-epic>/<SS-sprint>/issues/ and owns every
-// status change through one funnel, plan-status.mjs. So a plan card is read
-// only: its fields come from the issue file on the base branch, its lane is
-// derived, and the loop's own fields (session, branch, worktree, mr) live in a
-// shadow file `plan-EE-SS-II.md` beside the cards. A move never edits an
-// issue here: it says which status the funnel sets in the card's worktree.
+// Plan issues as board cards. The planning plugin keeps a backlog as issue
+// files under <workspace>/plan/<EE-epic>/<SS-sprint>/issues/ and owns every
+// status change through one funnel, that workspace's plan-status.mjs. A repo
+// holds one project workspace, .agents/plan/, and any number of named ones,
+// .agents/plans/<name>/. So a plan card is read only: its fields come from the
+// issue file on the base branch, its lane is derived, and the loop's own
+// fields (session, branch, worktree, mr) live in a shadow file beside the
+// cards, `plan-<id>.md`. A move never edits an issue here: it says which
+// status the funnel sets in the card's worktree.
+//
+// An issue of the project workspace has its coordinates as its id,
+// `EE-SS-II`. One of a named workspace says the name first, `<name>.EE-SS-II`:
+// two plans may both have an issue 01-01-01, and the dot cannot be mistaken
+// for a dash of the name.
 //
 // Pure: texts in, cards out. The caller reads the tree and runs the funnel.
 import { BoardError, VIRTUAL } from "./board.mjs";
 
-const ISSUE_PATH = /^\.agents\/plan\/plan\/(\d{2})-[^/]+\/(\d{2})-[^/]+\/issues\/(\d{2})_issue_[A-Z][A-Z0-9-]+\.md$/;
-const DISPATCH_PATH = /^\.agents\/plan\/progress\/dispatch\/\d{2}-\d{2}\.json$/;
-/** The tree paths the git side lists: plan issues live under the first, dispatch plans under the second. */
-export const PLAN_PATHS = [".agents/plan/plan", ".agents/plan/progress/dispatch"];
-/** A shadow file's name; the match gives the issue's coordinates. */
-export const SHADOW_FILE = /^plan-(\d{2}-\d{2}-\d{2})\.md$/;
+// Group 1 is a named workspace's name, absent in the project's; the coordinates follow.
+const ISSUE_PATH = /^\.agents\/(?:plan|plans\/([a-z][a-z0-9-]*))\/plan\/(\d{2})-[^/]+\/(\d{2})-[^/]+\/issues\/(\d{2})_issue_[A-Z][A-Z0-9-]+\.md$/;
+const DISPATCH_PATH = /^\.agents\/(?:plan|plans\/([a-z][a-z0-9-]*))\/progress\/dispatch\/\d{2}-\d{2}\.json$/;
+/** The tree paths the git side lists: the project's plan issues, its dispatch plans, and every named workspace. */
+export const PLAN_PATHS = [".agents/plan/plan", ".agents/plan/progress/dispatch", ".agents/plans"];
+/** A shadow file's name; the match gives the plan card's id. */
+export const SHADOW_FILE = /^plan-((?:[a-z][a-z0-9-]*\.)?\d{2}-\d{2}-\d{2})\.md$/;
+const PLAN_ID = /^(?:([a-z][a-z0-9-]*)\.)?(\d{2}-\d{2}-\d{2})$/;
 /** The fields the loop keeps on a shadow file. Everything else about a plan card comes from its issue. */
 export const LOOP_KEYS = ["session", "branch", "worktree", "mr", "merged", "grant", "updated"];
 const BINDING = ["session", "branch", "worktree", "mr", "grant"];
@@ -22,8 +31,19 @@ const BINDING = ["session", "branch", "worktree", "mr", "grant"];
 const usage = (message) => new BoardError("usage", message);
 const refuse = (message) => new BoardError("refused", message);
 
-/** The shadow file of a plan issue, by its coordinates. */
-export const shadowFile = (coords) => `plan-${coords}.md`;
+/** The shadow file of a plan issue, by its id. */
+export const shadowFile = (id) => `plan-${id}.md`;
+/** A plan card's id from a workspace's name (none for the project's) and coordinates. */
+const idOf = (name, coords) => (name ? `${name}.${coords}` : coords);
+/**
+ * A plan card's id taken apart: `{ name, coords, dir }`, the named workspace
+ * (null for the project's), the bare coordinates its funnel takes, and the
+ * workspace's directory in the repo. Null for anything that is no plan id.
+ */
+export function planHome(id) {
+  const m = PLAN_ID.exec(String(id ?? ""));
+  return m ? { name: m[1] ?? null, coords: m[2], dir: m[1] ? `.agents/plans/${m[1]}` : ".agents/plan" } : null;
+}
 /** A blob worth fetching: an issue file or a dispatch plan. */
 export const isPlanSource = (p) => ISSUE_PATH.test(p) || DISPATCH_PATH.test(p);
 
@@ -40,7 +60,7 @@ function resolve(dir, target) {
   return out.join("/");
 }
 
-/** One issue file, or null for any other path. `Blocked by` links become coordinates. */
+/** One issue file, or null for any other path. `coords` is its id, and `Blocked by` links become ids. */
 export function parseIssue(text, file) {
   const at = ISSUE_PATH.exec(file);
   if (!at) return null;
@@ -49,12 +69,13 @@ export function parseIssue(text, file) {
   const blockedBy = [];
   for (const [, target] of section(body, "Blocked by").matchAll(/\]\(([^)\s]+)\)/g)) {
     const m = ISSUE_PATH.exec(resolve(dir, target));
-    if (m && !blockedBy.includes(`${m[1]}-${m[2]}-${m[3]}`)) blockedBy.push(`${m[1]}-${m[2]}-${m[3]}`);
+    const id = m && idOf(m[1], `${m[2]}-${m[3]}-${m[4]}`);
+    if (id && !blockedBy.includes(id)) blockedBy.push(id);
   }
   const acceptance = [...section(body, "Acceptance criteria").matchAll(/^[ \t]*[-*][ \t]+\[([ xX])\][ \t]+(.*?)[ \t]*$/gm)]
     .map(([, box, line]) => ({ done: box !== " ", text: line }));
   return {
-    coords: `${at[1]}-${at[2]}-${at[3]}`,
+    coords: idOf(at[1], `${at[2]}-${at[3]}-${at[4]}`),
     title: /^#\s+(.*?)\s*$/m.exec(body)?.[1] ?? "",
     type: field(body, "Type") ?? "AFK",
     status: field(body, "Status") ?? "not-started",
@@ -88,7 +109,7 @@ const loopOf = (shadow = {}) => Object.fromEntries(LOOP_KEYS.filter((k) => shado
 
 /**
  * Cards from the plan's blobs (`{ path, text }`), with each card's shadow (parsed
- * cards keyed by coordinates). Returns `{ cards, errors }`; a dispatch file that
+ * cards keyed by id). Returns `{ cards, errors }`; a dispatch file that
  * is not JSON is an error and its files are left out.
  */
 export function planCards(sources, { shadows = {}, columns } = {}) {
@@ -102,8 +123,9 @@ export function planCards(sources, { shadows = {}, columns } = {}) {
       continue;
     }
     for (const unit of (plan.waves ?? []).flatMap((w) => w.units ?? [])) {
-      for (const coords of [].concat(unit.coords ?? [])) {
-        files.set(coords, [...new Set([...(files.get(coords) ?? []), ...(unit.files ?? []).map(String)])]);
+      // A dispatch plan names its own workspace's issues, by bare coordinates.
+      for (const id of [].concat(unit.coords ?? []).map((coords) => idOf(DISPATCH_PATH.exec(path)[1], coords))) {
+        files.set(id, [...new Set([...(files.get(id) ?? []), ...(unit.files ?? []).map(String)])]);
       }
     }
   }

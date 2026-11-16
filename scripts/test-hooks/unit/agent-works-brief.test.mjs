@@ -85,6 +85,12 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
   assert.match(text, /\.agents\/plan\/plan\/01-cli\/02-flags\/issues\/03_issue_PARSE-FLAGS\.md/);
   assert.match(text, /~~~~markdown\n# Parse the flags\n/);
   assert.match(text, /origin\/main/);
+
+  // A named workspace's issue is built in that workspace, and the brief says which.
+  const n = card("billing.01-02-03", { ...c, id: "billing.01-02-03", plan: "billing.01-02-03", file: ".agents/plans/billing/plan/01-cli/02-flags/issues/03_issue_PARSE-FLAGS.md" });
+  const named = brief(n, [n], { cardPath: "/repo/.agents/kanban/plan-billing.01-02-03.md", planRef: "origin/main" });
+  assert.match(named, /Plan issue billing\.01-02-03 \(AFK\), at `\.agents\/plans\/billing\/plan\//);
+  assert.match(named, /Build it with `\/agentcraft:but-first-planning build-tdd --plan billing`, which flips the issue to done/);
 });
 
 test("a task judged by eye or ear loads perceptual-loop first, and a card's own skills are named", () => {

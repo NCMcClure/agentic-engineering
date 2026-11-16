@@ -96,9 +96,11 @@ the time box the person works in.
 
 ## Plan issues
 
-Where a plan lives as issue files under `.agents/plan/plan/` (but-first-planning writes them), every issue is a
-card too, with its coordinates as the id (`01-02-03`). They are read from the base branch, never a working tree,
-and are read-only here: the plan's own `plan-status.mjs` changes their status. A move of a plan card runs that
+Where a plan lives as issue files (but-first-planning writes them, under `.agents/plan/plan/` for the project's
+plan and `.agents/plans/<name>/plan/` for a named workspace's), every issue is a card too. The id is its
+coordinates (`01-02-03`), said after the workspace's name where it has one (`billing.01-02-03`), so two plans
+never share an id. They are read from the base branch, never a working tree, and are read-only here: the plan's
+own `plan-status.mjs`, the one in the issue's workspace, changes their status. A move of a plan card runs that
 script in the worktree the card is bound to; a move to done is refused, because the issue is done when its request
 merges; `plan`, `settle` and `lint --fix` never touch one.
 

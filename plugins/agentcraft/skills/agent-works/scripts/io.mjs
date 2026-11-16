@@ -30,7 +30,7 @@ import {
   AwError, Finding, atomicWrite, currentBranch, exclusiveCreate, git, gitDir, mainRoot, posix, projectRoot, readText, realPath, rel, repoRoot,
 } from "../lib/common.mjs";
 import { DEFAULTS, OLD_BOARD, boardDir as configuredDir, configPath, loadConfig } from "../lib/config.mjs";
-import { PLAN_PATHS, SHADOW_FILE, isPlanSource, planCards, shadowEmpty, shadowFile } from "../lib/plan.mjs";
+import { PLAN_PATHS, SHADOW_FILE, isPlanSource, planCards, planHome, shadowEmpty, shadowFile } from "../lib/plan.mjs";
 import * as forge from "../../../lib/provider.mjs";
 import {
   GITHUB_PROJECT_QUERY, cardFromIssue, decide, epicOfIssue, githubHad, githubIssue, githubIssuesQuery, githubLabels, githubParent, githubProject,
@@ -230,7 +230,7 @@ export function readPlan(loc) {
   return { ref: null, sources: [] };
 }
 
-/** The shadow files beside the cards, parsed and keyed by coordinates. */
+/** The shadow files beside the cards, parsed and keyed by plan card id. */
 export function readShadows(dir) {
   const shadows = {};
   const errors = [];
@@ -264,15 +264,19 @@ export function writeShadow(loc, shadow) {
 
 /**
  * Run the plan's own funnel in a card's worktree: `plan-status.mjs set <coords> <status>` with that worktree as
- * cwd, so the child's next commit carries the flip. The worktree must belong to this repo. Returns the funnel's
- * answer; its warnings go to `stderr`.
+ * cwd, so the child's next commit carries the flip. `coords` is the plan card's id, and the funnel run is the one
+ * of the workspace the id names: the project's, or a named workspace's launcher, which takes the bare coordinates.
+ * The worktree must belong to this repo. Returns the funnel's answer; its warnings go to `stderr`.
  */
 export function runFunnel(loc, worktree, coords, status, stderr = process.stderr) {
   const wt = locate(worktree);
   if (!wt.git || wt.commonDir !== loc.commonDir) throw new BoardError("refused", `${coords} names worktree ${worktree}, which is not a worktree of this repo`);
-  const script = path.join(wt.toplevel, ".agents", "plan", "plan", "plan-status.mjs");
-  if (!fs.existsSync(script)) throw new BoardError("refused", `${wt.toplevel} has no .agents/plan/plan/plan-status.mjs to run`);
-  const r = spawnSync(process.execPath, [script, "set", coords, status], { cwd: wt.toplevel, encoding: "utf8", windowsHide: true });
+  const home = planHome(coords);
+  if (!home) throw new BoardError("refused", `${coords} is not a plan issue's id`);
+  const rel = `${home.dir}/plan/plan-status.mjs`;
+  const script = path.join(wt.toplevel, ...rel.split("/"));
+  if (!fs.existsSync(script)) throw new BoardError("refused", `${wt.toplevel} has no ${rel} to run`);
+  const r = spawnSync(process.execPath, [script, "set", home.coords, status], { cwd: wt.toplevel, encoding: "utf8", windowsHide: true });
   if (r.stderr) stderr.write(r.stderr);
   if (r.status !== 0) throw new BoardError("refused", `plan-status.mjs set ${coords} ${status} failed in ${wt.toplevel} (exit ${r.status ?? r.signal})`);
   return r.stdout.trim();

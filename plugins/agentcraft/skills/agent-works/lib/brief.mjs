@@ -13,6 +13,7 @@
 import { BoardError, byPlace, roleIds } from "./board.mjs";
 import { DONE_HEADINGS, doneCriteria, sections, slugify } from "./cards.mjs";
 import { conflictConfig, locksFor } from "./conflicts.mjs";
+import { planHome } from "./plan.mjs";
 import { cardLineFormat } from "./report.mjs";
 
 /** `<type>/<topic>`: the branch names a grant covers. */
@@ -36,8 +37,11 @@ const isTask = (c) => c.kind !== "epic" && c.kind !== "gate";
 
 function taskOf(card, planRef) {
   if (card.source === "plan") {
+    // A named workspace's issue is built in that workspace: the route is told which.
+    const name = planHome(card.plan)?.name;
+    const how = name ? `\`/agentcraft:but-first-planning build-tdd --plan ${name}\`` : "`/agentcraft:but-first-planning build-tdd`";
     return `Plan issue ${card.plan} (${card.type ?? "AFK"}), at ${code(card.file)} in your worktree${planRef ? `, as ${planRef} has it` : ""}. `
-      + "Build it with `/agentcraft:but-first-planning build-tdd`, which flips the issue to done through the plan's funnel in your last commit before the push, without `--evidence`. "
+      + `Build it with ${how}, which flips the issue to done through the plan's funnel in your last commit before the push, without \`--evidence\`. `
       + "The issue is quoted at the end of this brief.";
   }
   const kept = sections(card.body).filter((s) => !NOT_TASK.includes(s.head) && s.text);
