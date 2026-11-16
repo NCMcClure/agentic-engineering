@@ -55,7 +55,8 @@ Each is `agentcraft/skills/<name>/`.
 - `agentic-teamwork` - team git conventions: hooks that judge a commit, a
   push and a stop, a scaffold, and routes to ship, land and test. Descend to
   change a rule, the scaffold a repo gets, or how a change request is landed.
-- `but-first-planning` - spec, plan, build, as files under `.agents/plan/`.
+- `but-first-planning` - spec, plan, build, as files under `.agents/plan/` (the
+  project's) and `.agents/plans/<name>/` (one feature's or task's).
   Descend to change a phase of that workflow or its status scripts.
 - `code-diet` - write only what the task needs, reuse before building,
   delete the rest behind validate-or-revert, and track debt. Descend to change

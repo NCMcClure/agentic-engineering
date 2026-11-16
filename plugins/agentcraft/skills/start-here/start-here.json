@@ -41,7 +41,7 @@
   "areas": {
     "but-first-planning": {
       "cue": "turn an idea into a spec, a backlog, and built issues",
-      "how": "Three phases, each leaving files under `.agents/plan/`: write and sharpen a spec, decompose it into a backlog, then build that backlog one issue at a time, test-first. `spec-init` scaffolds the workspace the first time.",
+      "how": "Three phases, each leaving files in a workspace: write and sharpen a spec, decompose it into a backlog, then build that backlog one issue at a time, test-first. The project's workspace is `.agents/plan/`, which `spec-init` scaffolds the first time; a feature or a long task gets its own, `.agents/plans/<name>/`, made when you ask for its spec.",
       "uses": [
         {
           "want": "be questioned on a goal until nothing about it is left unsaid",

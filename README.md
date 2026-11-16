@@ -94,8 +94,9 @@ the foundation the areas below lean on.
 
 Code written before the spec is settled is a loan against your future self.
 A planning pipeline (spec → grill → architect → plan → publish) plus a build
-loop of coordinated TDD agents, all landing in one `.agents/plan/` workspace,
-with an autopilot that runs the whole graph hands-off. The backlog publishes
+loop of coordinated TDD agents, all landing in a workspace: `.agents/plan/` for
+the project, `.agents/plans/<name>/` for one feature or long task. An autopilot
+runs the whole graph hands-off. The backlog publishes
 to GitHub or GitLab, and one script owns every status change so the plan and
 the tracker cannot disagree quietly.
 [Read more →](plugins/agentcraft/skills/but-first-planning/README.md)

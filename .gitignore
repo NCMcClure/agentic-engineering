@@ -5,4 +5,5 @@ __pycache__/
 *.pyc
 .venv/
 .agents/plan/
+.agents/plans/
 *.log

@@ -177,10 +177,18 @@ test("the command line: --workspace makes one, a bad name or a stray --title is 
   const check = cli("--check");
   assert.equal(check.status, 1);
   assert.equal(check.stdout, `differs or missing: ${SHARED}/tracker.mjs\ndiffers or missing: ${PLANS}/billing/plan/plan-status.mjs\n2 script(s) are not this plugin's current copy; run with --refresh\n`);
-  assert.equal(cli().stdout, `wrote ${SHARED}/tracker.mjs\nkept ${PLANS}/billing/plan/plan-status.mjs (differs from the plugin's copy; --refresh rewrites it)\n`);
+  assert.equal(cli("--workspace", "billing").stdout, `wrote ${SHARED}/tracker.mjs\nkept ${PLANS}/billing/plan/plan-status.mjs (differs from the plugin's copy; --refresh rewrites it)\n`);
   assert.equal(cli("--refresh").stdout, `refreshed ${PLANS}/billing/plan/plan-status.mjs\n`);
   assert.equal(cli("--check").status, 0);
   assert.equal(fs.existsSync(path.join(root, WORKSPACE)), false, "neither --check nor --refresh gives a named-only repo a project workspace");
+
+  // The plain run is spec-init's: it makes the project workspace beside the named one, and touches nothing of it.
+  const before = snapshot(root, PLANS);
+  const project = cli();
+  assert.match(project.stdout, /^wrote \.agents\/plan\/plan\/plan-status\.mjs\n/);
+  assert.doesNotMatch(project.stdout, /\.agents\/plans\//);
+  assert.deepEqual(snapshot(root, PLANS), before);
+  assert.equal(cli("--check").stdout, "every script is current\n");
 });
 
 test("in a repo with both tiers, --check and --refresh cover both, and a repo with neither still gets the project workspace", (t) => {

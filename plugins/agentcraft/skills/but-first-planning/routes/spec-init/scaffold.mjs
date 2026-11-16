@@ -15,14 +15,16 @@
 // updates.
 //
 //   (no flag)           the project workspace: copy what is missing; never
-//                       touch a file that exists
+//                       touch a file that exists. It makes the workspace where
+//                       there is none, beside any named ones
 //   --workspace <name>  a named workspace instead: the shared scripts, its
 //                       launchers, its three index pages and its empty ledgers,
 //                       each only where missing. `--title` is its heading.
 //   --refresh           also rewrite the scripts that differ from this plugin's
-//                       copy, in every workspace the repo has (the site's CSS
-//                       and JS are a project's to restyle, so those are only
-//                       ever copied when missing)
+//                       copy, in every workspace the repo has and no other: a
+//                       repo with only named workspaces is not given a project
+//                       one (the site's CSS and JS are a project's to restyle,
+//                       so those are only ever copied when missing)
 //   --check             change nothing; list the scripts that are missing or
 //                       differ, exit 1 if any
 //
@@ -199,9 +201,10 @@ export function main(argv, log = console.log) {
   if (args.workspace !== null && nameProblem(args.workspace)) { console.error(`scaffold.mjs: ${nameProblem(args.workspace)}\n${USAGE}`); return 2; }
   if (args.title !== null && args.workspace === null) { console.error(`scaffold.mjs: --title names a named workspace's heading; give --workspace too\n${USAGE}`); return 2; }
 
-  // A repo with only named workspaces has no project workspace, and neither --check nor --refresh gives it one.
+  // A repo with only named workspaces has no project workspace, and neither --check nor --refresh gives it one:
+  // those two keep up what is there. A plain run is the one that makes the project workspace, wherever it is run.
   const named = workspaces(root).length > 0 || isDir(path.join(root, SHARED));
-  const project = isDir(path.join(root, WORKSPACE)) || !named;
+  const project = isDir(path.join(root, WORKSPACE)) || !named || (!args.refresh && !args.check);
 
   if (args.check) {
     const stale = [...(project ? staleScripts(root).map((rel) => `${WORKSPACE}/${rel}`) : []), ...staleShared(root)];
