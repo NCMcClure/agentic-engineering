@@ -5,6 +5,7 @@
 // lens report, so the skills part reads transcript entries through reach.mjs.
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 import { calls, listing as listed, offered, reached } from "./reach.mjs";
 import { labelOf } from "./triggers.mjs";
 
@@ -113,7 +114,8 @@ export function measureFixture({ main, subagents = [] }) {
 export async function loadChecks(dir = CHECKS) {
   const files = fs.readdirSync(dir).filter((n) => n.endsWith(".mjs")).sort();
   const checks = [];
-  for (const name of files) checks.push({ ...(await import(path.join(dir, name))).default, file: name });
+  // A file URL, not a path: on Windows a path that starts with a drive letter is read as a URL scheme.
+  for (const name of files) checks.push({ ...(await import(pathToFileURL(path.join(dir, name)).href)).default, file: name });
   return checks;
 }
 

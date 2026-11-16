@@ -150,7 +150,10 @@ test("a machine without npm, or with an old Node, is told so before anything is 
   await assert.rejects(() => quiet(() => setup(["--yes"], { ...w.deps, nodeVersion: "18.19.0" })), /Node\.js v18\.19\.0 is too old: the studio \(Vite 6\) needs Node 20\+/);
   assert.deepEqual(fs.readdirSync(w.home), []);
   assert.equal(prerequisites({ env: w.deps.env }), null);
-  assert.equal(findOnPath("npm", w.deps.env), path.join(w.deps.env.PATH, process.platform === "win32" ? "npm.cmd" : "npm"));
+  // On Windows the ending is spelled as PATHEXT has it (.CMD), and the file system matches it in any case.
+  const found = findOnPath("npm", w.deps.env);
+  if (process.platform === "win32") assert.equal(found.toLowerCase(), path.join(w.deps.env.PATH, "npm.cmd").toLowerCase());
+  else assert.equal(found, path.join(w.deps.env.PATH, "npm"));
   assert.equal(findOnPath("definitely-not-a-program", w.deps.env), null);
 });
 
@@ -250,11 +253,12 @@ test("the scratch folder is ignored once, a figure name is kebab-case, and --rep
   assert.equal(slug("job-queue"), "job-queue");
   for (const bad of ["Job Queue", "job_queue", "-x", "kit", "", "9lives"]) assert.throws(() => slug(bad), /is not a figure name/, bad);
 
-  assert.equal(fs.realpathSync(repoRoot(null, { cwd: path.join(drafts, "round-1") })), fs.realpathSync(dir), "the git checkout around the current folder");
+  // The native call on both sides: git answers with the real path, and only it resolves a Windows short name too.
+  assert.equal(fs.realpathSync.native(repoRoot(null, { cwd: path.join(drafts, "round-1") })), fs.realpathSync.native(dir), "the git checkout around the current folder");
   assert.equal(repoRoot(dir), path.resolve(dir));
   assert.throws(() => repoRoot(path.join(dir, "absent")), /no such folder/);
   const plain = tempDir(t, "pt-plain-");
-  assert.equal(fs.realpathSync(repoRoot(null, { cwd: plain })), fs.realpathSync(plain), "outside git, the folder itself");
+  assert.equal(fs.realpathSync.native(repoRoot(null, { cwd: plain })), fs.realpathSync.native(plain), "outside git, the folder itself");
 });
 
 test("the studio's own files: every source it copies exists, and its lockfile pins Vite 6", () => {

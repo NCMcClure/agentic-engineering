@@ -22,7 +22,8 @@ const MODEL = fs.readFileSync(path.join(PLUGIN, "studies", "iso-flow", "model.js
 /** A repo with one figure and one draft round, and a data folder that looks installed. */
 function world(t, { installed = true } = {}) {
   const { dir } = tempRepo(t, "pt-shots-");
-  const repo = fs.realpathSync(dir);
+  // The native call: git names the checkout by its real path, and only this one resolves a Windows short name too.
+  const repo = fs.realpathSync.native(dir);
   write(repo, ".agents/picture-this/figures/job-queue/figure.tsx", "export default () => null;\n");
   write(repo, ".agents/picture-this/figures/job-queue/model.json", MODEL);
   write(repo, ".agents/picture-this/figures/kit/kit.json", "{}");
