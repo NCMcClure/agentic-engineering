@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Plan-tree structural verifier, count-agnostic. Read-only, Node 22 stdlib only.
-// Validates the `.agents/plan/plan/` epic -> sprint -> issue tree authored by
-// the `plan-decompose` skill.
+// Validates a workspace's `plan/` epic -> sprint -> issue tree authored by
+// the `plan-decompose` skill: `.agents/plan/plan/`, or a named workspace's
+// `.agents/plans/<name>/plan/` through its launcher.
 //
 // Exits 0 on a clean pass, 1 on warnings only, 2 on any critical violation.
 // Critical = broken structure, a missing required field, or an unresolved link.
@@ -11,8 +12,32 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const PLAN_ROOT = import.meta.dirname; //     .agents/plan/plan/
-const PLAN_DIR = path.dirname(PLAN_ROOT); //  .agents/plan/
+// ---- workspace -------------------------------------------------------------
+// The project workspace (.agents/plan/) holds its own copy of this script, and
+// the script roots itself where it sits. A named workspace
+// (.agents/plans/<name>/) holds a launcher at the same relative path: it runs
+// the one copy in .agents/plans/_scripts/ with `--workspace <dir>`.
+/** `{ ws, rest }`: the named workspace's directory (null for the one this script sits in) and argv without the flag, or `{ error }`. */
+export function workspaceArg(argv, here = import.meta.dirname) {
+  const i = argv.indexOf("--workspace");
+  if (i === -1) {
+    if (path.basename(here) !== "_scripts") return { ws: null, rest: [...argv] };
+    let names = [];
+    try { names = fs.readdirSync(path.dirname(here), { withFileTypes: true }).filter((e) => e.isDirectory() && /^[a-z]/.test(e.name)).map((e) => e.name).sort(); } catch { /* none */ }
+    return { error: `this is the copy every named workspace shares, and it was not told which one: run the script inside a workspace instead (${names.length ? names.map((n) => `.agents/plans/${n}`).join(", ") : "no named workspace exists yet"})` };
+  }
+  const given = argv[i + 1] ?? "";
+  const ws = path.resolve(given);
+  const plans = path.dirname(ws);
+  const named = given && path.basename(plans) === "plans" && path.basename(path.dirname(plans)) === ".agents";
+  if (!named || !fs.existsSync(ws)) return { error: `--workspace takes the directory of a named workspace, .agents/plans/<name> (got '${given}')` };
+  return { ws, rest: [...argv.slice(0, i), ...argv.slice(i + 2)] };
+}
+// ----------------------------------------------------------------------------
+
+// Set by `verify`.
+let PLAN_DIR; //   the workspace: .agents/plan/, or .agents/plans/<name>/
+let PLAN_ROOT; //  its plan tree
 
 const ISSUE_FILENAME_RE = /^[0-9]{2}_issue_[A-Z][A-Z0-9-]+\.md$/;
 const REQUIRED_ISSUE_FIELDS = [
@@ -49,7 +74,11 @@ function strictFormat() {
   return Boolean(m) && (Number(m[1]) > 3 || (Number(m[1]) === 3 && Number(m[2]) >= 7));
 }
 
-export function verify() {
+export function verify(argv = []) {
+  const { ws, error } = workspaceArg(argv);
+  if (error) { console.log(`FAIL: ${error}`); return 2; }
+  PLAN_DIR = ws ?? path.dirname(import.meta.dirname);
+  PLAN_ROOT = ws ? path.join(ws, "plan") : import.meta.dirname;
   const failures = [];
   const warnings = []; // exit 1 when there are no failures
   const strict = strictFormat();
@@ -157,4 +186,4 @@ export function verify() {
 }
 
 const realpath = (p) => { try { return fs.realpathSync(p); } catch { return path.resolve(p); } };
-if (process.argv[1] && realpath(process.argv[1]) === realpath(import.meta.filename)) process.exitCode = verify();
+if (process.argv[1] && realpath(process.argv[1]) === realpath(import.meta.filename)) process.exitCode = verify(process.argv.slice(2));

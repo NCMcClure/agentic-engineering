@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-edit-propagate',
   description: 'Propagate a spec change through the plan tree and tracker: find every issue anchored to the changed spec files, classify each (still-valid / update / re-cut / obsolete), apply the plan-side edits, sync published tickets, and re-verify',
-  whenToUse: "spec-edit's propagation step when the blast radius is wide (roughly 10+ affected issues) and the user has approved the affected-issue list. Args: {root, changedSpecFiles, changeSummary}. Re-cuts are flagged back to the skill, not applied.",
+  whenToUse: "spec-edit's propagation step when the blast radius is wide (roughly 10+ affected issues) and the user has approved the affected-issue list. Args: {root, changedSpecFiles, changeSummary, workspace?}. Re-cuts are flagged back to the skill, not applied.",
   phases: [
     { title: 'Find', detail: 'grep spec-anchor backlinks for the affected issues' },
     { title: 'Classify', detail: 'one classifier per affected issue' },
@@ -15,18 +15,25 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !Array.isArray(A.changedSpecFiles) || !A.changedSpecFiles.length || !A.changeSummary) {
-  throw new Error('args must be an object: {root: <absolute repo root>, changedSpecFiles: [spec-relative paths], changeSummary: <what changed and why>}')
+  throw new Error('args must be an object: {root: <absolute repo root>, changedSpecFiles: [spec-relative paths], changeSummary: <what changed and why>, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
-const PLANDIR = `${ROOT}/.agents/plan/plan`
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
+const SPEC = `${WS}/spec`
+const PLANDIR = `${WS}/plan`
 
 const BRIEF = 'Be terse in every string field. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. The spec at ${SPEC}/ changed and the plan tree at ${PLANDIR}/ (epic/sprint/issue files,
 formats enforced by ${PLANDIR}/verify-plan-tree.mjs) must be brought back into agreement. Issues
-link to the spec via spec-anchor paths; the tracker config is ${ROOT}/.agents/plan/tracker.md.
+link to the spec via spec-anchor paths; the tracker config is ${WS}/tracker.md.
 THE CHANGE: ${A.changeSummary}
 CHANGED SPEC FILES (relative to ${SPEC}/): ${A.changedSpecFiles.join(', ')}
 `
@@ -111,7 +118,7 @@ const publishedChanged = [...updates, ...obsolete].filter(c => /^#\d+/.test(c.re
 let sync = null
 if (publishedChanged.length) {
   sync = await agent(
-    `${CTX}\nYou are the tracker synchronizer. Read ${ROOT}/.agents/plan/tracker.md for the tracker backend and commands. These plan issues just changed AND have live tickets, sync each ticket from its (now-updated) plan file, in dependency order:\n${JSON.stringify(publishedChanged.map(c => ({ ref: c.ref, path: c.path, verdict: c.verdict, reason: c.editInstruction || c.reasoning })), null, 1)}\n\n- verdict 'update' -> rebuild the ticket from the plan file: node ${PLANDIR}/publish-issues.mjs sync <EE-SS-II> (cwd ${ROOT}) rewrites its title and body through gh or glab.\n- verdict 'obsolete' -> comment the closure reason on the ticket (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...), then node ${PLANDIR}/plan-status.mjs set <EE-SS-II> done --cancelled, which closes it as not planned (close, never delete).\n- Blocked-by ripples: any OTHER published ticket whose body cites one of these refs in its Blocked-by section also needs its body regenerated, grep the plan tree for the sibling links and sync those too.\nReport per-ticket outcomes. ${BRIEF}`,
+    `${CTX}\nYou are the tracker synchronizer. Read ${WS}/tracker.md for the tracker backend and commands. These plan issues just changed AND have live tickets, sync each ticket from its (now-updated) plan file, in dependency order:\n${JSON.stringify(publishedChanged.map(c => ({ ref: c.ref, path: c.path, verdict: c.verdict, reason: c.editInstruction || c.reasoning })), null, 1)}\n\n- verdict 'update' -> rebuild the ticket from the plan file: node ${PLANDIR}/publish-issues.mjs sync <EE-SS-II> (cwd ${ROOT}) rewrites its title and body through gh or glab.\n- verdict 'obsolete' -> comment the closure reason on the ticket (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...), then node ${PLANDIR}/plan-status.mjs set <EE-SS-II> done --cancelled, which closes it as not planned (close, never delete).\n- Blocked-by ripples: any OTHER published ticket whose body cites one of these refs in its Blocked-by section also needs its body regenerated, grep the plan tree for the sibling links and sync those too.\nReport per-ticket outcomes. ${BRIEF}`,
     {
       label: 'sync:tickets', phase: 'Sync', model: 'sonnet', effort: 'medium',
       schema: {

@@ -29,7 +29,8 @@ const NUDGE_CAP_MS = 3 * 60 * MINUTE;
 export const ASK_MS = 30 * MINUTE;
 const KEEP_EVENTS = 200;
 const KEEP_MS = 24 * 60 * MINUTE;
-const ID = /^(?:\d{4}|\d{2}-\d{2}-\d{2})$/;
+// A card's number, or a plan issue's id: its coordinates, after a named workspace's name where it has one.
+const ID = /^(?:\d{4}|(?:[a-z][a-z0-9-]*\.)?\d{2}-\d{2}-\d{2})$/;
 // Work under a card, and the work a subagent is asked about: what left its worktree.
 const WORK = new Set(["edit", "commit", "push"]);
 const SHIPPED = new Set(["commit", "push", "mr-open", "mr-merge"]);

@@ -72,7 +72,8 @@ that says what it is owed for and what running it needs, and it closes only by b
 
 - **Sprints** time-box the work: while one is active, the board shows its cards and nothing else. **Epics** hold
   a goal larger than one session; an agent handed an epic slices it into cards instead of building it.
-- **Plan issues** written by but-first-planning under `.agents/plan/` show on the board as read-only cards.
+- **Plan issues** written by but-first-planning (the project's under `.agents/plan/`, a named workspace's under
+  `.agents/plans/<name>/`) show on the board as read-only cards.
 - **Remote sync** (`aw board remote on`, then `aw board remote sync`, or `/kanban sync on`) keeps cards in step
   with GitHub (`gh`) or GitLab (`glab`) issues: a card is an issue, its column a project-board status or a
   `status:` label, a sprint a milestone, an epic the parent of its cards' issues.

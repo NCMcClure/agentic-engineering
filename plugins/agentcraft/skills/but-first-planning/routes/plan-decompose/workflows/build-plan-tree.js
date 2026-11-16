@@ -1,7 +1,7 @@
 export const meta = {
   name: 'plan-decompose-tree',
   description: 'Decompose an approved spec into the full epic/sprint/issue plan tree: parallel page assessment, a lens-diverse judge panel for the epic shape, per-epic decomposition and authoring, a verify loop, and a three-critic audit',
-  whenToUse: "plan-decompose at scale (roughly 15+ spec pages) or on an explicit headless/comprehensive run, after the user approves the run in plan mode. Args: {root, skillDir, pages?, context?, lenses?, decisionPolicy?}. decisionPolicy 'route' (default) turns product decisions into HITL decision issues; 'decide' (autonomous mode) resolves the derivable ones as ADRs first and leaves only the genuinely non-derivable residue as decision issues.",
+  whenToUse: "plan-decompose at scale (roughly 15+ spec pages) or on an explicit headless/comprehensive run, after the user approves the run in plan mode. Args: {root, skillDir, pages?, context?, lenses?, decisionPolicy?, workspace?}. decisionPolicy 'route' (default) turns product decisions into HITL decision issues; 'decide' (autonomous mode) resolves the derivable ones as ADRs first and leaves only the genuinely non-derivable residue as decision issues.",
   phases: [
     { title: 'Discover', detail: 'list spec content pages (skipped when args.pages is given)' },
     { title: 'Assess', detail: 'one assessor per page: contracts, deps, open questions', model: 'sonnet' },
@@ -18,16 +18,23 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir) {
-  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <plan-decompose skill dir>, pages?, context?, lenses?}')
+  throw new Error('args must be an object: {root: <absolute repo root>, skillDir: <plan-decompose skill dir>, pages?, context?, lenses?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
-const PLANDIR = `${ROOT}/.agents/plan/plan`
+const SPEC = `${WS}/spec`
+const PLANDIR = `${WS}/plan`
 
 const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of a planning pipeline decomposing the specification at ${SPEC}/ into an
 implementation plan tree at ${PLANDIR}/ (epic -> sprint -> issue files whose formats are enforced
 by ${PLANDIR}/verify-plan-tree.mjs). Orient at ${SPEC}/index.md; the project glossary is

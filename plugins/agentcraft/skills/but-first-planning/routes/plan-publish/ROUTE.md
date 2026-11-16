@@ -8,6 +8,8 @@ description: >
 
 # plan-publish: push a sprint to the tracker
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Turn the markdown issues in a sprint into tracker tickets and link them back.
 The plan tree stays the **source of truth** for structure and dependencies; the
 tracker is where work gets grabbed, assigned, and closed. After publishing,
@@ -22,8 +24,11 @@ per run; publish more only if the user asks.
 
 ## Read the tracker config first
 
-`.agents/plan/tracker.md` (written by `spec-init`) says where issues go and
-how. Read it before doing anything. It is one of:
+`P/tracker.md` (written by `spec-init`) says where issues go and
+how. A named workspace that has none publishes where the project does: read
+`.agents/plan/tracker.md` instead, and where that is missing too the workspace
+is local markdown. `publish-issues.mjs` resolves the file the same way. Read it
+before doing anything. It is one of:
 
 - **GitHub** (the default): `gh`, with a triage label per issue type and an
   optional Project board. Recipe in [TRACKER-GITHUB.md](TRACKER-GITHUB.md).
@@ -32,6 +37,11 @@ how. Read it before doing anything. It is one of:
   [TRACKER-GITLAB.md](TRACKER-GITLAB.md).
 - **Local markdown**: no external tracker; the plan tree is the tracker.
   Procedure in [TRACKER-LOCAL.md](TRACKER-LOCAL.md).
+
+A named workspace's tickets say its name, so two plans on one forge never
+share a label or a milestone: a `plan:<name>` label on GitHub, and on GitLab
+`epic::<name>.EE-<slug>` and a milestone `<name>.EE-SS <slug>`. The script
+writes them; do not add or strip them by hand.
 
 ## Process
 
@@ -49,7 +59,7 @@ Confirm which sprint to publish (the user names it, or it is the next one with
 ### 2. Run the publisher
 
 The parse, sort, create, write-back loop is deterministic, so it is a script,
-not prose: `.agents/plan/plan/publish-issues.mjs`. It reads the forge from
+not prose: `P/plan/publish-issues.mjs`. It reads the forge from
 `tracker.md`, publishes blockers before the issues they block (so a blocked
 body cites a real `#NNN`), builds each ticket body from the issue file's
 `## What to build`, `## Acceptance criteria` and `## Blocked by` sections,
@@ -59,8 +69,8 @@ issue that already carries a ref is skipped, so a run that stopped halfway is
 finished by running it again.
 
 ```bash
-node .agents/plan/plan/publish-issues.mjs publish --sprint EE-SS --dry-run  # show the order
-node .agents/plan/plan/publish-issues.mjs publish --sprint EE-SS            # create the tickets
+node P/plan/publish-issues.mjs publish --sprint EE-SS --dry-run  # show the order
+node P/plan/publish-issues.mjs publish --sprint EE-SS            # create the tickets
 ```
 
 Show the user the dry-run order before publishing for real. With no
@@ -87,10 +97,10 @@ start the work. `plan-status.mjs` owns every later transition.
 
 ### 5. Verify and report
 
-Run `node .agents/plan/plan/verify-plan-tree.mjs`: it accepts both
+Run `node P/plan/verify-plan-tree.mjs`: it accepts both
 `<unassigned>` and `#NNN`, so a partly published plan still passes. Tell the
 user which issues were created, with their references, and which sprint is
-now live. `node .agents/plan/plan/publish-issues.mjs status --sprint EE-SS`
+now live. `node P/plan/publish-issues.mjs status --sprint EE-SS`
 reads the tickets back if you want proof.
 
 ## What this route does not do

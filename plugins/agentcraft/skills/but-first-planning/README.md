@@ -8,7 +8,9 @@ writes code, then build from that spec rather than from memory.
 This plugin makes that a workflow of files. A specification you read as a
 website and edit as markdown, a backlog decomposed out of it, and one
 deterministic script that owns every status change, so the plan, the tracker
-and the ledgers cannot disagree. All of it lands in `.agents/plan/`.
+and the ledgers cannot disagree. All of it lands in a workspace: `.agents/plan/`
+for the project, and `.agents/plans/<name>/` for a feature or a long task that
+is too big for a card and too small for an interview.
 
 ## How it works
 
@@ -94,6 +96,43 @@ When the plugin updates a script, a session start says which of your copies
 are behind and gives the one command that refreshes them
 (`scaffold.mjs --refresh`).
 
+## A workspace per piece of work
+
+The project workspace specs the whole system, and setting it up asks about
+language, UI and docs. Most work is smaller than that and still more than one
+session's: a feature, a migration, a long refactor. That work gets a named
+workspace beside the project's, or without one:
+
+```
+.agents/plans/
+├── _scripts/        the scripts every named workspace shares, written once
+└── billing-export/
+    ├── spec/        a few flat pages, and index.md that lists them
+    ├── plan/        the same epic, sprint, issue tree; often one epic
+    └── progress/    its own ledgers, notes and drift
+```
+
+It is one command and no questions (`scaffold.mjs --workspace billing-export`),
+which `spec-write` runs itself when you ask it to spec a feature. Where the
+project has a `tracker.md`, postures, a glossary and decisions, a named
+workspace reads them; where there is no project workspace it goes without.
+Each script path holds a launcher onto the shared copy, so
+`node .agents/plans/billing-export/plan/plan-status.mjs check` is the command
+you already know, and the shared copy run on its own refuses to guess which
+workspace you meant.
+
+Two plans in one repo both have an issue `01-01-01`, so a named one is said
+with its name everywhere it leaves the workspace: `billing-export.01-01-01` on
+the agent-works board and in a commit, a `plan:billing-export` label on
+GitHub, `epic::billing-export.01-core` and its milestone on GitLab.
+
+An agent never assumes which workspace it is in. The area settles it before
+the first read: `--plan <name>` in the request, else the issue or card at
+hand, else the only workspace there is, else it asks.
+
+A named workspace has no spec site: its pages are markdown, read on disk or on
+the forge. The site and the live Plan page are the project workspace's.
+
 ## The tracker
 
 `tracker.md` names one of three:
@@ -122,9 +161,10 @@ token is read and no host is assumed.
 ## The plan gate
 
 The plugin ships a `TaskCompleted` hook that refuses to mark a task done while
-the plan tree is critically broken (a hand-edited status that disagrees with
-its parents, a dead link, an orphaned spec anchor). It is off by default. A
-repo turns it on with one key in `.agents/plan/config.json`:
+a plan tree is critically broken (a hand-edited status that disagrees with
+its parents, a dead link, an orphaned spec anchor), in any workspace. It is off
+by default. A repo turns it on with one key in `.agents/plan/config.json`, or
+in `.agents/plans/config.json` where it has only named workspaces:
 
 ```json
 { "taskGate": true }
@@ -133,10 +173,10 @@ repo turns it on with one key in `.agents/plan/config.json`:
 ## Where it speaks
 
 Two lines reach the agent, and only where the repo has opted in to the
-agentic-engineering plugins (it carries `.agents/plan/` or another plugin's
-marker, or you answered the one-time question a session asks): grill what is
+agentic-engineering plugins (it carries `.agents/plan/`, `.agents/plans/` or
+another plugin's marker, or you answered the one-time question a session asks): grill what is
 not fully specified before planning it or handing it off, and, in a repo with
-`.agents/plan/`, change a decision through `spec-edit` and build an issue from
+a workspace, change a decision through `spec-edit` and build an issue from
 its acceptance criteria as failing tests. Answer `off` and it says nothing.
 
 The skills work in any repo.
@@ -197,12 +237,12 @@ holds that one entry, and an area cannot be typed. An agent reaches a route as
 | Route | Started by | Does |
 | --- | --- | --- |
 | `grill` | the agent | The alignment interview: one question at a time, each with a recommended answer, until intent, done criteria, scope and risks are agreed. Reflect mode after a round of work. |
-| `spec-init` | you, by asking | Scaffolds `.agents/plan/`; `--refresh` updates a workspace's scripts. Once per project. |
-| `spec-write` | the agent | Authors or extends the spec site. |
+| `spec-init` | you, by asking | Scaffolds `.agents/plan/`, once per project; `--plan <name>` a named workspace; `--refresh` updates every workspace's scripts. |
+| `spec-write` | the agent | Authors or extends a spec, and makes a named workspace for a feature or task that has none. |
 | `spec-grill` | the agent | Interrogates the spec for gaps, contradictions and unstated decisions; sharpens the glossary, records ADRs. |
 | `spec-architect` | the agent | Pressure-tests the design before code exists; candidates as an HTML report. |
 | `spec-edit` | the agent | Changes a spec or plan and keeps the plan and the published tickets in step. |
-| `spec-open` | you, by asking | Serves the spec site with inline comments and the live Plan page. |
+| `spec-open` | you, by asking | Serves the project's spec site with inline comments and the live Plan page. |
 | `plan-decompose` | the agent | Spec to an epic, sprint, issue tree of vertical slices. |
 | `plan-publish` | the agent | Publishes a sprint to GitHub or GitLab and writes the refs back. |
 | `build-next-issue` | the agent | Reconciles and verifies; names the next issue or a dispatch plan. Builds nothing. |

@@ -588,6 +588,9 @@ test("AN6: a route names its directories from its own file, and every path under
   assert.deepEqual(said(`${DECLARE}\n\nRun \`node "W/scripts/gone.mjs"\`.\n`), ["W/scripts/gone.mjs is not there"]);
   assert.deepEqual(said(`${DECLARE}\n\nRun node W/scripts/build.mjs now.\n`), ["W/scripts/build.mjs is not quoted: an install path may hold a space"]);
   assert.deepEqual(said("Run `node \"S/build.mjs\"`.\n"), ["S/build.mjs is under `S`, which this file does not declare"]);
+  // A directory of the repo the route works in is declared by what it is, and no path under it is looked for.
+  assert.deepEqual(said("`P` below is the workspace this run works in.\n\nRun `node P/plan/status.mjs`, then read `P/spec/index.md`.\n"), []);
+  assert.deepEqual(said(`${DECLARE}\n\n\`W\` below is the workspace this run works in.\n`), ["`W` is declared twice"]);
   // A full stop that ends the sentence is not part of the path, and a letter inside a word is not a directory.
   assert.deepEqual(said(`${DECLARE}\n\nRead \`W/references/notes.md\`. It covers JS/TS and docs/W/x.\n`), []);
   assert.equal(areaGrade(t, "AN6", { "skills/work/routes/build/ROUTE.md": routeDoc("build", `${DECLARE}\n\nRun \`node "W/scripts/gone.mjs"\`.\n`), "skills/work/SKILL.md": `${AREA}\nIt runs scripts/build.mjs and keeps references/notes.md.\n` }).grade, 2);

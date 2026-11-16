@@ -9,6 +9,8 @@ description: >
 
 # grill: agree on the work before anyone builds it
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 A request nobody pinned down comes back as the wrong thing, and a session
 working alone cannot ask. This route pins it down first, by interview, and
 leaves a brief short enough to read and exact enough to check.
@@ -46,9 +48,14 @@ from the brief alone.
 ## Where the outcome goes
 
 - **A card or issue exists for the task:** into its body.
-- **The work is on the spec route** (`.agents/plan/spec/` exists and the
+- **The work is on the spec route** (`P/spec/` exists and the
   answers change what the spec says): through `/agentcraft:but-first-planning spec-edit`, which keeps
   the plan and the tracker in step. Grilling the spec itself is `spec-grill`.
+- **The work turned out bigger than a card** (several sessions, several
+  issues, someone else picking part of it up) and has no workspace: say so,
+  propose a named one by name (`.agents/plans/<name>/`), and on the person's
+  yes hand the brief to `/agentcraft:but-first-planning spec-write --plan <name>`, which
+  makes it and writes the brief up as its first pages.
 - **Neither:** a short summary in the conversation.
 
 ## Reflect mode

@@ -62,6 +62,14 @@ a comment header in each script.
 - **Arg coercion**, first thing in the body:
   `let A = args; if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }`
   then throw with the exact args signature if required keys are missing.
+- **The workspace**, right after `ROOT`: a repo holds one project workspace
+  (`.agents/plan/`) and any number of named ones (`.agents/plans/<name>/`), so
+  every script takes an optional `workspace` (repo-relative, default
+  `.agents/plan`), refuses any other shape, and builds every path from
+  `WS = ${ROOT}/${WSREL}`, never from a literal. `ONE_WORKSPACE` is the
+  sentence that opens `CTX`: one workspace per run, and what a named one may
+  read from the project's. A workspace's scripts are run by its own paths
+  (`${WS}/plan/plan-status.mjs`), which in a named one are launchers.
 - **`BRIEF`**: the terse-machine-output constant appended to worker prompts;
   **`CTX`**: the pipeline-orientation constant (paths, what the run is,
   project notes) prepended to every substantive prompt.
@@ -91,7 +99,7 @@ a comment header in each script.
 ## Shared machine contracts
 
 - **Dispatch JSON**: produced by `reconcile.js` at
-  `.agents/plan/progress/dispatch/EE-SS.json`, consumed by `build-sprint.js`. The
+  `progress/dispatch/EE-SS.json` in the run's workspace, consumed by `build-sprint.js`. The
   schema's canonical home is `routes/build-next-issue/DISPATCH-PLAN.md` ("The
   JSON contract").
 - **Drift files**: format owned by `routes/build-next-issue/ROUTE.md`; scripts

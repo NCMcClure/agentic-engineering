@@ -1,11 +1,13 @@
 # Publishing to GitLab
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 For projects tracked on GitLab, gitlab.com or self-hosted, through `glab`.
 GitLab takes labels and milestones where GitHub takes Project-board fields,
 which turns out simpler: scoped labels are mutually exclusive inside their
 scope, and a label-driven board updates itself, so nothing calls a board API.
 
-`.agents/plan/tracker.md` names the project path, its numeric id and the host.
+`P/tracker.md` names the project path, its numeric id and the host.
 `publish-issues.mjs` and `plan-status.mjs` pin every call to those, so they
 mean the same project from any directory.
 
@@ -41,7 +43,7 @@ The plan file is the source of truth: regenerate the ticket from it, never
 hand-edit both sides.
 
 ```bash
-node .agents/plan/plan/publish-issues.mjs sync EE-SS-II   # or: sync '#NNN'
+node P/plan/publish-issues.mjs sync EE-SS-II   # or: sync '#NNN'
 ```
 
 rebuilds the title and the description. The rest is yours:
@@ -55,7 +57,7 @@ glab issue update <iid> -R <project-path> --milestone "EE-SS <sprint-slug>"
 
 # Re-cut or obsolete: say why, then let the funnel close it
 glab issue note <iid> -R <project-path> -m "Superseded by #NNN: <reason>"
-node .agents/plan/plan/plan-status.mjs set EE-SS-II done --cancelled
+node P/plan/plan-status.mjs set EE-SS-II done --cancelled
 ```
 
 **Blocked-by ripples.** A ticket body cites its blockers by `#NNN`. When a

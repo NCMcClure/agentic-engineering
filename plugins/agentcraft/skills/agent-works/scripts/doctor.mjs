@@ -314,6 +314,7 @@ export function strayBriefFindings(root, cfg) {
   const homes = new Set([
     ...["briefs", "memory", "kanban", "decisions", "contracts", "plan"].map((k) => realPath(configPath(cfg, root, k))),
     ...STRAY_SKIP_REL.map((r) => realPath(path.join(root, r))), realPath(path.join(root, OLD_BOARD)),
+    realPath(path.join(root, ".agents", "plans")), // the planning plugin's named workspaces, beside its project one
     realPath(PLUGIN_ROOT), // the plugin's own templates, when the project is the plugin
   ]);
   const skipNames = new Set([...hubs.SKIP_DIRS, ...STRAY_SKIP]);

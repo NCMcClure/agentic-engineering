@@ -23,13 +23,14 @@
 // listed for the session to edit, never rewritten here.
 //
 // A briefing, main session only, one line and only when it applies: the
-// workspace's scripts are not this plugin's current copies, with the command
-// that refreshes them.
+// scripts of the project workspace, or the copy the named workspaces share and
+// their launchers, are not this plugin's current copies, with the command that
+// refreshes them.
 //
 // Fail open, always exit 0. A session must never be blocked by this hook.
 import fs from "node:fs";
 import path from "node:path";
-import { SCRIPTS, WORKSPACE, asset, staleScripts } from "../routes/spec-init/scaffold.mjs";
+import { PLANS, SCRIPTS, WORKSPACE, asset, staleScripts, staleShared } from "../routes/spec-init/scaffold.mjs";
 import { CONFIG, GATE_KEY } from "./plan-gate.mjs";
 
 const OLD_WORKSPACE = ".plan";
@@ -128,11 +129,15 @@ function migrate({ root, move, write }) {
 
 function briefing(payload, state) {
   const root = state.root;
+  if (!root) return "";
   // Only a workspace on the Node scripts is compared; one that is not there yet has nothing to refresh.
-  if (!root || !fs.existsSync(path.join(root, WORKSPACE, SCRIPTS["plan-status.mjs"]))) return "";
-  const stale = staleScripts(root).map((rel) => path.basename(rel));
-  if (!stale.length) return "";
-  return `The plan scripts in ${WORKSPACE}/ are not this plugin's current copies (${stale.join(", ")}). Before publishing or changing a status, refresh them and commit the result: node "${SCAFFOLD}" --refresh`;
+  const project = fs.existsSync(path.join(root, WORKSPACE, SCRIPTS["plan-status.mjs"])) ? staleScripts(root) : [];
+  const shared = staleShared(root);
+  if (!project.length && !shared.length) return "";
+  const where = [project.length ? `${WORKSPACE}/` : "", shared.length ? `${PLANS}/` : ""].filter(Boolean).join(" and ");
+  // By name once: a launcher that differs in three workspaces is one thing to refresh.
+  const stale = [...new Set([...project, ...shared].map((rel) => path.basename(rel)))];
+  return `The plan scripts in ${where} are not this plugin's current copies (${stale.join(", ")}). Before publishing or changing a status, refresh them and commit the result: node "${SCAFFOLD}" --refresh`;
 }
 
 export { briefing, migrate };

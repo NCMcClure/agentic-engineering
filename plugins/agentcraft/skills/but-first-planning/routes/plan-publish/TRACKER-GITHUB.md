@@ -1,11 +1,13 @@
 # Publishing to GitHub
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 The default tracker. `publish-issues.mjs` creates the issues through `gh`; if
-`.agents/plan/tracker.md` names a GitHub Project board, you mirror each one
+`P/tracker.md` names a GitHub Project board, you mirror each one
 into it. The repository is the one behind the clone's `origin`.
 
 Read the board's owner and number and the label strings from
-`.agents/plan/tracker.md`. Do not hardcode them.
+`P/tracker.md`. Do not hardcode them.
 
 ## Who does what
 
@@ -30,7 +32,7 @@ from the file:
 
 <the issue's "What to build" section, spec links turned into paths>
 
-Spec anchor: `.agents/plan/spec/02-runtime/event-loop.md`
+Spec anchor: `P/spec/02-runtime/event-loop.md`
 
 ## Acceptance criteria
 
@@ -77,13 +79,13 @@ The plan file is the source of truth: regenerate the ticket from it, never
 hand-edit both sides.
 
 ```bash
-node .agents/plan/plan/publish-issues.mjs sync EE-SS-II   # or: sync '#NNN'
+node P/plan/publish-issues.mjs sync EE-SS-II   # or: sync '#NNN'
 ```
 
 rebuilds the title and the body. A type change is a label swap you make with
 `gh issue edit <n> --add-label <new> --remove-label <old>`. A re-cut or
 obsolete issue gets a comment naming its replacement, then
-`node .agents/plan/plan/plan-status.mjs set EE-SS-II done --cancelled`.
+`node P/plan/plan-status.mjs set EE-SS-II done --cancelled`.
 
 ## Idempotency
 

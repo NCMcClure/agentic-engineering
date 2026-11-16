@@ -109,6 +109,16 @@ export const pluginRootPaths = (line) =>
 // sentence may wrap.
 const NAMED_DIR = /`([A-Z])`\s+below\s+is\s+`([^`\s]+)`\s+from\s+the\s+directory\s+this\s+file\s+is\s+in/g;
 
+// A route may name a directory that is not the plugin's as well: one of the
+// repo it works in, which differs from run to run ("`P` below is the workspace
+// this run works in"). It is declared by the same opening, without the "from
+// the directory this file is in" that makes a name a path of the plugin, and
+// no path under it is resolved here: there is nothing here to resolve it in.
+const OUTSIDE_DIR = /`([A-Z])`\s+below\s+is\s+(?!`[^`\s]+`\s+from\s+the\s+directory\s+this\s+file\s+is\s+in)/g;
+
+/** The letters a skill's markdown declares for a directory outside the plugin. */
+export const outsideDirs = (text) => [...new Set([...String(text).matchAll(OUTSIDE_DIR)].map((m) => m[1]))];
+
 /** The directories a skill's markdown names from its own file: `{ name, rel }` each, in order. */
 export const namedDirs = (text) => [...String(text).matchAll(NAMED_DIR)].map((m) => ({ name: m[1], rel: m[2] }));
 

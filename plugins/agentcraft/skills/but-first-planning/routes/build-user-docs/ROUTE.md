@@ -8,7 +8,9 @@ description: >
 
 # build-user-docs: docs for the people who'll use the thing
 
-The spec site under `.agents/plan/spec/` documents the *design* for the people building
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
+The spec site under `P/spec/` documents the *design* for the people building
 it. Nothing in the pipeline documents the *product* for the people who'll use
 it: how to install it, run it, and get something done with it. This route
 closes that gap: after `build-next-issue`'s verification confirms a sprint's
@@ -36,7 +38,7 @@ ledger, nothing else.
 ## The gate rule
 
 An issue is **documentable if and only if it has a row in
-`.agents/plan/progress/completed/`**, the per-epic ledger that only gains rows via
+`P/progress/completed/`**, the per-epic ledger that only gains rows via
 `plan-status.mjs set EE-SS-II done --evidence`, written only by
 `build-next-issue`'s independent verification. A `Status: done` field, a closed
 ticket, or a builder's claim is *not* enough. This reuses the suite's trust
@@ -53,10 +55,10 @@ the docs correction rides the existing drift machinery like any other defect.
 
 ## What it reads
 
-- `.agents/plan/progress/docs.md`, this route's own ledger and managed-files
+- `P/progress/docs.md`, this route's own ledger and managed-files
   manifest, created lazily on the first run. This route owns the format; it is
   defined in [DOCS-STATE.md](DOCS-STATE.md).
-- `.agents/plan/progress/completed/`, the verified-complete ledgers. The diff against
+- `P/progress/completed/`, the verified-complete ledgers. The diff against
   `docs.md` is the work list: every verified issue not yet documented.
 - The spec's `user-docs-plan.md` page when it exists (contract:
   [USER-DOCS-SPEC.md](../spec-write/USER-DOCS-SPEC.md)), the docs stack
@@ -79,8 +81,8 @@ is edited or created until the user approves.
 
 ### 1. Compute the undocumented set
 
-Diff `.agents/plan/progress/completed/` against the sprints recorded in
-`.agents/plan/progress/docs.md`. The result is the verified-but-undocumented issue
+Diff `P/progress/completed/` against the sprints recorded in
+`P/progress/docs.md`. The result is the verified-but-undocumented issue
 set. If it's empty, say so and stop, this route is idempotent, and a no-op
 run is a correct run. Sort the set user-first: issues whose `**User-facing**`
 line says `no - internal` need no docs, only a line in the report saying they
@@ -124,7 +126,7 @@ Apply the ownership and coherence rules from [DOCS-STATE.md](DOCS-STATE.md):
 - Each pass re-reads the whole managed set and rewrites for the *current*
   product. The per-sprint delta is an input, not the output shape, no
   append-only changelog fragments, no "New in sprint 03" sections.
-- Forbidden content: internal architecture, the `.agents/plan/` workflow, anything
+- Forbidden content: internal architecture, the `P/` workflow, anything
   behind a slice that has no ledger row.
 - Screenshots come from the project's capture harness, never by hand: retake
   the groups whose surfaces this sprint changed and look at every image written.
@@ -148,7 +150,7 @@ uncommitted and say so.
 
 ### 7. Record and report
 
-Append this pass's rows to `.agents/plan/progress/docs.md` (sprint, date, docs
+Append this pass's rows to `P/progress/docs.md` (sprint, date, docs
 commit, files touched) and update its `## Managed files` list. Then report:
 which issues were documented and where, which were excluded as
 `User-facing: no`, every claim grounded by execution vs. reported ungroundable,
@@ -160,13 +162,13 @@ sign-off.
 Every verified-but-undocumented issue is either documented or explicitly
 reported out-of-surface (`User-facing: no`); every command and example in the
 docs was executed against the built tree; every screenshot on a touched page was
-made by the capture harness (or the gap is reported); `.agents/plan/progress/docs.md` records the
+made by the capture harness (or the gap is reported); `P/progress/docs.md` records the
 pass; and the docs commit landed where the git posture says it should.
 
 ## Scope boundary
 
 This route touches only the target project's documentation files and
-`.agents/plan/progress/docs.md`. It never flips a plan `Status:` field (the funnel
+`P/progress/docs.md`. It never flips a plan `Status:` field (the funnel
 owns those), never edits the spec (that's `spec-edit`), and never writes
-under `.agents/plan/spec/`, the spec site is design docs, and keeping the two
+under `P/spec/`, the spec site is design docs, and keeping the two
 separate is the point.

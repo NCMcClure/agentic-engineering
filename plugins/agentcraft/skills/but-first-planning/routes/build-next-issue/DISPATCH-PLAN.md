@@ -1,5 +1,7 @@
 # The dispatch plan, the parallel-safe build frontier
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 `NEXT-SELECTION.md` answers "what is the *one* next issue for a person." A coordinator
 that builds in parallel needs more: the whole set of issues that can be built
 **now, concurrently, without colliding**, plus the edges among the ones that
@@ -85,7 +87,7 @@ without re-deriving it.
 
 When the dispatch plan is produced for an autonomous build, by hand or by the
 bundled `workflows/reconcile.js`, it is **also written as JSON** to
-`.agents/plan/progress/dispatch/EE-SS.json`, which `build-sprint`'s workflow
+`P/progress/dispatch/EE-SS.json`, which `build-sprint`'s workflow
 (`build-sprint.js`) takes as its required `dispatch` arg. Commit it with the
 plan, so a later session builds from the same file. This
 file is the canonical schema; keep the prose plan and the JSON saying the same

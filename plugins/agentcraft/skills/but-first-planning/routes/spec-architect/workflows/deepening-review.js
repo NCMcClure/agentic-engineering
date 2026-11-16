@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-architect-deepening',
   description: 'Parallel deepening hunt over the designed system in the spec: per-section hunters + cross-cutting lenses (test-surface, cross-section-coupling, adr-tension), semantic dedup, adversarial deletion-test verification, a judge ranking with a top recommendation, an HTML report, and (opt-in) applied Strong candidates with one ADR per deepening',
-  whenToUse: "spec-architect's autonomous mode, or a broad spec (roughly 10+ sections) where a single Explore pass would go shallow; the interactive report+grilling loop stays the default. Args: {root, skillDir, context?, extraLenses?, apply?}. apply 'none' (default) reports only; 'strong' also applies the confirmed Strong candidates as spec edits with ADRs.",
+  whenToUse: "spec-architect's autonomous mode, or a broad spec (roughly 10+ sections) where a single Explore pass would go shallow; the interactive report+grilling loop stays the default. Args: {root, skillDir, context?, extraLenses?, apply?, workspace?}. apply 'none' (default) reports only; 'strong' also applies the confirmed Strong candidates as spec edits with ADRs.",
   phases: [
     { title: 'Discover', detail: 'list the spec section directories', model: 'haiku' },
     { title: 'Hunt', detail: 'one deepening hunter per section + cross-cutting lenses', model: 'opus' },
@@ -22,15 +22,22 @@ export const meta = {
 // ---------- args (may arrive as a JSON string, coerce defensively) ----------
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
-if (!A || !A.root || !A.skillDir) throw new Error("args must be an object: {root: <absolute repo root>, skillDir: <spec-architect skill dir>, context?, extraLenses?, apply?: 'none'|'strong'}")
+if (!A || !A.root || !A.skillDir) throw new Error("args must be an object: {root: <absolute repo root>, skillDir: <spec-architect skill dir>, context?, extraLenses?, apply?: 'none'|'strong', workspace?: .agents/plans/<name> (default .agents/plan)}")
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
+const SPEC = `${WS}/spec`
 const APPLY = A.apply === 'strong'
 
 const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your total structured output must stay well under 4000 tokens. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of a deepening hunt over the DESIGNED SYSTEM described by the
 specification at ${SPEC}/, a design, not code; no code exists yet, and that is the
 leverage: a seam moved here costs a sentence, not a refactor. Orient at ${SPEC}/index.md;
@@ -262,7 +269,7 @@ const referenceFix = await agent(
 // ---------- Phase 7: audit (singleton judgment, inherits the session model) ----------
 phase('Audit')
 const audit = await agent(
-  `${CTX}\nYou are the post-apply auditor. Several agents just edited the spec in parallel to apply deepening candidates, and a reconciler added ADRs and glossary entries. Your job:\n1. Run node ${SPEC}/scripts/verify-spec-tree.mjs, if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: git -C ${ROOT} diff --stat -- .agents/plan/spec, then read the full diff (git -C ${ROOT} diff -- .agents/plan/spec) plus git -C ${ROOT} status --porcelain -- .agents/plan/spec for new untracked files (the ADRs).\n3. Check coherence: every applied deepening has exactly one ADR and the section text cites it where natural; new glossary terms are used consistently by the edited sections; no two fixers introduced contradictory statements; index.md files still describe their children; no edit deleted content unrelated to its candidate. Make surgical corrective edits where needed (Read before Edit; match conventions).\n4. Do NOT run any git command that mutates state, leave everything uncommitted.\n${BRIEF}`,
+  `${CTX}\nYou are the post-apply auditor. Several agents just edited the spec in parallel to apply deepening candidates, and a reconciler added ADRs and glossary entries. Your job:\n1. Run node ${SPEC}/scripts/verify-spec-tree.mjs, if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: git -C ${ROOT} diff --stat -- ${WSREL}/spec, then read the full diff (git -C ${ROOT} diff -- ${WSREL}/spec) plus git -C ${ROOT} status --porcelain -- ${WSREL}/spec for new untracked files (the ADRs).\n3. Check coherence: every applied deepening has exactly one ADR and the section text cites it where natural; new glossary terms are used consistently by the edited sections; no two fixers introduced contradictory statements; index.md files still describe their children; no edit deleted content unrelated to its candidate. Make surgical corrective edits where needed (Read before Edit; match conventions).\n4. Do NOT run any git command that mutates state, leave everything uncommitted.\n${BRIEF}`,
   {
     label: 'post-apply-audit', phase: 'Audit', effort: 'high',
     schema: {

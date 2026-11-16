@@ -1,11 +1,13 @@
 # ADR format
 
-Architecture decision records live under `.agents/plan/spec/reference/adr/` and render
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
+Architecture decision records live under `P/spec/reference/adr/` and render
 on the spec website. They use sequential numbering: `0001-slug.md`,
 `0002-slug.md`, … Scan the folder for the highest existing number and increment.
 
 Because ADRs render on the site, each one carries frontmatter like any content
-file. After writing one, add a line to `.agents/plan/spec/reference/adr/index.md`.
+file. After writing one, add a line to `P/spec/reference/adr/index.md`.
 
 ## Template
 

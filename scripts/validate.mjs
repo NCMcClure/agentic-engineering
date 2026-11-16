@@ -15,7 +15,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
+import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -646,6 +646,9 @@ async function validate() {
         else if (!isDir(full)) fail(`${f}: \`${d.name}\` is ${d.rel} from this file, which is not a directory`, f);
         else { dirs.set(d.name, full); declared++; }
       }
+      // A name for a directory of the repo the route works in: declared, and resolved by nothing here.
+      const outside = new Set(outsideDirs(text));
+      for (const name of outside) if (dirs.has(name)) fail(`${f}: \`${name}\` is declared twice`, f);
       if (dirs.size) files++;
       text.split("\n").forEach((line, i) => {
         if (route && line.includes("${CLAUDE_PLUGIN_ROOT}")) fail(`${f}:${i + 1}: a route writes no \${CLAUDE_PLUGIN_ROOT}: read by path it is not filled in, and a shell runs it as empty; name the directory from this file ("\`W\` below is \`../..\` from the directory this file is in")`, f);
@@ -663,7 +666,7 @@ async function validate() {
         }
         // A path copied in from another route, whose name this one never declared.
         if (route) for (const m of line.matchAll(/(?<=["`])([A-Z])\/[a-z][A-Za-z0-9_.\/-]*/g)) {
-          if (!dirs.has(m[1])) fail(`${f}:${i + 1}: ${m[0]} is under \`${m[1]}\`, which this file does not declare`, f);
+          if (!dirs.has(m[1]) && !outside.has(m[1])) fail(`${f}:${i + 1}: ${m[0]} is under \`${m[1]}\`, which this file does not declare`, f);
         }
       });
     }

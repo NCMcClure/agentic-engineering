@@ -11,6 +11,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Interview the user relentlessly about the specification until you reach shared
 understanding. Walk down each branch of the design tree, resolving dependencies
 between decisions one by one. For every question, offer your recommended answer, you're a sparring partner with opinions, not a survey.
@@ -27,12 +29,22 @@ has a recorded resolution, and no two spec files contradict each other.
 
 ## What this route operates on
 
-- The spec under `.agents/plan/spec/`, the thing being grilled.
-- The glossary at `.agents/plan/spec/reference/glossary.md`, the canonical vocabulary. Format and discipline in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md).
-- The decision records under `.agents/plan/spec/reference/adr/`, load-bearing choices. Format and the bar for creating one in [ADR-FORMAT.md](ADR-FORMAT.md).
+- The spec under `P/spec/`, the thing being grilled.
+- The glossary at `P/spec/reference/glossary.md`, the canonical vocabulary. Format and discipline in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md).
+- The decision records under `P/spec/reference/adr/`, load-bearing choices. Format and the bar for creating one in [ADR-FORMAT.md](ADR-FORMAT.md).
 
 Both the glossary and the ADR folder were scaffolded by `spec-init`. Create
 individual ADR files lazily, only when one is warranted.
+
+**In a named workspace** (`.agents/plans/<name>/`) the vocabulary and the
+decisions are first of all the project's: read `.agents/plan/spec/reference/`
+where the repo has it, and challenge against that. What the grilling settles
+goes one of two places. A term or decision that belongs to this work alone goes
+in `P/spec/reference/` (`glossary.md`, `adr/NNNN-slug.md` numbered from 0001
+there), made when the first one is. One that reaches past this work, or that
+contradicts a project record, is the project's: say so, change it there
+through `spec-edit --plan project`, and link to it from the page that leans on
+it. Never copy a project term into the workspace to redefine it.
 
 ## During the session
 
@@ -72,7 +84,7 @@ not lost to the transcript.
 
 - **A term gets resolved?** Update `glossary.md` right then, in the format in [CONTEXT-FORMAT.md](CONTEXT-FORMAT.md). The glossary is a glossary, definitions only, no implementation detail, no design rationale.
 - **A fuzzy term gets sharpened?** Update its glossary entry on the spot.
-- **The grilling changes the design?** Edit the affected spec file(s) so the spec stays the source of truth, and bump their `updated` frontmatter and summary (see `spec-write`'s FRONTMATTER reference). Run `node .agents/plan/spec/scripts/verify-spec-tree.mjs` after edits.
+- **The grilling changes the design?** Edit the affected spec file(s) so the spec stays the source of truth, and bump their `updated` frontmatter and summary (see `spec-write`'s FRONTMATTER reference). Run `node P/spec/scripts/verify-spec-tree.mjs` after edits.
 - **A decision is load-bearing?** Offer an ADR, but only when it clears the bar (hard to reverse ∧ surprising without context ∧ a real trade-off). Most decisions don't qualify; see [ADR-FORMAT.md](ADR-FORMAT.md). ADR files on the site carry frontmatter like any content file.
 
 ## At scale: the bundled deep-review workflow
@@ -96,6 +108,7 @@ Workflow({
   scriptPath: "W/routes/spec-grill/workflows/deep-review.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     // optional: context: "<project orientation + external source paths for reviewers>",
     // extraLenses: [{key, prompt}, ...]  e.g. fidelity-vs-<source>, feasibility-vs-<codebase>
     // applyFixes: true, default false (report-only); true trusts the fixers to edit the spec

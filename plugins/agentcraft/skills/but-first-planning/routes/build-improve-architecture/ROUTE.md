@@ -10,6 +10,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Surface architectural friction in the **actual codebase** and propose **deepening opportunities**: refactors that turn shallow modules into deep ones. The aim is testability and AI-navigability.
 
 This is the *post-code* counterpart to `spec-architect`: that skill pressure-tests the designed system in the spec before code exists; this one works on what's been built. When a refactor reveals a decision worth keeping, or worth changing, it flows back into the same glossary and ADRs the planning skills maintain (see [§ Close the loop](#close-the-loop)).
@@ -39,7 +41,7 @@ This route is _informed_ by the project's domain model. The domain language give
 
 ### 1. Explore
 
-Read the project's domain glossary and any ADRs in the area you're touching first. If a `.agents/plan/` workspace exists, those are `.agents/plan/spec/reference/glossary.md` and `.agents/plan/spec/reference/adr/`. The spec under `.agents/plan/spec/` is the design intent, read the sections that cover the area you're refactoring, so you can tell a genuine deepening from a drift away from what was specified.
+Read the project's domain glossary and any ADRs in the area you're touching first. If a `P/` workspace exists, those are `P/spec/reference/glossary.md` and `P/spec/reference/adr/`. The spec under `P/spec/` is the design intent, read the sections that cover the area you're refactoring, so you can tell a genuine deepening from a drift away from what was specified.
 
 Then use the Agent tool with `subagent_type=Explore` to walk the codebase. Don't follow rigid heuristics, explore organically and note where you experience friction:
 
@@ -68,7 +70,7 @@ For each candidate, render a card with:
 
 End the report with a **Top recommendation** section: which candidate you'd tackle first and why.
 
-**Use the project glossary's vocabulary for the domain, and [LANGUAGE.md](../spec-architect/LANGUAGE.md) vocabulary for the architecture.** If the glossary (`.agents/plan/spec/reference/glossary.md`) defines "Order," talk about "the Order intake module", not "the FooBarHandler," and not "the Order service."
+**Use the project glossary's vocabulary for the domain, and [LANGUAGE.md](../spec-architect/LANGUAGE.md) vocabulary for the architecture.** If the glossary (`P/spec/reference/glossary.md`) defines "Order," talk about "the Order intake module", not "the FooBarHandler," and not "the Order service."
 
 **ADR conflicts**: if a candidate contradicts an existing ADR, only surface it when the friction is real enough to warrant revisiting the ADR. Mark it clearly in the card (e.g. a warning callout: _"contradicts ADR-0007, but worth reopening because…"_). Don't list every theoretical refactor an ADR forbids.
 
@@ -82,9 +84,9 @@ Once the user picks a candidate, drop into a grilling conversation. Walk the des
 
 Side effects happen inline as decisions crystallize:
 
-- **Naming a deepened module after a concept not in the glossary?** Add the term to `.agents/plan/spec/reference/glossary.md`, same discipline as `spec-grill` (see [its CONTEXT-FORMAT.md](../spec-grill/CONTEXT-FORMAT.md)). Create the file lazily if no `.agents/plan/` workspace exists.
+- **Naming a deepened module after a concept not in the glossary?** Add the term to `P/spec/reference/glossary.md`, same discipline as `spec-grill` (see [its CONTEXT-FORMAT.md](../spec-grill/CONTEXT-FORMAT.md)). Create the file lazily if no `P/` workspace exists.
 - **Sharpening a fuzzy term during the conversation?** Update the glossary right there.
-- **User rejects the candidate with a load-bearing reason?** Offer an ADR in `.agents/plan/spec/reference/adr/`, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing, skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](../spec-grill/ADR-FORMAT.md).
+- **User rejects the candidate with a load-bearing reason?** Offer an ADR in `P/spec/reference/adr/`, framed as: _"Want me to record this as an ADR so future architecture reviews don't re-suggest it?"_ Only offer when the reason would actually be needed by a future explorer to avoid re-suggesting the same thing, skip ephemeral reasons ("not worth it right now") and self-evident ones. See [ADR-FORMAT.md](../spec-grill/ADR-FORMAT.md).
 - **Want to explore alternative interfaces for the deepened module?** See [INTERFACE-DESIGN.md](../spec-architect/INTERFACE-DESIGN.md).
 
 ## Close the loop
@@ -92,7 +94,7 @@ Side effects happen inline as decisions crystallize:
 A refactor on built code often teaches you something the spec didn't capture. Feed it back so the design and the code stay honest with each other:
 
 - **The deepening sharpened or added a concept** → it's already in the glossary (above). Good.
-- **The deepening changed a load-bearing decision** → record or supersede an ADR in `.agents/plan/spec/reference/adr/`.
+- **The deepening changed a load-bearing decision** → record or supersede an ADR in `P/spec/reference/adr/`.
 - **The code, as built, has drifted from what the spec describes** → don't silently "fix" the spec here. Surface the drift and route it through `spec-edit`, which updates the affected spec files and the plan issues anchored to them. That keeps spec ↔ plan ↔ code in agreement instead of letting three sources of truth diverge.
 
 ## Autonomous mode
@@ -107,6 +109,7 @@ Workflow({
   scriptPath: "W/routes/build-improve-architecture/workflows/deepening-hunt.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     skillDir: "W/routes/build-improve-architecture",
     // optional: areas: ["src/core", ...] (else auto-discovered with churn signals),
     // context, extraLenses: [{key, prompt}, ...]

@@ -10,6 +10,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Drive the suite end-to-end by invoking each skill's **autonomous mode** in
 sequence from the main loop: you stay the coordinator between stages, reading
 each workflow's report and deciding the next move. Do **not** wrap the pipeline
@@ -48,14 +50,18 @@ Each stage is the named skill's Autonomous mode section, invoked exactly as
 documented there. Read and follow a stage's `ROUTE.md` directly for anything
 its workflow leaves to prose:
 
-1. **Workspace**: if `.agents/plan/` is absent, scaffold it by following
-   `W/routes/spec-init/ROUTE.md` (the one inherently
+1. **Workspace**: if `P/` is absent, scaffold it. The project workspace by
+   following `W/routes/spec-init/ROUTE.md` (the one inherently
    interactive step; keep its interview brief, feeding it the contract's
-   tracker choice).
+   tracker choice); a named one by `W/routes/spec-init/NAMED.md`, which is one
+   command. Every stage below is then run for that workspace: pass
+   `workspace: "P"` to each workflow, and `--plan <name>` to each route.
 2. **Spec**: `spec-write` → `author-spec.js` with the brief, passing
-   `languagePosture` read from `.agents/plan/spec/reference/adr/0001-language-posture.md`,
+   `languagePosture` read from `P/spec/reference/adr/0001-language-posture.md`,
    `uiPosture` from `adr/0002-ui-posture.md`, and `docsPosture` from
-   `adr/0003-user-docs-posture.md` (spec-init recorded all three). Carry its
+   `adr/0003-user-docs-posture.md` (spec-init recorded all three; a named
+   workspace reads them from `.agents/plan/spec/reference/adr/`, and passes
+   none where the repo has none). Carry its
    `openQuestions` forward.
 3. **Grill until dry**: `spec-grill` → `deep-review.js`
    `{applyFixes: true, rounds: 3}`.
@@ -70,7 +76,7 @@ its workflow leaves to prose:
    (re-run `propagate.js` if they ripple), flip answered decision issues through
    the funnel. Under a fully pre-authorized contract this degrades to a report, post it and continue.
 7. **Per-sprint loop** until the scope is exhausted or a failure budget stops it:
-   - `node .agents/plan/plan/publish-issues.mjs publish --sprint EE-SS` (the
+   - `node P/plan/publish-issues.mjs publish --sprint EE-SS` (the
      contract's publish posture authorized this; skip it in local-markdown
      mode). On GitHub with a Project board, set each new issue's board fields
      per plan-publish's TRACKER-GITHUB.md.
@@ -110,8 +116,8 @@ foundation.
 
 The contracted scope is built and PR'd, every sprint's ledger rows were written
 by an independent reconcile, end-user docs are current through the built scope
-(`.agents/plan/progress/docs.md` covers every verified sprint, unless the contract
-turned the docs pass off), the run ledger (a `.agents/plan/progress/notes/` file per
+(`P/progress/docs.md` covers every verified sprint, unless the contract
+turned the docs pass off), the run ledger (a `P/progress/notes/` file per
 sprint plus your final summary) accounts for every draft, pending REVIEW
 walkthrough, auto-decision, failure, and drift item, and the user got exactly
 the touchpoints the contract promised, no more.

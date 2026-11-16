@@ -1,5 +1,7 @@
 # Orchestration mechanics: dispatch, isolation, integration
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 How to run parallel builders without creating the messes they are prone to.
 These rules are specific and load-bearing; several were learned by hitting the
 failure first.
@@ -65,7 +67,7 @@ Brief every builder to:
    the root has one that imports `AGENTS.md`), a changed directory's hub is updated in the same commit,
    and no source file lands beside an `AGENTS.md`. The rules live in the root
    `AGENTS.md` / `spec-write`'s CODEBASE-LAYOUT.md.
-4. Flip status via the funnel, `node .agents/plan/plan/plan-status.mjs set EE-SS-II done`
+4. Flip status via the funnel, `node P/plan/plan-status.mjs set EE-SS-II done`
    (no `--evidence`; the verified ledger row is build-next-issue's to add). This updates the
    issue file (status + acceptance boxes) and rolls up the sprint/epic/index; never
    hand-edit a `Status` field.
@@ -98,7 +100,7 @@ cadence. (A repo can also turn on the plugin's `TaskCompleted` gate with
 same check, off by default, and no substitute for these two.)
 
 - **Preflight**, before the first builder fans out: `node
-  .agents/plan/plan/verify-plan-tree.mjs` exits 0 or 1. A 2 stops the run,
+  P/plan/verify-plan-tree.mjs` exits 0 or 1. A 2 stops the run,
   because a corrupted tree (a `Status` hand-edited into disagreement with its
   parents, a broken link, an orphaned spec anchor) makes every later
   reconciliation wrong.

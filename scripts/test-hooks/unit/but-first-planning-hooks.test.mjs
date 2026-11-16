@@ -18,7 +18,7 @@ const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-pla
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
 const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
 const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
-const { SCRIPTS, scaffold } = await import(pathToFileURL(path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs")).href);
+const { SCRIPTS, scaffold, scaffoldNamed } = await import(pathToFileURL(path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs")).href);
 const [GRILL, PLAN, BOARD] = CRITICAL.lines.map((l) => l.text);
 const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const RETIRED = ".agents/retired/but-first-planning";
@@ -50,6 +50,17 @@ function planRepo(t, { broken = false } = {}) {
   write(dir, `${P}/01-core/epic.md`, "# Epic 01\n\n**Status**: not-started\n\n## Sprints\n\n| # | Sprint | Issues | Status |\n|---|---|---|---|\n| 01 | [Store](01-store/sprint.md) | 1 | not-started |\n");
   write(dir, `${P}/01-core/01-store/sprint.md`, `# Sprint\n\n**Status**: not-started\n\n## Issues\n\n| # | Type | Title | Tracker | Status |\n|---|---|---|---|---|\n| 01 | AFK | [Event type](issues/${broken ? "09_issue_GONE.md" : "01_issue_EVENT-TYPE.md"}) | <unassigned> | not-started |\n`);
   write(dir, `${P}/01-core/01-store/issues/01_issue_EVENT-TYPE.md`, "# Event type\n\n**Sprint**: [s](../sprint.md)\n**Type**: AFK\n**Tracker**: <unassigned>\n**Status**: not-started\n\n## Parent\n\n[s](../sprint.md)\n\n## What to build\n\nIt.\n\n**User-facing**: no - internal\n\n## Acceptance criteria\n\n- [ ] works\n\n## Testing checkpoint\n\n`echo ok`\n\n## Blocked by\n\n- None\n");
+  return dir;
+}
+
+/** A repo whose only workspace is a named one, `.agents/plans/billing/`, with one issue. `broken` as in planRepo. */
+function namedRepo(t, { broken = false } = {}) {
+  const { dir } = tempRepo(t, "bfp-named-");
+  scaffoldNamed(dir, "billing");
+  const P = ".agents/plans/billing/plan";
+  for (const rel of ["index.md", "01-core/epic.md", "01-core/01-store/sprint.md", "01-core/01-store/issues/01_issue_EVENT-TYPE.md"]) {
+    write(dir, `${P}/${rel}`, fs.readFileSync(path.join(planRepo(t, { broken }), ".agents/plan/plan", rel), "utf8"));
+  }
   return dir;
 }
 
@@ -92,6 +103,16 @@ test("a repo with a plan workspace hears both lines; one that only opted in hear
   const portable = session(t, dir);
   assert.ok(portable.context.includes(GRILL));
   assert.ok(!portable.context.includes(PLAN) && !portable.context.includes(BOARD));
+});
+
+// The line names both homes and gives no order of its own. One that ended "say which you are in before touching
+// it" cost the grill route half its reach in live sessions (33 of 74 against 75 of 100 with the line before it), so
+// which workspace a run is in is settled by the area's SKILL.md, where a session that has picked a route reads it.
+test("a repo whose only workspace is a named one hears the plan lines too, and the line says a plan has two homes", (t) => {
+  const named = session(t, namedRepo(t));
+  assert.ok(named.context.includes(GRILL) && named.context.includes(PLAN) && named.context.includes(BOARD));
+  assert.match(PLAN, /^A plan lives in \.agents\/plan\/, or in \.agents\/plans\/<name>\/ for one feature or task: a spec decision changes through \/agentcraft:but-first-planning spec-edit, /);
+  assert.doesNotMatch(PLAN, /say which/);
 });
 
 test("a repo that answered off hears nothing, and neither does a read-only subagent", (t) => {
@@ -269,6 +290,22 @@ test("a subagent never migrates", (t) => {
   assert.equal(exists(dir, ".agents"), false);
 });
 
+test("the shared copy and a launcher are briefed like the project's scripts, each by name once", (t) => {
+  const dir = namedRepo(t);
+  assert.doesNotMatch(session(t, dir).context, /not this plugin's current copies/);
+  scaffoldNamed(dir, "auth-migration");
+  for (const name of ["billing", "auth-migration"]) fs.appendFileSync(path.join(dir, `.agents/plans/${name}/plan/plan-status.mjs`), "\n// edited\n");
+  fs.rmSync(path.join(dir, ".agents/plans/_scripts/tracker.mjs"));
+  assert.match(session(t, dir).context, /The plan scripts in \.agents\/plans\/ are not this plugin's current copies \(tracker\.mjs, plan-status\.mjs\)\./);
+  assert.equal(exists(dir, ".agents/plan"), false, "a session start gives a named-only repo no project workspace");
+
+  const both = planRepo(t);
+  scaffoldNamed(both, "billing");
+  fs.rmSync(path.join(both, ".agents/plan/plan/tracker.mjs"));
+  fs.rmSync(path.join(both, ".agents/plans/_scripts/drift-status.mjs"));
+  assert.match(session(t, both).context, /The plan scripts in \.agents\/plan\/ and \.agents\/plans\/ are not this plugin's current copies \(tracker\.mjs, drift-status\.mjs\)\./);
+});
+
 // ---- the plan gate ----------------------------------------------------------
 
 test("the gate is off by default: a broken plan tree does not refuse a task", (t) => {
@@ -327,4 +364,28 @@ test("the gate judges the work tree the session is in, not the project dir", (t)
   const clean = planRepo(t);
   const r = hook(t, "plan-gate.mjs", { hook_event_name: "TaskCompleted", cwd: broken }, { cwd: clean, env: { CLAUDE_PROJECT_DIR: clean } });
   assert.equal(r.status, 2);
+});
+
+test("the gate covers every workspace: a broken named tree refuses the task, from either config file", (t) => {
+  // A named-only repo sets the key beside its workspaces.
+  const named = namedRepo(t, { broken: true });
+  assert.equal(taskDone(t, named).status, 0, "off by default here too");
+  write(named, ".agents/plans/config.json", "{ \"taskGate\": true }\n");
+  const r = taskDone(t, named);
+  assert.equal(r.status, 2);
+  assert.match(r.stderr, /^plan gate: the plan tree has critical violations\. Fix them before a task is marked done \(\.agents\/plans\/billing\/plan\/verify-plan-tree\.mjs; turn the gate off with "taskGate": false in \.agents\/plans\/config\.json\)\./);
+  assert.match(r.stderr, /FAIL: .*sprint\.md lists issues not on disk: \["09_issue_GONE\.md"\]/);
+  assert.equal(exists(named, ".agents/plan"), false);
+
+  // A clean project tree does not excuse a broken named one, and the project's key turns both on.
+  const both = planRepo(t);
+  write(both, ".agents/plan/config.json", "{ \"taskGate\": true }\n");
+  scaffoldNamed(both, "billing");
+  assert.equal(taskDone(t, both).status, 0, "an empty named tree is clean");
+  const src = namedRepo(t, { broken: true });
+  fs.cpSync(path.join(src, ".agents/plans/billing/plan"), path.join(both, ".agents/plans/billing/plan"), { recursive: true });
+  const mixed = taskDone(t, both);
+  assert.equal(mixed.status, 2);
+  assert.match(mixed.stderr, /\(\.agents\/plans\/billing\/plan\/verify-plan-tree\.mjs; turn the gate off with "taskGate": false in \.agents\/plan\/config\.json\)/);
+  assert.doesNotMatch(mixed.stderr, /\(\.agents\/plan\/plan\/verify-plan-tree\.mjs/);
 });

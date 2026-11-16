@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-audit-run',
   description: 'Full-project audit after a plan tree completes: map spec promises, hunt implementation/UX/test/docs/benchmark gaps across the audit dimensions, adversarially verify, synthesize a new plan-tree epic, author it, and (opt-in) publish its issues to the tracker',
-  whenToUse: "build-audit's autonomous mode, a plan tree (or epic) reached done and the owner wants a gap audit turned into a backlog. Args: {root, pluginRoot, epicNumber, projectBrief, knownDebt?, hardRules?, commissioned?, transcriptDirs?, uiCapture?, publish?, forceModel?, maxEpicIssues?}, pluginRoot is the but-first-planning plugin dir; projectBrief (2-6 sentences of project context) opens every prompt; knownDebt is standing debt to sharpen; hardRules is an array of extra project bounds; commissioned records owner-granted scope exceptions; transcriptDirs (array) gates the session-fixtures finder; uiCapture (a capture command template) gates live-UI driving in the UX finder; forceModel overrides every tier (single-model runs); publish defaults false (author the epic, stop before the tracker).",
+  whenToUse: "build-audit's autonomous mode, a plan tree (or epic) reached done and the owner wants a gap audit turned into a backlog. Args: {root, pluginRoot, epicNumber, projectBrief, knownDebt?, hardRules?, commissioned?, transcriptDirs?, uiCapture?, publish?, forceModel?, maxEpicIssues?, workspace?}, pluginRoot is the but-first-planning plugin dir; projectBrief (2-6 sentences of project context) opens every prompt; knownDebt is standing debt to sharpen; hardRules is an array of extra project bounds; commissioned records owner-granted scope exceptions; transcriptDirs (array) gates the session-fixtures finder; uiCapture (a capture command template) gates live-UI driving in the UX finder; forceModel overrides every tier (single-model runs); publish defaults false (author the epic, stop before the tracker).",
   phases: [
     { title: 'Inventory', detail: 'corpus map: spec pages, code areas, tests, docs, drift, captures, epics', model: 'haiku' },
     { title: 'Map', detail: 'one promise-extractor per spec category -> promise ledger' },
@@ -24,13 +24,19 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.pluginRoot || !A.epicNumber || !A.projectBrief) {
-  throw new Error('args must be an object: {root, pluginRoot: <the but-first-planning area directory>, epicNumber: "09", projectBrief: <2-6 sentences>, knownDebt?: string, hardRules?: string[], commissioned?: string, transcriptDirs?: string[], uiCapture?: string, publish?: boolean, forceModel?: string, maxEpicIssues?: number}')
+  throw new Error('args must be an object: {root, pluginRoot: <the but-first-planning area directory>, epicNumber: "09", projectBrief: <2-6 sentences>, knownDebt?: string, hardRules?: string[], commissioned?: string, transcriptDirs?: string[], uiCapture?: string, publish?: boolean, forceModel?: string, maxEpicIssues?: number, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const PLUGIN = A.pluginRoot.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
-const PLAN = `${ROOT}/.agents/plan/plan`
-const PROGRESS = `${ROOT}/.agents/plan/progress`
+const SPEC = `${WS}/spec`
+const PLAN = `${WS}/plan`
+const PROGRESS = `${WS}/progress`
 const EPICNUM = String(A.epicNumber)
 const PUBLISH = A.publish === true
 const MAXISSUES = A.maxEpicIssues || 30
@@ -42,6 +48,7 @@ const M = t => A.forceModel || TIER[t]
 const BRIEF = 'Be terse in every string field, telegraphic phrases, no filler. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of a build-audit pipeline over the FINISHED build at ${ROOT}/.
 ${A.projectBrief}
 The spec at ${SPEC}/ is the source of truth for all design; the plan tree at ${PLAN}/ is
@@ -108,7 +115,7 @@ phase('Map')
 const PROMISE = {
   type: 'object', required: ['page', 'claim', 'kind'],
   properties: {
-    page: { type: 'string', description: 'spec file, relative to .agents/plan/spec/' },
+    page: { type: 'string', description: 'spec file, relative to the spec/ directory of the workspace' },
     claim: { type: 'string', description: 'the promise, one terse sentence' },
     kind: { enum: ['user-facing-flow', 'assertable-behavior', 'config-key', 'integration', 'doc-promise', 'benchmark'] },
     testSurface: { type: 'string', description: 'the named test surface, or "NONE NAMED"' },
@@ -160,7 +167,7 @@ const FINDING = {
         title: { type: 'string', description: 'behavioral, present-tense, like existing plan issues' },
         type: { enum: ['AFK', 'HITL', 'REVIEW'] },
         whatToBuild: { type: 'string' },
-        specAnchors: { type: 'array', items: { type: 'string' }, description: 'spec paths relative to .agents/plan/spec/' },
+        specAnchors: { type: 'array', items: { type: 'string' }, description: 'spec paths relative to the spec/ directory of the workspace' },
         acceptanceCriteria: { type: 'array', minItems: 2, maxItems: 5, items: { type: 'string' } },
         testingCheckpoint: { type: 'string', description: 'command + expected result' },
         userFacing: { type: 'string', description: 'the **User-facing** line value: "yes - <what>" or "no - internal"' },
@@ -375,7 +382,7 @@ let pub = null
 if (PUBLISH && treeGreen) {
   // ONE serial agent: create-then-record per issue is order-sensitive and idempotency must see prior edits
   pub = await agent(
-    `${CTX}\nYou are the publisher. Read ${ROOT}/.agents/plan/tracker.md for the backend (GitHub or GitLab; in local-markdown mode there is nothing to publish: report that in fieldGaps and stop). For EACH sprint of the new epic, in order (${synth.sprints.map(s => `${EPICNUM}-${s.num}`).join(', ')}):
+    `${CTX}\nYou are the publisher. Read ${WS}/tracker.md for the backend (GitHub or GitLab; in local-markdown mode there is nothing to publish: report that in fieldGaps and stop). For EACH sprint of the new epic, in order (${synth.sprints.map(s => `${EPICNUM}-${s.num}`).join(', ')}):
 1. Run: node ${PLAN}/publish-issues.mjs publish --sprint ${EPICNUM}-<NN> (cwd ${ROOT}). It creates one ticket per unpublished issue through gh or glab, blockers first, writes each #NNN back into the plan, and ends with a JSON line {created, skipped, failures}. IDEMPOTENCY: it skips an issue that already carries a ref, so never create one yourself; if it reports failures, run it once more and report what still fails. If it exits 2 (the CLI is missing or signed out, or tracker.md is incomplete), record its message in fieldGaps and stop. On GitHub, when tracker.md names a Project board, add each created issue to it and set Epic=E${EPICNUM}, Sprint=${EPICNUM}-<NN> and Type with gh project item-add and gh project item-edit; record any field you could not set in fieldGaps.
 2. On a per-issue failure record it and continue.
 Do not run git. Do not touch Status fields (new issues stay not-started). ${BRIEF}`,

@@ -1,5 +1,7 @@
 # Keeping spec ↔ plan ↔ tracker in sync
 
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
 Change propagates along the **spec anchors** that link plan issues to the spec
 files they realise (see `plan-decompose`'s SPEC-ANCHORS reference). Because anchors are
 concrete relative paths, you can mechanically find what a change affects. This
@@ -18,7 +20,7 @@ the plan tree for the spec path:
 
 ```bash
 # Which issues realise spec/02-runtime/event-loop.md ?
-grep -rl "spec/02-runtime/event-loop.md" .agents/plan/plan/*/*/issues/
+grep -rl "spec/02-runtime/event-loop.md" P/plan/*/*/issues/
 ```
 
 (Anchors in issue files use a `../../../../spec/...` prefix, but the readable
@@ -53,7 +55,7 @@ to change.
 
 The plan file stays the source of truth: after the plan-side edit lands, **regenerate the
 ticket from the file** rather than hand-editing both sides. The tracker mechanics (commands,
-body shape) live in `.agents/plan/tracker.md` and the matching `plan-publish`
+body shape) live in `P/tracker.md` and the matching `plan-publish`
 reference (TRACKER-GITHUB.md or TRACKER-GITLAB.md); `publish-issues.mjs sync EE-SS-II`
 rebuilds a published ticket's title and body from its plan file, on either forge.
 This table is *what* to do; those are *how*:
@@ -95,7 +97,7 @@ anchor grep:
 
 - **End-user docs.** If the change touches `user-docs-plan.md`, an issue whose
   `**User-facing**` line says `yes`, or behaviour already shipped (a page in
-  `.agents/plan/progress/docs.md`'s managed set describes it), the product docs are
+  `P/progress/docs.md`'s managed set describes it), the product docs are
   now stale. Flag the affected pages and **route the rewrite to
   `build-user-docs`** (read and follow `../build-user-docs/ROUTE.md` like any
   routed skill): its gate, grounding, and ownership rules apply unchanged.
@@ -114,8 +116,8 @@ dropping it on a re-cut is exactly the drift the verifier now catches.
 After any propagation, run both:
 
 ```bash
-node .agents/plan/spec/scripts/verify-spec-tree.mjs
-node .agents/plan/plan/verify-plan-tree.mjs
+node P/spec/scripts/verify-spec-tree.mjs
+node P/plan/verify-plan-tree.mjs
 ```
 
 When the change rippled into source directories or `repository-layout.md`,
@@ -124,4 +126,4 @@ and agent-works is installed, run its hub check too.
 The verifiers don't understand intent, but they catch the mechanical fallout of a
 half-finished propagation: a broken anchor, a sprint table that no longer matches
 its issues on disk, a `relates-to` pointing at a moved file. A clean pair of
-verifier runs is the signal that the change landed consistently across `.agents/plan/`.
+verifier runs is the signal that the change landed consistently across `P/`.

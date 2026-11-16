@@ -20,7 +20,7 @@ and one command checks them all: `aw doctor`. Everything agent-facing lives unde
 | Decisions | `.agents/decisions/NNNN-slug.md`, with a generated `README.md` index | 150 lines; one amendment | `aw decisions lint` |
 | Words | the glossary `.agents/CONTEXT.md` | 300 characters a row | `aw decisions lint` (`GLOSSARY_*`) |
 | Agent-facing contracts: protocols, formats, how to extend | `.agents/contracts/` | none | `aw links` |
-| Plans and specs | `.agents/plan/` (the but-first-planning plugin's workspace) | its own | its own verifiers |
+| Plans and specs | `.agents/plan/`, and `.agents/plans/<name>/` for one feature's or task's (the but-first-planning plugin's workspaces) | its own | its own verifiers |
 | Tasks and their status | kanban cards in the main working tree's `.agents/kanban/`, shared by every worktree | none | `aw board lint` |
 | Checks still owed | cards of kind `gate`: what, for which pull request or card, what running it needs | none | `aw board lint` (`GATE_OWED_OLD`) |
 | Briefs for a round of agents | `.agents/briefs/common.md` and `.agents/briefs/rounds/<date>-<slug>.md`, tracked by git | 120 and 80 lines | `aw doctor` (`BRIEF_SIZE`, `BRIEF_UNTRACKED`, `BRIEF_STRAY`) |

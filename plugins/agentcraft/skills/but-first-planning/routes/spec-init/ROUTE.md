@@ -1,16 +1,22 @@
 ---
 name: spec-init
 description: >
-  Scaffolds the `.agents/plan/` workspace: spec site, empty plan tree,
-  glossary and ADRs, tracker config, status scripts. Run once per project,
-  when the user wants to spec or plan it and no workspace exists; `--refresh`
-  updates a workspace's scripts.
-argument-hint: "[--refresh]"
+  Scaffolds a planning workspace: with no argument the project's,
+  `.agents/plan/` (spec site, plan tree, glossary and ADRs, tracker
+  config, scripts); with `--plan <name>` a light one for a feature or task.
+  Run once per project, when the user wants to spec or plan it; `--refresh`
+  updates the scripts.
+argument-hint: "[--plan <name>] [--refresh]"
 ---
 
 # spec-init
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
+
+**With `--plan <name>`, or when the work is one feature or task and not the
+whole project, stop here and follow [NAMED.md](NAMED.md)**: a named workspace,
+`.agents/plans/<name>/`, is one command and no interview. The rest of this
+file is the project workspace.
 
 The foundation the rest of the plugin builds on. It creates `.agents/plan/`:
 a spec docs website (`spec/`), an empty plan tree (`plan/`), a glossary and
@@ -64,8 +70,11 @@ Two re-runs touch one thing each and are safe to repeat:
   node "W/routes/spec-init/scaffold.mjs" --refresh
   ```
 
-  It rewrites only the scripts that differ, never a spec or plan file. Run the
-  verifiers afterwards and commit the result.
+  It rewrites only the scripts that differ, never a spec or plan file, in
+  every workspace the repo has: the project's, the copy the named ones share
+  (`.agents/plans/_scripts/`), and their launchers. A repo with only named
+  workspaces is not given a project one. Run the verifiers afterwards and
+  commit the result.
 - **Reconfiguring the tracker**: replace only `tracker.md` with another stub.
 
 A workspace this plugin scaffolded before 5.0 (a `.plan/` folder, or Python

@@ -13,7 +13,7 @@ repository, and its Consolidation section when a file or folder is over budget.
 
 `aw` below is `node "W/scripts/aw.mjs"`: call it that way.
 
-A plan or a spec is not a memory: those are the but-first-planning plugin's, under `.agents/plan/`.
+A plan or a spec is not a memory: those are the but-first-planning plugin's, under `.agents/plan/` or `.agents/plans/`.
 
 ## Step 1: Read before working
 

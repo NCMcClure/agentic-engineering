@@ -2,8 +2,10 @@
 // Plan-status funnel: the single deterministic way to read and write the
 // completion status of an epic / sprint / issue across every plan surface.
 //
-// Node 22 stdlib only. Lives beside `verify-plan-tree.mjs` in
-// `.agents/plan/plan/` and roots itself the same way.
+// Node 22 stdlib only. Lives beside `verify-plan-tree.mjs` in a workspace's
+// `plan/` and roots itself the same way: the project workspace
+// (`.agents/plan/`) holds a copy, a named one (`.agents/plans/<name>/`) a
+// launcher onto the copy they share.
 //
 //   plan-status.mjs set   <EE-SS-II> <status> [--evidence "..."] [--cancelled]
 //   plan-status.mjs check [<coords>]
@@ -17,14 +19,15 @@
 //   5. the `epic.md` `**Status**:` field (rolled up from its sprints),
 //   6. the epic's row in `plan/index.md`'s `## Epics` table,
 //
-// then, when `.agents/plan/tracker.md` declares GitHub or GitLab, moves the
+// then, when the workspace's `tracker.md` (a named workspace without one reads
+// the project's) declares GitHub or GitLab, moves the
 // issue's ticket to match through `tracker.mjs` (close or reopen, the status
 // labels, the Project board's Status, a comment carrying a blocked reason).
 // Sprint and epic statuses are NEVER set directly: they are always derived
 // from their children by `rollup()`.
 //
 // With `--evidence` on a `done` transition a verified-complete row is appended
-// to `.agents/plan/progress/completed/<epic>.md` (build-next-issue's ledger;
+// to the workspace's `progress/completed/<epic>.md` (build-next-issue's ledger;
 // build-sprint builders flip status WITHOUT evidence so unverified rows never
 // enter the ledger).
 //
@@ -43,12 +46,51 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const PLAN_ROOT = import.meta.dirname; //            .agents/plan/plan/
-const PLAN_DIR = path.dirname(PLAN_ROOT); //         .agents/plan/
-const REPO_ROOT = path.dirname(path.dirname(PLAN_DIR)); // the repository
-const INDEX_MD = path.join(PLAN_ROOT, "index.md");
-const TRACKER_MD = path.join(PLAN_DIR, "tracker.md");
-const COMPLETED_DIR = path.join(PLAN_DIR, "progress", "completed");
+// ---- workspace -------------------------------------------------------------
+// The project workspace (.agents/plan/) holds its own copy of this script, and
+// the script roots itself where it sits. A named workspace
+// (.agents/plans/<name>/) holds a launcher at the same relative path: it runs
+// the one copy in .agents/plans/_scripts/ with `--workspace <dir>`.
+/** `{ ws, rest }`: the named workspace's directory (null for the one this script sits in) and argv without the flag, or `{ error }`. */
+export function workspaceArg(argv, here = import.meta.dirname) {
+  const i = argv.indexOf("--workspace");
+  if (i === -1) {
+    if (path.basename(here) !== "_scripts") return { ws: null, rest: [...argv] };
+    let names = [];
+    try { names = fs.readdirSync(path.dirname(here), { withFileTypes: true }).filter((e) => e.isDirectory() && /^[a-z]/.test(e.name)).map((e) => e.name).sort(); } catch { /* none */ }
+    return { error: `this is the copy every named workspace shares, and it was not told which one: run the script inside a workspace instead (${names.length ? names.map((n) => `.agents/plans/${n}`).join(", ") : "no named workspace exists yet"})` };
+  }
+  const given = argv[i + 1] ?? "";
+  const ws = path.resolve(given);
+  const plans = path.dirname(ws);
+  const named = given && path.basename(plans) === "plans" && path.basename(path.dirname(plans)) === ".agents";
+  if (!named || !fs.existsSync(ws)) return { error: `--workspace takes the directory of a named workspace, .agents/plans/<name> (got '${given}')` };
+  return { ws, rest: [...argv.slice(0, i), ...argv.slice(i + 2)] };
+}
+// ----------------------------------------------------------------------------
+
+// Set by `locate`, first thing in `run`.
+let PLAN_DIR; //      the workspace: .agents/plan/, or .agents/plans/<name>/
+let PLAN_ROOT; //     its plan tree
+let REPO_ROOT; //     the repository
+let NAME; //          a named workspace's name; null in the project's
+let INDEX_MD;
+let TRACKER_MD;
+let COMPLETED_DIR;
+
+function locate(ws) {
+  PLAN_DIR = ws ?? path.dirname(import.meta.dirname);
+  PLAN_ROOT = ws ? path.join(ws, "plan") : import.meta.dirname;
+  // .agents/ is one level under the repository, and a named workspace one level further down.
+  REPO_ROOT = path.resolve(PLAN_DIR, ws ? "../../.." : "../..");
+  NAME = ws ? path.basename(ws) : null;
+  INDEX_MD = path.join(PLAN_ROOT, "index.md");
+  COMPLETED_DIR = path.join(PLAN_DIR, "progress", "completed");
+  // A named workspace with no tracker.md of its own publishes where the project does.
+  const own = path.join(PLAN_DIR, "tracker.md");
+  const projects = path.join(REPO_ROOT, ".agents", "plan", "tracker.md");
+  TRACKER_MD = ws && !fs.existsSync(own) && fs.existsSync(projects) ? projects : own;
+}
 
 const STATUSES = ["not-started", "in-progress", "blocked", "done"];
 
@@ -326,7 +368,9 @@ async function cmdSet({ coords, status, evidence, cancelled }, io) {
   if (status === "done" && evidence && !cancelled) appendCompletedRow(epicDir, sprintDir, issueFile, evidence);
 
   const [ee, ss, ii] = [path.basename(epicDir).slice(0, 2), path.basename(sprintDir).slice(0, 2), path.basename(issueFile).slice(0, 2)];
-  console.log(`OK: ${ee}-${ss}-${ii} -> ${status}; sprint ${ee}-${ss} -> ${sprintStatus}; epic ${ee} -> ${epicStatus}`);
+  // A named workspace's coordinates are said with its name, as the board says them.
+  const at = NAME ? `${NAME}.` : "";
+  console.log(`OK: ${at}${ee}-${ss}-${ii} -> ${status}; sprint ${at}${ee}-${ss} -> ${sprintStatus}; epic ${at}${ee} -> ${epicStatus}`);
 
   // Tracker, after the markdown is durably written.
   await trackerSync({ issueFile, status, reason: status === "blocked" ? evidence : null, cancelled }, io);
@@ -388,7 +432,7 @@ function cmdCheck({ coords }) {
   let node, truth;
   if (!coords) {
     truth = rollup(epicDirs().map((ed) => checkEpic(ed, problems)));
-    node = "plan tree";
+    node = NAME ? `plan tree of ${NAME}` : "plan tree";
   } else {
     const parts = parseCoords(coords);
     if (parts.length === 1) {
@@ -422,7 +466,10 @@ const USAGE = "usage: plan-status.mjs set <EE-SS-II> <status> [--evidence \"...\
   + "       plan-status.mjs check [<coords>]\n";
 
 /** `io` is the provider's `{ run, env }`: a test hands in a runner in place of gh and glab. */
-export async function run(argv, io = {}) {
+export async function run(rawArgv, io = {}) {
+  const { ws, rest: argv, error } = workspaceArg(rawArgv);
+  if (error) die(error);
+  locate(ws);
   const verb = argv[0];
   if (verb === "set") {
     const rest = argv.slice(1);

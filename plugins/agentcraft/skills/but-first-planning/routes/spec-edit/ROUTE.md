@@ -10,6 +10,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 Once a project has been specced, grilled, architected, and planned, change
 doesn't stop, requirements shift, a design assumption breaks, a new feature
 arrives. This route is the front door for all of that. Its job is twofold:
@@ -29,7 +31,7 @@ is edited or created until the user approves.
 
 ### 0a. Pick up inline spec comments
 
-Before anything else, check for `.agents/plan/spec-comments.json`, the review queue the
+Before anything else, when `P` is the project workspace, check for `.agents/plan/spec-comments.json`, the review queue the
 spec site writes when someone highlights text and leaves a comment. If it exists,
 read it and filter to the entries with `"resolved": false`; each unresolved
 comment is a requested change. The comment's `specFile` names the spec page it
@@ -45,6 +47,21 @@ propagates, set that entry's `"resolved"` to `true` in `spec-comments.json` (edi
 the file directly, do **not** delete the entry; keeping it preserves the review
 trail, and the site reflects the flip on its next refresh). The file's own
 `_instructions` field restates this contract for any agent that opens it cold.
+
+## One workspace at a time
+
+A change is made in the workspace whose spec it changes, and it propagates into
+that workspace's plan and tickets only: a plan's anchors point into its own
+spec. Two cases cross the line, and both are said out loud before any edit:
+
+- **A named workspace's change reaches a project record** (a glossary term, a
+  decision, a posture, the repository layout). Make that part as its own pass
+  with `--plan project`, then come back and link to it.
+- **A project change stales a named workspace** (it renames a term that
+  workspace's pages use, or reverses a decision its plan leans on). After the
+  project pass, grep `.agents/plans/*/spec` and `.agents/plans/*/plan` for the
+  old term or the record's name, and run this route once more in each workspace
+  that has it.
 
 ## Route the change
 
@@ -77,8 +94,8 @@ spec files. The full procedure, how to find affected issues, what to do for
 published vs unpublished ones, and how to keep anchors valid, is in
 [SYNC.md](SYNC.md). The shape of it:
 
-1. **Spec changed?** Find every plan issue whose spec anchor points at the changed file(s). For each, decide: still valid, needs its acceptance criteria updated, needs re-cutting, or now obsolete. Surface the list to the user before editing. For a wide blast radius (roughly **10+ affected issues**), run the bundled propagation workflow after the user approves the list, `Workflow({scriptPath: "W/routes/spec-edit/workflows/propagate.js", args: {root, changedSpecFiles, changeSummary}})`, which classifies every affected issue, applies the update/obsolete edits, syncs the published tickets (including blocked-by body ripples), and re-runs both verifiers; it flags `re-cut` verdicts back to you rather than applying them (those route through `plan-decompose`).
-2. **Plan changed?** If the affected issues are already published (have a real tracker reference), the tickets are now stale, sync each ticket from its updated plan file **in the same pass** (SYNC.md's published-issue table says what; `.agents/plan/tracker.md` says how: rebuild tickets with `publish-issues.mjs sync`, close obsoleted ones with a reason, publish issues newly added to live sprints). Never silently diverge a live ticket from its plan issue.
+1. **Spec changed?** Find every plan issue whose spec anchor points at the changed file(s). For each, decide: still valid, needs its acceptance criteria updated, needs re-cutting, or now obsolete. Surface the list to the user before editing. For a wide blast radius (roughly **10+ affected issues**), run the bundled propagation workflow after the user approves the list, `Workflow({scriptPath: "W/routes/spec-edit/workflows/propagate.js", args: {root, workspace: "P", changedSpecFiles, changeSummary}})`, which classifies every affected issue, applies the update/obsolete edits, syncs the published tickets (including blocked-by body ripples), and re-runs both verifiers; it flags `re-cut` verdicts back to you rather than applying them (those route through `plan-decompose`).
+2. **Plan changed?** If the affected issues are already published (have a real tracker reference), the tickets are now stale, sync each ticket from its updated plan file **in the same pass** (SYNC.md's published-issue table says what; `P/tracker.md` says how: rebuild tickets with `publish-issues.mjs sync`, close obsoleted ones with a reason, publish issues newly added to live sprints). Never silently diverge a live ticket from its plan issue.
 3. **Glossary / ADR touched?** A renamed term or a reversed decision can invalidate spec prose and issue titles elsewhere, grep for the old term and reconcile.
 4. **Prototype signed off?** If the change finalizes a design prototype (the user approves it as the design), promote its capture per `spec-write`'s [UI-SPEC.md](../spec-write/UI-SPEC.md): approved image(s) → `spec/prototypes/assets/`, a `prototypes/<slug>.md` page embedding them, one index line, links from the pages it illustrates.
 5. **Docs / hubs rippled?** A change that touches `user-docs-plan.md`, a `User-facing: yes` issue, or behaviour already documented stales the end-user docs; one that touches `repository-layout.md` or moves a module boundary stales the AGENTS.md hubs. [SYNC.md](SYNC.md)'s "User-docs and AGENTS.md ripples" section says what to flag and where to route (docs rewrites go through `build-user-docs`, never written here).

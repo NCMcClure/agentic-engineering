@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Publish plan-tree issues to the tracker tracker.md names, dependency-ordered.
 //
-// Lives at `.agents/plan/plan/publish-issues.mjs` beside `tracker.mjs` (the
+// Lives in a workspace's `plan/` (a copy in `.agents/plan/`, a launcher onto
+// the shared copy in `.agents/plans/<name>/`) beside `tracker.mjs` (the
 // GitHub and GitLab vocabulary) and `provider.mjs` (the layer over `gh` and
 // `glab`). Deterministic and idempotent: it parses the plan tree, sorts each
 // sprint's issues so a blocker is published before what it blocks (a blocked
@@ -30,10 +31,47 @@ import path from "node:path";
 import { checkCli } from "./provider.mjs";
 import { agrees, createTicket, providerFor, readTracker, rebuildTicket, refNumber, trackerState } from "./tracker.mjs";
 
-const PLAN = import.meta.dirname; //            .agents/plan/plan/
-const PLAN_DIR = path.dirname(PLAN); //         .agents/plan/
-const ROOT = path.dirname(path.dirname(PLAN_DIR)); // the repository (.agents/ is one level under it)
-const TRACKER_MD = path.join(PLAN_DIR, "tracker.md");
+// ---- workspace -------------------------------------------------------------
+// The project workspace (.agents/plan/) holds its own copy of this script, and
+// the script roots itself where it sits. A named workspace
+// (.agents/plans/<name>/) holds a launcher at the same relative path: it runs
+// the one copy in .agents/plans/_scripts/ with `--workspace <dir>`.
+/** `{ ws, rest }`: the named workspace's directory (null for the one this script sits in) and argv without the flag, or `{ error }`. */
+export function workspaceArg(argv, here = import.meta.dirname) {
+  const i = argv.indexOf("--workspace");
+  if (i === -1) {
+    if (path.basename(here) !== "_scripts") return { ws: null, rest: [...argv] };
+    let names = [];
+    try { names = fs.readdirSync(path.dirname(here), { withFileTypes: true }).filter((e) => e.isDirectory() && /^[a-z]/.test(e.name)).map((e) => e.name).sort(); } catch { /* none */ }
+    return { error: `this is the copy every named workspace shares, and it was not told which one: run the script inside a workspace instead (${names.length ? names.map((n) => `.agents/plans/${n}`).join(", ") : "no named workspace exists yet"})` };
+  }
+  const given = argv[i + 1] ?? "";
+  const ws = path.resolve(given);
+  const plans = path.dirname(ws);
+  const named = given && path.basename(plans) === "plans" && path.basename(path.dirname(plans)) === ".agents";
+  if (!named || !fs.existsSync(ws)) return { error: `--workspace takes the directory of a named workspace, .agents/plans/<name> (got '${given}')` };
+  return { ws, rest: [...argv.slice(0, i), ...argv.slice(i + 2)] };
+}
+// ----------------------------------------------------------------------------
+
+// Set by `locate`, first thing in `run`.
+let PLAN_DIR; //    the workspace: .agents/plan/, or .agents/plans/<name>/
+let PLAN; //        its plan tree
+let ROOT; //        the repository
+let NAME; //        a named workspace's name; null in the project's
+let TRACKER_MD;
+
+function locate(ws) {
+  PLAN_DIR = ws ?? path.dirname(import.meta.dirname);
+  PLAN = ws ? path.join(ws, "plan") : import.meta.dirname;
+  // .agents/ is one level under the repository, and a named workspace one level further down.
+  ROOT = path.resolve(PLAN_DIR, ws ? "../../.." : "../..");
+  NAME = ws ? path.basename(ws) : null;
+  // A named workspace with no tracker.md of its own publishes where the project does.
+  const own = path.join(PLAN_DIR, "tracker.md");
+  const projects = path.join(ROOT, ".agents", "plan", "tracker.md");
+  TRACKER_MD = ws && !fs.existsSync(own) && fs.existsSync(projects) ? projects : own;
+}
 
 // `**GitHub**:` is the name the field had before 5.0; a tree that still
 // carries it is read and written the same way.
@@ -52,7 +90,9 @@ const posix = (p) => p.split(path.sep).join("/");
 // Tracker config
 // --------------------------------------------------------------------------
 function tracker() {
-  if (!fs.existsSync(TRACKER_MD)) die(`${posix(path.relative(ROOT, TRACKER_MD))} not found, run spec-init first`);
+  if (!fs.existsSync(TRACKER_MD)) die(NAME
+    ? `no tracker.md in ${posix(path.relative(ROOT, PLAN_DIR))}/ or in .agents/plan/: this workspace is local-markdown, nothing to publish to`
+    : `${posix(path.relative(ROOT, TRACKER_MD))} not found, run spec-init first`);
   const config = readTracker(read(TRACKER_MD));
   if (config.mode === "local") die("tracker.md declares a local (or unknown) tracker, nothing to publish to");
   if (config.mode === "gitlab" && !(config.project && config.projectId)) die("tracker.md is GitLab mode but **Project**: / **Project ID**: are unset");
@@ -111,7 +151,7 @@ function loadTree() {
       const files = subfiles(path.join(sprint, "issues")).filter((n) => n.endsWith(".md")).map((n) => path.join(sprint, "issues", n));
       if (!files.length) continue;
       sprints.push({
-        enum: eName.slice(0, 2), eslug: eName.slice(3), snum: sName.slice(0, 2), sslug: sName.slice(3),
+        ws: NAME, enum: eName.slice(0, 2), eslug: eName.slice(3), snum: sName.slice(0, 2), sslug: sName.slice(3),
         sprintMd: path.join(sprint, "sprint.md"),
         issues: toposort(files.map(parseIssue)),
       });
@@ -132,12 +172,13 @@ function publishedRefs(allSprints) {
 
 /** The ticket body, from the plan file. A blocker is cited by its `#NNN` once it has one. */
 export function buildBody(issue, refs) {
-  const what = issue.what.replace(/\[([^\]]+)\]\((?:\.\.\/)+spec\/([^)]+)\)/g, "$1 (`.agents/plan/spec/$2`)");
+  const spec = `${posix(path.relative(ROOT, PLAN_DIR))}/spec`;
+  const what = issue.what.replace(/\[([^\]]+)\]\((?:\.\.\/)+spec\/([^)]+)\)/g, (_m, text, page) => `${text} (\`${spec}/${page}\`)`);
   const blocked = issue.deps.map((dep) => {
     const ref = refs.get(path.join(path.dirname(issue.file), dep));
     return ref ? `- #${ref} ${dep.slice(9, -3).replaceAll("-", " ").toLowerCase()}` : `- ${dep} (unpublished)`;
   });
-  const anchors = [...new Set(issue.anchors)].map((a) => `Spec anchor: \`.agents/plan/spec/${a}\``).join("\n");
+  const anchors = [...new Set(issue.anchors)].map((a) => `Spec anchor: \`${spec}/${a}\``).join("\n");
   return `## What to build\n\n${what}\n\n${anchors ? `${anchors}\n\n` : ""}`
     + `## Acceptance criteria\n\n${issue.criteria}\n\n`
     + `## Blocked by\n\n${blocked.length ? blocked.join("\n") : "- None"}\n\n`
@@ -280,7 +321,10 @@ function cmdStatus(args, io) {
 /** `io` is the provider's `{ run, env }` plus `log`: a test hands in a runner in place of gh and glab. */
 export function run(rawArgv, io = {}) {
   const out = { log: (line) => console.log(line), ...io };
-  const argv = rawArgv.length ? [...rawArgv] : ["publish"];
+  const { ws, rest, error } = workspaceArg(rawArgv);
+  if (error) die(error);
+  locate(ws);
+  const argv = rest.length ? rest : ["publish"];
   const verb = ["publish", "sync", "status"].includes(argv[0]) ? argv.shift() : "publish";
   const args = { all: false, sprint: null, dryRun: false, json: false, target: null };
   for (let i = 0; i < argv.length; i++) {

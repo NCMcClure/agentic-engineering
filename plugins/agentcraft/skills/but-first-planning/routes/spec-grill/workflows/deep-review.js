@@ -1,7 +1,7 @@
 export const meta = {
   name: 'spec-grill-deep-review',
   description: 'Adversarially-verified multi-agent deep review of the spec: per-section reviewers + cross-cutting lenses, semantic dedup, refutation-based verification, a completeness critic with follow-up probes, and (opt-in) applied fixes with a reference reconciler, loop-until-dry re-review rounds, and a post-fix audit',
-  whenToUse: "The headless complement to spec-grill's interactive grill, when the user asks for a deep/comprehensive/multi-agent review of the spec, or spec-grill's autonomous mode. Args: {root, context?, extraLenses?, applyFixes?, rounds?, maxFindings?}. applyFixes=false (default) reports; true edits the spec pages. rounds (1-3, applyFixes only) re-reviews the changed files after fixing until a round confirms no critical/major finding. maxFindings (default 60) caps the verified set per round by severity.",
+  whenToUse: "The headless complement to spec-grill's interactive grill, when the user asks for a deep/comprehensive/multi-agent review of the spec, or spec-grill's autonomous mode. Args: {root, context?, extraLenses?, applyFixes?, rounds?, maxFindings?, workspace?}. applyFixes=false (default) reports; true edits the spec pages. rounds (1-3, applyFixes only) re-reviews the changed files after fixing until a round confirms no critical/major finding. maxFindings (default 60) caps the verified set per round by severity.",
   phases: [
     { title: 'Discover', detail: 'list the spec section directories', model: 'haiku' },
     { title: 'Review', detail: 'one reviewer per section + cross-cutting lenses', model: 'opus' },
@@ -16,14 +16,21 @@ export const meta = {
 // ---------- args (may arrive as a JSON string, coerce defensively) ----------
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
-if (!A || !A.root) throw new Error('args must be an object: {root: <absolute repo root>, context?, extraLenses?, applyFixes?, rounds?, maxFindings?}')
+if (!A || !A.root) throw new Error('args must be an object: {root: <absolute repo root>, context?, extraLenses?, applyFixes?, rounds?, maxFindings?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 const ROOT = A.root.replace(/\/$/, '')
-const SPEC = `${ROOT}/.agents/plan/spec`
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
+const SPEC = `${WS}/spec`
 const APPLY = A.applyFixes === true
 const ROUNDS = APPLY ? Math.min(Math.max(parseInt(A.rounds, 10) || 1, 1), 3) : 1
 const MAX_FINDINGS = Math.max(parseInt(A.maxFindings, 10) || 60, 1)
 
 const CONTEXT = `
+${ONE_WORKSPACE}
 CONTEXT, read carefully before starting.
 You are reviewing a SPECIFICATION (not code) at ${SPEC}/. Orient at ${SPEC}/index.md; the
 canonical vocabulary is ${SPEC}/reference/glossary.md and the decision records are under
@@ -368,7 +375,7 @@ for (let round = 1; round <= ROUNDS; round++) {
     // uncommitted, so the working-tree diff is exactly this run's blast radius.
     phase('Review')
     const changed = await agent(
-      `Run: git -C ${ROOT} diff --name-only -- .agents/plan/spec and also git -C ${ROOT} status --porcelain -- .agents/plan/spec (to catch new untracked files). Return every changed/added spec file path relative to ${SPEC}/ (strip the .agents/plan/spec/ prefix). Pure retrieval; no judgment. Machine-consumed output; no prose.`,
+      `Run: git -C ${ROOT} diff --name-only -- ${WSREL}/spec and also git -C ${ROOT} status --porcelain -- ${WSREL}/spec (to catch new untracked files). Return every changed/added spec file path relative to ${SPEC}/ (strip the ${WSREL}/spec/ prefix). Pure retrieval; no judgment. Machine-consumed output; no prose.`,
       {
         label: `changed-files:r${round}`, phase: 'Review', model: 'haiku', effort: 'low',
         schema: { type: 'object', required: ['files'], properties: { files: { type: 'array', items: { type: 'string' } } } },
@@ -409,7 +416,7 @@ if (ROUNDS > 1) log(`Rounds: ${perRound.length ? perRound.map(r => `r${r.round}=
 // ---------- Audit (once, over the cumulative diff of all rounds) ----------
 phase('Audit')
 const audit = await agent(
-  `${CONTEXT}\nYou are the post-fix auditor. Several agents just edited the spec in parallel (possibly over multiple fix rounds) to resolve verified review findings. Your job:\n1. Run node ${SPEC}/scripts/verify-spec-tree.mjs, if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: run git -C ${ROOT} diff --stat -- .agents/plan/spec, then read the full diff (git -C ${ROOT} diff -- .agents/plan/spec).\n3. Check the edits are mutually coherent: no two fixers introduced contradictory statements, new glossary terms/ADR numbers referenced from section files actually exist, cross-references resolve, index.md files still describe their children accurately, and no fix accidentally deleted content unrelated to its finding. Make surgical corrective edits where needed (Read before Edit; match file conventions).\n4. Do NOT run any git command that mutates state, leave everything uncommitted.\nReport what you corrected and your overall coherence assessment.`,
+  `${CONTEXT}\nYou are the post-fix auditor. Several agents just edited the spec in parallel (possibly over multiple fix rounds) to resolve verified review findings. Your job:\n1. Run node ${SPEC}/scripts/verify-spec-tree.mjs, if it fails, fix every reported problem (broken links, frontmatter, structure) and re-run until it exits 0.\n2. Review the whole change set: run git -C ${ROOT} diff --stat -- ${WSREL}/spec, then read the full diff (git -C ${ROOT} diff -- ${WSREL}/spec).\n3. Check the edits are mutually coherent: no two fixers introduced contradictory statements, new glossary terms/ADR numbers referenced from section files actually exist, cross-references resolve, index.md files still describe their children accurately, and no fix accidentally deleted content unrelated to its finding. Make surgical corrective edits where needed (Read before Edit; match file conventions).\n4. Do NOT run any git command that mutates state, leave everything uncommitted.\nReport what you corrected and your overall coherence assessment.`,
   {
     label: 'post-fix-audit', phase: 'Audit', effort: 'high',
     schema: {

@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 // spec-open: serve the .agents/plan/ spec site (reusing a running instance) and
-// open it in the browser. Node 22 stdlib only.
+// open it in the browser. Node 22 stdlib only. The site is the project
+// workspace's: a named workspace (.agents/plans/<name>/) has none, and this
+// says where its pages are instead.
 //
 // debt: mkdocs is Python, swap for a Node static site when the spec site gets a
 // second maintainer. This launcher starts `comments-server.py`, which fronts
@@ -48,11 +50,19 @@ export function findRoot({ env = process.env, arg = process.argv[2], cwd = proce
   if (fs.existsSync(path.join(first, ".agents/plan/spec/scripts/comments-server.py"))) return first;
   let d = cwd;
   for (;;) {
-    if (fs.existsSync(path.join(d, ".agents/plan"))) return d;
+    if (fs.existsSync(path.join(d, ".agents/plan")) || fs.existsSync(path.join(d, ".agents/plans"))) return d;
     const up = path.dirname(d);
     if (up === d) return first;
     d = up;
   }
+}
+
+/** The named workspaces of `root` that hold a spec, by name. */
+export function namedSpecs(root) {
+  try {
+    return fs.readdirSync(path.join(root, ".agents/plans"), { withFileTypes: true })
+      .filter((e) => e.isDirectory() && fs.existsSync(path.join(root, ".agents/plans", e.name, "spec", "index.md"))).map((e) => e.name).sort();
+  } catch { return []; }
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -64,6 +74,8 @@ async function main() {
   const server = path.join(root, ".agents/plan/spec/scripts/comments-server.py");
   if (!fs.existsSync(server)) {
     console.error(`No spec site found (${server} missing), run spec-init first.`);
+    const named = namedSpecs(root);
+    if (named.length) console.error(`A named workspace has no site; its pages are markdown: ${named.map((n) => `.agents/plans/${n}/spec/index.md`).join(", ")}.`);
     return 1;
   }
 

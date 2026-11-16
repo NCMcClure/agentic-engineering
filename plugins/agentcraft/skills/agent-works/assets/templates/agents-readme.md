@@ -14,7 +14,7 @@ Every kind of fact has one home. Write a fact in its home and link to it from an
 | Decisions | `.agents/decisions/NNNN-slug.md` | 150 lines | `aw decisions lint` |
 | Words | `.agents/CONTEXT.md` | 300 characters a row | `aw decisions lint` |
 | Protocols, formats, how to extend | `.agents/contracts/` | | `aw links` |
-| Plans and specs | `.agents/plan/` | | the planning tool's own |
+| Plans and specs | `.agents/plan/`, and `.agents/plans/<name>/` for one feature's | | the planning tool's own |
 | Tasks and their status | cards in `.agents/kanban/` of the main working tree | | `aw board lint` |
 | Checks still owed | cards of kind `gate` | | `aw board lint` |
 | Briefs | `.agents/briefs/common.md`, `.agents/briefs/rounds/<date>-<slug>.md` | 120 / 80 lines | `aw doctor` |

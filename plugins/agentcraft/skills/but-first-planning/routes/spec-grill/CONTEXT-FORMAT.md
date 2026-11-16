@@ -1,6 +1,8 @@
 # Glossary format
 
-The glossary lives at `.agents/plan/spec/reference/glossary.md` and renders on the spec
+`P` below is the workspace this run works in, as the route that sent you here settled it.
+
+The glossary lives at `P/spec/reference/glossary.md` and renders on the spec
 website. It is a single, opinionated list of the project's domain terms, one
 canonical word per concept, the rest listed as aliases to avoid. It is a
 glossary and nothing else: no implementation detail, no design rationale, no

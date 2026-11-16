@@ -1,7 +1,7 @@
 export const meta = {
   name: 'build-sprint-run',
   description: 'Autonomously build one sprint from a dispatch plan: preflight, HITL triage by policy (REVIEW units are never built under any policy, surfaced as pending human walkthroughs), wave-by-wave TDD builders (serial on the sprint branch by default, git-worktree isolation opt-in), strictly serial integration with full re-checkpointing and a stop-the-line diagnostician, sprint-exit verification, bookkeeping, and one PR with gate notification',
-  whenToUse: "build-sprint's autonomous mode, the user approved an AFK sprint build and its policies in plan mode. One run = one sprint; epic/backlog scope is a loop in the caller (re-run build-next-issue's reconcile between sprints). Args: {root, skillDir, tddSkillPath, sprint, dispatch, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?}. dispatch is the JSON contract from build-next-issue's reconcile.js (object, or path to .agents/plan/progress/dispatch/EE-SS.json). hitlPolicy: 'skip-and-flag' (default) | 'draft-and-defer' | 'auto-implement', pause-and-ask is the interactive skill's cadence, not a workflow option. parallelism: 'serial' (default, robust) | 'worktree' (parallel file-disjoint units in real git worktrees). models: optional per-stage model overrides, e.g. {build: 'fable', exit: 'fable'}, stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr; unlisted stages keep the tier defaults.",
+  whenToUse: "build-sprint's autonomous mode, the user approved an AFK sprint build and its policies in plan mode. One run = one sprint; epic/backlog scope is a loop in the caller (re-run build-next-issue's reconcile between sprints). Args: {root, skillDir, tddSkillPath, sprint, dispatch, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?, workspace?}. dispatch is the JSON contract from build-next-issue's reconcile.js (object, or path to <workspace>/progress/dispatch/EE-SS.json). hitlPolicy: 'skip-and-flag' (default) | 'draft-and-defer' | 'auto-implement', pause-and-ask is the interactive skill's cadence, not a workflow option. parallelism: 'serial' (default, robust) | 'worktree' (parallel file-disjoint units in real git worktrees). models: optional per-stage model overrides, e.g. {build: 'fable', exit: 'fable'}, stages: load, preflight, draft, build, cleanup, integrate, exit, bookkeep, pr; unlisted stages keep the tier defaults.",
   phases: [
     { title: 'Preflight', detail: 'clean tree, sprint branch, tooling spot-check', model: 'sonnet' },
     { title: 'Triage', detail: 'HITL units handled per policy before any dispatch' },
@@ -29,14 +29,20 @@ export const meta = {
 let A = args
 if (typeof A === 'string') { try { A = JSON.parse(A) } catch { A = null } }
 if (!A || !A.root || !A.skillDir || !A.tddSkillPath || !A.sprint || !A.dispatch) {
-  throw new Error('args must be an object: {root, skillDir, tddSkillPath, sprint: "EE-SS", dispatch: <object|path>, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?}')
+  throw new Error('args must be an object: {root, skillDir, tddSkillPath, sprint: "EE-SS", dispatch: <object|path>, hitlPolicy?, parallelism?, openPr?, maxFailures?, prBase?, workspace?: .agents/plans/<name> (default .agents/plan)}')
 }
 const ROOT = A.root.replace(/\/$/, '')
+// The workspace this run works in, repo-relative: the project's (the default)
+// or a named one. Every path below hangs from WS, never from a literal.
+const WSREL = String(A.workspace || '.agents/plan').replace(/\/$/, '')
+if (!/^\.agents\/(plan|plans\/[a-z][a-z0-9-]*)$/.test(WSREL)) throw new Error("args.workspace is '.agents/plan' (the default) or '.agents/plans/<name>', got '" + WSREL + "'")
+const WS = `${ROOT}/${WSREL}`
+const ONE_WORKSPACE = `This run works in ONE planning workspace, ${WS}/. Read and write no other workspace under ${ROOT}/.agents/plan or ${ROOT}/.agents/plans, with one exception: a named workspace (.agents/plans/<name>/) that has no tracker.md, glossary or decision records of its own reads the project's, under ${ROOT}/.agents/plan/.`
 const SKILL = A.skillDir.replace(/\/$/, '')
 const TDD = A.tddSkillPath
 const SPRINT = A.sprint
-const PLANDIR = `${ROOT}/.agents/plan/plan`
-const PROG = `${ROOT}/.agents/plan/progress`
+const PLANDIR = `${WS}/plan`
+const PROG = `${WS}/progress`
 const BRANCH = `sprint/${SPRINT}`
 const PR_BASE = A.prBase || 'main'
 const HITL_POLICY = ['skip-and-flag', 'draft-and-defer', 'auto-implement'].includes(A.hitlPolicy) ? A.hitlPolicy : 'skip-and-flag'
@@ -52,9 +58,10 @@ const M = (stage, dflt) => MODELS[stage] || dflt
 const BRIEF = 'Be terse in every string field. Your final message is machine-consumed via the structured-output tool; no prose preamble.'
 
 const CTX = `
+${ONE_WORKSPACE}
 CONTEXT. You are part of an autonomous sprint build for sprint ${SPRINT} of the plan at
 ${PLANDIR}/ (issue coords EE-SS-II; an issue file matches ${PLANDIR}/EE-*/SS-*/issues/II_issue_*.md;
-spec at ${ROOT}/.agents/plan/spec/). The integration branch for this run is ${BRANCH} (based on ${PR_BASE}).
+spec at ${WS}/spec/). The integration branch for this run is ${BRANCH} (based on ${PR_BASE}).
 The status funnel is node ${PLANDIR}/plan-status.mjs, in this run ONLY the integrator agent
 calls it, never a builder. The user approved this run and its policies in plan mode.
 `
@@ -205,7 +212,7 @@ ${iso}
 DISCIPLINE, non-negotiable:
 1. Read the TDD skill at ${TDD} FIRST and follow it exactly: the issue's acceptance criteria are the behaviour list, one tracer bullet per criterion, red -> green each time, never refactor while red, tests through public interfaces only. The loop and the repo's test lanes are those of /agentcraft:agentic-teamwork tdd, and the shape of the production code is that of /agentcraft:code-diet ladder. Either way, build the first thing that satisfies the criterion and add nothing the issue did not ask for.
 2. Read your issue file(s) and EVERY spec anchor they cite before writing any code. The spec's vocabulary is your naming.${auto ? `
-2b. This is a HITL decision issue running under auto-implement: MAKE the decision, ground it in the spec/glossary/ADRs, record it as a new ADR under ${ROOT}/.agents/plan/spec/reference/adr/ (next free number, matching format, indexed), and flag it prominently in your evidence, it will be surfaced for after-the-fact review.` : ''}
+2b. This is a HITL decision issue running under auto-implement: MAKE the decision, ground it in the spec/glossary/ADRs, record it as a new ADR under ${WS}/spec/reference/adr/ (next free number, matching format, indexed), and flag it prominently in your evidence, it will be surfaced for after-the-fact review.` : ''}
 3. The ## Testing checkpoint must GENUINELY pass. If it names tooling that doesn't exist yet, build the issue's behaviour, verify against the acceptance criteria, add it to driftFlags, do NOT invent the missing tooling and do NOT fake a pass.
 3b. Keep the AGENTS.md hubs current (rules: the root AGENTS.md and the spec's repository-layout.md): a new non-leaf code directory gets an AGENTS.md; update the governing AGENTS.md of any directory whose contents you changed, in the same commit; never put source files in a directory that has an AGENTS.md.
 4. Commit one commit per issue: git add ONLY the files you changed (never -A), message naming the issue coords and ticket ref.
@@ -366,7 +373,7 @@ phase('PR')
 let pr = null
 if (OPEN_PR && built.length) {
   pr = await agent(
-    `${CTX}\nYou are the PR opener and gate notifier. Read ${ROOT}/.agents/plan/tracker.md for the backend. Push ${BRANCH} and open ONE pull/merge request against ${PR_BASE} (gh pr create / glab mr create; local-mode tracker: skip with pushed=false and say so). Title: "${SPRINT}: <sprint title from its sprint.md>". Body: a per-issue table (coords, ref, title, checkpoint command, exit code) from BUILT below; a "Not built this run" section from SKIPPED (HITL policy ${HITL_POLICY}) and FAILED (with routes); drift flags; the sprint-exit summary. Do not merge it.
+    `${CTX}\nYou are the PR opener and gate notifier. Read ${WS}/tracker.md for the backend. Push ${BRANCH} and open ONE pull/merge request against ${PR_BASE} (gh pr create / glab mr create; local-mode tracker: skip with pushed=false and say so). Title: "${SPRINT}: <sprint title from its sprint.md>". Body: a per-issue table (coords, ref, title, checkpoint command, exit code) from BUILT below; a "Not built this run" section from SKIPPED (HITL policy ${HITL_POLICY}) and FAILED (with routes); drift flags; the sprint-exit summary. Do not merge it.
 THEN notify the developer of the deferred human gates. GATES below lists them (the gate issues themselves, not transitive dependents). Skip this step entirely, reporting notified=[] and why in note, when the tracker is local-mode, GATES is empty, or tracker.md has no "**Notify**:" field / the handle is unset or still a {{PLACEHOLDER}}. Otherwise, for each gate: read its plan issue file to get the "**Tracker**:" ref (skip <unassigned> ones); IDEMPOTENCY: read the ticket's comments first (GitHub: gh issue view <n> --comments; GitLab: glab issue view <n> --comments) and skip it if one already contains "Human gate"; else add ONE comment (GitHub: gh issue comment <n> --body ...; GitLab: glab issue note <n> -m ...) shaped: "**Human gate**: @<handle>: <why: REVIEW walkthrough pending, or HITL deferred under policy ${HITL_POLICY}><draft path if GATES lists one><PR link>". List the refs you commented on in notified.
 BUILT: ${JSON.stringify(built.map(b => ({ unit: b.unit, refs: b.refs, checkpoint: b.builder.checkpointCommand, exit: b.builder.checkpointExit })), null, 1)}
 SKIPPED: ${JSON.stringify(skippedHitl, null, 1)}

@@ -11,6 +11,8 @@ description: >
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
+`P` below is the workspace this run works in, `.agents/plan` or `.agents/plans/<name>`: the area's `SKILL.md` says how it is settled. Write it out wherever a path says `P`.
+
 A completed plan tree proves the plan was built; it says nothing about what the
 plan never contained. Spec promises can ship unreachable from any entrypoint,
 first-run UX can be a dead end no issue ever covered, test suites can be green
@@ -26,11 +28,11 @@ its own, invoke it deliberately, once per finished tree or epic.
 
 ## What it reads
 
-- `.agents/plan/spec/`, every content page, category by category, to build the
+- `P/spec/`, every content page, category by category, to build the
   promise ledger (the spec is the source of truth for what was promised).
 - The live code, tests, entrypoints, and top-level docs, where the gaps show.
-- `.agents/plan/progress/drift/`, owner calls and parked items worth promoting now.
-- `.agents/plan/plan/`, the existing epics, as calibration exemplars and for the next
+- `P/progress/drift/`, owner calls and parked items worth promoting now.
+- `P/plan/`, the existing epics, as calibration exemplars and for the next
   free epic number.
 - This plugin's own contracts: `plan-decompose/PLAN-FORMAT.md`,
   `VERTICAL-SLICES.md`, `build-user-docs/SKILL.md` (doc taxonomy).
@@ -53,7 +55,7 @@ become an issue.
 ### 1. Confirm the audit is ripe
 
 The plan tree (or at least the epic being audited past) should be done:
-`node .agents/plan/plan/plan-status.mjs check` and a recent `build-next-issue`
+`node P/plan/plan-status.mjs check` and a recent `build-next-issue`
 reconcile with no open done-claim disputes. Auditing a half-built tree just
 rediscovers the backlog.
 
@@ -64,7 +66,7 @@ project-agnostic. Gather:
 
 - **projectBrief** (required), 2-6 sentences: what the project is, what the
   finished tree covered, what the owner most wants the audit to find.
-- **epicNumber**: the next free `NN` from `.agents/plan/plan/index.md`.
+- **epicNumber**: the next free `NN` from `P/plan/index.md`.
 - **knownDebt**: standing debt the owner already knows about, so finders
   sharpen it into buildable pieces instead of proudly rediscovering it.
 - **hardRules**: extra bounds as plain sentences (out-of-bounds paths,
@@ -85,6 +87,7 @@ Workflow({
   scriptPath: "W/routes/build-audit/workflows/build-audit.js",
   args: {
     root: "<absolute repo root>",
+    workspace: "P", // repo-relative; leave it out when P is .agents/plan
     pluginRoot: "W",
     epicNumber: "NN",
     projectBrief: "<2-6 sentences of project context>",
@@ -132,7 +135,7 @@ and (if publishing) every issue carries its `#NNN`.
 ## Scope boundary
 
 The workflow writes only the new epic directory and the one new row (plus
-Total arithmetic) in `.agents/plan/plan/index.md`, never the spec, never existing
+Total arithmetic) in `P/plan/index.md`, never the spec, never existing
 epics, never drift files. It is read-only toward git: the user reviews and
 commits the epic themselves.
 
