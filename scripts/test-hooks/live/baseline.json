@@ -2,15 +2,15 @@
   "claudeCodeVersion": "2.1.325",
   "date": "2026-11-16",
   "model": "claude-haiku-5-5",
-  "pluginsTree": "2a00cbcc8896de49640f3d1d6acd67d3482a98be",
-  "costUsd": 0.1815,
+  "pluginsTree": "e70431f2215609f6b2f9df6d28ae3a6db585358e",
+  "costUsd": 0.1821,
   "expectedFailures": {},
   "fixtures": {
     "bare": {
-      "firstRequestTokens": 28967,
+      "firstRequestTokens": 29500,
       "start": {
         "agent-works": 319,
-        "agentcraft": 481,
+        "agentcraft": 791,
         "agentic-teamwork": 159,
         "but-first-planning": 359,
         "code-diet": 157,
@@ -170,13 +170,13 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 4646,
+          "firstRequestTokens": 4648,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 16138,
+          "firstRequestTokens": 16139,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -197,7 +197,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 18388,
+          "firstRequestTokens": 18390,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -220,7 +220,7 @@
       }
     },
     "outside": {
-      "firstRequestTokens": 29460,
+      "firstRequestTokens": 29458,
       "start": {
         "agent-works": 319,
         "agentcraft": 791,
@@ -333,31 +333,31 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 2,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 2,
           "error": 0
         },
         "docs-parity": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 2,
           "error": 0
         },
         "system-map": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 2,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 2,
           "error": 0
         }
       },
@@ -383,13 +383,13 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 4646,
+          "firstRequestTokens": 4644,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 14836,
+          "firstRequestTokens": 16137,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -410,7 +410,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 17087,
+          "firstRequestTokens": 18386,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -433,12 +433,12 @@
       }
     },
     "adopted": {
-      "firstRequestTokens": 32607,
+      "firstRequestTokens": 32595,
       "start": {
         "agent-works": 1171,
         "agentcraft": 2118,
         "agentic-teamwork": 709,
-        "but-first-planning": 691,
+        "but-first-planning": 669,
         "code-diet": 395,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -454,7 +454,7 @@
         "agent-works": 745,
         "agentcraft": 1187,
         "agentic-teamwork": 434,
-        "but-first-planning": 525,
+        "but-first-planning": 514,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -471,7 +471,7 @@
         "agent-works": 852,
         "agentcraft": 1451,
         "agentic-teamwork": 550,
-        "but-first-planning": 332,
+        "but-first-planning": 310,
         "code-diet": 238,
         "docs-parity": 226,
         "perceptual-loop": 500
@@ -549,34 +549,16 @@
         }
       },
       "stop": {
-        "agent-works": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
-          "error": 0
-        },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 1,
+          "silent": 0,
           "error": 0
         },
         "docs-parity": {
           "model": 1,
           "person": 2,
-          "silent": 1,
-          "error": 0
-        },
-        "system-map": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
-          "error": 0
-        },
-        "write-like-me": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
+          "silent": 0,
           "error": 0
         }
       },
@@ -604,7 +586,7 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 5008,
+          "firstRequestTokens": 5009,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -631,12 +613,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20155,
+          "firstRequestTokens": 20143,
           "focus": {
             "agent-works": 467,
-            "agentcraft": 546,
+            "agentcraft": 547,
             "agentic-teamwork": 434,
-            "but-first-planning": 449,
+            "but-first-planning": 437,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -651,9 +633,9 @@
           "rulesTokens": 0,
           "subagentStart": {
             "agent-works": 148,
-            "agentcraft": 17,
+            "agentcraft": 18,
             "agentic-teamwork": 275,
-            "but-first-planning": 90,
+            "but-first-planning": 78,
             "code-diet": 119,
             "docs-parity": 86,
             "perceptual-loop": 250
@@ -662,7 +644,7 @@
       }
     },
     "teamwork-only": {
-      "firstRequestTokens": 31580,
+      "firstRequestTokens": 31583,
       "start": {
         "agent-works": 1057,
         "agentcraft": 1558,
@@ -780,31 +762,31 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "docs-parity": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "system-map": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 2,
+          "silent": 4,
           "error": 0
         }
       },
@@ -831,13 +813,13 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 4680,
+          "firstRequestTokens": 4683,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 16141,
+          "firstRequestTokens": 14840,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -858,7 +840,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 19444,
+          "firstRequestTokens": 18146,
           "focus": {
             "agent-works": 409,
             "agentcraft": 546,
@@ -887,12 +869,12 @@
       }
     },
     "standard": {
-      "firstRequestTokens": 31958,
+      "firstRequestTokens": 31943,
       "start": {
         "agent-works": 1171,
         "agentcraft": 1558,
         "agentic-teamwork": 709,
-        "but-first-planning": 691,
+        "but-first-planning": 669,
         "code-diet": 395,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -908,7 +890,7 @@
         "agent-works": 745,
         "agentcraft": 1089,
         "agentic-teamwork": 434,
-        "but-first-planning": 525,
+        "but-first-planning": 514,
         "code-diet": 276,
         "codebase-optimizer": 121,
         "context-doctor": 117,
@@ -925,7 +907,7 @@
         "agent-works": 852,
         "agentcraft": 891,
         "agentic-teamwork": 550,
-        "but-first-planning": 332,
+        "but-first-planning": 310,
         "code-diet": 238,
         "docs-parity": 226,
         "perceptual-loop": 500
@@ -1003,34 +985,16 @@
         }
       },
       "stop": {
-        "agent-works": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
-          "error": 0
-        },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 1,
+          "silent": 0,
           "error": 0
         },
         "docs-parity": {
           "model": 1,
           "person": 2,
-          "silent": 1,
-          "error": 0
-        },
-        "system-map": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
-          "error": 0
-        },
-        "write-like-me": {
-          "model": 0,
-          "person": 0,
-          "silent": 1,
+          "silent": 0,
           "error": 0
         }
       },
@@ -1058,7 +1022,7 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 4946,
+          "firstRequestTokens": 4944,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
@@ -1085,12 +1049,12 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 20093,
+          "firstRequestTokens": 20078,
           "focus": {
             "agent-works": 467,
-            "agentcraft": 546,
+            "agentcraft": 547,
             "agentic-teamwork": 434,
-            "but-first-planning": 449,
+            "but-first-planning": 437,
             "code-diet": 276,
             "codebase-optimizer": 121,
             "context-doctor": 117,
@@ -1105,9 +1069,9 @@
           "rulesTokens": 0,
           "subagentStart": {
             "agent-works": 148,
-            "agentcraft": 17,
+            "agentcraft": 18,
             "agentic-teamwork": 275,
-            "but-first-planning": 90,
+            "but-first-planning": 78,
             "code-diet": 119,
             "docs-parity": 86,
             "perceptual-loop": 250
@@ -1234,31 +1198,31 @@
         "agent-works": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 1,
           "error": 0
         },
         "agentic-teamwork": {
           "model": 1,
           "person": 1,
-          "silent": 4,
+          "silent": 1,
           "error": 0
         },
         "docs-parity": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 1,
           "error": 0
         },
         "system-map": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 1,
           "error": 0
         },
         "write-like-me": {
           "model": 0,
           "person": 0,
-          "silent": 4,
+          "silent": 1,
           "error": 0
         }
       },
@@ -1291,7 +1255,7 @@
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 14836,
+          "firstRequestTokens": 16137,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -1312,7 +1276,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 17974,
+          "firstRequestTokens": 19275,
           "focus": {
             "agent-works": 409,
             "agentcraft": 546,
@@ -1501,13 +1465,13 @@
       },
       "subagents": {
         "agentcraft:vision-critic": {
-          "firstRequestTokens": 4659,
+          "firstRequestTokens": 4661,
           "focus": {},
           "rulesTokens": 0,
           "subagentStart": {}
         },
         "Explore": {
-          "firstRequestTokens": 16140,
+          "firstRequestTokens": 16142,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -1528,7 +1492,7 @@
           "subagentStart": {}
         },
         "general-purpose": {
-          "firstRequestTokens": 18401,
+          "firstRequestTokens": 18403,
           "focus": {
             "agent-works": 319,
             "agentcraft": 529,
@@ -1555,10 +1519,10 @@
     "claudeCodeVersion": "2.1.325",
     "date": "2026-11-16",
     "model": "claude-haiku-5-5",
-    "pluginsTree": "2a00cbcc8896de49640f3d1d6acd67d3482a98be",
+    "pluginsTree": "e70431f2215609f6b2f9df6d28ae3a6db585358e",
     "passes": 3,
-    "sessions": 199,
-    "costUsd": 0.7854,
+    "sessions": 202,
+    "costUsd": 0.8522,
     "windows": {
       "default": 1000000,
       "200k": 200000
@@ -1637,10 +1601,10 @@
           "default": [
             "read",
             "read",
-            "miss"
+            "read"
           ],
           "200k": [
-            "miss",
+            "read",
             "read",
             "read"
           ]
@@ -1811,8 +1775,8 @@
         },
         "reached": {
           "default": [
-            "read",
             "miss",
+            "read",
             "miss"
           ],
           "200k": [
@@ -1878,7 +1842,7 @@
         "reached": {
           "default": [
             "read",
-            "miss",
+            "read",
             "miss"
           ],
           "200k": [
@@ -1943,13 +1907,13 @@
         },
         "reached": {
           "default": [
-            "read",
+            "miss",
             "read",
             "read"
           ],
           "200k": [
-            "miss",
             "read",
+            "miss",
             "miss"
           ]
         }
@@ -2009,7 +1973,7 @@
         },
         "reached": {
           "default": [
-            "read",
+            "miss",
             "miss",
             "miss"
           ],
@@ -2053,7 +2017,7 @@
         },
         "reached": {
           "default": [
-            "skill",
+            "miss",
             "skill",
             "skill"
           ],
@@ -2097,13 +2061,13 @@
         },
         "reached": {
           "default": [
+            "miss",
             "read",
-            "read",
-            "read"
+            "miss"
           ],
           "200k": [
             "miss",
-            "miss",
+            "read",
             "miss"
           ]
         }
@@ -2190,7 +2154,7 @@
             "read"
           ],
           "200k": [
-            "read",
+            "miss",
             "read",
             "read"
           ]
@@ -2230,7 +2194,7 @@
         "reached": {
           "default": [
             "miss",
-            "skill",
+            "miss",
             "miss"
           ],
           "200k": [
@@ -2296,8 +2260,8 @@
         "reached": {
           "default": [
             "read",
-            "miss",
-            "miss"
+            "read",
+            "read"
           ],
           "200k": [
             "miss",
