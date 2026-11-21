@@ -503,7 +503,7 @@ test("propose, grant, bind, claim, wait, done and abandon carry a card through a
 
   let r = b("propose");
   assert.match(r.out, /^Run \(2 of 2\):\n  0002 Add kebab case\n  0003 Add snake case\nHeld:\n  0004 Touch kebab too: overlaps 0002 \(proposed\) on src\/kebab\.mjs\n  0005 No criteria yet: names no files, so it cannot run beside 0002 \(proposed\); names no files, so it cannot run beside 0003 \(proposed\)\n/);
-  assert.match(r.out, /On a clear yes: aw board grant 0002,0003 --by "<who, when>"\n$/);
+  assert.match(r.out, /On a clear yes: aw board grant 0002,0003 --by "<who, when>"\nIf the person wants the set kept on your model, add --model inherit to that grant\.\n$/);
   assert.deepEqual(JSON.parse(b("propose", "--json", "--max", "1").out).run.map((c) => c.id), ["0002"]);
 
   assert.equal(b("grant", "2,3").code, 2);
@@ -562,6 +562,58 @@ test("propose, grant, bind, claim, wait, done and abandon carry a card through a
   // A grant left on a branch no card works is named by lint.
   p.git("config", "branch.feat/gone.agentic-engineering-push", "Pat: by hand");
   assert.ok(findings(p.dir).some((f) => f.code === "KANBAN_GRANT_ORPHAN" && f.message.includes("feat/gone")));
+});
+
+test("a model pin goes on the card at add or with the grant, covers every card granted, and step takes it off", (t) => {
+  const p = project(t);
+  const b = (...args) => p.aw("board", ...args);
+  const text = (id) => p.read(`.agents/kanban/${p.cards()[id].file}`);
+  assert.equal(b("add", "One", "--model", "inherit").code, 0);
+  assert.match(text("0001"), /^model: inherit$/m);
+  b("add", "Two");
+  b("add", "Three");
+  assert.doesNotMatch(text("0002"), /^model:/m, "no pin is the step-down");
+  const granted = b("grant", "0002,0003", "--by", "Pat, 2026-11-18", "--model", "sonnet");
+  assert.match(granted.out, /^Card 0002 granted: "[^"]+"; model sonnet$/m);
+  for (const id of ["0002", "0003"]) assert.match(text(id), /^model: sonnet$/m, `${id} carries the pin`);
+  b("grant", "0003", "--by", "Pat, 2026-11-18");
+  assert.match(text("0003"), /^model: sonnet$/m, "a grant that names no model leaves the pin");
+  const stepped = b("grant", "0002", "--by", "Pat, 2026-11-18", "--model", "step");
+  assert.match(stepped.out, /; model pin removed$/m);
+  assert.doesNotMatch(text("0002"), /^model:/m, "step takes the pin off");
+  assert.deepEqual(JSON.parse(b("grant", "0003", "--by", "Pat", "--model", "opus", "--json").out).map((c) => c.model), ["opus"]);
+  assert.match(b("list").out, /^ *0001 \[backlog\] task: One \(model inherit\)$/m);
+  assert.equal(JSON.parse(b("list", "--json").out).cards.find((c) => c.id === "0001").model, "inherit");
+  const bad = b("add", "Four", "--model", "gpt");
+  assert.equal(bad.code, 2);
+  assert.match(bad.err, /--model is inherit, fable, opus, sonnet, haiku, or step \(one tier down, the default\), not "gpt"/);
+  assert.equal(b("grant", "0003", "--by", "Pat", "--model", "gpt").code, 2);
+  assert.equal(b("add", "A goal", "--kind", "epic", "--model", "opus").code, 2, "only a task has a session to pin");
+  assert.match(b("--help").out, /--model PIN\|step/);
+});
+
+test("abandon keeps a card's model pin: it is the person's word about the card, not the binding", (t) => {
+  const p = project(t);
+  const b = (...args) => p.aw("board", ...args);
+  b("add", "One", "--model", "inherit");
+  b("grant", "1", "--by", "Pat", "--branch", "feat/child");
+  b("bind", "1", "--terminal");
+  assert.equal(b("abandon", "1").code, 0);
+  const back = p.cards()["0001"];
+  assert.deepEqual([back.grant, back.branch, back.session, back.model], [undefined, undefined, undefined, "inherit"]);
+});
+
+test("propose shows each pinned card's model and asks for the model each child runs on", (t) => {
+  const p = project(t);
+  const b = (...args) => p.aw("board", ...args);
+  b("add", "One", "--files", "src/a.mjs", "--model", "inherit");
+  b("add", "Two", "--files", "src/b.mjs");
+  assert.deepEqual(JSON.parse(b("propose", "--json").out).run.map((c) => c.model ?? null), ["inherit", null]);
+  const out = b("propose").out;
+  assert.match(out, /^ {2}0001 One {2}\(model: inherit\)$/m);
+  assert.match(out, /^ {2}0002 Two$/m);
+  assert.match(out, /the model each child runs on \(one tier below yours and never below Opus; a card's model pin wins\)/);
+  assert.match(out, /add --model inherit to that grant\.\n$/);
 });
 
 test("wait wakes on a CARD line a child wrote into its card", (t) => {
@@ -800,4 +852,17 @@ test("a tracker nobody can reach fails the pass with what to do, and writes noth
   assert.equal(r.code, 1);
   assert.match(r.err, /^gh: gh is not signed in to github\.com\. Run: gh auth login/);
   assert.equal(p.cards()["0001"].remote, undefined);
+});
+
+test("bind records a card built by a subagent, and takes exactly one way of working it", async (t) => {
+  const { main } = await import("../../../plugins/agentcraft/skills/agent-works/scripts/board.mjs");
+  const { bufferedIo } = await import("../../../plugins/agentcraft/skills/agent-works/lib/common.mjs");
+  const { tempRepo } = await import("./helpers.mjs");
+  const { dir } = tempRepo(t, "aw-bind-subagent-");
+  const run = async (...argv) => { const io = bufferedIo({ cwd: dir, env: { ...process.env } }); const code = await main(argv, io); return { code, out: io.out(), err: io.err() }; };
+  assert.equal((await run("add", "Build the thing", "--json")).code, 0);
+  const bound = await run("bind", "1", "--subagent", "--json");
+  assert.equal(bound.code, 0, bound.err);
+  assert.match((await run("show", "1", "--json")).out, /"subagent"/);
+  await assert.rejects(run("bind", "1", "--subagent", "--serial"), /bind takes one of --subagent, --session <name>, --terminal, or --serial/);
 });

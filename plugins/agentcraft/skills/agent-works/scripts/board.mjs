@@ -13,6 +13,13 @@
 // the branch it covers, claim (in the child's worktree, on that branch) writes
 // it to git config, and done, abandon, and a move to done take it back.
 //
+// A child session runs one tier below the orchestrating session's model and
+// never below the session floor (MODEL_FLOORS). A model pin is the person's
+// word against that for a card: inherit (the card is exempt) or a family name
+// (its session's model). add sets one, grant sets it on every card it names,
+// and grant --model step takes it off. It is not part of the binding, so
+// abandon leaves it.
+//
 // Exit codes: 0 ok; 1 a finding, a refusal, or a duplicate; 2 a request that
 // cannot be carried out as given; 3 still waiting (wait at its timeout).
 import fs from "node:fs";
@@ -23,7 +30,7 @@ import {
   planCard, planMove, progressBar, ready, reorder, roleIds, scopeLabel, settle, sprintClose, sprintEdit, sprintLine, sprintNew, sprintStart, summary,
 } from "../lib/board.mjs";
 import { BRANCH, BRIEF_TEMPLATE, defaultBranch, grantText, renderBrief } from "../lib/brief.mjs";
-import { cardFile, cardView, doneCriteria } from "../lib/cards.mjs";
+import { MODEL_FLOORS, MODEL_PINS, cardFile, cardView, doneCriteria, orList, tierName } from "../lib/cards.mjs";
 import { AwError, TEMPLATES, agentName, emit, intArg, ioOf, jsonText, parseArgs, posix, readStdin, readText, report, runMain } from "../lib/common.mjs";
 import { conflictConfig, propose } from "../lib/conflicts.mjs";
 import { planCardAbandon, planCardMove, shadowAfter, shadowFile } from "../lib/plan.mjs";
@@ -43,6 +50,13 @@ const list = (s) => String(s ?? "").split(",").map((x) => x.trim()).filter(Boole
 const idList = (...parts) => parts.flat().flatMap((s) => String(s ?? "").split(/[\s,]+/)).filter(Boolean);
 // A flag's value as a whole number, undefined when the flag was not given.
 const int = (value, name) => intArg(value, name) ?? undefined;
+/** --model as given: undefined when absent, null for `step` (no pin), else the pin. */
+function modelPin(value) {
+  if (value === undefined) return undefined;
+  if (value === "step") return null;
+  if (!MODEL_PINS.includes(value)) throw usage(`--model is ${MODEL_PINS.join(", ")}, or step (one tier down, the default), not "${value}"`);
+  return value;
+}
 const flag = { type: "boolean" };
 const text = { type: "string" };
 const JSON_FLAG = { json: flag };
@@ -62,7 +76,7 @@ read
 write
   add "<title>" [--details T | --from-file F] [--kind task|gate|epic] [--priority low|normal|high] [--labels a,b]
                 [--skills a,b] [--owner O] [--ref R] [--needs N] [--status S | --suggest] [--epic ID] [--sprint ID|active]
-                [--files a,b] [--after 0003,0004] [--source user|claude] [--allow-duplicate]
+                [--files a,b] [--after 0003,0004] [--source user|claude] [--model PIN] [--allow-duplicate]
   epic "<title>" [--details T | --from-file F]
   edit <id> [--title T] [--details T | --from-file F | --append T] [--kind K] [--priority P] [--labels a,b] [--skills a,b]
             [--owner O] [--ref R] [--needs N] [--epic ID|none] [--sprint ID|active|none] [--files a,b] [--after ids]
@@ -75,11 +89,13 @@ write
   remote on | off | sync [--dry-run]
 
 the loop
-  propose [--max N] [--ids a,b]      grant <ids...> --by "<who, when>" [--branch <type>/<topic>]
-  brief <id>      bind <id> --session NAME | --terminal | --serial      claim <id>
+  propose [--max N] [--ids a,b]      grant <ids...> --by "<who, when>" [--branch <type>/<topic>] [--model PIN|step]
+  brief <id>      bind <id> --subagent | --session NAME | --terminal | --serial      claim <id>
   done <id> --merged <sha>      abandon <id>      wait [--until COLUMN] [--ids a,b] [--timeout SECONDS]
   evidence [<ids...> | --scope in-flight|backlog|suggested]
 
+A child session runs one tier below the session that starts it, never below ${tierName(MODEL_FLOORS.session)}. --model pins a card against
+that: inherit (the card is exempt) or ${orList(MODEL_PINS.slice(1))} (its session's model); grant --model step takes a pin off.
 A gate is a check still owed: owe records it, settle closes it with its evidence. --from-file - reads the body from
 standard input. Exit codes: 0 ok, 1 a finding, a refusal or a duplicate, 2 a usage error, 3 wait at its timeout.`;
 }
@@ -110,6 +126,8 @@ function fileCard(ctx, title, values, kind) {
   if (!String(title ?? "").trim()) throw usage("a card needs a title");
   choice(kind, "--kind", KINDS);
   choice(values.priority, "--priority", PRIORITIES);
+  const model = modelPin(values.model);
+  if (model && kind !== "task") throw usage(`--model pins the session that works a task, and this is ${kind === "epic" ? "an epic" : `a ${kind}`}`);
   const twin = values["allow-duplicate"] ? null : findDuplicate(b, title, kind === "gate" ? values.ref : undefined);
   if (twin) {
     ctx.say(`Already on the kanban board as card ${twin.id} (${twin.status}); nothing added.`);
@@ -119,7 +137,7 @@ function fileCard(ctx, title, values, kind) {
   const change = addCard(b, {
     title, status: values.suggest ? SUGGESTED : values.status, kind, priority: values.priority, labels: list(values.labels), skills: list(values.skills),
     owner: values.owner?.trim(), ref: values.ref?.trim(), needs: values.needs?.trim(), epic: values.epic, sprint: values.sprint,
-    files: list(values.files), after: idList(values.after).map((id) => findCard(b, id)?.id ?? id), source: sourceOf(values, ctx),
+    files: list(values.files), after: idList(values.after).map((id) => findCard(b, id)?.id ?? id), source: sourceOf(values, ctx), model: model ?? undefined,
     body: body ?? (kind === "gate" ? "" : SKELETON),
   }, stamp());
   ctx.write(change);
@@ -241,7 +259,7 @@ const ACTIONS = {
     positionals: ["title"],
     options: {
       ...JSON_FLAG, ...BODY, kind: text, priority: text, labels: text, skills: text, owner: text, ref: text, needs: text, status: text, suggest: flag,
-      source: text, epic: text, sprint: text, files: text, after: text, "allow-duplicate": flag,
+      source: text, epic: text, sprint: text, files: text, after: text, model: text, "allow-duplicate": flag,
     },
     write: true, creates: true,
     run: ({ title, values }, ctx) => fileCard(ctx, title, values, values.kind ?? "task"),
@@ -492,13 +510,17 @@ const ACTIONS = {
       if (p.inFlight.length) out.push(`In flight (${p.inFlight.length}): ${p.inFlight.map((c) => [c.id, c.session].filter(Boolean).join(" ")).join(", ")}`);
       if (p.run.length) {
         out.push(`Run (${p.run.length} of ${p.max}):`);
-        for (const c of p.run) out.push(`  ${c.id} ${c.title}${c.locks.length ? `  (locks: ${c.locks.map((l) => `${l.resource} ${l.scope}`).join(", ")})` : ""}`);
+        for (const c of p.run) {
+          const tags = [c.model ? `model: ${c.model}` : null, c.locks.length ? `locks: ${c.locks.map((l) => `${l.resource} ${l.scope}`).join(", ")}` : null].filter(Boolean);
+          out.push(`  ${c.id} ${c.title}${tags.length ? `  (${tags.join("; ")})` : ""}`);
+        }
       } else out.push("Nothing can start now.");
       if (p.held.length) out.push("Held:", ...p.held.map((c) => `  ${c.id} ${c.title}: ${c.reasons.join("; ")}`));
       if (p.warnings.length) out.push("Warnings:", ...p.warnings.map((w) => `  ${w}`));
       if (p.run.length) {
-        out.push("Ask the person, showing the set, the held cards and why, and the locks. The approval to ask for: each child pushes its branch and opens its pull or merge request without asking; this session merges on green after review.");
+        out.push(`Ask the person, showing the set, the held cards and why, the locks, and the model each child runs on (one tier below yours and never below ${tierName(MODEL_FLOORS.session)}; a card's model pin wins). The approval to ask for: each child pushes its branch and opens its pull or merge request without asking; this session merges on green after review.`);
         out.push(`On a clear yes: ${ctx.cli} grant ${p.run.map((c) => c.id).join(",")} --by "<who, when>"`);
+        out.push("If the person wants the set kept on your model, add --model inherit to that grant.");
       }
       return ctx.say(out.join("\n"));
     },
@@ -506,10 +528,11 @@ const ACTIONS = {
 
   grant: {
     positionals: ["ids..."],
-    options: { ...JSON_FLAG, by: text, branch: text },
+    options: { ...JSON_FLAG, by: text, branch: text, model: text },
     write: true,
     run({ ids, values }, ctx) {
       if (!values.by?.trim()) throw usage('grant needs --by "<who, when>": whose approval this is and when they gave it');
+      const model = modelPin(values.model);
       const picked = idList(ids);
       if (values.branch !== undefined && picked.length !== 1) throw usage("--branch names one card's branch: grant the cards one at a time");
       const b = ctx.board();
@@ -524,11 +547,14 @@ const ACTIONS = {
         return { card, branch, grant: grantText(values.by, branch, card.id) };
       });
       for (const { card, branch, grant } of changes) {
-        ctx.bind(b, card, { grant, branch, updated: stamp() });
+        // No --model leaves the card's pin as it is; step (null) drops it.
+        ctx.bind(b, card, { grant, branch, ...(model === undefined ? {} : { model: model ?? undefined }), updated: stamp() });
         // A card already claimed carries its grant in git config too.
         if (card.worktree) writeGrant(ctx.loc, branch, grant);
       }
-      return ctx.done(values, changes.map((c) => ({ id: c.card.id, branch: c.branch, grant: c.grant })), changes.map((c) => `Card ${c.card.id} granted: "${c.grant}"`).join("\n"));
+      const said = model === undefined ? "" : model ? `; model ${model}` : "; model pin removed";
+      return ctx.done(values, changes.map((c) => ({ id: c.card.id, branch: c.branch, grant: c.grant, ...(model === undefined ? {} : { model }) })),
+        changes.map((c) => `Card ${c.card.id} granted: "${c.grant}"${said}`).join("\n"));
     },
   },
 
@@ -549,13 +575,13 @@ const ACTIONS = {
 
   bind: {
     positionals: ["id"],
-    options: { ...JSON_FLAG, session: text, terminal: flag, serial: flag },
+    options: { ...JSON_FLAG, session: text, terminal: flag, serial: flag, subagent: flag },
     write: true,
     run({ id, values }, ctx) {
-      if ([values.session !== undefined, values.terminal, values.serial].filter(Boolean).length !== 1) {
-        throw usage("bind takes one of --session <name>, --terminal, or --serial");
+      if ([values.session !== undefined, values.terminal, values.serial, values.subagent].filter(Boolean).length !== 1) {
+        throw usage("bind takes one of --subagent, --session <name>, --terminal, or --serial");
       }
-      const session = values.terminal ? "terminal" : values.serial ? "serial" : values.session.trim();
+      const session = values.terminal ? "terminal" : values.serial ? "serial" : values.subagent ? "subagent" : values.session.trim();
       if (!session) throw usage("--session takes the child session's name");
       const b = ctx.board();
       const card = ctx.loopable(b, ctx.card(b, id));
@@ -714,7 +740,7 @@ function planShow(b, c) {
   const out = [cardLine(c), `plan issue ${c.file}, read from ${b.planRef}`, `type ${c.type}, status ${c.planStatus}, tracker ${c.tracker ?? "none"}`];
   if (c.after.length) out.push(`blocked by: ${c.after.map((id) => `${id} (${b.cards.find((x) => x.id === id)?.status ?? "not in the plan"})`).join(", ")}`);
   if (c.files.length) out.push(`files: ${c.files.join(", ")}`);
-  const bound = ["session", "branch", "worktree"].filter((k) => c[k]).map((k) => `${k} ${c[k]}`);
+  const bound = ["session", "branch", "worktree", "model"].filter((k) => c[k]).map((k) => `${k} ${c[k]}`);
   if (c.mr !== undefined) bound.push(`!${c.mr}`);
   if (bound.length) out.push(`bound: ${bound.join(", ")}`);
   return `${out.join("\n")}\n\n${String(c.body).trimEnd()}`;

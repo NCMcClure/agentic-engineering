@@ -1,0 +1,10 @@
+{
+  "script": "plan-follow.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": "{\"hook_event_name\": \"PreToolUse\",",
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

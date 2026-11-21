@@ -147,3 +147,70 @@ in the real plugin.
 Not tested: an interactive session's slash menu; a signed-in account; a real
 model; the background auto-update pass; a `renames` entry; and how a mod reads
 `userConfig`.
+
+## Host behaviors the plan gate leans on
+
+The agent-works area holds a session to a plan approved in Claude Code's plan
+mode, and that reads what the host hands a hook while a session plans. The
+hooks reference states little of it. Each behavior below was run on 2026-11-19
+on Claude Code 2.1.326, in a scratch repo, on Haiku under a real login, with a
+command hook on every event that wrote its stdin to a file. Plain
+`claude -p --permission-mode plan` does not offer `ExitPlanMode` at all, so the
+runs used the protocol the desktop app drives a session with
+(`--input-format stream-json --output-format stream-json --permission-prompt-tool stdio`),
+and a driver answered the approval prompt. The payloads are kept, with their
+paths replaced, in
+`scripts/test-hooks/cases/agent-works/plan-mode/payloads.json`, and the unit
+suites of the two plan hooks are built from them.
+
+Plan mode here is the host's: a plan file the session writes and the person
+approves. It is not the spec and plan tree the but-first-planning area keeps
+under `.agents/plan/`, which no finding below touches.
+
+8. **`permission_mode` is `plan` on UserPromptSubmit, PreToolUse, PostToolUse,
+   and Stop while a session plans.** SessionStart and SubagentStart carry no
+   `permission_mode`. So a prompt in plan mode is where the section's format
+   is told.
+
+9. **A plan-file write is an ordinary `Write` or `Edit`** whose `file_path` is
+   the plan file, with `permission_mode: "plan"`. A `plansDirectory` passed
+   with `--settings` was not honoured: the plan file went to the default plans
+   folder.
+
+10. **PreToolUse on `ExitPlanMode` carries the plan, and a deny's reason
+    reaches the model.** `tool_input` is `{ plan, planFilePath }`, the plan's
+    markdown read from the file. A hook that denied the first call with a
+    reason saw the model edit the plan file as the reason said and call again
+    with the longer plan.
+
+11. **PostToolUse on `ExitPlanMode` fires on approval only.** A prompt
+    answered "keep planning" fired PreToolUse and PermissionRequest and no
+    PostToolUse. On approval `tool_input` is `{}`, `tool_response` is
+    `{ plan, isAgent, filePath }`, and `permission_mode` is already `default`.
+
+12. **`EnterPlanMode` fires both tool hooks**, and its PostToolUse already
+    carries `permission_mode: "plan"`. So a model that enters plan mode itself
+    is told the format there.
+
+13. **An Agent call's `tool_input` is `{ description, prompt, subagent_type,
+    model }`, and a background agent's PostToolUse fires at launch.** Its
+    `tool_response` is `{ isAsync: true, status: "async_launched", agentId,
+    resolvedModel, ... }`, and SubagentStop fires later with that id as
+    `agent_id`. A subagent's own tool hooks carry `agent_id` and `agent_type`;
+    the main session's carry neither.
+
+Not run, and the plan hooks fail open on each:
+
+- An interactive session in the desktop app, so the approval dialog itself,
+  and what a session is told when the person approves and clears the context
+  in one step. The approved plan is kept under the work tree's git dir and the
+  session briefing prints it again, so nothing depends on the session id.
+- Whether a command hook fires for the desktop app's
+  `mcp__ccd_session__start_session` tool. The check on a child session's start
+  is built and unit-tested, and has not been seen firing.
+- A foreground agent's PostToolUse, which the plan hooks read as the agent
+  having returned.
+- An anchored matcher such as `^(Agent|Task)$` in a plugin's hook map. The
+  plan hooks are registered with anchored matchers; every other matcher in the
+  map is a bare alternation, and only the payloads above were recorded, not
+  which matcher form delivered them.

@@ -5,13 +5,49 @@
 
 # Agentic Engineering
 
-A personal marketplace for Claude Code, and one plugin in it: `agentcraft`.
-Each of its thirteen areas solves a problem I kept hitting while engineering
-with agents, from code getting written before the spec was settled to drafts
-that ship in someone else's voice.
+Agents can write the code. What they don't do on their own is keep a project
+something you can scale, maintain, understand, and hand to a user. `agentcraft`
+is one Claude Code plugin whose thirteen areas each hold one of those lines, so
+what an agent ships is software you would have signed off on.
+
+**It scales.** [agent-works](#agent-works) runs many pieces of work in
+parallel without sessions stepping on each other or starving your machine of
+the compute a test-heavy build needs.
+[agentic-teamwork](#agentic-teamwork) holds every contributor's agents to the
+same standards, so a team can grow and still move fast in one direction.
+[but-first-planning](#but-first-planning) settles what is being built before
+anyone builds it.
+
+**You can still follow it.** People no longer read every line an agent
+writes, so the understanding has to live somewhere they will look.
+[system-map](#system-map) draws the system from the code itself, which keeps
+the people steering a project agreed on what it is.
+[docs-parity](#docs-parity) moves the user docs in the same change as the
+code: you always know what changed and how it works, and so do the people
+using it. [picture-this](#picture-this) turns a mechanism into an animated
+figure a stakeholder understands at a glance.
+
+**It is good, not only finished.** A great deal of what makes software usable
+is judged by eye or ear: an interface, a render, an animation, a sound.
+[perceptual-loop](#perceptual-loop) gives an agent a way to iterate on
+exactly that. [code-diet](#code-diet) and
+[codebase-optimizer](#codebase-optimizer) keep the code small and its
+structure sound as it grows.
+
+**It sounds like you, and it compounds.**
+[write-like-me](#write-like-me) runs through all of it: docs, specs, figures
+and copy come out in one voice, yours. [plugin-workbench](#plugin-workbench)
+turns something you worked out with an agent into a plugin held to a standard,
+so the next project starts ahead, and
+[context-doctor](#context-doctor) and [workflow-studio](#workflow-studio)
+show why a session went wrong and let you build the workflow that runs it
+right.
+
+No single area is the point. Each closes one way a project built with agents
+goes wrong, and the sum is a project that reaches the goal you set for it.
 
 > The premise: agents didn't make the fundamentals optional.
-> They made them enforceable.
+> They made them necessary.
 
 ## Install
 
@@ -69,8 +105,9 @@ gets stated four times, task status lives in six places, and two sessions on
 one machine never learn the other exists. agent-works gives every kind of fact
 one home under `.agents/` with a size budget and checks them all with
 `aw doctor`. Tasks and owed gates live on a kanban board every worktree
-shares; its `orchestrate` route runs a large goal from it as child sessions
-in their own worktrees, each approved by you, reviewed, and landed on green. A
+shares; its `orchestrate` route runs a large goal from it in parallel, each
+card in its own worktree, approved by you, reviewed, and landed on green. A
+subagent builds each card unless you ask for sessions. A
 guard stops the mistakes agents repeat, and locks, leases, notes and learnings
 let sessions across projects share one machine. Node 22, nothing else. It is
 the foundation the areas below lean on.

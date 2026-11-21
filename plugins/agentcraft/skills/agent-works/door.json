@@ -1,5 +1,5 @@
 {
-  "lead": "Use to run several tasks as child sessions from a kanban board, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.",
+  "lead": "Use to run several tasks in parallel from a kanban board, by subagents or by child sessions when asked, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.",
   "default": "doctor",
   "routes": {
     "orchestrate": {
@@ -9,7 +9,7 @@
       "cue": "file out-of-scope work, read or move cards, owe a check"
     },
     "dispatch": {
-      "cue": "start an approved card as a child session in a worktree"
+      "cue": "start an approved card: a subagent, or a session if asked"
     },
     "work-card": {
       "cue": "this session was started to build one card"

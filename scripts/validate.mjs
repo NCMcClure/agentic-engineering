@@ -755,6 +755,32 @@ async function validate() {
     if (!pairBad) ok(`duplicated files hash-equal (${pairs} copy/copies present)`);
   }
 
+  // ---- the READMEs a person lands on -----------------------------------
+  // The plugin's README is held to the rules the plugin gives its users: at
+  // most 800 words, standard-readme's section order, a one-line description,
+  // and no agent plumbing. The root README is the marketplace's front page,
+  // with a figure for every area, and is held to the voice rules alone.
+  try {
+    const checker = at("plugins", AREA_PLUGIN, "skills", "docs-parity", "scripts", "readme-check.mjs");
+    const { checkReadme } = await import(pathToFileURL(checker).href);
+    // The root README is named for the marketplace, which the catalog states: a checkout's folder can be called anything.
+    const landing = [
+      { file: "README.md", name: catalog.name, hasLicense: exists(at("LICENSE")), voiceOnly: true },
+      { file: `plugins/${AREA_PLUGIN}/README.md`, name: AREA_PLUGIN, hasLicense: false },
+    ];
+    const before = failures();
+    for (const { file, name, hasLicense, voiceOnly } of landing) {
+      if (!exists(at(file))) continue;
+      const text = fs.readFileSync(at(file), "utf8");
+      const found = voiceOnly ? { findings: [], warnings: [] } : checkReadme(text, { path: file, name, hasLicense });
+      for (const f of found.findings) fail(`${f.finding}: ${f.detail}`, file);
+      for (const w of found.warnings ?? []) note(`${w.finding}: ${w.detail}`);
+      if (/\u2014/.test(text)) fail(`${file} uses an em-dash; write a comma, a colon, or two sentences`, file);
+      if (/\p{Extended_Pictographic}/u.test(text)) fail(`${file} uses an emoji`, file);
+    }
+    if (failures() === before) ok("the plugin README passes the README check, and neither landing README has an em-dash or an emoji");
+  } catch (e) { fail(`the README check could not run (${e.message})`, "scripts/validate.mjs"); }
+
   // ---- tree-wide -------------------------------------------------------
   let text = 0, crlf = 0, abs = 0, junk = 0, exits = 0;
   for (const f of tracked) {

@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 // The area's part alone, run through the plugin's helper (area-session.mjs says why).
@@ -269,6 +270,72 @@ test("agent-works session: the launcher line is left out whole where the rest ha
   assert.doesNotMatch(withOld, /launcher/);
   assert.equal(withOld.length, without.length, "nothing else changed");
   assert.ok(withOld.length <= 900, `${withOld.length} characters`);
+});
+
+// ---- a plan approved in plan mode, still in force ------------------------------
+
+const AREA = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
+const { parseOrchestration, stateOf } = await import(pathToFileURL(path.join(AREA, "lib", "planmode.mjs")).href);
+const { locate, writePlanState } = await import(pathToFileURL(path.join(AREA, "scripts", "io.mjs")).href);
+const ORCHESTRATION = [
+  "## Orchestration", "",
+  "| Unit | What | Runs as | After | Files | Model | Why this model |",
+  "|---|---|---|---|---|---|---|",
+  "| U1 | Rules | subagent | - | `lib/a.mjs` | opus | edge cases |",
+  "| U2 | Wiring | subagent | U1 | `hooks/b.mjs` | sonnet | known pattern |",
+].join("\n");
+const approve = (dir, { planFile = "/plans/p.md", at = new Date().toISOString() } = {}) => writePlanState(locate(dir), stateOf(parseOrchestration(ORCHESTRATION), { planFile, at }));
+const PLAN_HEAD = "An approved plan's orchestration is in force: 2 of 2 units left, next wave U1.";
+const PLAN_LINE = `${PLAN_HEAD} Plan: /plans/p.md`;
+
+test("agent-works session: an approved plan with no board gets the plan line alone", (t) => {
+  const r = repoWithWorktree(t);
+  approve(r.main);
+  assert.equal(briefing(hook(r, start(r.main))), PLAN_LINE);
+  assert.equal(briefing(hook(r, start(r.main, { source: "compact" }))), PLAN_LINE, "a compaction gets it back");
+});
+
+test("agent-works session: a board and an approved plan are both told, the board first", (t) => {
+  const r = repoWithWorktree(t);
+  card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
+  approve(r.main);
+  assert.equal(briefing(hook(r, start(r.main))), `Board: 0 in progress, 0 in review, 1 ready. The board is the record: /agentcraft:agent-works orchestrate resumes it. ${PLAN_LINE}`);
+});
+
+test("agent-works session: a plan is its own work tree's, and one no longer in force is not told", (t) => {
+  const r = repoWithWorktree(t);
+  approve(r.worktree);
+  assert.equal(briefing(hook(r, start(r.main))), "", "the main checkout approved nothing");
+  assert.equal(briefing(hook(r, start(r.worktree), { cwd: r.worktree })), PLAN_LINE);
+  approve(r.worktree, { at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString() });
+  assert.equal(briefing(hook(r, start(r.worktree), { cwd: r.worktree })), "", "three days with nothing started");
+});
+
+test("agent-works session: a subagent, and a repo where the plugins are off, hear nothing of a plan", (t) => {
+  const r = repoWithWorktree(t);
+  approve(r.main);
+  assert.doesNotMatch(context(hook(r, start(r.main, { hook_event_name: "SubagentStart", agent_type: "general-purpose" }))), /approved plan/);
+  const off = repoWithWorktree(t, { answer: "off" });
+  approve(off.main);
+  assert.equal(hook(off, start(off.main)), null);
+});
+
+test("agent-works session: the plan line never pushes the briefing past the area's allowance, and is never cut", (t) => {
+  // A plan file's path too long for the line: the line goes out without it.
+  const r = repoWithWorktree(t);
+  card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
+  approve(r.main, { planFile: `/${"p".repeat(400)}.md` });
+  assert.ok(briefing(hook(r, start(r.main))).endsWith(` orchestrate resumes it. ${PLAN_HEAD}`));
+
+  // The worst case: a fresh worktree of a card with a long title and long criteria, so its twin was just written too.
+  const worst = repoWithWorktree(t, { config: { ...SETTLED, claude: { twins: "generated" } } });
+  write(worst.worktree, "AGENTS.md", "# fixture\n");
+  const long = "a criterion that goes on and on ".repeat(20);
+  card(worst.kanban, "0041", `A title ${"so long ".repeat(20)}`, "status: in-progress\norder: 41\nbranch: feat/child\n", `\n## Done when\n- ${long}\n`);
+  approve(worst.worktree, { planFile: path.join(worst.home, "plans", `${"a-plan-name-".repeat(12)}.md`) });
+  const said = briefing(hook(worst, start(worst.worktree), { cwd: worst.worktree }));
+  assert.match(said, /end your final message with the CARD line\. An approved plan's orchestration is in force: 2 of 2 units left, next wave U1\.( Plan: \S+)?$/, "the card line is whole, and the plan line ends at a full stop or at its whole path");
+  assert.ok(said.length <= 900, `${said.length} characters`);
 });
 
 test("agent-works session: the hook reads its own location, never a plugin root variable", () => {

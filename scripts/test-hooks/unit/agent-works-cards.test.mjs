@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import {
-  KNOWN_KEYS, appendToSection, cardFile, cardView, doneCriteria, newCard, nextId, parseCard, section, sections, serializeCard, slugify,
+  KNOWN_KEYS, MODEL_FLOORS, MODEL_PINS, MODEL_TIERS, MODEL_USES, appendToSection, cardFile, cardView, doneCriteria, newCard, nextId, orList, parseCard, section, sections, serializeCard, slugify, stepDown, tierName,
 } from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
 import { REPO } from "./helpers.mjs";
 
@@ -26,7 +26,7 @@ const trimmed = (card) => ({ ...card, body: card.body.trim() });
 
 test("the goldens cover the format", () => {
   for (const name of ["minimal", "full-with-lists", "unknown-keys", "unknown-nested-block", "crlf", "unicode-title-slug", "slug-cut-48",
-    "unknown-status-and-kind", "gate", "epic", "every-loop-field", "linked-and-bound", "done-looks-like", "values-that-need-quotes", "notes"]) {
+    "unknown-status-and-kind", "gate", "epic", "every-loop-field", "linked-and-bound", "done-looks-like", "values-that-need-quotes", "notes", "model-pin"]) {
     assert.ok(cases.includes(name), `no golden for ${name}`);
   }
   const earlier = cases.filter((name) => /^\d{4}-/.test(name));
@@ -35,7 +35,7 @@ test("the goldens cover the format", () => {
   assert.ok(cards.some((c) => c.remote?.provider === "github") && cards.some((c) => c.remote?.provider === "gitlab"));
   assert.ok(cards.some((c) => c.unknown.length) && cards.some((c) => c.kind === "gate") && cards.some((c) => c.kind === "epic"));
   assert.deepEqual([...new Set(cards.map((c) => c.priority))].sort(), ["high", "low", "normal"]);
-  for (const key of ["owner", "needs", "ref", "epic", "sprint", "session", "branch", "worktree", "mr", "merged", "grant"]) {
+  for (const key of ["owner", "needs", "ref", "epic", "sprint", "session", "branch", "worktree", "mr", "merged", "grant", "model"]) {
     assert.ok(cards.some((c) => c[key] !== undefined), `no golden carries ${key}`);
   }
 });
@@ -160,7 +160,35 @@ test("nextId pads to four digits and skips ids that are not numbers", () => {
 
 test("KNOWN_KEYS is the write order", () => {
   assert.deepEqual(KNOWN_KEYS, ["id", "title", "status", "order", "priority", "labels", "skills", "source", "created", "updated",
-    "kind", "owner", "needs", "ref", "epic", "sprint", "after", "files", "plan", "grant", "session", "branch", "worktree", "mr", "merged"]);
+    "kind", "owner", "needs", "ref", "epic", "sprint", "after", "files", "plan", "grant", "model", "session", "branch", "worktree", "mr", "merged"]);
+});
+
+test("a card written with no model pin reads and writes back without one", () => {
+  const before = cases.filter((name) => name !== "model-pin");
+  assert.equal(before.length, 34, "the goldens that stood before a card could be pinned");
+  for (const name of before) {
+    const want = JSON.parse(read(`${name}.json`));
+    if (want.card === null) continue;
+    const card = parseCard(read(`${name}.md`), want.file);
+    assert.equal("model" in card, false, `${name} gained a model`);
+    assert.doesNotMatch(serializeCard(card), /^model:/m, name);
+    assert.equal("model" in cardView(card), false, `${name}'s view gained a model`);
+  }
+  assert.equal(cardView(parseCard(read("model-pin.md"), "0034-x.md")).model, "inherit");
+});
+
+test("the model tiers are one list: the pins, the floors and the step-down all read it", () => {
+  assert.deepEqual(MODEL_PINS, ["inherit", ...MODEL_TIERS]);
+  for (const floor of Object.values(MODEL_FLOORS)) assert.ok(MODEL_TIERS.includes(floor), floor);
+  const [top, second] = MODEL_TIERS;
+  assert.equal(stepDown(top, MODEL_FLOORS.session), second, "the top tier steps down one");
+  assert.equal(stepDown(MODEL_FLOORS.session, MODEL_FLOORS.session), MODEL_FLOORS.session, "the floor stays");
+  assert.equal(stepDown(MODEL_TIERS.at(-1), MODEL_FLOORS.subagent), MODEL_TIERS.at(-1), "a tier under the floor is never stepped up");
+  assert.equal(stepDown(MODEL_FLOORS.session, MODEL_FLOORS.subagent), MODEL_FLOORS.subagent);
+  assert.equal(stepDown("inherit", MODEL_FLOORS.session), null);
+  assert.equal(tierName("opus"), "Opus");
+  assert.deepEqual(Object.keys(MODEL_USES), MODEL_TIERS, "each tier says what a plan unit runs on it for, or nothing");
+  assert.deepEqual([orList(["a"]), orList(["a", "b"]), orList(["a", "b", "c"])], ["a", "a or b", "a, b, or c"]);
 });
 
 test("the done criteria are read under either heading", () => {

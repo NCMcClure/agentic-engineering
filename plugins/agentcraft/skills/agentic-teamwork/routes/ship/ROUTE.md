@@ -1,6 +1,6 @@
 ---
 name: ship
-description: "Take finished work from the working tree to an open pull request or merge request: branch if needed, commit with a conventional subject, confirm the tests ran, ask before pushing, and open the change request on the repo's forge. Use when the user says ship it, open a PR, open an MR, or push this. --stack targets the branch below instead of the default branch; --draft opens it as a draft. To merge it afterwards use land."
+description: "Take finished work from the working tree to an open pull request or merge request: branch if needed, commit with a conventional subject, confirm the tests ran, ask before pushing, open the change request on the repo's forge, and see its checks watched. Use when the user says ship it, open a PR, open an MR, or push this. --stack targets the branch below instead of the default branch; --draft opens it as a draft. To merge it afterwards use land."
 argument-hint: "[--stack] [--draft]"
 ---
 
@@ -8,7 +8,7 @@ argument-hint: "[--stack] [--draft]"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-Everything between "the work is done" and "the change request is open". The guard hook blocks the mistakes; this is the sequence that avoids them. It works the same on GitHub and GitLab: the forge is reached only through `scripts/mr.mjs`.
+Everything between "the work is done" and "the change request is open and its checks have an answer". The guard hook blocks the mistakes; this is the sequence that avoids them. It works the same on GitHub and GitLab: the forge is reached only through `scripts/mr.mjs`.
 
 ## Step 1: Check the state
 
@@ -70,9 +70,32 @@ BODY
 
 With `--stack`, pass `--target` the branch below this one instead of leaving it to the default branch. Run it twice and the second run reports the request the first one opened (`created: false`) rather than failing.
 
-Report `url` and `number`. Do not merge here. Landing comes after the review, through `/agentcraft:agentic-teamwork land`: it waits on the checks in the background, asks the person for an approval where the repo needs one, and merges the reviewed head on green. A stack lands from the bottom, also through `land`.
+Report `url`, and note `number` for Step 6. Do not merge here. Landing comes after the review, through `/agentcraft:agentic-teamwork land`: it waits on the checks in the background, asks the person for an approval where the repo needs one, and merges the reviewed head on green. A stack lands from the bottom, also through `land`.
 
 *Done when: the URL is reported.*
+
+## Step 6: See the checks watched
+
+Someone has to hear when the checks finish. Which of two cases this is decides who:
+
+- **A GitHub pull request, in a session the desktop app runs.** The app's PR panel, its PR tools, and Auto-fix watch the pull request's checks and wake you when they change. You are in this case only when the host's own instructions say it watches the pull request's CI. Follow them: do not poll, do not start the wait below, do not schedule a wake-up. Say in one line that the app is watching, and the step is done.
+- **Every other case: a GitLab merge request in any host, or a GitHub pull request where no app is watching (a terminal session, a headless run).** Those tools read GitHub only and never see a merge request, and the instruction not to poll CI is about the pull requests they watch, so it does not cover this one. Nothing wakes you, so start the watch yourself:
+
+```bash
+node "W/scripts/mr.mjs" wait <number> --checks --json
+```
+
+Start it as a background command the moment the request is open, say in one line that the checks are being watched, and carry on or end the turn; you are told when it exits. Where the host has no background command, run it in the foreground. `--checks` judges the checks on the head alone, so the approval a fresh request is still missing, or its draft flag, does not end the watch early (`--pipeline` is the same flag). Never tell the person the checks are not being watched, hand them a page to watch, or ask them to say when to check.
+
+| Exit | Means | Do |
+| --- | --- | --- |
+| 0 | the checks are green | Tell the person, with the URL; the review comes next, then `/agentcraft:agentic-teamwork land`. |
+| 1 | the checks failed or were canceled | The branch is yours: read `checks.failed` and `checks.url`, fix the cause, then Steps 2 to 4 again, and watch again. |
+| 3 | no answer yet at the timeout | Run it again. If `checks.state` is still `none` the second time, the repo may run no checks on a request: say so and stop. |
+| 6 | the request was closed or merged, or a check is waiting on a person | Tell the person the `reason`. |
+| 7 | the forge could not be asked | See below. |
+
+*Done when: the app is watching, or the watch exited 0 and the person was told, or failed checks are being fixed, or the person knows what stopped it.*
 
 ## When the forge cannot be asked
 

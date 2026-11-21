@@ -63,7 +63,7 @@
     },
     "agent-works": {
       "cue": "run several tasks at once, each in its own session",
-      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, runs each card as a child session in its own worktree, and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.",
+      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, has a subagent build each card in its own worktree (or a child session, when you ask for sessions), and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.",
       "uses": [
         {
           "want": "build a goal bigger than one change, or resume a round",

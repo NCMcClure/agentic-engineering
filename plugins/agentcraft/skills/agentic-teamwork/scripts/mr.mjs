@@ -7,7 +7,7 @@
 //   node mr.mjs check                                  which forge this is, and whether its CLI is installed and signed in
 //   node mr.mjs open --title <t> [--body-file <f>|-] [--target <b>] [--source <b>] [--draft] [--label <l>]...
 //   node mr.mjs status <n> | --branch <b>              state, merge status, checks and what failed, head
-//   node mr.mjs wait <n> [--interval 10] [--timeout 540] [--settle 30]
+//   node mr.mjs wait <n> [--checks] [--interval 10] [--timeout 540] [--settle 30]
 //   node mr.mjs merge <n> --sha <full head sha> [--method merge|squash|rebase] [--keep-branch]
 //   node mr.mjs approve <n>
 //   node mr.mjs retry <n>                              run the failed checks again, or start missing ones
@@ -39,6 +39,13 @@
 // once. A request the forge calls mergeable with no checks at all is given
 // --settle seconds for checks to appear before it is taken at its word.
 //
+// wait --checks is the watch that follows a push, before anyone has reviewed:
+// it judges the checks on the head alone (0 green, 1 failed or canceled, 3
+// none yet or still running at the timeout, 6 closed, merged, or a check
+// waiting on a person), so the approval a fresh request is still missing, or
+// its draft flag, does not end it before the checks do. It starts nothing: a
+// push makes its own checks. --pipeline is the same flag under GitLab's word.
+//
 // merge refuses unless the request is mergeable and its head is the sha that
 // was reviewed, so a push after the review is never merged unread. It merges
 // with a merge commit and removes the source branch unless told otherwise.
@@ -61,6 +68,7 @@ import {
 const METHODS = ["merge", "squash", "rebase"];
 const OPTIONS = {
   json: { type: "boolean" }, root: { type: "string" }, forge: { type: "string" },
+  checks: { type: "boolean" }, pipeline: { type: "boolean" },
   branch: { type: "string" }, interval: { type: "string" }, timeout: { type: "string" }, settle: { type: "string" },
   sha: { type: "string" }, method: { type: "string" }, "keep-branch": { type: "boolean" },
   title: { type: "string" }, body: { type: "string" }, "body-file": { type: "string" },
@@ -129,6 +137,21 @@ export function judge(change, noun = "change request") {
   return { exit: 6, reason: change.mergeStatus === "blocked" ? `blocked (${change.mergeStatusRaw ?? "the forge gives no reason"})` : `merge status ${change.mergeStatusRaw ?? change.mergeStatus}` };
 }
 
+/**
+ * The checks on the head alone, for the watch after a push: whether the
+ * request can merge (an approval, a draft, conflicts) is land's question.
+ */
+export function judgeChecks(change, noun = "change request") {
+  const checks = change.checks?.state ?? "none";
+  const failed = change.checks?.failed ?? [];
+  if (change.state !== "open") return { exit: 6, reason: `the ${noun} is ${change.state}` };
+  if (checks === "passed") return { exit: 0, reason: "checks green" };
+  if (checks === "skipped") return { exit: 0, reason: "checks skipped, none failed" };
+  if (checks === "failed" || checks === "canceled") return { exit: 1, reason: `checks ${checks}${failed.length ? `: ${failed.join(", ")}` : ""}` };
+  if (checks === "blocked") return { exit: 6, reason: "a check is waiting on a person" };
+  return { wait: checks === "none" ? "no checks on the head yet" : "checks running" };
+}
+
 function line(ctx, c, extra = "") {
   const checks = c.checks ? `checks ${c.checks.state}${c.checks.failed.length ? ` (failed: ${c.checks.failed.join(", ")})` : ""}${c.checks.url ? ` ${c.checks.url}` : ""}` : "checks not read";
   return `${ctx.ref(c.number)} ${c.state} ${c.mergeStatus} ${checks} head ${c.sha}${extra}`;
@@ -193,13 +216,14 @@ async function wait(ctx, positionals, values) {
   const interval = seconds(values.interval ?? "10", "--interval");
   const timeout = seconds(values.timeout ?? "540", "--timeout");
   const settle = seconds(values.settle ?? "30", "--settle");
+  const checksOnly = Boolean(values.checks || values.pipeline);
   const deadline = ctx.now() + timeout * 1000;
   let restarted = false;
   let uncheckedSince = null;
   let last = "";
   for (;;) {
     const c = need(viewChange(provider, n, io));
-    let v = judge(c, ctx.noun);
+    let v = checksOnly ? judgeChecks(c, ctx.noun) : judge(c, ctx.noun);
     // Right after a push a forge can say mergeable before the checks exist.
     if (v.unchecked) {
       uncheckedSince ??= ctx.now();

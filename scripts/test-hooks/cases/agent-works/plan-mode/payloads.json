@@ -1,0 +1,222 @@
+{
+  "recorded": {
+    "claudeCodeVersion": "2.1.326",
+    "date": "2026-11-19",
+    "model": "haiku",
+    "how": "claude -p --input-format stream-json --output-format stream-json --permission-prompt-tool stdio, the approval prompt answered by a driver; a command hook on every event wrote its stdin"
+  },
+  "payloads": {
+    "UserPromptSubmit.plan": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "plan",
+      "hook_event_name": "UserPromptSubmit",
+      "prompt": "Plan how to add an exported function add(a, b) to math.mjs. Keep the plan to five lines. Write the plan file, then call ExitPlanMode. If ExitPlanMode is refused, do exactly what the refusal says and call it again, at most three times. Once the plan is approved, start exactly one subagent with the Agent tool (subagent_type general-purpose, model haiku, description 'U1 add the function') that adds the function to math.mjs, then reply with one sentence and stop."
+    },
+    "PreToolUse.Write.plan-file": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "plan",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PreToolUse",
+      "tool_name": "Write",
+      "tool_input": {
+        "file_path": "{{PLANS}}/plan-how-to-add-clever-muffin.md",
+        "content": "# Plan: add `add(a, b)` to math.mjs\n\n1. Context: math.mjs needs a new exported helper that sums two numbers.\n2. Open math.mjs and match its existing export style (named ESM exports).\n3. Add `export function add(a, b) { return a + b; }`.\n4. Leave other exports in the file untouched.\n5. Verify with `node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\"` (expect 5).\n"
+      },
+      "tool_use_id": "toolu_01G3WKx63CEwg2aaRvbUhfKX"
+    },
+    "PreToolUse.ExitPlanMode": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "plan",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PreToolUse",
+      "tool_name": "ExitPlanMode",
+      "tool_input": {
+        "plan": "# Plan: add `add(a, b)` to math.mjs\n\n1. Context: math.mjs needs a new exported helper that sums two numbers.\n2. Open math.mjs and match its existing export style (named ESM exports).\n3. Add `export function add(a, b) { return a + b; }`.\n4. Leave other exports in the file untouched.\n5. Verify with `node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\"` (expect 5).\n",
+        "planFilePath": "{{PLANS}}/plan-how-to-add-clever-muffin.md"
+      },
+      "tool_use_id": "toolu_01Ng236Eb3egrGd2yN1oYi1v"
+    },
+    "PostToolUse.ExitPlanMode": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PostToolUse",
+      "tool_name": "ExitPlanMode",
+      "tool_input": {},
+      "tool_response": {
+        "plan": "# Plan: add `add(a, b)` to math.mjs\n\n1. Context: math.mjs needs a new exported helper that sums two numbers.\n2. Open math.mjs and match its existing export style (named ESM exports).\n3. Add `export function add(a, b) { return a + b; }`.\n4. Leave other exports in the file untouched.\n5. Verify with `node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\"` (expect 5).\nOrchestration: none, probe-7431\n",
+        "isAgent": false,
+        "filePath": "{{PLANS}}/plan-how-to-add-clever-muffin.md"
+      },
+      "tool_use_id": "toolu_012Kq65fLmosmcAexcGZAsk3",
+      "duration_ms": 1
+    },
+    "PreToolUse.EnterPlanMode": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "3aa77e1d-6d54-4ed8-961e-2c2bc48f77ba",
+      "permission_mode": "default",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PreToolUse",
+      "tool_name": "EnterPlanMode",
+      "tool_input": {},
+      "tool_use_id": "toolu_01SgK2fVvGqfkaxJvsoDvw47"
+    },
+    "PostToolUse.EnterPlanMode": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "3aa77e1d-6d54-4ed8-961e-2c2bc48f77ba",
+      "permission_mode": "plan",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PostToolUse",
+      "tool_name": "EnterPlanMode",
+      "tool_input": {},
+      "tool_response": {
+        "message": "Entered plan mode. You should now focus on exploring the codebase and designing an implementation approach."
+      },
+      "tool_use_id": "toolu_01SgK2fVvGqfkaxJvsoDvw47",
+      "duration_ms": 0
+    },
+    "PreToolUse.Agent": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PreToolUse",
+      "tool_name": "Agent",
+      "tool_input": {
+        "description": "U1 add the function",
+        "prompt": "Add an exported function `add(a, b)` to math.mjs in the current working directory (the repo root). Steps:\n1. Read math.mjs and match its existing export style (named ESM exports).\n2. Add exactly this: `export function add(a, b) { return a + b; }`\n3. Leave all other exports untouched.\n4. Verify by running: node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\" and confirm it prints 5.\nDo not commit, push, or edit any other file. Reply with a short report: the line you added and the verification output.",
+        "subagent_type": "general-purpose",
+        "model": "haiku"
+      },
+      "tool_use_id": "toolu_012K9G5AZRzviW7ZU65nLiiV"
+    },
+    "PostToolUse.Agent.background": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PostToolUse",
+      "tool_name": "Agent",
+      "tool_input": {
+        "description": "U1 add the function",
+        "prompt": "Add an exported function `add(a, b)` to math.mjs in the current working directory (the repo root). Steps:\n1. Read math.mjs and match its existing export style (named ESM exports).\n2. Add exactly this: `export function add(a, b) { return a + b; }`\n3. Leave all other exports untouched.\n4. Verify by running: node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\" and confirm it prints 5.\nDo not commit, push, or edit any other file. Reply with a short report: the line you added and the verification output.",
+        "subagent_type": "general-purpose",
+        "model": "haiku"
+      },
+      "tool_response": {
+        "isAsync": true,
+        "status": "async_launched",
+        "agentId": "a52978c4b6c81fd9c",
+        "description": "U1 add the function",
+        "resolvedModel": "claude-haiku-5-5",
+        "prompt": "Add an exported function `add(a, b)` to math.mjs in the current working directory (the repo root). Steps:\n1. Read math.mjs and match its existing export style (named ESM exports).\n2. Add exactly this: `export function add(a, b) { return a + b; }`\n3. Leave all other exports untouched.\n4. Verify by running: node -e \"import('./math.mjs').then(m => console.log(m.add(2, 3)))\" and confirm it prints 5.\nDo not commit, push, or edit any other file. Reply with a short report: the line you added and the verification output.",
+        "outputFile": "{{PATH}}",
+        "canReadOutputFile": true,
+        "canContinueAgent": true
+      },
+      "tool_use_id": "toolu_012K9G5AZRzviW7ZU65nLiiV",
+      "duration_ms": 5
+    },
+    "PreToolUse.Read.subagent": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "agent_id": "a52978c4b6c81fd9c",
+      "agent_type": "general-purpose",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "PreToolUse",
+      "tool_name": "Read",
+      "tool_input": {
+        "file_path": "{{REPO}}/math.mjs"
+      },
+      "tool_use_id": "toolu_019gWNy31kNTJkXgJZg9c7tR"
+    },
+    "SubagentStop": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "agent_id": "a52978c4b6c81fd9c",
+      "agent_type": "general-purpose",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "SubagentStop",
+      "stop_hook_active": false,
+      "agent_transcript_path": "{{PATH}}",
+      "last_assistant_message": "I did not add `add` to `math.mjs`, and I did not run the verification command. The file is unchanged.\n\nThree write attempts failed before they were applied, all with `Tool permission request failed: AbortError: Stream closed`:\n- Two `Edit` calls on `math.mjs`.\n- One `Bash` call that appended the line with `printf`.\n\nA re-read of `math.mjs` confirms the content is still just:\n\n```js\nexport const sub = (a, b) => a - b;\n```\n\nThe failure is in the permission request channel, not in the change itself. Once write permission works again, the line to add is:\n\n```js\nexport function add(a, b) { return a + b; }\n```\n\nNothing was committed, pushed, or edited beyond the attempts above. I can retry the edit and the verification once the permission prompt is working, or you can add the line yourself and I will run the check.",
+      "background_tasks": [
+        {
+          "id": "a52978c4b6c81fd9c",
+          "type": "subagent",
+          "status": "running",
+          "description": "U1 add the function",
+          "agent_type": "general-purpose"
+        }
+      ],
+      "session_crons": []
+    },
+    "Stop": {
+      "session_id": "plan-mode-probe",
+      "transcript_path": "{{PATH}}",
+      "cwd": "{{REPO}}",
+      "prompt_id": "279d7c9b-7a92-4138-8a27-882efb212600",
+      "permission_mode": "default",
+      "effort": {
+        "level": "medium"
+      },
+      "hook_event_name": "Stop",
+      "stop_hook_active": false,
+      "last_assistant_message": "The plan was approved, and I've started one subagent (general-purpose, haiku, \"U1 add the function\") to add `add(a, b)` to math.mjs.",
+      "background_tasks": [
+        {
+          "id": "a52978c4b6c81fd9c",
+          "type": "subagent",
+          "status": "running",
+          "description": "U1 add the function",
+          "agent_type": "general-purpose"
+        }
+      ],
+      "session_crons": []
+    }
+  }
+}

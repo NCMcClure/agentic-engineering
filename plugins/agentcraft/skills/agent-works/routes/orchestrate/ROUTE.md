@@ -8,10 +8,15 @@ argument-hint: "[the goal, or nothing to resume]"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-A goal bigger than one pull or merge request runs one of two bad ways: one long session doing everything in turn,
-or subagents fanned out inside one session where nobody can open, steer, or review them. Here every task is a
-child session in its own git worktree, the person approves each parallel set before it starts, and this session
-reviews and lands each request. The board holds the round, so a compaction or a restart loses nothing.
+A goal bigger than one pull or merge request goes badly as one long session doing everything in turn. Here every
+task is a card built in its own git worktree, the person approves each parallel set before it starts, and this
+session reviews and lands each request. The board holds the round, so a compaction or a restart loses nothing.
+
+**A card is built by a subagent unless the person asked for sessions.** A subagent needs nothing more from them: no
+second window to approve commands in, nothing to archive afterwards. A child session is one they can open and steer,
+and it costs them exactly that attention, so start one only when they asked for it in words ("run these as
+sessions", "start a session for this"), pressed Start on a card in the board pane, or approved a plan whose unit
+says `session`. Where they did not say, it is a subagent, and you do not ask which.
 
 `aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` route has every action
 of `aw board`.
@@ -26,9 +31,18 @@ This route is who works where, on what, with which rules, and what comes back.
   session briefing prints the board's state; start again from Step 0.
 - **Nothing starts without the person's yes**, and nothing merges without a review. The yes is recorded on the
   cards with `aw board grant`; never record a grant the person did not give.
-- **Never poll by hand.** A child wakes this session when it ends a turn; a terminal child is waited on with a
-  background `aw board wait`. No hand-written poll loops, no scheduled wake-ups.
+- **Never poll by hand.** A subagent's result comes back to this session; a child session wakes it when it ends a
+  turn; a terminal child is waited on with a background `aw board wait`. No hand-written poll loops, no scheduled wake-ups.
 - **A child's "passed" is a claim until checked.** Review reads the diff and re-runs what the risk calls for.
+- **Models step down a tier.** A child session runs one tier below this session and never below Opus, so only a
+  Fable orchestrator's children change model, and you review work built at or below your own tier. A subagent you
+  start yourself runs one tier below you and never below Sonnet: pass `model` on the Agent call. A judge inherits
+  and is never stepped down: a reviewer kept from the builder's view (`agentcraft:vision-critic`,
+  `agentcraft:cold-reader`) and any reviewer whose verdict gates a merge. A workflow keeps the tiers its script
+  names, and a fork keeps this session's model. The person's word wins, recorded on the card as a model pin:
+  `inherit` exempts the card, a family name (`fable`, `opus`, `sonnet`, `haiku`) sets its session. A plan approved
+  in plan mode names a model for each unit, and that is the person's word too: the pin on a session unit's card,
+  and the `model` on a subagent unit's Agent call.
 - **What a child cannot do is not dropped.** Anything after `owed=` in its CARD line becomes a gate card; a card it
   filed with `--suggest` is offered to the person.
 
@@ -67,6 +81,25 @@ The body follows `W/assets/templates/card.md`, `## Done when` included. No card,
 task judged by eye or ear gets `--labels look` (or `motion`, `sound`), and `--skills` names what its child loads
 first.
 
+**From a plan approved in plan mode.** This is Claude Code's own plan mode, where a session writes a plan file
+and the person approves it before anything changes; it is not the spec and plan tree the but-first-planning area
+keeps under `.agents/plan/`. Such a plan ends with an `## Orchestration` table: each unit, what it runs as
+(`session`, `subagent`, or `here`), the units it waits on, its files, and its model. This area's hooks refuse a
+plan without one, hand this session the waves at approval, and the session briefing prints them again after a
+clear or a compaction. That table is the intake, so nothing it settles is asked again:
+
+- A `session` unit becomes a card here, with the unit's files, `--after` for the cards it waits on, and `--model
+  <the plan's model>`. One that waits on a subagent or here unit is filed once those finish.
+- The plan's `Approval:` line is the person's yes. Step 3 still runs `propose`, to check the plan's waves against
+  the board, and records the grant with `--by "<their name>, plan approved <the time>"`. Ask again only where the
+  set `propose` gives differs from the plan's.
+- A `subagent` unit is an Agent call whose `description` starts with the unit id (`U2 ...`) and whose `model` is
+  the plan's, a wave's calls sent in one message. A call on another model, or before the subagent units it waits
+  on have returned, is refused with the right value.
+- A `here` unit is this session's own work.
+
+If the plan has to change once the work is under way, tell the person what changed and why before leaving it.
+
 *Done when: every task is a card with done criteria, and `aw board ready` lists the ones nobody has to unblock.*
 
 ## Step 2: The briefs that outlive a card
@@ -97,7 +130,7 @@ node "W/scripts/aw.mjs" board propose
 It runs cards together only when their files are disjoint, neither waits on the other, and they share no
 long-held lock. `kanban.conflicts` in `.agents/agent-works.json` refines the files: `rederived` ones never count,
 `merge` ones only warn, a `shared` path always holds. Show the person the set, each held card with its reason,
-the warnings, the locks each card needs, and the approval you are asking for: each child pushes its branch and
+the warnings, the locks each card needs, the model each child will run on, and the approval you are asking for: each child pushes its branch and
 opens its request without asking; you merge on green after review.
 
 If the person wants a held card run anyway, say what it costs (whichever lands second syncs, regenerates and
@@ -106,6 +139,9 @@ re-bumps) and run it on their word. On a clear yes:
 ```
 node "W/scripts/aw.mjs" board grant <ids> --by "<their name>, <the time>"
 ```
+
+If the person wants the set kept on this session's model, add `--model inherit` to that grant; one card is pinned
+the same way, or with `aw board add --model inherit` when it is filed, and `--model step` takes a pin off.
 
 Each card's branch defaults to `feat/` and its title's slug; to name one, grant that card alone with `--branch
 <type>/<topic>`. A queue approved up front is re-checked with `propose` at each start and asked about again only
@@ -116,7 +152,8 @@ when the set changes.
 ## Step 4: Dispatch
 
 `/agentcraft:agent-works dispatch <id>` for each card in the set: it brings the base up to date, writes the brief, starts
-the child in its own worktree, and binds it. The board, the locks and the notes are shared by every worktree;
+the card's builder in its own worktree (a subagent, or a child session where the person asked for sessions), and
+binds it. Send a set's subagents in one message so they run together. The board, the locks and the notes are shared by every worktree;
 nothing else is. Where this host can start no session and the person no terminal, the round runs serially:
 `W/routes/orchestrate/references/subagent-fallback.md`.
 

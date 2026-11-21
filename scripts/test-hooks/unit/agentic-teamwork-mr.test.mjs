@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { judge, main } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/mr.mjs";
+import { judge, judgeChecks, main } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/mr.mjs";
 import { runNode, tempDir, write } from "./helpers.mjs";
 
 const HEAD = "0123456789abcdef0123456789abcdef01234567";
@@ -317,6 +317,87 @@ test("a request called mergeable with no checks is given a moment for them to ap
     const atOnce = await mr(forge(kind, routesFor(kind, "unchecked")), ["wait", "7", "--settle", "0"]);
     assert.deepEqual([atOnce.exit, atOnce.waited], [0, 0], kind);
   }
+});
+
+// ---------------------------------------------------------------------------
+// wait --checks: the watch that follows a push, before any review. It reads
+// the checks on the head alone, so what only a person clears (an approval, a
+// draft, an open thread) does not end it before the checks do.
+
+/** A request nobody has approved yet, with its checks in the given state. */
+const fresh = {
+  github: (checks) => pr({ merge: "BLOCKED", review: "REVIEW_REQUIRED", checks }),
+  gitlab: (pipeline) => mrJson({ dms: "not_approved", pipeline }),
+};
+const CHECKS = {
+  none: { github: [], gitlab: null }, running: { github: ["RUNNING"], gitlab: "running" },
+  green: { github: ["SUCCESS"], gitlab: "success" }, failed: { github: ["FAILURE"], gitlab: "failed" },
+};
+const unapproved = (kind, ...states) => ({
+  ...viewing[kind](...states.map((s) => fresh[kind](CHECKS[s][kind]))),
+  ...(kind === "gitlab" ? { "GET projects/group%2Fthing/pipelines/99/jobs": [FAILED_JOBS] } : {}),
+});
+
+test("wait --checks exits 0 on green checks while the approval is still missing", async () => {
+  for (const kind of FORGES) {
+    const fake = forge(kind, unapproved(kind, "none", "running", "green"));
+    const { exit, out, waited } = await mr(fake, ["wait", "7", "--checks", "--interval", "10", "--timeout", "600"]);
+    assert.deepEqual([exit, out.exit, out.reason, out.mergeStatus], [0, 0, "checks green", "approval"], kind);
+    assert.equal(waited, 20_000, "it waited for the checks, not for the approval");
+    assert.equal(fake.calls.length, 3, `${kind}: it reads, and starts nothing: a push makes its own checks`);
+    // Without the flag the same request stops at once on the approval.
+    assert.equal((await mr(forge(kind, unapproved(kind, "running")), ["wait", "7"])).exit, 4, kind);
+  }
+});
+
+test("wait --checks is not ended by a draft, and --pipeline is the same flag", async () => {
+  for (const kind of FORGES) {
+    const { exit, out } = await mr(forge(kind, routesFor(kind, "draft")), ["wait", "7", "--pipeline"]);
+    assert.deepEqual([exit, out.reason], [0, "checks green"], kind);
+  }
+});
+
+test("wait --checks exits 1 when the checks failed, naming them", async () => {
+  for (const kind of FORGES) {
+    const { exit, out } = await mr(forge(kind, unapproved(kind, "running", "failed")), ["wait", "7", "--checks"]);
+    assert.equal(exit, 1, kind);
+    assert.equal(out.reason, `checks failed: ${kind === "github" ? "check-0" : "validate"}`);
+    assert.ok(out.checks.url, "the page that says why");
+  }
+});
+
+test("wait --checks keeps waiting while the head has no checks, and exits 3 at the timeout", async () => {
+  for (const kind of FORGES) {
+    const none = await mr(forge(kind, unapproved(kind, "none")), ["wait", "7", "--checks", "--interval", "10", "--timeout", "25"]);
+    assert.deepEqual([none.exit, none.out.reason, none.out.checks.state], [3, "still waiting after 25s: no checks on the head yet", "none"], kind);
+    assert.equal(none.waited, 25_000, "the settle time that lets a mergeable request through does not apply");
+    const running = await mr(forge(kind, unapproved(kind, "running")), ["wait", "7", "--checks", "--timeout", "0"]);
+    assert.deepEqual([running.exit, running.out.reason], [3, "still waiting after 0s: checks running"], kind);
+  }
+});
+
+test("wait --checks exits 6 on a request that closed or merged, without reading its checks as an answer", async () => {
+  for (const kind of FORGES) {
+    for (const state of ["closed", "merged"]) {
+      const { exit, out } = await mr(forge(kind, routesFor(kind, state)), ["wait", "7", "--checks"]);
+      assert.equal(exit, 6, `${kind} ${state}`);
+      assert.match(out.reason, new RegExp(`is ${state}$`));
+    }
+  }
+});
+
+test("judgeChecks reads the checks alone, whatever the merge status says", () => {
+  const change = (state, over = {}) => ({ state: "open", mergeStatus: "approval", target: "main", checks: { state, failed: [] }, ...over });
+  assert.deepEqual(judgeChecks(change("passed")), { exit: 0, reason: "checks green" });
+  assert.deepEqual(judgeChecks(change("passed", { mergeStatus: "conflicts" })), { exit: 0, reason: "checks green" });
+  assert.deepEqual(judgeChecks(change("skipped")), { exit: 0, reason: "checks skipped, none failed" });
+  assert.deepEqual(judgeChecks(change("canceled")), { exit: 1, reason: "checks canceled" });
+  assert.deepEqual(judgeChecks(change("failed", { checks: { state: "failed", failed: ["lint", "unit"] } })), { exit: 1, reason: "checks failed: lint, unit" });
+  assert.deepEqual(judgeChecks(change("blocked")), { exit: 6, reason: "a check is waiting on a person" });
+  assert.deepEqual(judgeChecks(change("pending")), { wait: "checks running" });
+  assert.deepEqual(judgeChecks(change("none")), { wait: "no checks on the head yet" });
+  assert.deepEqual(judgeChecks(change("none", { checks: null })), { wait: "no checks on the head yet" });
+  assert.deepEqual(judgeChecks(change("passed", { state: "merged" }), "merge request"), { exit: 6, reason: "the merge request is merged" });
 });
 
 // ---------------------------------------------------------------------------

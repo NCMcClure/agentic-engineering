@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { BoardError, boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
-import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, areaForm, defaultBranch, grantText, renderBrief } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
+import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, areaForm, defaultBranch, grantText, renderBrief, stepsDown } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
 import { conflictConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
 
 const CLI = { board: 'node "/opt/plugin/scripts/aw.mjs" board', lock: 'node "/opt/plugin/scripts/aw.mjs" lock' };
@@ -172,4 +172,34 @@ test("a granted branch is conventional, defaults from the title, and the grant n
   assert.ok(BRANCH.test("fix/hook-stdin"));
   assert.ok(!BRANCH.test("main") && !BRANCH.test("feature/x") && !BRANCH.test("feat/"));
   assert.equal(grantText("Pat, 2026-10-28T09:00Z", "feat/kebab", "0007"), "Pat, 2026-10-28T09:00Z: push feat/kebab and open the pull or merge request (card 0007)");
+});
+
+test("a child is told its subagents step down a tier, never below the floor, and that a judge inherits", () => {
+  for (const c of [card("0007"), card("0007", { model: "sonnet" })]) {
+    const text = brief(c, [c]);
+    assert.match(text, /^## Subagents$/m);
+    assert.match(text, /one tier below your own model and never below Sonnet: pass `model` on each Agent call \(`opus` from Fable, `sonnet` from Opus or Sonnet\)/);
+    assert.match(text, /`agentcraft:vision-critic`, `agentcraft:cold-reader`[^.]*whose verdict gates a merge\) takes no `model`/, "a judge is not weaker than the builder it checks");
+    assert.match(text, /a workflow keeps the tiers its script names/);
+  }
+  assert.ok(TEMPLATE.indexOf("## Subagents") > TEMPLATE.indexOf("## Cadence") && TEMPLATE.indexOf("## Subagents") < TEMPLATE.indexOf("## When the base moves"));
+});
+
+test("the step-down a brief prints is read from the tiers and the floor", () => {
+  assert.equal(stepsDown("sonnet"), "`opus` from Fable, `sonnet` from Opus or Sonnet");
+  assert.equal(stepsDown("opus"), "`opus` from Fable or Opus");
+});
+
+test("a card pinned to inherit is exempt: its brief asks for no step-down", () => {
+  const c = card("0007", { model: "inherit" });
+  const text = brief(c, [c]);
+  assert.match(text, /^## Subagents$/m);
+  assert.match(text, /exempt from the model step-down/);
+  assert.doesNotMatch(text, /one tier below/);
+});
+
+test("a model pin the board does not know is refused, so no child is started on it", () => {
+  const c = card("0007", { model: "gpt" });
+  assert.throws(() => brief(c, [c]), (e) => e instanceof BoardError && e.kind === "refused"
+    && /0007's model is "gpt": a pin is inherit, fable, opus, sonnet, or haiku/.test(e.message));
 });

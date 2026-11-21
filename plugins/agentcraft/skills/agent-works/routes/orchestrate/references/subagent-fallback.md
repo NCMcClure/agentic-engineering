@@ -9,7 +9,7 @@ person's yes before anything starts, a review before anything merges, and the bo
 
 ## No child sessions (`orchestrate`, `dispatch`)
 
-**The person can open a terminal.** `dispatch` prints `claude -w card-<id> "/agentcraft:agent-works work-card <id>"` for
+**The person can open a terminal.** `dispatch` prints `claude -w card-<id> --model <family> "/agentcraft:agent-works work-card <id>"` for
 them to run, records the card with `aw board bind <id> --terminal`, and waits with a background
 `aw board wait --until review --ids <id>` (exit 3 is its timeout: run it again). Findings go under `## Review` in
 the card's file, where the child reads them with `aw board show <id>`.
@@ -26,9 +26,10 @@ the card's file, where the child reads them with `aw board show <id>`.
 
 The parallel set still matters: `aw board propose` gives the order, and a card that waits on another still waits.
 
-**Subagents, but no sessions.** A subagent may build a card in the card's worktree, on the card's branch, with the
-brief `aw board brief <id>` prints as its whole prompt. It is not a child session: the person cannot open or steer
-it, so say so when you ask for their yes, keep to one subagent per card, and review each diff yourself. The
+**Subagents.** This is the default wherever the host has them, sessions or not: a subagent builds a card in the
+card's worktree, on the card's branch, with the brief `aw board brief <id>` prints as its whole prompt, recorded
+with `aw board bind <id> --subagent`. It is not a child session: the person cannot open or steer it, so keep to one
+subagent per card and review each diff yourself. The
 card-sync hook holds a subagent's stop for the cards it committed to.
 
 ## No Workflow tool (`sync-cards`)

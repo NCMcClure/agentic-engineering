@@ -13,6 +13,26 @@
         ]
       },
       {
+        "matcher": "^(EnterPlanMode|ExitPlanMode)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-gate.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "^(Agent|Task)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-follow.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
         "matcher": "Edit|MultiEdit|Write",
         "hooks": [
           {
@@ -40,6 +60,26 @@
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/guard.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "^(Write|Edit|MultiEdit|ExitPlanMode)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-gate.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "^(Agent|Task|mcp__ccd_session__start_session)$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-follow.mjs\"",
             "timeout": 5
           }
         ]
@@ -103,6 +143,15 @@
         "hooks": [
           {
             "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-follow.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agentic-teamwork/hooks/stop-gate.mjs\"",
             "timeout": 300
           }
@@ -156,6 +205,15 @@
             "timeout": 10
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-follow.mjs\"",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "TaskCompleted": [
@@ -175,6 +233,15 @@
           {
             "type": "command",
             "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/write-like-me/hooks/prompt-submit.mjs\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v node >/dev/null 2>&1 || exit 0; node \"${CLAUDE_PLUGIN_ROOT}/skills/agent-works/hooks/plan-gate.mjs\"",
             "timeout": 5
           }
         ]

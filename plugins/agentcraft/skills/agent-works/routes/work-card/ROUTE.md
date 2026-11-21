@@ -47,6 +47,8 @@ reporting `blocked`.
   but-first-planning follows `/agentcraft:but-first-planning build-tdd`.
 - A task judged by eye or ear (a `look`, `motion` or `sound` label): load
   `/agentcraft:perceptual-loop` before the first test.
+- A subagent you start takes the model your brief's Subagents section gives it: one tier below yours and never
+  below Sonnet, unless the card is exempt. A judge takes none and inherits yours.
 - Anything only one session can use at a time (a port, a simulator, a database, a timing run) goes through
   `/agentcraft:agent-works resource-locks`, with `--as card-<id>`.
 - A file on your brief's not-yours list belongs to another child right now. Do not edit it; if the task needs it,

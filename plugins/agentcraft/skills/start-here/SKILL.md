@@ -172,7 +172,7 @@ Three phases, each leaving files in a workspace: write and sharpen a spec, decom
 
 ### agent-works
 
-The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, runs each card as a child session in its own worktree, and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.
+The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, has a subagent build each card in its own worktree (or a child session, when you ask for sessions), and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.
 
 | They want to | Hand off to | Starts it |
 | --- | --- | --- |
