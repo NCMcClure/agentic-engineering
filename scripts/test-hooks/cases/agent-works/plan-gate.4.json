@@ -1,0 +1,27 @@
+{
+  "script": "plan-gate.mjs",
+  "event": "PreToolUse",
+  "fixture": "standard",
+  "stdin": {
+    "hook_event_name": "PreToolUse",
+    "session_id": "plan-gate-4",
+    "cwd": "{{REPO}}",
+    "permission_mode": "plan",
+    "tool_name": "ExitPlanMode",
+    "tool_input": {
+      "plan": "# Plan\n\n1. Add the function.\n",
+      "planFilePath": "{{REPO}}/.git/plan-gate-4.md"
+    }
+  },
+  "env": {
+    "TMPDIR": "{{REPO}}/.git"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutJson": {
+      "keysPresent": [
+        "hookSpecificOutput"
+      ]
+    }
+  }
+}

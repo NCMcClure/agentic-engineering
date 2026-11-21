@@ -4,7 +4,7 @@
 // holds one project workspace, .agents/plan/, and any number of named ones,
 // .agents/plans/<name>/. So a plan card is read only: its fields come from the
 // issue file on the base branch, its lane is derived, and the loop's own
-// fields (session, branch, worktree, mr) live in a shadow file beside the
+// fields (session, branch, worktree, mr, model) live in a shadow file beside the
 // cards, `plan-<id>.md`. A move never edits an issue here: it says which
 // status the funnel sets in the card's worktree.
 //
@@ -25,7 +25,7 @@ export const PLAN_PATHS = [".agents/plan/plan", ".agents/plan/progress/dispatch"
 export const SHADOW_FILE = /^plan-((?:[a-z][a-z0-9-]*\.)?\d{2}-\d{2}-\d{2})\.md$/;
 const PLAN_ID = /^(?:([a-z][a-z0-9-]*)\.)?(\d{2}-\d{2}-\d{2})$/;
 /** The fields the loop keeps on a shadow file. Everything else about a plan card comes from its issue. */
-export const LOOP_KEYS = ["session", "branch", "worktree", "mr", "merged", "grant", "updated"];
+export const LOOP_KEYS = ["session", "branch", "worktree", "mr", "merged", "grant", "model", "updated"];
 const BINDING = ["session", "branch", "worktree", "mr", "grant"];
 
 const usage = (message) => new BoardError("usage", message);
@@ -157,8 +157,8 @@ export function shadowAfter(card, shadow, change) {
   return next;
 }
 
-/** True when a shadow holds nothing worth keeping: no binding, no change request, nothing hand-written. */
-export const shadowEmpty = (s) => !BINDING.some((k) => s[k] !== undefined) && s.merged === undefined && !s.unknown?.length && !s.body?.trim();
+/** True when a shadow holds nothing worth keeping: no binding, no change request, no model pin, nothing hand-written. */
+export const shadowEmpty = (s) => !BINDING.some((k) => s[k] !== undefined) && s.merged === undefined && s.model === undefined && !s.unknown?.length && !s.body?.trim();
 
 /**
  * What moving a plan card does: `{ status, change }`, the plan status the funnel

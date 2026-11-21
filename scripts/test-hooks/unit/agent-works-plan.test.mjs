@@ -425,3 +425,19 @@ test("grant, claim, and done on a plan card: the funnel runs in the worktree, th
   assert.throws(() => r.git("config", "--get", grantKey), "the grant is revoked");
   assert.match(fs.readFileSync(path.join(r.kanban, "plan-01-01-01.md"), "utf8"), /^merged: 0123456789abcdef0123456789abcdef01234567$/m);
 });
+
+test("a plan card's model pin lives on its shadow and outlasts an abandon", (t) => {
+  const r = planRepo(t);
+  const granted = board(r.main, "grant", "01-01-01", "--by", "Pat 2026-11-18T09:00Z", "--branch", "feat/plan-setup", "--model", "inherit");
+  assert.equal(granted.status, 0, granted.stderr);
+  const shadowText = () => fs.readFileSync(path.join(r.kanban, "plan-01-01-01.md"), "utf8");
+  assert.match(shadowText(), /^model: inherit$/m);
+  assert.equal(listJson(r.main, "list", "--scope", "plan", "--json").find((c) => c.id === "01-01-01").model, "inherit");
+  assert.match(board(r.main, "show", "01-01-01").stdout, /^bound: branch feat\/plan-setup, model inherit$/m);
+  assert.match(board(r.main, "brief", "01-01-01").stdout, /exempt from the model step-down/);
+  assert.equal(board(r.main, "abandon", "01-01-01").status, 0);
+  assert.match(shadowText(), /^model: inherit$/m, "the shadow is kept for the pin alone");
+  assert.doesNotMatch(shadowText(), /^grant:/m);
+  assert.equal(board(r.main, "grant", "01-01-01", "--by", "Pat", "--branch", "feat/plan-setup", "--model", "step").status, 0);
+  assert.doesNotMatch(shadowText(), /^model:/m, "step takes the pin off a plan card too");
+});

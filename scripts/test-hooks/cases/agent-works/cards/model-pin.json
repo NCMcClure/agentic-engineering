@@ -1,0 +1,25 @@
+{
+  "file": "0034-define-the-shared-card-format.md",
+  "slug": "define-the-shared-card-format",
+  "card": {
+    "id": "0034",
+    "file": "0034-define-the-shared-card-format.md",
+    "title": "Define the shared card format",
+    "status": "backlog",
+    "order": 3,
+    "priority": "normal",
+    "labels": [],
+    "skills": [],
+    "source": "user",
+    "kind": "task",
+    "after": [],
+    "files": [],
+    "created": "2026-11-18T08:00:00.000Z",
+    "updated": "2026-11-18T08:00:00.000Z",
+    "grant": "sam, 2026-11-18 09:00: push feat/card-format and open the pull or merge request (card 0034)",
+    "model": "inherit",
+    "branch": "feat/card-format",
+    "unknown": [],
+    "body": "## Done when\n\n- The format is written down."
+  }
+}

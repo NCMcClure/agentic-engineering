@@ -9,7 +9,7 @@ person's yes before anything starts, a review before anything merges, and the bo
 
 ## No child sessions (`orchestrate`, `dispatch`)
 
-**The person can open a terminal.** `dispatch` prints `claude -w card-<id> "/agentcraft:agent-works work-card <id>"` for
+**The person can open a terminal.** `dispatch` prints `claude -w card-<id> --model <family> "/agentcraft:agent-works work-card <id>"` for
 them to run, records the card with `aw board bind <id> --terminal`, and waits with a background
 `aw board wait --until review --ids <id>` (exit 3 is its timeout: run it again). Findings go under `## Review` in
 the card's file, where the child reads them with `aw board show <id>`.

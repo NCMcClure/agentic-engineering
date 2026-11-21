@@ -26,7 +26,7 @@ node "W/scripts/mr.mjs" status <n> --json
 node "W/scripts/mr.mjs" wait <n> --json
 ```
 
-Run it as a background command and carry on; you are told when it exits. It re-reads every 10 seconds for up to 9 minutes (`--interval`, `--timeout`), keeps waiting only while the forge is still computing the merge status or the checks are queued or running, and starts the checks itself, once, when the forge wants them and the head has none. It stops at once on a blocker no check result clears. Never poll the checks by hand, schedule wake-ups, or hand the person a page to watch.
+Run it as a background command and carry on; you are told when it exits. It re-reads every 10 seconds for up to 9 minutes (`--interval`, `--timeout`), keeps waiting only while the forge is still computing the merge status or the checks are queued or running, and starts the checks itself, once, when the forge wants them and the head has none. It stops at once on a blocker no check result clears. Never poll the checks by hand, schedule wake-ups, or hand the person a page to watch: this wait is the watch, on either forge. It judges whether the request can merge too; the watch `ship` starts after a push is `wait <n> --checks`, which reads the checks alone and so is not ended by a missing approval. Where the desktop app is watching a GitHub pull request's checks, that covers the time before the review; it does not merge, so land still runs this wait, once, in the background.
 
 *Done when: wait exited with a code other than 3.*
 

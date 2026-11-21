@@ -163,3 +163,8 @@ test("conflictConfig fills the defaults and takes a bare path as a regenerated f
   assert.deepEqual(conflicts(), { shared: [], merge: [], rederived: [], resources: {}, lockOrder: [] });
   assert.deepEqual(conflicts({ rederived: ["./gen/out.json/"] }).rederived, [{ path: "gen/out.json", command: null }]);
 });
+
+test("a proposed card carries its model pin, and a card without one carries no model at all", () => {
+  const p = propose(board([card("0001", { files: ["a/"], model: "inherit" }), card("0002", { files: ["b/"] })]));
+  assert.deepEqual(p.run.map((c) => [c.id, c.model, "model" in c]), [["0001", "inherit", true], ["0002", undefined, false]]);
+});

@@ -11,7 +11,7 @@
 //
 // Pure: the template text and the card in, the brief out.
 import { BoardError, byPlace, roleIds } from "./board.mjs";
-import { DONE_HEADINGS, doneCriteria, sections, slugify } from "./cards.mjs";
+import { DONE_HEADINGS, MODEL_FLOORS, MODEL_PINS, MODEL_TIERS, doneCriteria, orList, sections, slugify, stepDown, tierName } from "./cards.mjs";
 import { conflictConfig, locksFor } from "./conflicts.mjs";
 import { planHome } from "./plan.mjs";
 import { cardLineFormat } from "./report.mjs";
@@ -120,6 +120,27 @@ function firstOf(card) {
   return out.join("\n\n");
 }
 
+/** Which `model` a session on each tier passes for the step-down to `floor`: "`opus` from Fable, `sonnet` from Opus or Sonnet". */
+export function stepsDown(floor) {
+  const from = new Map();
+  for (const tier of MODEL_TIERS.slice(0, MODEL_TIERS.indexOf(floor) + 1)) {
+    const to = stepDown(tier, floor);
+    from.set(to, [...(from.get(to) ?? []), tierName(tier)]);
+  }
+  return [...from].map(([to, tiers]) => `\`${to}\` from ${orList(tiers)}`).join(", ");
+}
+
+// The round's model rule, as far as a child carries it: its own session's model
+// was set when it was started, so the brief covers the subagents it starts. A
+// card pinned to `inherit` is exempt from the step-down altogether.
+function modelsOf(card) {
+  if (card.model === "inherit") return "This card is exempt from the model step-down: start each subagent without a `model`, so it inherits yours.";
+  const floor = MODEL_FLOORS.subagent;
+  return `A subagent you start runs one tier below your own model and never below ${tierName(floor)}: pass \`model\` on each Agent call (${stepsDown(floor)}), `
+    + `and tell a subagent that starts its own to pass \`${floor}\`. A judge (\`${PLUGIN}:vision-critic\`, \`${PLUGIN}:cold-reader\`, any reviewer kept from the builder's view, any reviewer whose verdict gates a merge) takes no \`model\`, `
+    + "so it inherits yours and is never weaker than the work it checks, and a workflow keeps the tiers its script names.";
+}
+
 /**
  * The brief for `card`. `cli` holds the command lines a child types, each ready to take its arguments: `board`
  * (`node "<...>/aw.mjs" board`) and `lock`. `cardPath` is the card's file at the main checkout, `base` the base
@@ -130,6 +151,9 @@ export function renderBrief(template, { card, board, config = conflictConfig(), 
   const done = doneOf(card);
   if (!done) {
     throw new BoardError("refused", `${card.id} has no done criteria${card.source === "plan" ? " in its issue" : " under ## Done when"}: write them first, then brief it`);
+  }
+  if (card.model !== undefined && !MODEL_PINS.includes(card.model)) {
+    throw new BoardError("refused", `${card.id}'s model is "${card.model}": a pin is ${orList(MODEL_PINS)}`);
   }
   const holder = `card-${card.id}`;
   const branch = card.branch ?? "<type>/<topic>";
@@ -155,6 +179,7 @@ export function renderBrief(template, { card, board, config = conflictConfig(), 
     push: card.grant
       ? `The claim writes the person's push grant ("${card.grant}") to your branch, so the push goes through without asking, but only as exactly \`git push -u origin ${branch}\`, as a command of its own. A chained command, another flag, or another refspec asks the person.`
       : "No push grant was given for this card, so the push asks the person first.",
+    models: modelsOf(card),
     sync: syncOf(config),
     cardLine: cardLineFormat(card.id),
     issue: card.source === "plan"
@@ -203,6 +228,10 @@ These are predictions. Touch what the task needs, and say in your report where y
 5. **Owe what you cannot check** (credentials, a device, a person's eye), never claim it: \`{{board}} owe "<what>" --ref <the change or commit> --needs <who or what>\`. Out-of-scope work you notice goes on the board, not into this branch: \`{{board}} add "<title>" --suggest --details "<what you saw>"\`.
 6. **Push.** {{push}}
 7. **Open the {{change}}**, then \`{{board}} move {{id}} review --mr <number>\`.
+
+## Subagents
+
+{{models}}
 
 ## When the base moves
 

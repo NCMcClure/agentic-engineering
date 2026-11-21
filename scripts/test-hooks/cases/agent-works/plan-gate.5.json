@@ -1,0 +1,19 @@
+{
+  "script": "plan-gate.mjs",
+  "event": "UserPromptSubmit",
+  "fixture": "unplugged",
+  "stdin": {
+    "hook_event_name": "UserPromptSubmit",
+    "session_id": "plan-gate-5",
+    "cwd": "{{REPO}}",
+    "permission_mode": "plan",
+    "prompt": "Plan how to add a function."
+  },
+  "env": {
+    "TMPDIR": "{{REPO}}/.git"
+  },
+  "expect": {
+    "exit": 0,
+    "stdoutEmpty": true
+  }
+}

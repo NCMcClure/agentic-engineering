@@ -587,3 +587,25 @@ test("a DENYLIST entry names an agent the plugin ships, and the mod's tools carr
   assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${WAS}" names an agent by the plugin it was in; tidy is an area of ${ONE}, so the host names it ${ONE}:critic`, "m"));
   assert.match(broken(), new RegExp(`^FAIL: ${HOME}/skills/agent-works/hooks/kanban/register\\.mjs answers mcp__kanban__\\w+; the mod's tools are mcp__${ONE}__<tool>`, "m"));
 });
+
+// The two READMEs a person lands on are held to the README check the plugin ships.
+test("a landing README over the word limit, out of order, or naming agent plumbing fails", (t) => {
+  const long = validate(tree(t, { text: { "README.md": (s) => `${s}\n${"word ".repeat(900)}\n` } }));
+  assert.equal(long.status, 1);
+  assert.match(long.stdout, /^FAIL: readme-length: README\.md: \d+ words, over the 800-word limit/m);
+
+  const plumbing = validate(tree(t, { text: { "plugins/agentcraft/README.md": (s) => s.replace("## Contributing", "## Contributing\n\nThe rules are in AGENTS.md.\n") } }));
+  assert.equal(plumbing.status, 1);
+  assert.match(plumbing.stdout, /^FAIL: readme-plumbing: plugins\/agentcraft\/README\.md:\d+: names `AGENTS\.md`/m);
+
+  const order = validate(tree(t, { text: { "README.md": (s) => s.replace("## Usage", "## How to start") } }));
+  assert.equal(order.status, 1);
+  assert.match(order.stdout, /^FAIL: readme-sections: README\.md: no `## Usage` section/m);
+});
+
+test("a landing README with an em-dash or an emoji fails", (t) => {
+  const dash = validate(tree(t, { text: { "README.md": (s) => s.replace("## Usage", "## Usage\n\nOne thing \u2014 and another.\n") } }));
+  assert.match(dash.stdout, /^FAIL: README\.md uses an em-dash/m);
+  const emoji = validate(tree(t, { text: { "plugins/agentcraft/README.md": (s) => s.replace("## Usage", "## Usage\n\nShip it \u{1F680}\n") } }));
+  assert.match(emoji.stdout, /^FAIL: plugins\/agentcraft\/README\.md uses an emoji/m);
+});

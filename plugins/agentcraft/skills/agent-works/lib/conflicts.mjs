@@ -55,7 +55,7 @@ function covers(pattern, path) {
 }
 
 /** Where two paths meet: the more specific one, or null when neither lies under the other. */
-const meet = (a, b) => (covers(a, b) ? norm(b) : covers(b, a) ? norm(a) : null);
+export const meet = (a, b) => (covers(a, b) ? norm(b) : covers(b, a) ? norm(a) : null);
 
 /** The concrete shared paths a `*` pattern makes a card touch, by the directory its files work in. */
 function impliedShared(files, shared) {
@@ -179,7 +179,7 @@ export function propose(board, { config = conflictConfig(), max = board.parallel
   return {
     max,
     inFlight: inFlight.map((c) => ({ id: c.id, title: c.title, status: c.status, files: c.files ?? [], ...(c.session ? { session: c.session } : {}) })),
-    run: run.map((c) => ({ id: c.id, title: c.title, files: c.files ?? [], locks: c.locks, warnings: c.warnings })),
+    run: run.map((c) => ({ id: c.id, title: c.title, files: c.files ?? [], locks: c.locks, warnings: c.warnings, ...(c.model ? { model: c.model } : {}) })),
     held,
     warnings,
   };

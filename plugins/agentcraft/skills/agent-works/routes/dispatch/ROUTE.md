@@ -59,6 +59,7 @@ own, with the person's yes as the ask:
 start_session {
   initiation: "user_asked", context: "fresh", use_worktree: true,
   name: "card-<id>", branch_name: "<short slug>", source_branch: "<base>",
+  model: "<the child's model id, or left out>",
   prompt: "<the brief>",
   background: "<the round's goal, what the person decided, the constraints, and where this card fits: 80 characters or more>",
   wake_when_done: true
@@ -70,7 +71,14 @@ stand in for `prompt`: the brief carries the card, the background carries what t
 conversation. `branch_name` is a slug, not the branch: the host puts a prefix before it and a suffix after it, so
 the worktree starts on a branch the grant does not cover. The child creates the granted branch itself in its
 first step, and the push grant is written to that one. Leave the permission mode alone so the child inherits this
-session's. Then record it:
+session's.
+
+`model` is where the round's step-down happens. A child runs one tier below this session and never below Opus:
+from Fable, pass the current Opus model's id, written the way this session's own id is written; from Opus or
+below, leave `model` out and the child inherits. The card's `model:` line is the person's word and wins
+(`aw board show <id>` has it, and `aw board propose` prints it beside the card): `inherit` leaves `model` out
+whatever this session runs on, and a family name (`fable`, `opus`, `sonnet`, `haiku`) is passed as that family's
+current id. Then record it:
 
 ```
 node "W/scripts/aw.mjs" board bind <id> --session card-<id>
@@ -80,10 +88,13 @@ node "W/scripts/aw.mjs" board bind <id> --session card-<id>
 background:
 
 ```
-claude -w card-<id> "/agentcraft:agent-works work-card <id>"
+claude -w card-<id> --model <family> "/agentcraft:agent-works work-card <id>"
 node "W/scripts/aw.mjs" board bind <id> --terminal
 node "W/scripts/aw.mjs" board wait --until review --ids <id>
 ```
+
+`<family>` is the child's model by the same rule, as a family name (`opus`, `sonnet`). Always name it here: a new
+terminal session starts on the person's default model, not on this session's.
 
 Run `aw board wait` as a background command. It exits 0 when the card reaches review or the child writes a CARD
 line into it, and 3 at its timeout: then run it again.

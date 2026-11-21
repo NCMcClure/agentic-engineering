@@ -42,7 +42,7 @@ In a session the same cards are reachable through six tools, each one run of the
 | `ready` | Backlog tasks nobody has to unblock: no `needs`, every `after` card finished. Highest priority first. |
 | `list [--scope sprint\|backlog\|all\|gates\|plan\|<epic id>] [--kind K] [--all]` | Cards in board order. It lists one scope (the active sprint while there is one) and says how many open cards it left out: ask for `--scope all` before concluding a card does not exist. |
 | `show <id>` | The card; for an epic, its cards and progress too. |
-| `add "<title>" [--details T\|--from-file F] [--epic ID] [--files a,b] [--after ids] [--labels a,b] [--skills a,b] [--priority P] [--owner O] [--suggest]` | A new task card. A title already on the board is refused with the card that holds it. `--skills` names the skills its agent loads first. |
+| `add "<title>" [--details T\|--from-file F] [--epic ID] [--files a,b] [--after ids] [--labels a,b] [--skills a,b] [--priority P] [--owner O] [--model PIN] [--suggest]` | A new task card. A title already on the board is refused with the card that holds it. `--skills` names the skills its agent loads first. `--model inherit` exempts the card from the model step-down of a round, and a family name (`fable`, `opus`, `sonnet`, `haiku`) sets its session's model. |
 | `epic "<title>"` | A card that groups others through their `epic` field. |
 | `edit <id> [--title\|--details\|--append\|--files\|--after\|...]` | Change a card's fields or body. |
 | `move <id> <column\|suggested\|archived> [--mr NUMBER]`, `reorder <id> <index>` | Columns are `backlog`, `in-progress`, `review`, `done` unless `board.json` names others. A move to review takes the pull or merge request's number. A gate is never moved to done: it is settled. |
@@ -58,7 +58,8 @@ In a session the same cards are reachable through six tools, each one run of the
 | `lint [--fix]` | The findings below. `--fix` renumbers a duplicate id and moves an unknown status to the first column. |
 
 The loop's actions (`propose`, `grant`, `brief`, `bind`, `claim`, `done`, `wait`) belong to the `orchestrate`,
-`dispatch`, `work-card` and `review-card` skills.
+`dispatch`, `work-card` and `review-card` skills. `grant <ids> --by "<who, when>" --model PIN` sets the model pin on
+every card it names, and `--model step` takes it off; `abandon` leaves a pin where it is.
 
 Exit codes: 0 ok; 1 a finding, a refusal or a duplicate; 2 usage; 3 `wait` at its timeout. Read the code, not only
 the text.

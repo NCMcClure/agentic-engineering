@@ -16,20 +16,30 @@ const config = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json")
 const DOOR = read("door.json");
 /** This area's hooks on an event: the groups of the plugin's map that run a file of its hooks/ folder. */
 const mine = (event) => (config.hooks[event] ?? []).filter((g) => g.hooks.some((h) => String(h.command).includes("/skills/agent-works/hooks/")));
-const only = (event) => {
-  const groups = mine(event);
-  assert.equal(groups.length, 1, event);
-  assert.equal(groups[0].hooks.length, 1, event);
+const own = (script) => hookCommand("agentcraft", `skills/agent-works/hooks/${script}`);
+/** The one group on an event that runs this script of the area's. */
+const only = (event, script) => {
+  const groups = mine(event).filter((g) => g.hooks.some((h) => h.command === own(script)));
+  assert.equal(groups.length, 1, `${script} on ${event}`);
+  assert.equal(groups[0].hooks.length, 1, `${script} on ${event}`);
   return { matcher: groups[0].matcher, ...groups[0].hooks[0] };
 };
-const own = (script) => hookCommand("agentcraft", `skills/agent-works/hooks/${script}`);
+/** The area's scripts an event runs, in the map's order. */
+const scripts = (event) => mine(event).flatMap((g) => g.hooks.map((h) => /\/hooks\/([\w-]+\.mjs)"$/.exec(h.command)?.[1]));
 const matches = (matcher, name) => new RegExp(`^(?:${matcher})$`).test(name);
 // A mod's tool as the host names it: by the plugin that loads the mod.
 const hostId = (name) => `mcp__agentcraft__${name}`;
 
 test("agent-works hooks.json: the events it has a hook on, and nothing else", () => {
   assert.deepEqual(Object.keys(config).sort(), ["description", "hooks", "modules"]);
-  assert.deepEqual(Object.keys(config.hooks).filter((event) => mine(event).length).sort(), ["PostToolUse", "PreToolUse", "Stop", "SubagentStop"]);
+  assert.deepEqual(Object.keys(config.hooks).filter((event) => mine(event).length).sort(), ["PostToolUse", "PreToolUse", "Stop", "SubagentStop", "UserPromptSubmit"]);
+  assert.deepEqual(Object.fromEntries(["PostToolUse", "PreToolUse", "Stop", "SubagentStop", "UserPromptSubmit"].map((event) => [event, scripts(event)])), {
+    PostToolUse: ["card-sync.mjs", "plan-gate.mjs", "plan-follow.mjs"],
+    PreToolUse: ["guard.mjs", "plan-gate.mjs", "plan-follow.mjs"],
+    Stop: ["card-sync.mjs", "plan-follow.mjs"],
+    SubagentStop: ["card-sync.mjs", "plan-follow.mjs"],
+    UserPromptSubmit: ["plan-gate.mjs"],
+  });
 });
 
 test("agent-works has no session hook of its own: its lines and its briefing go out through the plugin's two commands", () => {
@@ -42,14 +52,14 @@ test("agent-works has no session hook of its own: its lines and its briefing go 
 });
 
 test("agent-works hooks.json: the guard sees every shell command and every edit, before it runs", () => {
-  const guard = only("PreToolUse");
+  const guard = only("PreToolUse", "guard.mjs");
   assert.equal(guard.matcher, "Bash|PowerShell|Edit|Write|MultiEdit|NotebookEdit");
   assert.equal(guard.command, own("guard.mjs"));
   assert.equal(guard.timeout, 5);
 });
 
 test("agent-works hooks.json: card-sync hears what changes a card's state, and both kinds of stop", async () => {
-  const after = only("PostToolUse");
+  const after = only("PostToolUse", "card-sync.mjs");
   assert.equal(after.command, own("card-sync.mjs"));
   for (const tool of ["Bash", "PowerShell", "Edit", "Write", "MultiEdit", "NotebookEdit"]) assert.ok(matches(after.matcher, tool), tool);
   for (const tool of ["Read", "Grep", hostId("list_tasks"), "mcp__agent-works__move_task", "mcp__other__move_task"]) assert.ok(!matches(after.matcher, tool), tool);
@@ -68,10 +78,34 @@ test("agent-works hooks.json: card-sync hears what changes a card's state, and b
   }
 
   for (const event of ["Stop", "SubagentStop"]) {
-    const stop = only(event);
+    const stop = only(event, "card-sync.mjs");
     assert.equal(stop.matcher, undefined);
     assert.equal(stop.command, own("card-sync.mjs"));
   }
+});
+
+test("agent-works hooks.json: the plan gate hears a prompt, plan mode entered and left, and a write that may be the plan file", () => {
+  const prompt = only("UserPromptSubmit", "plan-gate.mjs");
+  assert.deepEqual([prompt.matcher, prompt.timeout], [undefined, 5]);
+  const before = only("PreToolUse", "plan-gate.mjs");
+  for (const tool of ["Write", "Edit", "MultiEdit", "ExitPlanMode"]) assert.ok(matches(before.matcher, tool), tool);
+  for (const tool of ["EnterPlanMode", "Bash", "NotebookEdit", "Read", "ExitPlanModeV2", "MyWrite"]) assert.ok(!matches(before.matcher, tool), tool);
+  const after = only("PostToolUse", "plan-gate.mjs");
+  for (const tool of ["EnterPlanMode", "ExitPlanMode"]) assert.ok(matches(after.matcher, tool), tool);
+  for (const tool of ["Write", "Edit", "Agent"]) assert.ok(!matches(after.matcher, tool), tool);
+  assert.deepEqual([before.timeout, after.timeout], [5, 5]);
+  // The plan tree's own gate is another area's and another event's: the two never share a name's meaning.
+  assert.deepEqual(mine("TaskCompleted"), []);
+});
+
+test("agent-works hooks.json: the plan follower hears an Agent call before and after, a child session's start, and both kinds of stop", () => {
+  const before = only("PreToolUse", "plan-follow.mjs");
+  for (const tool of ["Agent", "Task", "mcp__ccd_session__start_session"]) assert.ok(matches(before.matcher, tool), tool);
+  for (const tool of ["TaskCreate", "TaskStop", "Bash", "mcp__ccd_session__send_message"]) assert.ok(!matches(before.matcher, tool), tool);
+  const after = only("PostToolUse", "plan-follow.mjs");
+  for (const tool of ["Agent", "Task"]) assert.ok(matches(after.matcher, tool), tool);
+  for (const tool of ["TaskCreate", "mcp__ccd_session__start_session"]) assert.ok(!matches(after.matcher, tool), tool);
+  for (const event of ["Stop", "SubagentStop"]) assert.deepEqual([only(event, "plan-follow.mjs").matcher, only(event, "plan-follow.mjs").timeout], [undefined, 5]);
 });
 
 test("agent-works hooks.json: every script it names is shipped, and the pane is the one module", () => {

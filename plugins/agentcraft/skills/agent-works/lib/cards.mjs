@@ -20,13 +20,46 @@
 /** The write order of the one-line keys. `remote`, the nested block, follows them. */
 export const KNOWN_KEYS = [
   "id", "title", "status", "order", "priority", "labels", "skills", "source", "created", "updated",
-  "kind", "owner", "needs", "ref", "epic", "sprint", "after", "files", "plan", "grant", "session", "branch", "worktree", "mr", "merged",
+  "kind", "owner", "needs", "ref", "epic", "sprint", "after", "files", "plan", "grant", "model", "session", "branch", "worktree", "mr", "merged",
 ];
+// The host's model families, strongest first, each with what a plan gives it
+// a unit for ("" for a tier no plan unit runs on). Every tier named anywhere
+// in this area's code comes from this list, so a new tier is one line here.
+const TIERS = [
+  ["fable", "only where the unit needs it"],
+  ["opus", "for design or judgment"],
+  ["sonnet", "for mechanical work to a known pattern"],
+  ["haiku", ""],
+];
+/** The model families by name, strongest first. */
+export const MODEL_TIERS = TIERS.map(([name]) => name);
+/** What each tier is for, as a plan's orchestration is told. */
+export const MODEL_USES = Object.fromEntries(TIERS);
+/** How far the step-down goes: a child session never runs below the first, a subagent never below the second. */
+export const MODEL_FLOORS = { session: "opus", subagent: "sonnet" };
+/**
+ * What a card's `model` line may say. A child session runs one tier below the
+ * orchestrating session's and never below the session floor; a pin is the
+ * person's word against that for one card: `inherit` exempts the card (its
+ * session and its subagents keep the model above them), a family name sets
+ * the session's model.
+ */
+export const MODEL_PINS = ["inherit", ...MODEL_TIERS];
+/** A tier as prose names it: `opus` is Opus. */
+export const tierName = (tier) => `${tier[0].toUpperCase()}${tier.slice(1)}`;
+/** A list as prose says it: "a", "a or b", "a, b, or c". */
+export const orList = (items) => (items.length < 3 ? items.join(" or ") : `${items.slice(0, -1).join(", ")}, or ${items.at(-1)}`);
+/** One tier below `tier`, never below `floor`: a tier at or under the floor stays where it is. Null for a name that is no tier. */
+export function stepDown(tier, floor) {
+  const at = MODEL_TIERS.indexOf(tier);
+  if (at === -1) return null;
+  return at >= MODEL_TIERS.indexOf(floor) ? tier : MODEL_TIERS[at + 1];
+}
 const NESTED = "remote";
 const KNOWN = new Set([...KNOWN_KEYS, NESTED]);
 const LISTS = new Set(["labels", "skills", "after", "files"]);
 // One-line text a card may leave out: read trimmed, absent when empty.
-const TEXTS = ["created", "updated", "owner", "needs", "ref", "epic", "sprint", "plan", "grant", "session", "branch", "worktree", "merged"];
+const TEXTS = ["created", "updated", "owner", "needs", "ref", "epic", "sprint", "plan", "grant", "model", "session", "branch", "worktree", "merged"];
 // Left out on write when they hold these.
 const IMPLIED = { priority: "normal", kind: "task" };
 const PAIR = /^([ \t]*)([\w-]+):[ \t]*(.*)$/;
@@ -182,7 +215,7 @@ export function newCard(id, title, fields = {}, at = "") {
   return card;
 }
 
-const VIEW_EXTRAS = ["after", "files", "plan", "grant", "session", "branch", "worktree", "mr", "merged", "blocked", "type", "planStatus", "tracker"];
+const VIEW_EXTRAS = ["after", "files", "plan", "grant", "model", "session", "branch", "worktree", "mr", "merged", "blocked", "type", "planStatus", "tracker"];
 
 /**
  * A card as every `--json` output gives it: the board's own fields always present (`owner`, `needs`, `ref`, `epic`,

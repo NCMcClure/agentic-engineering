@@ -88,14 +88,41 @@ or a compaction loses nothing.
 1. It puts the tasks on the board as cards, each with done criteria a stranger could check.
 2. `aw board propose` picks the ready cards that can run side by side: their files do not overlap, neither waits
    on the other, they share no long-held lock.
-3. You say yes, and `aw board grant` records that approval on each card with the one branch it covers.
-4. `dispatch` starts each card as a child session in its own git worktree, with a generated brief. Where the host
+3. You say yes, and `aw board grant` records that approval on each card with the one branch it covers, and with a
+   model pin where you want a card or the whole set kept off the model step-down.
+4. `dispatch` starts each card as a child session in its own git worktree, with a generated brief, one model
+   tier below the orchestrator and never below Opus: a Fable orchestrator's children build on Opus, and the
+   orchestrator reviews work built at or below its own tier. The brief tells the child the same for its
+   subagents, with Sonnet as the floor; a judge inherits, and a workflow keeps the tiers its script names. The
+   subagent half is asked for, not enforced, and nothing steps down outside a round. Where the host
    cannot start sessions you get a `claude -w` command to run; where there is no terminal either, the cards are
    worked one at a time.
 5. Each child (`work-card`) builds test-first, opens its pull or merge request, moves its card to review, and
    reports with a one-line `CARD` summary.
 6. `review-card` checks the diff against the criteria, sends findings back, lands it on green, closes the card,
    and tells the other children the base moved. What a child could not check becomes a gate.
+
+**A plan approved in plan mode.** In Claude Code the round can start from the built-in plan flow (the host's
+plan mode, not the plan tree but-first-planning keeps in a repository). While a session plans, a hook tells it
+the format of an `## Orchestration` section, and leaving plan mode is refused for a plan without one: a table of
+units, each with what it runs as (`session`, a child session in its own worktree with its own pull or merge
+request; `subagent`, an Agent call inside this session; or `here`), the units it waits on, its files, and its
+model (`sonnet` for mechanical work to a known pattern, `opus` for design or judgment, `fable` only where the unit
+needs it). Units that wait on nothing unfinished are a wave and start together. A plan that is one unit of work
+writes `Orchestration: none, <why>` instead. When you approve, the plan's units are saved for the work tree and
+handed to the session: session units go on the board as cards with their order, files and model pin, and the
+plan's `Approval:` line is the yes that `aw board grant` records; a subagent unit is an Agent call that names the
+unit and carries the plan's model. From then on a named unit started on another model, or before the subagent
+units it waits on have returned, is refused, and a stop is held once if nothing was started. The plan's models
+are your word, so they win over the step-down.
+
+What it does not do: an Agent call that names no unit passes unchecked, a `here` unit is not observed (a unit
+that waits on one is not held for it), a child you start from a terminal is not checked at its start, and two
+sessions in one work tree share one approved plan. A plan is never trapped: leaving plan mode is refused at most
+twice for one plan file, and after that the plan reaches you as it is. Two parts have not been seen on a real
+host and fail open: the check on a child session's start in the desktop app, and what a session is told when you
+approve a plan and clear the context in one step (the approved plan is kept under the work tree's git dir, and
+the session briefing prints it again).
 
 Two hooks keep the board true. At session start the briefing prints the board in one line, or, in a worktree a
 card names, which card this session is working and what done means. After a tool call, and at a stop, the
@@ -246,8 +273,8 @@ tools use the prefix `mcp__agentcraft__` (it was `mcp__agent-works__` while this
 | `references/` | the contracts, each written once: `homes`, `hubs`, `memory`, `decisions`, `coordination`, `guard-config` |
 | `assets/templates/` | what `aw setup` and the skills fill: config, root and hub `AGENTS.md`, the contracts page, memory, status, decision, glossary, cards, briefs, the report |
 | `scripts/` | `aw.mjs` and one module per command; `scripts/coord/` is the machine's store |
-| `lib/` | the rules as functions: config, cards, the board, the loop, card sync, the guard's rules |
+| `lib/` | the rules as functions: config, cards, the board, the loop, card sync, the guard's rules, a plan approved in plan mode |
 | `bin/` | the `aw` launchers |
-| `hooks/` | the session hook, the guard, card-sync, the critical lines, and `hooks/kanban/` (the pane) |
+| `hooks/` | the session hook, the guard, card-sync, `plan-gate` and `plan-follow` (plan mode), the critical lines, and `hooks/kanban/` (the pane) |
 
 Its tests are the `agent-works-*` suites and hook cases of the marketplace's own lanes (`npm test` at the root).

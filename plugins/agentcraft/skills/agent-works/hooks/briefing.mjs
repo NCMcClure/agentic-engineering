@@ -26,11 +26,18 @@
 //     session is working, its done criteria and the command that prints its
 //     brief; anywhere else, the board in one line. After a compaction that
 //     line is how a round comes back from the board instead of from memory;
+//   - while a plan approved in the host's plan mode is in force in this work
+//     tree (its state is under the work tree's git dir, board or no board):
+//     how many of its units are left, the next wave, and the plan file, so a
+//     cleared or compacted session gets its orchestration back. Where the
+//     lines above leave no room for the file's path the line goes without it,
+//     and where they leave none at all it is left out;
 //   - in a repo with the config, where the `aw` on the PATH is a launcher
 //     written before this area moved into the one plugin: one line, last,
 //     that has the model ask the person to rerun the setup route. It is left
 //     out when the lines above have used the area's allowance.
-// No board folder, or no cards: nothing about the board.
+// No board folder, or no cards: nothing about the board. No approved plan, or
+// one no longer in force: nothing about a plan.
 //
 // The modules that read the board and the machine's store are imported only
 // when there is something for them to read. No network. Fail open, exit 0.
@@ -161,6 +168,15 @@ async function boardLine(cwd) {
     + `Its brief: node "${AW}" board brief ${mine.id}. Cadence: /agentcraft:agent-works work-card; end your final message with the CARD line.`;
 }
 
+/** One line about a plan approved in plan mode and still in force in this work tree, within `room` characters; "" otherwise. */
+async function planPart(cwd, room) {
+  const { locate, readPlanState } = await import("../scripts/io.mjs");
+  const plan = readPlanState(locate(cwd));
+  if (!plan) return "";
+  const { planLine } = await import("../lib/planmode.mjs");
+  return planLine(plan.state, plan.events, { now: Date.now(), max: room }) ?? "";
+}
+
 /** A cheap look for a board folder, so a repo without one never loads the board's modules. */
 async function mayHaveBoard(cwd) {
   const { boardDir, loadConfig } = await import("../lib/config.mjs");
@@ -190,12 +206,18 @@ async function briefing(payload, state) {
   try { lines.push(...await setUp(cwd, payload)); } catch { /* the board line still goes out */ }
   try { if (await mayHaveBoard(cwd)) lines.push(await boardLine(cwd)); } catch { /* no board line */ }
   const said = lines.filter(Boolean);
+  const { BRIEFING_CHARS } = await import("../../../hooks/critical-context.mjs");
+  const room = () => BRIEFING_CHARS["agent-works"] - said.join(" ").length - (said.length ? 1 : 0);
+  // Whole or not at all: the area's part is cut at its allowance, and half a plan's line names the wrong wave.
+  try {
+    const line = await planPart(cwd, room());
+    if (line) said.push(line);
+  } catch { /* no plan line */ }
   // The least urgent line, so it goes last, and only where the area's allowance still holds it whole: cut
   // short it would be an instruction with no end, and it comes again next session.
   try {
     const line = await launcherLine(cwd);
-    const { BRIEFING_CHARS } = await import("../../../hooks/critical-context.mjs");
-    if (line && [...said, line].join(" ").length <= BRIEFING_CHARS["agent-works"]) said.push(line);
+    if (line && line.length <= room()) said.push(line);
   } catch { /* the rest of the briefing still goes out */ }
   return said.join(" ");
 }

@@ -270,7 +270,7 @@ export function findDuplicate(board, title, ref) {
 export function cardLine(c) {
   const more = [
     c.ref ? `for ${c.ref}` : "", c.needs ? `needs ${c.needs}` : "", c.epic ? `epic ${c.epic}` : "", c.sprint ? `sprint ${c.sprint}` : "",
-    c.blocked ? "blocked" : "", c.session ? `session ${c.session}` : "", c.mr !== undefined ? `!${c.mr}` : "",
+    c.blocked ? "blocked" : "", c.session ? `session ${c.session}` : "", c.mr !== undefined ? `!${c.mr}` : "", c.model ? `model ${c.model}` : "",
   ].filter(Boolean).join("; ");
   return `${c.id} [${c.status}] ${isPlan(c) ? "plan " : ""}${c.kind}${c.owner ? ` @${c.owner}` : ""}: ${c.title}${more ? ` (${more})` : ""}`;
 }

@@ -32,7 +32,8 @@ git diff --stat origin/<base>...origin/<branch>
   in the child's worktree when anything looks off.
 - **What must not ship.** Machine paths, credentials, debris from the session.
 - **Risky cards** (security, a migration, a shared format, or more than about 400 changed lines): a second reader
-  that sees only the done criteria and the diff, never the child's report or your own view. Without subagents,
+  that sees only the done criteria and the diff, never the child's report or your own view. It is a judge, so start it without a `model`: it inherits yours
+  rather than stepping down. Without subagents,
   `W/routes/orchestrate/references/subagent-fallback.md` says what to do instead.
 - **Run it.** A smoke test from a scratch repository, or render the picture and look at it, as far as the risk
   calls for. `/agentcraft:code-diet review-diet` in the child's worktree.

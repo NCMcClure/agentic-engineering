@@ -19,7 +19,9 @@
 // The loop's other pieces of disk live here too: the push grants a claim
 // writes to a branch's git config (and done or abandon takes back), what git
 // knows about each card's work, and the calls that keep cards in step with a
-// tracker's issues.
+// tracker's issues. So does what a plan approved in the host's plan mode
+// leaves behind: its units and the log of what started, under the work tree's
+// own git dir.
 import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -59,9 +61,9 @@ function commonDirOf(root) {
 }
 
 /**
- * Where `cwd` stands: `{ cwd, toplevel, main, commonDir, branch, git, cfg, dir, isOld }`. `toplevel` is the work
- * tree `cwd` is in and `main` the main one (both the project root outside a repository, where `git` is false and
- * `commonDir` null); `cfg` is the repo's config as `loadConfig` gives it; `dir` is the board's folder and `isOld`
+ * Where `cwd` stands: `{ cwd, toplevel, main, commonDir, gitDir, branch, git, cfg, dir, isOld }`. `toplevel` is the
+ * work tree `cwd` is in and `main` the main one (both the project root outside a repository, where `git` is false and
+ * `commonDir` and `gitDir` null); `gitDir` is that work tree's own git dir, which a linked work tree does not share; `cfg` is the repo's config as `loadConfig` gives it; `dir` is the board's folder and `isOld`
  * says it is the folder the board had before `paths.kanban`. Starts no process.
  */
 export function locate(cwd) {
@@ -70,7 +72,7 @@ export function locate(cwd) {
   const cfg = loadConfig(cwd);
   const dir = configuredDir(cfg, main);
   return {
-    cwd, toplevel: toplevel ?? main, main, commonDir: toplevel ? commonDirOf(toplevel) : null, branch: currentBranch(cwd), git: toplevel !== null, cfg, dir,
+    cwd, toplevel: toplevel ?? main, main, commonDir: toplevel ? commonDirOf(toplevel) : null, gitDir: toplevel ? gitDir(toplevel) : null, branch: currentBranch(cwd), git: toplevel !== null, cfg, dir,
     isOld: dir === path.join(main, OLD_BOARD) && configPath(cfg, main, "kanban") !== dir,
   };
 }
@@ -155,6 +157,60 @@ export function ensureBoard(loc) {
 
 /** A temp file in the same folder, then a rename over the target, so a reader never sees half a file. */
 export const writeAtomic = atomicWrite;
+
+// ---- an approved plan's orchestration -----------------------------------
+//
+// What a plan approved in the host's plan mode leaves (lib/planmode.mjs): its
+// state in plan.json and what happened since in plan.log. Both sit under this
+// work tree's own git dir, so each worktree keeps its own, nothing needs an
+// exclude line, a cleared context keeps them, and removing the worktree drops
+// them. plan.log is appended to and never rewritten: the hooks of one wave
+// fire at once. Outside a repository there is nowhere to keep either, so
+// nothing is read and nothing is written.
+
+/** The folder under a work tree's git dir that holds an approved plan, or null outside a repository. */
+export const planStateDir = (loc) => (loc?.gitDir ? path.join(loc.gitDir, "agent-works") : null);
+const planJson = (loc) => path.join(planStateDir(loc), "plan.json");
+const planLog = (loc) => path.join(planStateDir(loc), "plan.log");
+
+/** `{ state, events }`, or null when plan.json is missing or does not parse. A log line that does not parse is skipped. */
+export function readPlanState(loc) {
+  if (!planStateDir(loc)) return null;
+  let state;
+  try { state = JSON.parse(fs.readFileSync(planJson(loc), "utf8")); } catch { return null; }
+  if (!state || typeof state !== "object" || !Array.isArray(state.units)) return null;
+  const events = [];
+  for (const line of (readText(planLog(loc)) ?? "").split("\n")) {
+    if (!line.trim()) continue;
+    try {
+      const e = JSON.parse(line);
+      if (e && typeof e === "object") events.push(e);
+    } catch { /* a torn or foreign line */ }
+  }
+  return { state, events };
+}
+
+/** Write a newly approved plan's state; its events start over. False where there is no git dir to hold it. */
+export function writePlanState(loc, state) {
+  if (!planStateDir(loc)) return false;
+  atomicWrite(planJson(loc), `${JSON.stringify(state, null, 2)}\n`);
+  fs.writeFileSync(planLog(loc), "");
+  return true;
+}
+
+/** Append one event, one line. */
+export function appendPlanEvent(loc, event) {
+  if (!planStateDir(loc)) return;
+  fs.mkdirSync(planStateDir(loc), { recursive: true });
+  fs.appendFileSync(planLog(loc), `${JSON.stringify(event)}\n`);
+}
+
+/** Forget the plan: both files go, and none there is fine. */
+export function dropPlanState(loc) {
+  if (!planStateDir(loc)) return;
+  fs.rmSync(planJson(loc), { force: true });
+  fs.rmSync(planLog(loc), { force: true });
+}
 
 /**
  * Write a change from the pure functions: each card to its own file (a card keeps the file it was read from), the
