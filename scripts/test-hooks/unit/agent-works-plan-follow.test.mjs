@@ -46,7 +46,11 @@ function hook(dir, payload) {
 }
 
 /** A recorded payload with the placeholders filled and fields overridden. */
-const recorded = (key, dir, over = {}) => ({ ...JSON.parse(JSON.stringify(RECORDED[key]).replaceAll("{{REPO}}", dir).replaceAll("{{PATH}}", dir).replaceAll("{{PLANS}}", dir)), ...over });
+// Filled value by value, never in the JSON text: a Windows path's backslashes would not survive that.
+const fill = (v, dir) => (typeof v === "string" ? v.replaceAll("{{REPO}}", dir).replaceAll("{{PATH}}", dir).replaceAll("{{PLANS}}", dir)
+  : Array.isArray(v) ? v.map((x) => fill(x, dir))
+  : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, fill(x, dir)])) : v);
+const recorded = (key, dir, over = {}) => ({ ...fill(RECORDED[key], dir), ...over });
 const agent = (dir, unit, model, extra = {}) => recorded("PreToolUse.Agent", dir, { tool_input: { description: `${unit} do it`, prompt: "do it", subagent_type: "general-purpose", ...(model ? { model } : {}) }, ...extra });
 const launched = (dir, unit, id = "agent-1") => {
   const p = recorded("PostToolUse.Agent.background", dir);

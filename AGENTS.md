@@ -48,9 +48,9 @@ enforces.
 - `.github/workflows/validate.yml` - CI: the gate, the unit lane on three
   operating systems, and the tag check.
 - `package.json` - the npm script names. No dependencies, ever.
-- `README.md` - for a person: what this is, how to install, how to start, a
-  line per area. Held to the README check by the gate; the tour of the areas,
-  with a figure each, is `docs/areas.md`.
+- `README.md` - for a person: the pitch, how to install, a section and a
+  figure per area. The gate holds it to the voice rules (no em-dash, no emoji)
+  and the plugin's own README to the full README check.
 - `CONTRIBUTING.md` - what to run before a commit, the dev loop, releasing.
 - `AGENTS.md` / `CLAUDE.md` - this hub and its tracked link.
 

@@ -169,11 +169,12 @@ and PR. When a rule changes, change the check in the same commit.
 - READMEs, descriptions, and cues: concise, declarative, a little wit. State
   the problem, then the mechanism. Specifics over adjectives, no hype words,
   no em-dashes, no emoji.
-- The root README and the plugin's are what a person lands on, and validate
-  holds both to the README check the plugin ships
+- Validate holds the plugin's README to the README check the plugin ships
   (`skills/docs-parity/scripts/readme-check.mjs`): at most 800 words, a title
   that is the name, a one-line description, a why, standard-readme's section
-  order (Install, Usage, the repo's own sections, Contributing, License), and
-  no agent plumbing (`.agents`, `AGENTS.md`, `CLAUDE.md`, `.claude`). Depth
-  goes to `docs/`: the tour of the areas is `docs/areas.md`.
+  order (Install, Usage, the plugin's own sections, Contributing), and no
+  agent plumbing (`.agents`, `AGENTS.md`, `CLAUDE.md`, `.claude`).
+- The root README is the marketplace's front page: the pitch, then a section
+  and a figure for every area. It is exempt from the length and section rules
+  and held to the voice rules: validate fails an em-dash or an emoji in it.
 - A description says when to reach for the thing, not only what it is.
