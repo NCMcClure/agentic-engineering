@@ -6,8 +6,8 @@ a round of parallel work lives in one conversation and dies with it, and two ses
 other's measurements without ever knowing the other was there.
 
 **agent-works** gives every kind of fact one home with a size budget, checks all of them with one command, keeps
-tasks on a kanban board the person and the agents share, runs a large goal from that board as child sessions in
-their own worktrees, guards the files and runs that need it, and lets agents across projects coordinate through
+tasks on a kanban board the person and the agents share, runs a large goal from that board in parallel, each card in its own
+worktree (built by a subagent, or by a child session when you ask for one), guards the files and runs that need it, and lets agents across projects coordinate through
 one command-line tool.
 
 It was distilled from a project whose root `AGENTS.md` had reached 494 lines and whose status file 2,446. Every
@@ -90,7 +90,8 @@ or a compaction loses nothing.
    on the other, they share no long-held lock.
 3. You say yes, and `aw board grant` records that approval on each card with the one branch it covers, and with a
    model pin where you want a card or the whole set kept off the model step-down.
-4. `dispatch` starts each card as a child session in its own git worktree, with a generated brief, one model
+4. `dispatch` starts each card in its own git worktree with a generated brief: by default a subagent, which asks
+   nothing more of you, and a child session when you asked for sessions. A child session runs one model
    tier below the orchestrator and never below Opus: a Fable orchestrator's children build on Opus, and the
    orchestrator reviews work built at or below its own tier. The brief tells the child the same for its
    subagents, with Sonnet as the floor; a judge inherits, and a workflow keeps the tiers its script names. The

@@ -53,7 +53,7 @@ how its routes work.
 
 | Area | Use it to |
 |---|---|
-| [agent-works](skills/agent-works/README.md) | run several tasks at once as child sessions from a kanban board, and keep a repo's agent-facing facts in one home each |
+| [agent-works](skills/agent-works/README.md) | run several tasks at once from a kanban board, and keep a repo's agent-facing facts in one home each |
 | [agentic-teamwork](skills/agentic-teamwork/README.md) | set a repo up on the team's git conventions, test across its lanes, ship a pull or merge request, and land it |
 | [but-first-planning](skills/but-first-planning/README.md) | turn an idea into a spec, a backlog, and issues built test-first |
 | [code-diet](skills/code-diet/README.md) | keep new code at the simplest rung that holds, and cut what is not needed |

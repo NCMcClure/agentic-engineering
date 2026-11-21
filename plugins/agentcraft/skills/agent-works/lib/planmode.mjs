@@ -146,7 +146,7 @@ export function parseOrchestration(md) {
     }
   }
   if (units.some((u) => u.runs === "session") && !approval) {
-    findings.push("The plan has session units and no `Approval:` line: add one under the table saying approving the plan approves starting each session unit, which pushes its branch and opens its pull or merge request without asking.");
+    findings.push("The plan has session units and no `Approval:` line: add one under the table saying approving the plan approves starting each session unit, which pushes its branch and opens its pull or merge request without asking. Where the person did not ask for sessions, make the unit a subagent instead.");
   }
   return { none: null, units, approval, findings };
 }
@@ -186,7 +186,7 @@ export function instructions() {
     "|---|---|---|---|---|---|---|",
     `| U1 | <one line> | subagent | - | <paths, comma separated> | ${weakest} | <reason> |`,
     "",
-    "- Runs as: `session` (a child session, own worktree and pull or merge request), `subagent` (an Agent call), or `here` (this session itself).",
+    "- Runs as: `subagent` (an Agent call, default), `here` (this session), `session` (a child session, own worktree and pull or merge request): only if the person asked for one.",
     "- After: units it waits on, each listed above it, or `-`. Units waiting on nothing unfinished start together, so two share a file only if both are sessions.",
     "- Files: what it changes; a `here` unit may write `-`.",
     `- Model: ${uses}. A session never runs below \`${MODEL_FLOORS.session}\`, no unit above your own model; a \`here\` unit writes \`-\`.`,

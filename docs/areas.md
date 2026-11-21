@@ -45,8 +45,8 @@ gets stated four times, task status lives in six places, and two sessions on
 one machine never learn the other exists. agent-works gives every kind of fact
 one home under `.agents/` with a size budget and checks them all with
 `aw doctor`. Tasks and owed gates live on a kanban board every worktree
-shares; its `orchestrate` route runs a large goal from it as child sessions
-in their own worktrees, each approved by you, reviewed, and landed on green. A
+shares; its `orchestrate` route runs a large goal from it in parallel, each
+card in its own worktree, approved by you, reviewed, and landed on green. A subagent builds each card unless you ask for sessions. A
 guard stops the mistakes agents repeat, and locks, leases, notes and learnings
 let sessions across projects share one machine. Node 22, nothing else. It is
 the foundation the areas below lean on.

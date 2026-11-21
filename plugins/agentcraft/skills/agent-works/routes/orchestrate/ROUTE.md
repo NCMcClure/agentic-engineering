@@ -8,10 +8,15 @@ argument-hint: "[the goal, or nothing to resume]"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-A goal bigger than one pull or merge request runs one of two bad ways: one long session doing everything in turn,
-or subagents fanned out inside one session where nobody can open, steer, or review them. Here every task is a
-child session in its own git worktree, the person approves each parallel set before it starts, and this session
-reviews and lands each request. The board holds the round, so a compaction or a restart loses nothing.
+A goal bigger than one pull or merge request goes badly as one long session doing everything in turn. Here every
+task is a card built in its own git worktree, the person approves each parallel set before it starts, and this
+session reviews and lands each request. The board holds the round, so a compaction or a restart loses nothing.
+
+**A card is built by a subagent unless the person asked for sessions.** A subagent needs nothing more from them: no
+second window to approve commands in, nothing to archive afterwards. A child session is one they can open and steer,
+and it costs them exactly that attention, so start one only when they asked for it in words ("run these as
+sessions", "start a session for this"), pressed Start on a card in the board pane, or approved a plan whose unit
+says `session`. Where they did not say, it is a subagent, and you do not ask which.
 
 `aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` route has every action
 of `aw board`.
@@ -26,8 +31,8 @@ This route is who works where, on what, with which rules, and what comes back.
   session briefing prints the board's state; start again from Step 0.
 - **Nothing starts without the person's yes**, and nothing merges without a review. The yes is recorded on the
   cards with `aw board grant`; never record a grant the person did not give.
-- **Never poll by hand.** A child wakes this session when it ends a turn; a terminal child is waited on with a
-  background `aw board wait`. No hand-written poll loops, no scheduled wake-ups.
+- **Never poll by hand.** A subagent's result comes back to this session; a child session wakes it when it ends a
+  turn; a terminal child is waited on with a background `aw board wait`. No hand-written poll loops, no scheduled wake-ups.
 - **A child's "passed" is a claim until checked.** Review reads the diff and re-runs what the risk calls for.
 - **Models step down a tier.** A child session runs one tier below this session and never below Opus, so only a
   Fable orchestrator's children change model, and you review work built at or below your own tier. A subagent you
@@ -147,7 +152,8 @@ when the set changes.
 ## Step 4: Dispatch
 
 `/agentcraft:agent-works dispatch <id>` for each card in the set: it brings the base up to date, writes the brief, starts
-the child in its own worktree, and binds it. The board, the locks and the notes are shared by every worktree;
+the card's builder in its own worktree (a subagent, or a child session where the person asked for sessions), and
+binds it. Send a set's subagents in one message so they run together. The board, the locks and the notes are shared by every worktree;
 nothing else is. Where this host can start no session and the person no terminal, the round runs serially:
 `W/routes/orchestrate/references/subagent-fallback.md`.
 

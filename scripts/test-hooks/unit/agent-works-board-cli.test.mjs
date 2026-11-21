@@ -853,3 +853,16 @@ test("a tracker nobody can reach fails the pass with what to do, and writes noth
   assert.match(r.err, /^gh: gh is not signed in to github\.com\. Run: gh auth login/);
   assert.equal(p.cards()["0001"].remote, undefined);
 });
+
+test("bind records a card built by a subagent, and takes exactly one way of working it", async (t) => {
+  const { main } = await import("../../../plugins/agentcraft/skills/agent-works/scripts/board.mjs");
+  const { bufferedIo } = await import("../../../plugins/agentcraft/skills/agent-works/lib/common.mjs");
+  const { tempRepo } = await import("./helpers.mjs");
+  const { dir } = tempRepo(t, "aw-bind-subagent-");
+  const run = async (...argv) => { const io = bufferedIo({ cwd: dir, env: { ...process.env } }); const code = await main(argv, io); return { code, out: io.out(), err: io.err() }; };
+  assert.equal((await run("add", "Build the thing", "--json")).code, 0);
+  const bound = await run("bind", "1", "--subagent", "--json");
+  assert.equal(bound.code, 0, bound.err);
+  assert.match((await run("show", "1", "--json")).out, /"subagent"/);
+  await assert.rejects(run("bind", "1", "--subagent", "--serial"), /bind takes one of --subagent, --session <name>, --terminal, or --serial/);
+});

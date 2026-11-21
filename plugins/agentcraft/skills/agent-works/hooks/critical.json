@@ -1,7 +1,7 @@
 {
   "area": "agent-works",
   "lines": [
-    {"for":"main","mode":"any","text":"A goal bigger than one pull or merge request goes to /agentcraft:agent-works orchestrate: each piece runs as its own child session in its own worktree, which the person can open, steer, and review, never as one long session or as subagents nobody can open."},
+    {"for":"main","mode":"any","text":"A goal bigger than one pull or merge request goes to /agentcraft:agent-works orchestrate: a subagent builds each piece in its own worktree, never one long session. A child session costs the person approvals and cleanup: start one only if they ask for sessions."},
     {"for":"main","mode":"any","text":"The board is the record, memory loses to it: after a restart or a compaction, resume a round from `aw board status` with /agentcraft:agent-works orchestrate."},
     {"for":"main","mode":"any","text":"Nothing starts without the person's yes, recorded with `aw board grant`, and nothing merges without a review; a child's \"passed\" is a claim until you read the diff and re-run what the risk calls for."},
     {"for":"main","mode":"any","text":"Never poll a child or schedule wake-ups: it wakes you when it ends a turn."},

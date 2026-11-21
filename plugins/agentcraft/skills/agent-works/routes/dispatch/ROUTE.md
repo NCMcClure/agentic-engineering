@@ -8,7 +8,8 @@ argument-hint: "<card id> [--serial]"
 
 `W` below is `../..` from the directory this file is in: the area's own directory. Write it out as an absolute path wherever a command or an argument says `W`.
 
-One card, from ready to a child session working it in its own git worktree. `aw board` below is
+One card, from ready to being built in its own git worktree: by a subagent, or by a child session where the
+person asked for sessions. `aw board` below is
 `node "W/scripts/aw.mjs" board`.
 
 ## Step 1: Check it can still start
@@ -52,8 +53,22 @@ It refuses a card with no done criteria: write them with the person first.
 
 ## Step 4: Start the child
 
-**Where this session can start sessions** (the desktop app's `start_session` tool). Start it as a session of its
-own, with the person's yes as the ask:
+**By default, a subagent.** Unless the person asked for sessions (their words, a Start press in the board pane,
+or an approved plan whose unit says `session`), the card is built by one subagent, which asks nothing more of
+them. Make the card's worktree, bind the card, and send the brief as the whole prompt:
+
+```text
+git worktree add <path> -b <the card's branch> origin/<base>
+node "W/scripts/aw.mjs" board bind <id> --subagent
+```
+
+Then one Agent call: the brief from Step 3 as its prompt, with a first line telling it that every command runs in
+`<path>`, and `model` set one tier below this session and never below Sonnet (the card's pin wins). One subagent
+per card; a set's calls go in one message. When it returns, review its diff as the `review-card` route says before
+anything merges: you did not write it, and its "passed" is a claim. Remove the worktree once the card is done.
+
+**A child session, when the person asked for one** (the desktop app's `start_session` tool). Start it as a session
+of its own, with the person's yes as the ask:
 
 ```text
 start_session {
@@ -99,11 +114,11 @@ terminal session starts on the person's default model, not on this session's.
 Run `aw board wait` as a background command. It exits 0 when the card reaches review or the child writes a CARD
 line into it, and 3 at its timeout: then run it again.
 
-**With `--serial`** (the pane passes it when the board is in queue mode), **or where neither is possible**, work the card here, serially, as
+**With `--serial`** (the pane passes it when the board is in queue mode), **or where no subagent, session or terminal is possible**, work the card here, serially, as
 `W/routes/orchestrate/references/subagent-fallback.md` describes: a worktree of its own on the card's branch,
 `aw board bind <id> --serial`, then `/agentcraft:agent-works work-card` with that worktree as the working directory.
 
-*Done when: the child is running (or the person has the command) and `aw board show <id>` names how it is worked.*
+*Done when: the subagent or the child is running (or the person has the command) and `aw board show <id>` names how it is worked.*
 
 ## Step 5: Say what started
 

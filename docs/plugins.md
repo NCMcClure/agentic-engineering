@@ -12,7 +12,7 @@ Version 1.4.0. [README](../plugins/agentcraft/README.md), [changelog](../plugins
 
 | Area | Routes | For |
 |---|---|---|
-| [agent-works](#agent-works) | 14 | Use to run several tasks as child sessions from a kanban board, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold. |
+| [agent-works](#agent-works) | 14 | Use to run several tasks in parallel from a kanban board, by subagents or by child sessions when asked, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold. |
 | [agentic-teamwork](#agentic-teamwork) | 6 | Use for the team's git conventions: setting a repo up or auditing it, writing tests across the lanes, and taking finished work to an open pull or merge request and then to merged. |
 | [but-first-planning](#but-first-planning) | 18 | Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. |
 | [code-diet](#code-diet) | 5 | Use on any coding task to build at the simplest rung that holds, and to check what already exists before building, hunt over-engineering in a diff, inventory deferred shortcuts, or note what this work built that another project could use. |
@@ -34,7 +34,7 @@ The one skill a person types: `/agentcraft:start-here [the task, in a sentence]`
 
 ## agent-works
 
-Use to run several tasks as child sessions from a kanban board, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.
+Use to run several tasks in parallel from a kanban board, by subagents or by child sessions when asked, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.
 
 [README](../plugins/agentcraft/skills/agent-works/README.md), [changelog](../plugins/agentcraft/skills/agent-works/CHANGELOG.md).
 

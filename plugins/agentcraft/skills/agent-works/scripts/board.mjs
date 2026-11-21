@@ -90,7 +90,7 @@ write
 
 the loop
   propose [--max N] [--ids a,b]      grant <ids...> --by "<who, when>" [--branch <type>/<topic>] [--model PIN|step]
-  brief <id>      bind <id> --session NAME | --terminal | --serial      claim <id>
+  brief <id>      bind <id> --subagent | --session NAME | --terminal | --serial      claim <id>
   done <id> --merged <sha>      abandon <id>      wait [--until COLUMN] [--ids a,b] [--timeout SECONDS]
   evidence [<ids...> | --scope in-flight|backlog|suggested]
 
@@ -575,13 +575,13 @@ const ACTIONS = {
 
   bind: {
     positionals: ["id"],
-    options: { ...JSON_FLAG, session: text, terminal: flag, serial: flag },
+    options: { ...JSON_FLAG, session: text, terminal: flag, serial: flag, subagent: flag },
     write: true,
     run({ id, values }, ctx) {
-      if ([values.session !== undefined, values.terminal, values.serial].filter(Boolean).length !== 1) {
-        throw usage("bind takes one of --session <name>, --terminal, or --serial");
+      if ([values.session !== undefined, values.terminal, values.serial, values.subagent].filter(Boolean).length !== 1) {
+        throw usage("bind takes one of --subagent, --session <name>, --terminal, or --serial");
       }
-      const session = values.terminal ? "terminal" : values.serial ? "serial" : values.session.trim();
+      const session = values.terminal ? "terminal" : values.serial ? "serial" : values.subagent ? "subagent" : values.session.trim();
       if (!session) throw usage("--session takes the child session's name");
       const b = ctx.board();
       const card = ctx.loopable(b, ctx.card(b, id));

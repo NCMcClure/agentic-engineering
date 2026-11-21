@@ -127,6 +127,8 @@ test("the planning text fits its budget and names every rule", () => {
   const text = instructions();
   assert.ok(text.length <= 1250, `instructions are ${text.length} characters`);
   assert.match(text, /own worktree and pull or merge request/, "right for either forge");
+  assert.match(text, /`subagent` \(an Agent call, default\)/, "a unit is a subagent unless told otherwise");
+  assert.match(text, /`session` \([^)]*\): only if the person asked for one/, "a session is written only on the person's word");
   for (const s of ["## Orchestration", "| Unit | What | Runs as | After | Files | Model | Why this model |", "session", "subagent", "here", "sonnet", "opus", "fable", "Approval:", "Orchestration: none, <why>", "ExitPlanMode"]) {
     assert.ok(text.includes(s), `instructions name ${s}`);
   }

@@ -44,7 +44,7 @@ names the next one, so nobody has to remember the step.
 
 | Area | Use it to |
 |---|---|
-| [agent-works](docs/areas.md#agent-works) | run several tasks at once as child sessions from a kanban board |
+| [agent-works](docs/areas.md#agent-works) | run several tasks at once from a kanban board, each in its own worktree |
 | [agentic-teamwork](docs/areas.md#agentic-teamwork) | hold a repo to its git conventions, then ship and land a change |
 | [but-first-planning](docs/areas.md#but-first-planning) | turn an idea into a spec, a backlog, and issues built test-first |
 | [code-diet](docs/areas.md#code-diet) | keep new code at the simplest rung that holds, and cut the rest |
