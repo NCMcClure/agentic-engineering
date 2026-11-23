@@ -8,7 +8,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { walk } from "../../lib.mjs";
-import { runScan, runScore } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan, runScore } from "../../../plugins/agentic-engineering/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { area, routeBasics } from "./area-routes.mjs";
 import { REPO } from "./helpers.mjs";
 
@@ -147,7 +147,7 @@ test("plugin-workbench: shapes.md teaches the rule of thumb, and its three kinds
 test("plugin-workbench: measuring.md holds a lane to one prompt, two windows, three passes, and the bar of no worse", () => {
   const measuring = text("core", "references", "measuring.md");
   for (const rule of ["**One prompt per session.**", "**Two windows.**", "**Three passes.**", "**A failing recording writes nothing.**", "**The bar is \"no worse\".**", "Never run it yourself."]) assert.ok(measuring.includes(rule), rule);
-  assert.match(measuring, /\/agentcraft:context-doctor diagnose/);
+  assert.match(measuring, /\/agentic-engineering:context-doctor diagnose/);
   assert.match(measuring, /--score <outdir>\/grades\.json --measured <outdir>\/diagnose\.json/);
 });
 

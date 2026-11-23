@@ -6,7 +6,7 @@
 // subagent gets the lines marked for it. Where the mode is none, no block is
 // printed. Presence only, never wording: a block is found inside the
 // command's output by its "Critical, from <area>:" header.
-import { SHARED_LINE, readAreas } from "../../../../plugins/agentcraft/hooks/critical-context.mjs";
+import { SHARED_LINE, readAreas } from "../../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 import { MODES } from "../../fixtures.mjs";
 
 /** The areas whose block must print: a line with no `when` for this audience and mode. Lines gated on a file only add. */

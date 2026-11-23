@@ -490,6 +490,15 @@ const ROUTE_STEPS = [
 const PAGE = [`Run /${OLD}:sweep.`, `Or /${RENAMED}:sweep.`, `Or /${ONE}:brush.`, `Or \`/${ONE}:tidy mop\`.`, `Or /${ONE}:nothing.`, `This works: \`/${ONE}:tidy sweep\`, and so does /${ONE}:tidy.`].join("\n");
 // Built, never written out: an entry here is an address to this file's own gate.
 const GONE = [ONE, "nobody"].join(":"), WAS = [OLD, "critic"].join(":");
+// What the plugin was called before 2.0.0, built from its parts for the same reason.
+const FORMER = ["agent", "craft"].join("");
+const FORMER_PAGE = [
+  `Install it: \`/plugin install ${FORMER}@agentic-engineering\`.`,
+  `Or call /${FORMER}:agent-works orchestrate.`,
+  `Or ${FORMER}:vision-critic.`,
+  `Or \`${["mcp", FORMER, "move_task"].join("__")}\`.`,
+  `Or \`/${ONE}:agent-works orchestrate\`, which is current.`,
+].join("\n");
 const cleanups = [];
 after(() => { for (const fn of cleanups) fn(); });
 let brokenOnce;
@@ -508,6 +517,9 @@ const broken = () => (brokenOnce ??= (() => {
       [`${TIDY_AREA}/routes/empty/notes.md`]: "No route here.\n",
       [`${HOME}/skills/polish/SKILL.md`]: "---\nname: polish\ndescription: Use when the brass needs polishing.\n---\n\n# polish\n",
       "docs/moved.md": `${PAGE}\n`,
+      "docs/renamed.md": `${FORMER_PAGE}\n`,
+      // History and a recording keep what they say.
+      [`${HOME}/CHANGELOG.md`]: `# Changelog\n\n- **${VERSION}**: renamed.\n- **1.0.0**: install \`${FORMER}@agentic-engineering\`, then /${FORMER}:start-here.\n`,
     },
     text: {
       "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${OLD}@agentic-engineering\`. To go back, \`/plugin uninstall ${OLD}@agentic-engineering\`.\n`,
@@ -549,7 +561,7 @@ test("an area the generator did not write is stale, and one made hidden or given
 });
 
 test("nothing beside the one plugin, and no install line names an area or an old name", () => {
-  assert.match(broken(), /^FAIL: plugins\/tidy: the marketplace ships one plugin, plugins\/\w+, and plugins\/ holds no other directory/m);
+  assert.match(broken(), /^FAIL: plugins\/tidy: the marketplace ships one plugin, plugins\/[\w-]+, and plugins\/ holds no other directory/m);
   const lines = broken().split("\n").filter((l) => /^FAIL: README\.md:\d+: tells its reader to install /.test(l));
   assert.equal(lines.length, 1, "an uninstall line is not an install line");
   assert.match(lines[0], new RegExp(`install ${OLD}@agentic-engineering, which the catalog does not list; the plugin to install is ${ONE}@agentic-engineering`));
@@ -565,6 +577,17 @@ test("an address resolves to what the plugin ships: an old plugin name, a route 
     `FAIL: docs/moved.md:5: /${ONE}:nothing is not a skill, agent, or MCP server of ${ONE}`,
   ]);
   assert.deepEqual(findings(`${TIDY_AREA}/CHANGELOG.md`), [], "history keeps what it says");
+});
+
+test("the plugin's name before 2.0.0 is no install line, no address, and no MCP tool name", () => {
+  const found = findings("docs/renamed.md").map((l) => l.slice(0, l.lastIndexOf(" (")));
+  assert.deepEqual(found, [
+    `FAIL: docs/renamed.md:1: tells its reader to install ${FORMER}@agentic-engineering, which the catalog does not list; the plugin to install is ${ONE}@agentic-engineering`,
+    `FAIL: docs/renamed.md:2: /${FORMER}:agent-works names ${FORMER}, the plugin's name before ${ONE}; write /${ONE}:agent-works orchestrate`,
+    `FAIL: docs/renamed.md:3: ${FORMER}:vision-critic names ${FORMER}, the plugin's name before ${ONE}; write ${ONE}:vision-critic`,
+    `FAIL: docs/renamed.md:4: mcp__${FORMER}__move_task names ${FORMER}, the plugin's name before ${ONE}; write mcp__${ONE}__move_task`,
+  ]);
+  assert.deepEqual(findings(`${HOME}/CHANGELOG.md`), [], "a changelog keeps what it says");
 });
 
 test("a route names its directories from its own file and writes neither variable the host fills in, and a plugin-root path in an area's markdown is in the plugin", () => {
@@ -591,18 +614,18 @@ test("a DENYLIST entry names an agent the plugin ships, and the mod's tools carr
 // The plugin's README is held to the README check the plugin ships; the root
 // README, the marketplace's front page, to the voice rules alone.
 test("the plugin README over the word limit, out of order, or naming agent plumbing fails", (t) => {
-  const file = "plugins/agentcraft/README.md";
+  const file = "plugins/agentic-engineering/README.md";
   const long = validate(tree(t, { text: { [file]: (s) => `${s}\n${"word ".repeat(900)}\n` } }));
   assert.equal(long.status, 1);
-  assert.match(long.stdout, /^FAIL: readme-length: plugins\/agentcraft\/README\.md: \d+ words, over the 800-word limit/m);
+  assert.match(long.stdout, /^FAIL: readme-length: plugins\/agentic-engineering\/README\.md: \d+ words, over the 800-word limit/m);
 
   const plumbing = validate(tree(t, { text: { [file]: (s) => s.replace("## Contributing", "## Contributing\n\nThe rules are in AGENTS.md.\n") } }));
   assert.equal(plumbing.status, 1);
-  assert.match(plumbing.stdout, /^FAIL: readme-plumbing: plugins\/agentcraft\/README\.md:\d+: names `AGENTS\.md`/m);
+  assert.match(plumbing.stdout, /^FAIL: readme-plumbing: plugins\/agentic-engineering\/README\.md:\d+: names `AGENTS\.md`/m);
 
   const order = validate(tree(t, { text: { [file]: (s) => s.replace("## Usage", "## How to start") } }));
   assert.equal(order.status, 1);
-  assert.match(order.stdout, /^FAIL: readme-sections: plugins\/agentcraft\/README\.md: no `## Usage` section/m);
+  assert.match(order.stdout, /^FAIL: readme-sections: plugins\/agentic-engineering\/README\.md: no `## Usage` section/m);
 });
 
 test("the root README may run long and keep its own sections, but not an em-dash or an emoji", (t) => {
@@ -610,6 +633,6 @@ test("the root README may run long and keep its own sections, but not an em-dash
   assert.equal(long.status, 0, long.stdout);
   const dash = validate(tree(t, { text: { "README.md": (s) => s.replace("## Install", "## Install\n\nOne thing \u2014 and another.\n") } }));
   assert.match(dash.stdout, /^FAIL: README\.md uses an em-dash/m);
-  const emoji = validate(tree(t, { text: { "plugins/agentcraft/README.md": (s) => s.replace("## Usage", "## Usage\n\nShip it \u{1F680}\n") } }));
-  assert.match(emoji.stdout, /^FAIL: plugins\/agentcraft\/README\.md uses an emoji/m);
+  const emoji = validate(tree(t, { text: { "plugins/agentic-engineering/README.md": (s) => s.replace("## Usage", "## Usage\n\nShip it \u{1F680}\n") } }));
+  assert.match(emoji.stdout, /^FAIL: plugins\/agentic-engineering\/README\.md uses an emoji/m);
 });

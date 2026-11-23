@@ -111,6 +111,6 @@ export const COMPACTION = {
   plugin: "agentic-teamwork",
   skill: "tdd",
   fixture: "standard",
-  before: "Work with the tdd route of the agentcraft:agentic-teamwork skill on this: I am about to add a function to src/. Tell me in two lines the first step the route has me take. Change no file.",
+  before: "Work with the tdd route of the agentic-engineering:agentic-teamwork skill on this: I am about to add a function to src/. Tell me in two lines the first step the route has me take. Change no file.",
   after: "Carry on with the route you were following: what is the step after that one? Two lines. Change no file.",
 };

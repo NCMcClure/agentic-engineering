@@ -9,12 +9,12 @@ import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { test } from "node:test";
-import { buildSession, parseJsonl } from "../../../plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs";
-import { attributeHook, loadSources, splitListing } from "../../../plugins/agentcraft/skills/context-doctor/scripts/sources.mjs";
-import { renderReport } from "../../../plugins/agentcraft/skills/context-doctor/scripts/report.mjs";
+import { buildSession, parseJsonl } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs";
+import { attributeHook, loadSources, splitListing } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/sources.mjs";
+import { renderReport } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/report.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const CLI = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor", "scripts", "context-lens.mjs");
+const CLI = path.join(REPO, "plugins", "agentic-engineering", "skills", "context-doctor", "scripts", "context-lens.mjs");
 
 // A session recorded before the plugins became areas names a skill by its
 // old address, and the lens still has to read it. Nothing ships at one now,
@@ -367,7 +367,7 @@ const fromSkill = `node "\${CLAUDE_PLUGIN_ROOT}/skills/start-here/scripts/note.m
 
 function areasDir(t) {
   const dir = claudeDir(t);
-  const root = "plugins/cache/agentic-engineering/agentcraft/1.0.0";
+  const root = "plugins/cache/agentic-engineering/agentic-engineering/1.0.0";
   write(dir, `${root}/hooks/hooks.json`, hooksJson({
     SessionStart: [{ matcher: "startup|resume|clear|compact", hooks: [{ type: "command", command: command("session-start.mjs"), statusMessage: "Reading what applies here" }] }],
     Stop: [{ hooks: [{ type: "command", command: inArea("agentic-teamwork", "stop-gate.mjs") }, { type: "command", command: inArea("docs-parity", "stop-check.mjs") }] }],
@@ -380,15 +380,15 @@ function areasDir(t) {
 
 test("a hook that runs from an area is attributed to the plugin and the area, and any other hook to the plugin alone", (t) => {
   const sources = loadSources({ claudeDir: areasDir(t) });
-  assert.deepEqual([...sources.areas.get("agentcraft")].sort(), ["agentic-teamwork", "docs-parity"]);
+  assert.deepEqual([...sources.areas.get("agentic-engineering")].sort(), ["agentic-teamwork", "docs-parity"]);
   const stop = attributeHook(sources, { event: "Stop", command: inArea("agentic-teamwork", "stop-gate.mjs") });
-  assert.deepEqual([stop.plugin, stop.area], ["agentcraft", "agentic-teamwork"]);
+  assert.deepEqual([stop.plugin, stop.area], ["agentic-engineering", "agentic-teamwork"]);
   // The plugin's own session hook, by its status message, and a hook run from a skill that is not an area.
-  assert.deepEqual(attributeHook(sources, { event: "SessionStart", command: "Reading what applies here" }), { plugin: "agentcraft", candidates: ["agentcraft"] });
-  assert.deepEqual(attributeHook(sources, { event: "PreToolUse", command: fromSkill }), { plugin: "agentcraft", candidates: ["agentcraft"] });
+  assert.deepEqual(attributeHook(sources, { event: "SessionStart", command: "Reading what applies here" }), { plugin: "agentic-engineering", candidates: ["agentic-engineering"] });
+  assert.deepEqual(attributeHook(sources, { event: "PreToolUse", command: fromSkill }), { plugin: "agentic-engineering", candidates: ["agentic-engineering"] });
   // A failure names the area by the cache path in its message.
-  const failed = attributeHook(sources, { event: "Stop", command: "", text: "Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/0.9.0/skills/docs-parity/hooks/stop-check.mjs'" });
-  assert.deepEqual([failed.plugin, failed.area, failed.version], ["agentcraft", "docs-parity", "0.9.0"]);
+  const failed = attributeHook(sources, { event: "Stop", command: "", text: "Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/0.9.0/skills/docs-parity/hooks/stop-check.mjs'" });
+  assert.deepEqual([failed.plugin, failed.area, failed.version], ["agentic-engineering", "docs-parity", "0.9.0"]);
   // A plugin with no areas reads as it always did.
   assert.equal("area" in attributeHook(sources, { event: "SessionStart", command: "Reading the board" }), false);
   assert.equal(sources.areas.has("agent-works"), false);
@@ -397,20 +397,20 @@ test("a hook that runs from an area is attributed to the plugin and the area, an
 test("a listing entry that names an area is that area's, and the skill a person types stays the plugin's", (t) => {
   const sources = loadSources({ claudeDir: areasDir(t) });
   const lines = [
-    "- agentcraft:start-here: Use when a person asks what is here.",
-    "- agentcraft:agentic-teamwork: Use for the team's git conventions.",
+    "- agentic-engineering:start-here: Use when a person asks what is here.",
+    "- agentic-engineering:agentic-teamwork: Use for the team's git conventions.",
     "  Routes are its arguments, not skills: ship (open the request).",
-    "- agentcraft:docs-parity",
+    "- agentic-engineering:docs-parity",
     `- ${old("agent-works", "board")}: Use for the board.`,
   ];
   const parts = splitListing(lines.join("\n"), sources);
   assert.deepEqual(parts.map((p) => [p.plugin, p.area ?? null, p.count, p.bare]),
-    [["agentcraft", null, 1, 0], ["agentcraft", "agentic-teamwork", 1, 0], ["agentcraft", "docs-parity", 1, 1], ["agent-works", null, 1, 0]]);
+    [["agentic-engineering", null, 1, 0], ["agentic-engineering", "agentic-teamwork", 1, 0], ["agentic-engineering", "docs-parity", 1, 1], ["agent-works", null, 1, 0]]);
   // Each entry as listed: what it cost runs to the end of its description, and one cut to a name says so.
-  assert.deepEqual(parts[1].entries, [{ name: "agentcraft:agentic-teamwork", chars: lines[1].length + 1 + lines[2].length, bare: false }]);
-  assert.deepEqual(parts[2].entries, [{ name: "agentcraft:docs-parity", chars: lines[3].length, bare: true }]);
+  assert.deepEqual(parts[1].entries, [{ name: "agentic-engineering:agentic-teamwork", chars: lines[1].length + 1 + lines[2].length, bare: false }]);
+  assert.deepEqual(parts[2].entries, [{ name: "agentic-engineering:docs-parity", chars: lines[3].length, bare: true }]);
   // Without the sources the groups are the plugins.
-  assert.deepEqual(splitListing(lines.join("\n")).map((p) => [p.plugin, p.count, "area" in p]), [["agentcraft", 3, false], ["agent-works", 1, false]]);
+  assert.deepEqual(splitListing(lines.join("\n")).map((p) => [p.plugin, p.count, "area" in p]), [["agentic-engineering", 3, false], ["agent-works", 1, false]]);
 });
 
 test("one session hook's output is split into each area's block of critical lines, and context is named by area", (t) => {
@@ -419,21 +419,21 @@ test("one session hook's output is split into each area's block of critical line
   const said = ["Nothing is done until it's checked.", "", ...teamwork, "", "Critical, from docs-parity:", "- Docs move with the code."].join("\n");
   const entries = [
     hookRun("SessionStart:startup", "Reading what applies here", additional("SessionStart", said), { toolUseID: "s" }),
-    { type: "attachment", timestamp: at(), attachment: { type: "skill_listing", content: "- agentcraft:start-here: Use when a person asks.\n- agentcraft:agentic-teamwork: Use for git conventions." } },
+    { type: "attachment", timestamp: at(), attachment: { type: "skill_listing", content: "- agentic-engineering:start-here: Use when a person asks.\n- agentic-engineering:agentic-teamwork: Use for git conventions." } },
     prompt("Ship it."),
     assistant("r1", 50_000),
     hookRun("Stop", inArea("agentic-teamwork", "stop-gate.mjs"), JSON.stringify({ decision: "block", reason: "Tests did not run." }), { toolUseID: "stop" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "areas", ...e }));
   const session = buildSession(entries, { sources });
   const start = session.events.find((e) => e.kind === "hook" && e.event === "SessionStart");
-  assert.deepEqual([start.source.plugin, "area" in start.source], ["agentcraft", false]);
+  assert.deepEqual([start.source.plugin, "area" in start.source], ["agentic-engineering", false]);
   // A block's size is its heading and its lines: exact in characters, an estimate in tokens.
   const block = (owner, text) => ({ owner, chars: text.length, tokens: Math.ceil(text.length / 4) });
   assert.deepEqual(start.blocks, [block("agentic-teamwork", teamwork.join("\n")), block("docs-parity", "Critical, from docs-parity:\n- Docs move with the code.")]);
   assert.ok(start.blocks.reduce((n, b) => n + b.tokens, 0) < start.tokens, "the line every area shares is the hook's own");
   const stop = session.events.find((e) => e.event === "Stop");
-  assert.deepEqual([stop.source.plugin, stop.source.area, stop.source.focus], ["agentcraft", "agentic-teamwork", true]);
-  assert.deepEqual(session.events.filter((e) => e.kind === "skills").map((e) => [e.label, e.source.area ?? null, e.entries.length]), [["skills · agentcraft", null, 1], ["skills · agentic-teamwork", "agentic-teamwork", 1]]);
+  assert.deepEqual([stop.source.plugin, stop.source.area, stop.source.focus], ["agentic-engineering", "agentic-teamwork", true]);
+  assert.deepEqual(session.events.filter((e) => e.kind === "skills").map((e) => [e.label, e.source.area ?? null, e.entries.length]), [["skills · agentic-engineering", null, 1], ["skills · agentic-teamwork", "agentic-teamwork", 1]]);
   assert.match(renderReport(session), /Stop\s+agentic-teamwork\s+model/);
 });
 
@@ -450,9 +450,9 @@ test("the session records each call on the Skill tool and each read of a skill's
     prompt("Set this repo up."),
     toolUse("t1", "Skill", { skill: old("agentic-teamwork", "bootstrap") }), toolResult("t1", { is_error: true, content: "This skill can only be started by the user." }),
     toolUse("t2", "Skill", { skill: old("agentic-teamwork", "tdd") }), toolResult("t2"),
-    toolUse("t3", "Read", { file_path: "/srv/plugins/agentcraft/skills/agentic-teamwork/routes/ship/ROUTE.md" }), toolResult("t3"),
+    toolUse("t3", "Read", { file_path: "/srv/plugins/agentic-engineering/skills/agentic-teamwork/routes/ship/ROUTE.md" }), toolResult("t3"),
     toolUse("t4", "Read", { file_path: "/srv/demo/README.md" }), toolResult("t4"),
-    toolUse("t5", "Read", { file_path: "/srv/plugins/agentcraft/skills/agent-works/SKILL.md" }),
+    toolUse("t5", "Read", { file_path: "/srv/plugins/agentic-engineering/skills/agent-works/SKILL.md" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "calls", ...e }));
   const session = buildSession(entries);
   // A call the host refused is a call that did not go through, kept with what the host said in its place.

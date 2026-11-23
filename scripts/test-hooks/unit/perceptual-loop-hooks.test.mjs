@@ -63,9 +63,9 @@ test("critical.json: six lines for every agent in any opted-in repo, none waitin
   // The line about a ruling with reach stands behind the plan it would be recorded in.
   assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [...Array.from({ length: 5 }, () => ["all", "any", undefined]), ["all", "any", PLAN]]);
   assert.ok(CRITICAL.lines.some((l) => l.text === TASTE), "the taste line is quoted elsewhere and stays word for word");
-  assert.match(CRITICAL.lines[0].text, /starts with its doctrine, before the first change: \/agentcraft:perceptual-loop\.$/);
-  assert.match(CRITICAL.lines[4].text, /\/agentcraft:agent-works resource-locks\.$/);
-  assert.match(CRITICAL.lines[5].text, /\/agentcraft:but-first-planning spec-edit\.$/);
+  assert.match(CRITICAL.lines[0].text, /starts with its doctrine, before the first change: \/agentic-engineering:perceptual-loop\.$/);
+  assert.match(CRITICAL.lines[4].text, /\/agentic-engineering:agent-works resource-locks\.$/);
+  assert.match(CRITICAL.lines[5].text, /\/agentic-engineering:but-first-planning spec-edit\.$/);
   // The cap is CRITICAL_CAPS in scripts/validate.mjs.
   const printed = "Critical, from perceptual-loop:".length + CRITICAL.lines.reduce((n, l) => n + l.text.length + 3, 0);
   assert.ok(printed <= 1100, `the block prints ${printed} characters`);
@@ -85,7 +85,7 @@ test("the lines reach an opted-in session and a working subagent, and never the 
   assert.equal(main.message, "");
   const worker = session(dir, { hook_event_name: "SubagentStart", agent_type: "general-purpose" });
   assert.ok(worker.context.includes(TASTE));
-  for (const agent of ["agentcraft:vision-critic", "Explore", "Plan"]) {
+  for (const agent of ["agentic-engineering:vision-critic", "Explore", "Plan"]) {
     assert.equal(session(dir, { hook_event_name: "SubagentStart", agent_type: agent }).stdout, "", `${agent} is told nothing`);
   }
   assert.equal(fs.existsSync(path.join(ROOT, "agents", "vision-critic.md")), true, "the agent the deny list names is the one the plugin ships");
@@ -193,7 +193,7 @@ test("a subagent starts no move, and the hook fails open on anything it cannot r
 
 test("the plugin's hook map runs the guard on both shells, and the area has no session hook of its own", () => {
   const map = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8")).hooks;
-  const guard = hookCommand("agentcraft", "skills/perceptual-loop/hooks/guard.mjs");
+  const guard = hookCommand("agentic-engineering", "skills/perceptual-loop/hooks/guard.mjs");
   assert.deepEqual(map.PreToolUse.filter((g) => g.hooks.some((h) => h.command === guard)).map((g) => g.matcher), ["Bash|PowerShell"]);
   assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "briefing.mjs")), "its briefing is a part of the plugin's");
   assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);

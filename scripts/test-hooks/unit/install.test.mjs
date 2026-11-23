@@ -41,7 +41,7 @@ function earlier(t) {
   return { ...c, cached };
 }
 
-test("a bare install writes agentcraft alone: the cached copy, both registries, and the enable flag", (t) => {
+test("a bare install writes agentic-engineering alone: the cached copy, both registries, and the enable flag", (t) => {
   const { read, run, cache } = config(t, { "settings.json": { theme: "dark", enabledPlugins: { "other@elsewhere": true } } });
   const result = run();
   assert.equal(result.status, 0, result.stderr);
@@ -102,7 +102,7 @@ test("a plugin the checkout does not ship is refused before anything is written"
   const { dir, run } = config(t);
   const result = run("--plugins", "no-such-plugin");
   assert.equal(result.status, 2);
-  assert.match(result.stderr, /^not in this checkout: no-such-plugin; it ships agentcraft$/m);
+  assert.match(result.stderr, /^not in this checkout: no-such-plugin; it ships agentic-engineering$/m);
   assert.deepEqual(fs.readdirSync(dir), []);
 });
 
@@ -168,7 +168,7 @@ test("--dry-run says what it would retire and writes none of it, and --uninstall
   const dry = run("--dry-run");
   assert.equal(dry.status, 0, dry.stderr);
   assert.ok(dry.stdout.includes(`would remove ${cached}`), dry.stdout);
-  assert.match(dry.stdout, /^would write .*installed_plugins\.json: dropped the user-scope install of agent-works, which moved into agentcraft$/m);
+  assert.match(dry.stdout, /^would write .*installed_plugins\.json: dropped the user-scope install of agent-works, which moved into agentic-engineering$/m);
   assert.match(dry.stdout, /^would write .*settings\.json: dropped enabledPlugins for agent-works$/m);
   assert.ok(fs.existsSync(cached), "nothing was removed");
   assert.equal(read("settings.json").enabledPlugins[OLD_KEY], true);

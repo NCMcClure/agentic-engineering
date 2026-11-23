@@ -23,14 +23,14 @@ import { pathToFileURL } from "node:url";
 import { REPO, tempRepo, write } from "./helpers.mjs";
 
 /** The plugin that loads the mod, and the area of it the board belongs to. */
-export const ROOT = path.join(REPO, "plugins", "agentcraft");
+export const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 export const PLUGIN = path.join(ROOT, "skills", "agent-works");
 export const KANBAN = path.join(PLUGIN, "hooks", "kanban");
 export const AW = path.join(PLUGIN, "scripts", "aw.mjs");
 const MOD = pathToFileURL(path.join(KANBAN, "register.mjs")).href;
 const PROPS_CAP = 100000;
 /** The skill a Start runs, as the host names it: the area. Its route, `dispatch`, is the first word of the arguments. */
-export const AREA = "agentcraft:agent-works";
+export const AREA = "agentic-engineering:agent-works";
 
 /** A repository with one commit, and where its board lives. `origin` names a tracker without reaching it. */
 export function repo(t, { origin = null } = {}) {
@@ -251,7 +251,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, r
   const waiting = [];
   const known = () => [...seen.commands.map((x) => x.name), AREA, ...skills];
   const $ = {
-    plugin: { name: "agentcraft", root: ROOT },
+    plugin: { name: "agentic-engineering", root: ROOT },
     session: { cwd: async () => session.cwd },
     fs: {
       exists: async (p) => fs.existsSync(p),
@@ -275,7 +275,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, r
         return { exitCode: r.status ?? 1, stdout: r.stdout, stderr: r.stderr, isStdoutTruncated: false, isStderrTruncated: false };
       },
     },
-    tool: { register: async (t) => { seen.tools.push(t); return { tool: `mcp__agentcraft__${t.name}` }; } },
+    tool: { register: async (t) => { seen.tools.push(t); return { tool: `mcp__agentic-engineering__${t.name}` }; } },
     command: {
       register: async (c) => { seen.commands.push(c); return { command: c.name }; },
       list: async () => known().map((name) => ({ name, source: seen.commands.some((c) => c.name === name) ? "builtin" : "plugin" })),
@@ -343,7 +343,7 @@ export async function mount(cwd, { refuseCommands = false, noCommands = false, r
       await settle();
     },
     events: () => hooks.map((h) => h.event),
-    tool: (name, input) => emit("tool.call", { tool: `mcp__agentcraft__${name}`, tool_use_id: `call-${name}`, ...input }),
+    tool: (name, input) => emit("tool.call", { tool: `mcp__agentic-engineering__${name}`, tool_use_id: `call-${name}`, ...input }),
     command: (args = "") => emit("command.run", { command: "kanban", args, origin: { kind: "composer" } }),
     close: () => emit("ui.close", { id: "kanban", origin: { kind: "person" } }),
     tick: () => Promise.all(seen.timers.filter((t) => !t.cancelled).map((t) => t.fn())),

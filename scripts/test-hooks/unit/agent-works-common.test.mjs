@@ -12,7 +12,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works");
 const common = await import(pathToFileURL(path.join(PLUGIN, "lib", "common.mjs")).href);
 const {
   AwError, CODES, Finding, LEVELS, NEVER_ACCEPTED, PLUGINS_BLOCK,
@@ -657,7 +657,7 @@ Not installed: say so once.
 test("agent-works common: template fills the places it is given and leaves the others visible", async (t) => {
   const { dir, lib } = await pluginCopy(t, {
     "assets/templates/decision.md": "# {{number}}. {{title}}\r\n\r\n{{status}} since {{number}}\r\n",
-    ".claude-plugin/plugin.json": '{ "name": "agentcraft", "version": "9.8.7" }',
+    ".claude-plugin/plugin.json": '{ "name": "agentic-engineering", "version": "9.8.7" }',
     // A manifest in the area itself is nobody's: the version is the plugin's.
     "plugin.json": '{ "name": "agent-works", "version": "1.1.1" }',
   });

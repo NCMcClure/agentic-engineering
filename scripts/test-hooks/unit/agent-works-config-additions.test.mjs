@@ -3,7 +3,7 @@
 // config itself says, so nothing a repo relied on loosens while they wait.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ADDITIONS, CONFIG, loadConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/config.mjs";
+import { ADDITIONS, CONFIG, loadConfig } from "../../../plugins/agentic-engineering/skills/agent-works/lib/config.mjs";
 import { tempDir, write } from "./helpers.mjs";
 
 const json = (value) => `${JSON.stringify(value, null, 2)}\n`;

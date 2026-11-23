@@ -1,4 +1,4 @@
-// plugins/agentcraft/hooks/critical-context.mjs and the two session commands
+// plugins/agentic-engineering/hooks/critical-context.mjs and the two session commands
 // built on it, run the way the plugin runs them: a throwaway plugin directory
 // with the real helper, session-start.mjs and briefing.mjs in hooks/, and an
 // area folder per name in AREAS holding lines and a briefing this suite wrote.
@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
-import * as helper from "../../../plugins/agentcraft/hooks/critical-context.mjs";
+import * as helper from "../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 
 const {
   AREAS, BRIEFING_CHARS, CATALOG_CHARS, CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, MIGRATION_CHARS, OLD_MANIFESTS, OLD_MARKERS, PLUGIN, SHARED_LINE,

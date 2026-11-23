@@ -11,7 +11,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO } from "./helpers.mjs";
 
-const KIT = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "kit");
+const KIT = path.join(REPO, "plugins", "agentic-engineering", "skills", "picture-this", "kit");
 /** The files that own the frame loop: the only place a frame is asked for. */
 const FRAME_LOOP = ["stage.tsx"];
 /** React-free and import-free, so Node can import them as they are and a 3D scene can share them. */

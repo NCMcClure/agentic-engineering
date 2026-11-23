@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning");
 const SCAFFOLD = path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs");
 const SPEC_OPEN = path.join(PLUGIN, "routes", "spec-open", "spec-open.mjs");
 const { EMPTY_DIRS, SCRIPTS, SITE, WORKSPACE, scaffold, staleScripts } = await import(pathToFileURL(SCAFFOLD).href);

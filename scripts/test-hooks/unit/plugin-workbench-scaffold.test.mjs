@@ -7,10 +7,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter, walk } from "../../lib.mjs";
-import { runScan } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan } from "../../../plugins/agentic-engineering/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO, runNode, tempDir, tree, write } from "./helpers.mjs";
 
-const SCAFFOLD = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench", "routes", "create-plugin", "scripts", "plugin-scaffold.mjs");
+const SCAFFOLD = path.join(REPO, "plugins", "agentic-engineering", "skills", "plugin-workbench", "routes", "create-plugin", "scripts", "plugin-scaffold.mjs");
 const CATALOG = ".claude-plugin/marketplace.json";
 const NAME = "fresh-kit2go";
 
@@ -134,7 +134,7 @@ const added = (dir, extra = {}) => ({
   write: { ...Object.fromEntries(files(dir).map((rel) => [`plugins/${NAME}/${rel}`, read(dir, rel)])), ...extra },
 });
 const failures = (stdout) => stdout.split("\n").filter((line) => line.startsWith("FAIL:"));
-const SECOND_PLUGIN = /: the marketplace ships one plugin, plugins\/\w+, and plugins\/ holds no other directory/;
+const SECOND_PLUGIN = /: the marketplace ships one plugin, plugins\/[\w-]+, and plugins\/ holds no other directory/;
 
 test("the skeleton, added to this marketplace with a catalog entry, is refused as a second plugin and for nothing else", (t) => {
   const { dir } = scaffold(t);

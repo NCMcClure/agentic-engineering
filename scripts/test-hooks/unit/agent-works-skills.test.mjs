@@ -84,7 +84,7 @@ test("agent-works routes: only setup is the person's to start, and a route that 
   for (const { name, text } of routes) {
     if (name === "setup") continue;
     assert.doesNotMatch(text, /`setup` skill/, name);
-    for (const m of text.matchAll(/[^.\n]*\/agentcraft:agent-works setup[^\n]*/g)) assert.match(m[0], /ask (the person|them)/, `${name}: ${m[0]}`);
+    for (const m of text.matchAll(/[^.\n]*\/agentic-engineering:agent-works setup[^\n]*/g)) assert.match(m[0], /ask (the person|them)/, `${name}: ${m[0]}`);
   }
 });
 

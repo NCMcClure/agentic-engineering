@@ -10,7 +10,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works");
 // The area's part alone, run through the plugin's helper (area-session.mjs says why).
 const HOOK = path.join(import.meta.dirname, "area-session.mjs");
 const PART = path.join(PLUGIN, "hooks", "briefing.mjs");

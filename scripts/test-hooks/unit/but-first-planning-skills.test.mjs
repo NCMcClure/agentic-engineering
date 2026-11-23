@@ -90,7 +90,7 @@ test("but-first-planning routes: no file names a route or a script by a name it 
 
 test("but-first-planning routes: a route of this area named anywhere exists, and one only a person starts is asked for", () => {
   for (const doc of docs) {
-    for (const m of doc.text.matchAll(/\/agentcraft:but-first-planning ([a-z-]+)/g)) {
+    for (const m of doc.text.matchAll(/\/agentic-engineering:but-first-planning ([a-z-]+)/g)) {
       assert.ok(names.includes(m[1]), `${doc.rel}: ${m[0]}`);
       if (!BY_HAND.includes(m[1])) continue;
       const line = doc.text.split("\n").find((l) => l.includes(m[0])) ?? "";
@@ -105,7 +105,7 @@ test("but-first-planning routes: a route of this area named anywhere exists, and
 // is a route its area has.
 test("but-first-planning routes: another area is named only by a route it has, and only the ones planning hands on to", () => {
   for (const doc of docs) {
-    for (const m of doc.text.matchAll(/\/agentcraft:([a-z-]+) ([a-z-]+)/g)) {
+    for (const m of doc.text.matchAll(/\/agentic-engineering:([a-z-]+) ([a-z-]+)/g)) {
       if (m[1] === "but-first-planning") continue;
       assert.ok(ELSEWHERE.includes(`${m[1]} ${m[2]}`), `${doc.rel}: ${m[0]}`);
       assert.ok(area(m[1]).route(m[2]), `${doc.rel}: ${m[0]} is not a route of that area`);
@@ -130,7 +130,7 @@ test("but-first-planning routes: the ten bundled workflow scripts parse, and eac
 
 test("but-first-planning routes: build-tdd names agentic-teamwork's loop and carries its own, with no references of its own", () => {
   const tdd = AREA.route("build-tdd");
-  assert.match(tdd.body, /\*\*The loop is the agentic-teamwork area's `tdd` route\*\*\s+\(`\/agentcraft:agentic-teamwork tdd`\)/);
+  assert.match(tdd.body, /\*\*The loop is the agentic-teamwork area's `tdd` route\*\*\s+\(`\/agentic-engineering:agentic-teamwork tdd`\)/);
   // Both areas ship together, so the loop here is a short form of the other's, not a fallback for when it is missing.
   assert.match(tdd.body, /\*\*The loop in short, for the contract below:\*\*/);
   for (const step of ["**Red.**", "**Green.**", "**Refactor.**"]) assert.ok(tdd.body.includes(step), step);

@@ -141,7 +141,7 @@ export function namedPaths(line, names) {
 // `routes/<route>/ROUTE.md`. plugins/ holds no other directory.
 
 /** The one plugin, and the skill a person types, which is the one skill of it that is not an area. */
-export const AREA_PLUGIN = "agentcraft";
+export const AREA_PLUGIN = "agentic-engineering";
 export const ENTRY_SKILL = "start-here";
 
 /**
@@ -151,26 +151,33 @@ export const ENTRY_SKILL = "start-here";
  */
 export const OLD_NAMES = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
 
+/**
+ * A name the one plugin itself went by before 2.0.0. It is the plugin renamed,
+ * not an area that moved in, so nothing maps it to an area: an install line,
+ * an address, or an MCP tool name that still carries it names nothing now.
+ */
+export const OLD_PLUGIN_NAMES = ["agentcraft"];
+
 // Files duplicated on purpose: a canonical file, and the copies held
 // hash-equal to it. The plugin keeps one copy of what its areas share (in its
 // lib/), so the only pairs left are files a route copies into a user's repo,
 // where nothing can reach back into the plugin.
 export const HASH_PAIRS = [
-  { canonical: "plugins/agentcraft/lib/provider.mjs", copies: ["plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/provider.mjs"] },
+  { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/provider.mjs`] },
 ];
 
 // The trees a route copies into a user's repo. A file there is another repo's
 // file once copied: what it names is in that repo, and a copy already out
 // there does not change when this one does.
 const TEMPLATE_TREES = [
-  "plugins/agentcraft/skills/agentic-teamwork/templates/",
-  "plugins/agentcraft/skills/agent-works/assets/templates/",
-  "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/",
-  "plugins/agentcraft/skills/docs-parity/routes/docs-init/assets/",
-  "plugins/agentcraft/skills/system-map/routes/diagrams-init/assets/",
-  "plugins/agentcraft/skills/write-like-me/routes/calibrate/assets/",
-  "plugins/agentcraft/skills/picture-this/kit/",
-  "plugins/agentcraft/skills/picture-this/blank/",
+  `plugins/${AREA_PLUGIN}/skills/agentic-teamwork/templates/`,
+  `plugins/${AREA_PLUGIN}/skills/agent-works/assets/templates/`,
+  `plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/docs-parity/routes/docs-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/system-map/routes/diagrams-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/write-like-me/routes/calibrate/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/picture-this/kit/`,
+  `plugins/${AREA_PLUGIN}/skills/picture-this/blank/`,
 ];
 
 /** Whether a tracked file is a template copy: under one of those trees, or the canonical file of a pair whose copy is. */

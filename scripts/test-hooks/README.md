@@ -16,7 +16,7 @@ checkout once per case; run one suite while you work on it
 
 `hooks.test.mjs` spawns each hook through the command the plugin's `hooks.json`
 registers, with one JSON payload on stdin, and checks stdout and the exit code.
-A case is one file, `cases/<owner>/<hook>.<n>.json`: `cases/agentcraft/` for the
+A case is one file, `cases/<owner>/<hook>.<n>.json`: `cases/agentic-engineering/` for the
 plugin's own two session commands, `cases/<area>/` for a hook in an area's
 `hooks/` folder. The format is at the top of `hooks.test.mjs`. Every Node hook
 the hook map runs needs three: a real payload, empty stdin, and malformed JSON.
@@ -37,7 +37,7 @@ delete the line.
   `<area>-*.test.mjs` suites test that area's scripts and hooks.
 - `validate.test.mjs`, `gen-guide.test.mjs` and `install.test.mjs` test the
   repo's own tooling, each against a throwaway copy or a fixture marketplace.
-- One suite per file in `plugins/agentcraft/lib/`, and
+- One suite per file in `plugins/agentic-engineering/lib/`, and
   `critical-context.test.mjs` for the session helper and its two commands.
   `area-session.mjs` runs one area's part of those commands alone, for the
   suites about a single area.
@@ -51,9 +51,9 @@ too, and holds every address written out to what the plugin ships.
 ## Live lane: `npm run test:live`
 
 Starts real headless Claude Code sessions with this checkout's plugin
-(`claude -p --plugin-dir plugins/agentcraft`, on haiku), one
+(`claude -p --plugin-dir plugins/agentic-engineering`, on haiku), one
 per fixture repo: a prompt, a forced `/compact`, then a prompt that starts
-three kinds of subagent, the plugin's own `agentcraft:vision-critic` among
+three kinds of subagent, the plugin's own `agentic-engineering:vision-critic` among
 them. It reads each transcript back through the context-doctor area's lens and
 prints, per area, what reached the model at the start, after the compaction,
 and in each subagent. The plugin speaks through one command for every area, so
@@ -68,7 +68,7 @@ called the area and read the route's `ROUTE.md`, or, for the entry skill and
 an area's own page, called or read that. One more session works inside a
 route, compacts, and carries on, to see that its instructions come back.
 These sessions get four read-only tools and no MCP server (the plugin's own
-tools are denied by name, `mcp__agentcraft`), because the prompts ask for work
+tools are denied by name, `mcp__agentic-engineering`), because the prompts ask for work
 with side effects.
 
 It spends model quota, so it is opt-in and never runs in CI: about 20 cents
@@ -125,7 +125,7 @@ for a reason that is not routing.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
   `reach.mjs` what counts as reaching a route. The transcript reader is
-  `plugins/agentcraft/skills/context-doctor/scripts/`.
+  `plugins/agentic-engineering/skills/context-doctor/scripts/`.
 - `fixtures/live-lane/` - recorded transcripts the reach tests read, cut down
   to the fields the detector uses. They are recordings, and keep the names
   they were made with.

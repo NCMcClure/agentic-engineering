@@ -7,8 +7,8 @@ import path from "node:path";
 import test from "node:test";
 import { box, boxBlur, idPass, scene, u8 } from "./perceptual-loop-fixtures.mjs";
 
-import { ciede2000 } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/color.mjs";
-import { analyse, regionsFromId, regionsFromBoxes, regionsFromMask, regionMetrics, pyRound, percentile, median } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/metrics.mjs";
+import { ciede2000 } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/color.mjs";
+import { analyse, regionsFromId, regionsFromBoxes, regionsFromMask, regionMetrics, pyRound, percentile, median } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/metrics.mjs";
 
 // Sharma, Wu and Dalal (2005), table 1: the 34 pairs and their published differences.
 const SHARMA = [

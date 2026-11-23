@@ -301,7 +301,7 @@ function installedCopy(cache, rel, says, at) {
   fs.utimesSync(file, at, at);
 }
 
-test("agent-works setup: the launcher looks in the agentcraft plugin first, then where agent-works was a plugin of its own", (t) => {
+test("agent-works setup: the launcher looks in the agentic-engineering plugin first, then where agent-works was a plugin of its own", (t) => {
   const p = project(t);
   // A home of the test's own: the launcher reads the plugin cache under it, never the person's.
   const home = path.join(p.tmp, "home");
@@ -318,13 +318,13 @@ test("agent-works setup: the launcher looks in the agentcraft plugin first, then
   installedCopy(cache, "agentic-engineering/agent-works/2.4.0", "the plugin of its own", day(20));
   assert.deepEqual(said(), [0, "the plugin of its own\n", ""]);
   // The area's copy is found first, though the old one was written later.
-  installedCopy(cache, "agentic-engineering/agentcraft/0.1.0/skills/agent-works", "the area, 0.1.0", day(10));
+  installedCopy(cache, "agentic-engineering/agentic-engineering/0.1.0/skills/agent-works", "the area, 0.1.0", day(10));
   assert.deepEqual(said(), [0, "the area, 0.1.0\n", ""]);
   // Of the area's copies the newest runs, in whichever marketplace it is.
-  installedCopy(cache, "a-fork/agentcraft/0.2.0/skills/agent-works", "the area, 0.2.0", day(12));
+  installedCopy(cache, "a-fork/agentic-engineering/0.2.0/skills/agent-works", "the area, 0.2.0", day(12));
   assert.deepEqual(said(), [0, "the area, 0.2.0\n", ""]);
   // A folder of that plugin with no command line in the area is passed over.
-  fs.mkdirSync(path.join(cache, "agentic-engineering", "agentcraft", "0.3.0", "skills", "start-here"), { recursive: true });
+  fs.mkdirSync(path.join(cache, "agentic-engineering", "agentic-engineering", "0.3.0", "skills", "start-here"), { recursive: true });
   assert.deepEqual(said(), [0, "the area, 0.2.0\n", ""]);
   // AGENT_WORKS_CLI still wins over any installed copy.
   installedCopy(p.tmp, "dev", "the one the variable names", day(1));

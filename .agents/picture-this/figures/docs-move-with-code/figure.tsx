@@ -5,7 +5,7 @@
 // and the shot are behind until the sentence is rewritten and the picture
 // retaken. Under them, what docs-check says of the change at each step. The
 // file contents and every line of the checker's output come from a scratch
-// repo with exactly this surface, run through plugins/agentcraft/skills/docs-parity.
+// repo with exactly this surface, run through plugins/agentic-engineering/skills/docs-parity.
 import { useId } from "react";
 import type { Model, Row } from "../kit/model";
 import { Stage, useFigure } from "../kit/stage";

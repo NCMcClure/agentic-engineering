@@ -7,10 +7,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { pythonRunner, runExtra } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/commands/extras.mjs";
-import { encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
-import * as project from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/project.mjs";
-import { describe, renderCommand, shellOnly, startFailure } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/render.mjs";
+import { pythonRunner, runExtra } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/extras.mjs";
+import { encodePng } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/png.mjs";
+import * as project from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/project.mjs";
+import { describe, renderCommand, shellOnly, startFailure } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/render.mjs";
 import { PL, PLUGIN, runNode, tempDir, write } from "./perceptual-loop-fixtures.mjs";
 
 const ENV = { PL_RUN: "", PL_DIR: "", PERCEPTUAL_LOOP_DIR: "", PL_SHOTS_DIR: "", PL_PYTHON: "" };

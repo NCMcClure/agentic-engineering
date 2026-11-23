@@ -10,7 +10,7 @@ import { pathToFileURL } from "node:url";
 import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const { appendPlanEvent, dropPlanState, locate, planStateDir, readPlanState, writePlanState } = await import(
-  pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "io.mjs")).href);
+  pathToFileURL(path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "scripts", "io.mjs")).href);
 
 function repoWithWorktree(t) {
   const main = tempRepo(t, "plan-state-");

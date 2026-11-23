@@ -8,9 +8,9 @@ import path from "node:path";
 import test from "node:test";
 import { PL, flowFrame, runNode, tempDir, texture } from "./perceptual-loop-fixtures.mjs";
 
-import { decodePng, encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
-import { denseFlow, bilinear } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/flow.mjs";
-import { angleBetween } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/commands/flow.mjs";
+import { decodePng, encodePng } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/png.mjs";
+import { denseFlow, bilinear } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/flow.mjs";
+import { angleBetween } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/flow.mjs";
 const ENV = { PL_DIR: "", PL_SHOTS_DIR: "" };
 
 const pl = (dir, args) => runNode(PL, args, { cwd: dir, env: ENV });

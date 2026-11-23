@@ -7,10 +7,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { CONFIG, MANIFEST, PLUMBING, checkReadme, checkRepo, configFindings, oneLiner, optedIn, plumbingHits, readmeConfig, repoName } from "../../../plugins/agentcraft/skills/docs-parity/scripts/readme-check.mjs";
+import { CONFIG, MANIFEST, PLUMBING, checkReadme, checkRepo, configFindings, oneLiner, optedIn, plumbingHits, readmeConfig, repoName } from "../../../plugins/agentic-engineering/skills/docs-parity/scripts/readme-check.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const CHECK = path.join(REPO, "plugins", "agentcraft", "skills", "docs-parity", "scripts", "readme-check.mjs");
+const CHECK = path.join(REPO, "plugins", "agentic-engineering", "skills", "docs-parity", "scripts", "readme-check.mjs");
 
 const GOOD = [
   "# widget",

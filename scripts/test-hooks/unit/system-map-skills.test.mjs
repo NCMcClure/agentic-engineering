@@ -72,7 +72,7 @@ for (const route of routes) {
   test(`system-map routes: every route ${route.name} points at is one the area ships, and a hand-run one is asked for`, () => {
     for (const page of pages(route)) {
       const text = fs.readFileSync(page, "utf8");
-      for (const m of text.matchAll(/(?<![\w/.-])\/agentcraft:([a-z][a-z-]*) ([a-z][a-z-]*)\b/g)) {
+      for (const m of text.matchAll(/(?<![\w/.-])\/agentic-engineering:([a-z][a-z-]*) ([a-z][a-z-]*)\b/g)) {
         assert.equal(m[1], "system-map", `${m[0]} belongs to another area`);
         assert.ok(names.includes(m[2]), m[0]);
       }

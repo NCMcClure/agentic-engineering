@@ -46,7 +46,7 @@ for (const route of routes) {
   });
 
   test(`agentic-teamwork routes: every route of this area ${route.name} hands on to exists`, () => {
-    for (const m of route.text.matchAll(/(?<![\w/.-])\/agentcraft:agentic-teamwork ([a-z][a-z-]*)\b/g)) assert.ok(names.includes(m[1]), m[0]);
+    for (const m of route.text.matchAll(/(?<![\w/.-])\/agentic-engineering:agentic-teamwork ([a-z][a-z-]*)\b/g)) assert.ok(names.includes(m[1]), m[0]);
     assert.doesNotMatch(route.text, /(?<![\w/.-])\/agentic-teamwork:[a-z]/, "an address under the plugin's old name");
   });
 }

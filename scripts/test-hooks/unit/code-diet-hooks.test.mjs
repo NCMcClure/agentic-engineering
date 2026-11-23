@@ -8,12 +8,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import { CONFIG_KEY } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
+import { CONFIG_KEY } from "../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "code-diet");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
+const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "hooks", "hooks.json"), "utf8")).hooks;
 const ROUTES = path.join(PLUGIN, "routes");
 const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const LADDER = CRITICAL.lines[0].text;
@@ -46,7 +46,7 @@ const edit = (t, dir, toolInput, options) => hook(t, "debt-nudge.mjs", { hook_ev
 // ---- what is registered -----------------------------------------------------
 
 test("the plugin's hook map runs the nudge after an edit, and the area has no session hook or briefing of its own", () => {
-  const command = hookCommand("agentcraft", "skills/code-diet/hooks/debt-nudge.mjs");
+  const command = hookCommand("agentic-engineering", "skills/code-diet/hooks/debt-nudge.mjs");
   const groups = HOOKS.PostToolUse.filter((g) => g.hooks.some((h) => h.command === command));
   assert.deepEqual(groups.map((g) => g.matcher), ["Edit|MultiEdit|Write"]);
   assert.deepEqual(fs.readdirSync(path.join(PLUGIN, "hooks")).sort(), ["critical.json", "debt-nudge.mjs"]);
@@ -74,7 +74,7 @@ test("the ladder line carries all seven rungs in order, the carve-outs, the root
   const at = rungs.map((r) => LADDER.indexOf(r));
   assert.ok(at.every((i) => i !== -1), `a rung is missing: ${rungs.filter((_, i) => at[i] === -1).join(", ")}`);
   assert.deepEqual([...at].sort((a, b) => a - b), at, "the rungs are out of order");
-  for (const phrase of ["trust-boundary validation", "data-loss handling", "security", "accessibility", "root cause", "`debt: <ceiling>, <upgrade trigger>`", "/agentcraft:code-diet reuse-first"]) {
+  for (const phrase of ["trust-boundary validation", "data-loss handling", "security", "accessibility", "root cause", "`debt: <ceiling>, <upgrade trigger>`", "/agentic-engineering:code-diet reuse-first"]) {
     assert.ok(LADDER.includes(phrase), `the ladder does not say: ${phrase}`);
   }
 });
@@ -83,12 +83,12 @@ test("every route the ladder and the routes name is one the area ships", () => {
   const shipped = fs.readdirSync(ROUTES);
   assert.deepEqual(shipped.sort(), ["capture-reusable", "debt", "ladder", "reuse-first", "review-diet"]);
   const texts = [LADDER, ...shipped.map((r) => fs.readFileSync(path.join(ROUTES, r, "ROUTE.md"), "utf8"))];
-  assert.match(LADDER, /\/agentcraft:code-diet reuse-first/);
-  for (const text of texts) for (const m of text.matchAll(/\/agentcraft:code-diet ([a-z-]+)/g)) assert.ok(shipped.includes(m[1]), `/agentcraft:code-diet ${m[1]} is not a route`);
+  assert.match(LADDER, /\/agentic-engineering:code-diet reuse-first/);
+  for (const text of texts) for (const m of text.matchAll(/\/agentic-engineering:code-diet ([a-z-]+)/g)) assert.ok(shipped.includes(m[1]), `/agentic-engineering:code-diet ${m[1]} is not a route`);
 });
 
 test("every script a route runs exists in the plugin", () => {
-  const root = path.join(REPO, "plugins", "agentcraft");
+  const root = path.join(REPO, "plugins", "agentic-engineering");
   for (const route of fs.readdirSync(ROUTES)) {
     const text = fs.readFileSync(path.join(ROUTES, route, "ROUTE.md"), "utf8");
     for (const m of text.matchAll(/\$\{CLAUDE_PLUGIN_ROOT\}\/([A-Za-z0-9_./-]+\.m?js)/g)) assert.ok(fs.existsSync(path.join(root, m[1])), `${route} names ${m[1]}, which is not in the plugin`);

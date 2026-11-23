@@ -9,11 +9,11 @@ import path from "node:path";
 import test from "node:test";
 import { scene, tempDir, u8 } from "./perceptual-loop-fixtures.mjs";
 
-import * as font from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/font.mjs";
-import * as raster from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/raster.mjs";
-import * as sheets from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/sheets.mjs";
-import { encodeJpeg, quantTable } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/jpeg.mjs";
-import { decodePng, encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import * as font from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/font.mjs";
+import * as raster from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/raster.mjs";
+import * as sheets from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/sheets.mjs";
+import { encodeJpeg, quantTable } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/jpeg.mjs";
+import { decodePng, encodePng } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/png.mjs";
 const hasFfmpeg = spawnSync("ffmpeg", ["-version"], { stdio: "ignore" }).status === 0;
 
 const bits = (rows) => rows.map((r) => parseInt(r, 2));

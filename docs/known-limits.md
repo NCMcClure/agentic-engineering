@@ -6,10 +6,11 @@ true of a build, not forever.
 
 ## Host behaviors the one-plugin cutover leans on
 
-The twelve plugins became areas of one plugin, `agentcraft`. For a time each
-old name stayed in the catalog as a stub, a manifest that depended on
-`agentcraft` and shipped nothing else; the stubs are gone now, and the catalog
-lists the one plugin. The move leaned on host behaviors nobody here had run.
+The twelve plugins became areas of one plugin, then named `agentcraft` and
+renamed `agentic-engineering` in 2.0.0. For a time each old name stayed in the
+catalog as a stub, a manifest that depended on `agentcraft` and shipped nothing
+else; the stubs are gone now, and the catalog lists the one plugin. The runs
+below keep the name the plugin had when they were made. The move leaned on host behaviors nobody here had run.
 Each was run on 2026-11-15 on Claude Code 2.1.325, in a throwaway marketplace
 against scratch config, never a person's own. Findings 5 to 7 say what the
 host does with a stub and with a plugin the catalog drops, which is what an
@@ -143,6 +144,13 @@ in the real plugin.
    installed`. Running the update again without the variable resolved it.
    Builds before 2.1.321 were not run here; measured elsewhere, the
    dependency arrives a session late on them.
+
+A plugin may carry its marketplace's name. On build 2.1.330, in an empty
+config directory, `claude plugin marketplace add <checkout>` and then `claude
+plugin install agentic-engineering@agentic-engineering` both succeeded, and
+`claude plugin list` showed the plugin enabled at its version. Not run there:
+a session, so its skill names and its data directory
+(`agentic-engineering-agentic-engineering` by finding 6) were not seen.
 
 Not tested: an interactive session's slash menu; a signed-in account; a real
 model; the background auto-update pass; a `renames` entry; and how a mod reads

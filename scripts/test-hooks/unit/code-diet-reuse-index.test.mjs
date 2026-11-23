@@ -5,10 +5,10 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { test } from "node:test";
-import { CONFIG_KEY, definesOf, describe, score, termsOf } from "../../../plugins/agentcraft/skills/code-diet/scripts/reuse-index.mjs";
+import { CONFIG_KEY, definesOf, describe, score, termsOf } from "../../../plugins/agentic-engineering/skills/code-diet/scripts/reuse-index.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const INDEX = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet", "scripts", "reuse-index.mjs");
+const INDEX = path.join(REPO, "plugins", "agentic-engineering", "skills", "code-diet", "scripts", "reuse-index.mjs");
 
 /** Run the index in `cwd` with an empty global git config. */
 function ask(t, cwd, args, { json = true } = {}) {

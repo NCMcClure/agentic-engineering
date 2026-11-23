@@ -1,7 +1,7 @@
 # plugins: what the agents load
 
-One plugin ships everything: `agentcraft`, installed as
-`agentcraft@agentic-engineering`. It is the only directory here: what is new
+One plugin ships everything: `agentic-engineering`, installed as
+`agentic-engineering@agentic-engineering`. It is the only directory here: what is new
 goes in as one of its areas.
 
 A plugin never references a file outside its own directory: installs are
@@ -9,7 +9,7 @@ cached copies, so `../` paths out of it break.
 
 ## Layout
 
-- `agentcraft/` - the plugin. `.claude-plugin/plugin.json` carries the one
+- `agentic-engineering/` - the plugin. `.claude-plugin/plugin.json` carries the one
   version, and `CHANGELOG.md` has it as its top entry.
   - `skills/start-here/` - the entry skill, the only one a person types. It
     asks what they want, explains the area, and hands off to a route. Its
@@ -35,7 +35,7 @@ cached copies, so `../` paths out of it break.
 
 ## The areas
 
-Each is `agentcraft/skills/<name>/`.
+Each is `agentic-engineering/skills/<name>/`.
 
 - `agent-works` - one home per kind of agent-facing fact under `.agents/`, a
   kanban board that runs a goal as child sessions, a guard, and machine-wide

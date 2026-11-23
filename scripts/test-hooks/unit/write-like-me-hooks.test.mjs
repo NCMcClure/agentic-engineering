@@ -13,7 +13,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const ROOT = path.join(REPO, "plugins", "agentcraft");
+const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 const PLUGIN = path.join(ROOT, "skills", "write-like-me");
 const HOOKS = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8")).hooks;
 
@@ -44,9 +44,9 @@ function person(t, { profile = true } = {}) {
   // The host's data directories: the plugin's, in which the area has a folder, and the one the area had as a plugin of its own.
   const plugins = path.join(home, "plugins", "data");
   const hosted = {
-    home: path.join(plugins, "agentcraft-agentic-engineering", "write-like-me"),
+    home: path.join(plugins, "agentic-engineering-agentic-engineering", "write-like-me"),
     former: path.join(plugins, "write-like-me-agentic-engineering"),
-    env: { WLM_HOME: "", CLAUDE_PLUGIN_DATA: path.join(plugins, "agentcraft-agentic-engineering") },
+    env: { WLM_HOME: "", CLAUDE_PLUGIN_DATA: path.join(plugins, "agentic-engineering-agentic-engineering") },
   };
   return { home, data, run, state, files: () => filesIn(data), profile: path.join(home, ".claude", "rules", "write-like-me.md"), hosted };
 }
@@ -173,7 +173,7 @@ test("with no WLM_HOME the ledger is in the area's folder of the plugin's data d
   assert.equal(out.parsed.hookSpecificOutput.additionalContext, HONOR("too formal"));
   assert.deepEqual(filesIn(p.hosted.home), ["observations.jsonl"]);
   // With no old plugin's directory beside it there was nothing to copy, and none is made.
-  assert.deepEqual(fs.readdirSync(path.join(p.home, "plugins", "data")), ["agentcraft-agentic-engineering"]);
+  assert.deepEqual(fs.readdirSync(path.join(p.home, "plugins", "data")), ["agentic-engineering-agentic-engineering"]);
   assert.deepEqual(fs.readdirSync(path.dirname(p.hosted.home)), ["write-like-me"], "the plugin's directory holds this area's folder and no loose file");
 });
 

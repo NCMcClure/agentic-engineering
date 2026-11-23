@@ -6,8 +6,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import * as gate from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs";
-import * as project from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/project.mjs";
+import * as gate from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/gate.mjs";
+import * as project from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/project.mjs";
 import { tempDir, write } from "./perceptual-loop-fixtures.mjs";
 
 test("fnmatch follows Python: * crosses everything, [!x] negates, a lone [ is literal", () => {

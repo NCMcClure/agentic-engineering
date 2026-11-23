@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const { scaffold } = await import(pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
+const { scaffold } = await import(pathToFileURL(path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
 
 const P = ".agents/plan";
 const GITHUB = "# Issue tracker: GitHub\n\n| Role | Label | Meaning |\n|---|---|---|\n| ready-for-agent | `ready-for-agent` | AFK |\n| ready-for-human | `ready-for-human` | HITL |\n";

@@ -59,17 +59,17 @@ test("the lane's rows are a plugin's as they were, where each hook's critical bl
 });
 
 test("the lane's rows are an area's where the lens names one, and one session hook's blocks go to the area each names", () => {
-  const inArea = (area) => ({ source: { plugin: "agentcraft", area, focus: true } });
+  const inArea = (area) => ({ source: { plugin: "agentic-engineering", area, focus: true } });
   const m = measureFixture({ main: lensReport([
-    lensEvent("hook", "agentcraft", 200, { event: "SessionStart", blocks: [{ owner: "agent-works", tokens: 80 }, { owner: "docs-parity", tokens: 40 }] }),
-    lensEvent("skills", "agentcraft", 90, { names: ["agentcraft:agent-works"], ...inArea("agent-works") }),
-    lensEvent("skills", "agentcraft", 30, { names: ["agentcraft:start-here"] }),
-    lensEvent("hook", "agentcraft", 0, { event: "Stop", phase: 1, visibility: "silent", ...inArea("agent-works") }),
+    lensEvent("hook", "agentic-engineering", 200, { event: "SessionStart", blocks: [{ owner: "agent-works", tokens: 80 }, { owner: "docs-parity", tokens: 40 }] }),
+    lensEvent("skills", "agentic-engineering", 90, { names: ["agentic-engineering:agent-works"], ...inArea("agent-works") }),
+    lensEvent("skills", "agentic-engineering", 30, { names: ["agentic-engineering:start-here"] }),
+    lensEvent("hook", "agentic-engineering", 0, { event: "Stop", phase: 1, visibility: "silent", ...inArea("agent-works") }),
   ]) });
   // What the hook says for every area at once stays the plugin's.
-  assert.deepEqual(m.sessionStart, { "agent-works": 80, "docs-parity": 40, agentcraft: 80 });
-  assert.deepEqual(m.start, { "agent-works": 170, "docs-parity": 40, agentcraft: 110 });
-  assert.deepEqual(m.skills, { "agent-works": { tokens: 90, skills: 1, bare: 0 }, agentcraft: { tokens: 30, skills: 1, bare: 0 } });
+  assert.deepEqual(m.sessionStart, { "agent-works": 80, "docs-parity": 40, "agentic-engineering": 80 });
+  assert.deepEqual(m.start, { "agent-works": 170, "docs-parity": 40, "agentic-engineering": 110 });
+  assert.deepEqual(m.skills, { "agent-works": { tokens: 90, skills: 1, bare: 0 }, "agentic-engineering": { tokens: 30, skills: 1, bare: 0 } });
   assert.deepEqual(m.stop, { "agent-works": { model: 0, person: 0, silent: 1, error: 0 } });
 });
 
@@ -207,7 +207,7 @@ test("a skill session's arguments leave it four read-only tools and no MCP serve
   assert.ok(!SKILL_SESSION_ARGS.includes("--mcp-config"));
   // A mod registers its tools without an MCP config, so they are denied by
   // name, and the host names them by the plugin that loads the mod.
-  const mod = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "kanban", "tools.mjs"), "utf8");
+  const mod = fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "hooks", "kanban", "tools.mjs"), "utf8");
   const denied = after("--disallowedTools");
   assert.deepEqual(NO_MCP, ["--strict-mcp-config", "--disallowedTools", denied]);
   assert.ok(mod.includes(`${denied}__`), `${denied} is not the prefix the mod's tools carry`);

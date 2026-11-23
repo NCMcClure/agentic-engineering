@@ -38,7 +38,7 @@ test("session start registers /kanban and six tools, every one deferred, and sta
   assert.equal(m.seen.lists, 0, "nothing read");
   assert.equal(fs.existsSync(r.kanban), false, "and no board folder made");
   assert.deepEqual([...new Set(m.events())].sort(), ["command.run", "session.start", "tool.call", "ui.close", "ui.fault", "ui.message", "ui.render"], "no hook on a turn, a prompt, or another tool");
-  assert.deepEqual(m.hooks.filter((h) => h.event === "tool.call").map((h) => h.matcher.tool).sort(), TOOLS.map((name) => `mcp__agentcraft__${name}`));
+  assert.deepEqual(m.hooks.filter((h) => h.event === "tool.call").map((h) => h.matcher.tool).sort(), TOOLS.map((name) => `mcp__agentic-engineering__${name}`));
   // A hook whose answer the host waits on still answers when it fails.
   for (const h of m.hooks.filter((x) => ["tool.call", "command.run", "ui.close"].includes(x.event))) assert.equal(typeof h.rescue, "function", `${h.event} has a .catch`);
   assert.match(m.hooks.find((h) => h.event === "tool.call").rescue().deny, /^the board tool failed/);
@@ -48,16 +48,16 @@ test("hooks.json loads the pane as a module, and the tools' names are written ou
   const hooks = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8"));
   assert.deepEqual(hooks.modules, ["../skills/agent-works/hooks/kanban/register.mjs"]);
   const source = fs.readFileSync(path.join(KANBAN, "register.mjs"), "utf8");
-  for (const name of TOOLS) assert.ok(source.includes(`{ tool: "mcp__agentcraft__${name}" }`), `${name}'s matcher is a literal`);
+  for (const name of TOOLS) assert.ok(source.includes(`{ tool: "mcp__agentic-engineering__${name}" }`), `${name}'s matcher is a literal`);
 });
 
 test("surface_task files a suggestion once: the same title again names the first card", async (t) => {
   const r = repo(t);
   const m = await mount(r.dir);
-  const first = await m.tool("surface_task", { title: "Fix the flaky lock test", details: "It races on a slow runner.", kind: "bug", files: ["scripts/locks.mjs"], priority: "high", skills: ["agentcraft:agent-works"] });
+  const first = await m.tool("surface_task", { title: "Fix the flaky lock test", details: "It races on a slow runner.", kind: "bug", files: ["scripts/locks.mjs"], priority: "high", skills: ["agentic-engineering:agent-works"] });
   assert.equal(first.result, "Added card 0001 [suggested]: Fix the flaky lock test");
   const card = boardOf(r.dir).card("0001");
-  assert.deepEqual([card.status, card.source, card.priority, card.labels, card.files, card.skills, card.body], ["suggested", "claude", "high", ["bug"], ["scripts/locks.mjs"], ["agentcraft:agent-works"], "It races on a slow runner."]);
+  assert.deepEqual([card.status, card.source, card.priority, card.labels, card.files, card.skills, card.body], ["suggested", "claude", "high", ["bug"], ["scripts/locks.mjs"], ["agentic-engineering:agent-works"], "It races on a slow runner."]);
   assert.match(m.seen.toasts.at(-1), /^Claude suggested a task on the kanban board: Fix the flaky lock test\./);
 
   const again = await m.tool("surface_task", { title: "fix the FLAKY lock test!", details: "again" });
@@ -170,7 +170,7 @@ test("Start hands a ready card to the area's dispatch route and moves nothing it
   await m.press(await draw(), "start-0001");
   assert.deepEqual(m.seen.commandRuns, [{ command: AREA, args: "dispatch 0001" }], "a route is no command: the area is run, with the route first");
   assert.deepEqual(m.seen.submits, [], "no prompt: the area runs as a command");
-  assert.match(m.seen.toasts.at(-1), /^Queued \/agentcraft:agent-works dispatch 0001: it runs in this session once it is idle\.$/);
+  assert.match(m.seen.toasts.at(-1), /^Queued \/agentic-engineering:agent-works dispatch 0001: it runs in this session once it is idle\.$/);
   assert.equal(boardOf(r.dir).card("0001").status, "backlog", "the dispatch moves the card, not the button");
   assert.deepEqual(writes(m), [], "the pane wrote nothing");
 
@@ -222,8 +222,8 @@ for (const [name, options] of [["refuses to run a command for a mod", { refuseCo
     await m.idle();
     assert.deepEqual(m.seen.commandRuns, []);
     assert.equal(m.seen.submits.length, 1);
-    assert.match(m.seen.submits[0].text, /^Dispatch card 0001 on the kanban board: call the `agentcraft:agent-works` skill with "dispatch 0001" as its arguments, and follow its dispatch route\.$/);
-    assert.match(m.seen.toasts.at(-1), /^\/agentcraft:agent-works dispatch 0001 did not run as a command \(.+\), so this session was asked in plain words\.$/);
+    assert.match(m.seen.submits[0].text, /^Dispatch card 0001 on the kanban board: call the `agentic-engineering:agent-works` skill with "dispatch 0001" as its arguments, and follow its dispatch route\.$/);
+    assert.match(m.seen.toasts.at(-1), /^\/agentic-engineering:agent-works dispatch 0001 did not run as a command \(.+\), so this session was asked in plain words\.$/);
     assert.ok(lines(await draw()).includes(m.seen.toasts.at(-1)), "and the pane keeps saying it under the board");
     assert.equal(lines([need(await draw(), "card-0001")])[0], "0001 Draw the lanes ready", "the card is not left marked queued");
     assert.equal(boardOf(r.dir).card("0001").status, "backlog");
@@ -237,7 +237,7 @@ test("a host that takes neither the command nor a prompt: Start says so, and wha
   assert.deepEqual([m.seen.commandRuns, m.seen.submits], [[], []]);
   // Words to say, never an address to type: a person cannot run an area.
   assert.match(m.seen.toasts.at(-1), /^The pane could not start 0001 \(.+\)\. Ask this session to dispatch card 0001\.$/);
-  assert.doesNotMatch(m.seen.toasts.at(-1), /\/agentcraft:/);
+  assert.doesNotMatch(m.seen.toasts.at(-1), /\/agentic-engineering:/);
   assert.equal(lines([need(await draw(), "card-0001")])[0], "0001 Draw the lanes ready", "the card is not left marked queued");
   assert.equal(boardOf(r.dir).card("0001").status, "backlog");
 });
@@ -337,13 +337,13 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "priority", "high");
   await m.type(await draw(), "owner", "sam");
   await m.type(await draw(), "labels", "ui, pane");
-  await m.type(await draw(), "skill-type", "/agentcraft:code-diet");
+  await m.type(await draw(), "skill-type", "/agentic-engineering:code-diet");
   await m.pick(await draw(), "skill-pick", AREA);
   await m.type(await draw(), "note", "The lanes draw; the cards do not yet.");
   let card = boardOf(r.dir).card("0001");
   assert.deepEqual(
     [card.title, card.kind, card.ref, card.needs, card.epic, card.sprint, card.priority, card.owner, card.labels, card.skills],
-    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["agentcraft:code-diet", AREA]],
+    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["agentic-engineering:code-diet", AREA]],
   );
   assert.match(card.body, /^- \S+: The lanes draw; the cards do not yet\.$/m);
   assert.match(cardText(r.kanban, "0001"), /^estimate: 3$/m, "the line the pane does not know is still there");
@@ -355,7 +355,7 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "sprint", "none");
   await m.type(await draw(), "labels", "");
   card = boardOf(r.dir).card("0001");
-  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["agentcraft:code-diet"], "", "", []]);
+  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["agentic-engineering:code-diet"], "", "", []]);
   assert.ok(writes(m).every((a) => a[0] === "edit" || a[0] === "note"), "every change was an edit or a note");
   assert.equal(writes(m).length, 17);
 });

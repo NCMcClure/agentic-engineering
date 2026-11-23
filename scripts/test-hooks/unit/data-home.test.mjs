@@ -1,19 +1,21 @@
-// plugins/agentcraft/lib/data-home.mjs: where an area keeps what outlives an
+// plugins/agentic-engineering/lib/data-home.mjs: where an area keeps what outlives an
 // update, and the one-time copy of what it kept as a plugin of its own. Every
 // directory here is a throwaway: the person's own data is never read.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { areaHome, formerHome, inherit } from "../../../plugins/agentcraft/lib/data-home.mjs";
+import { areaHome, formerHome, inherit, previousHome } from "../../../plugins/agentic-engineering/lib/data-home.mjs";
 import { tempDir, write } from "./helpers.mjs";
 
 const MARKET = "agentic-engineering";
+// The plugin's name before 2.0.0, whose data directory is carried over.
+const PREVIOUS = "agent" + "craft";
 /** A `plugins/data` folder as the host lays one out: this plugin's directory, and where an area's own one was. */
 function machine(t, market = MARKET) {
   const data = path.join(tempDir(t, "data-home-"), "plugins", "data");
-  const current = path.join(data, `agentcraft-${market}`);
-  return { data, current, env: { CLAUDE_PLUGIN_DATA: current }, former: (area) => path.join(data, `${area}-${market}`), home: (area) => path.join(current, area) };
+  const current = path.join(data, `agentic-engineering-${market}`);
+  return { data, current, env: { CLAUDE_PLUGIN_DATA: current }, former: (area) => path.join(data, `${area}-${market}`), previous: (area) => path.join(data, `${PREVIOUS}-${market}`, area), home: (area) => path.join(current, area) };
 }
 /** Every file under `dir`, with forward slashes, and what it holds. */
 const tree = (dir) => Object.fromEntries((fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true }) : []).map(String)
@@ -38,9 +40,51 @@ test("the directory an area had as a plugin of its own is beside this plugin's, 
   // A trailing separator is the same directory.
   assert.equal(formerHome("write-like-me", { CLAUDE_PLUGIN_DATA: m.current + path.sep }), path.join(m.data, `write-like-me-${MARKET}`));
   // A data directory that is not named for this plugin (a test's, a person's override) says nothing about a marketplace.
-  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentcraft"), path.join(m.data, `write-like-me-${MARKET}`), "", undefined]) {
+  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentic-engineering"), path.join(m.data, `write-like-me-${MARKET}`), "", undefined]) {
     assert.equal(formerHome("write-like-me", { CLAUDE_PLUGIN_DATA: data }), null, String(data));
   }
+});
+
+test("the directory the plugin had under its previous name holds the area's folder, in the same marketplace", (t) => {
+  const m = machine(t);
+  assert.equal(previousHome("write-like-me", m.env), path.join(m.data, `${PREVIOUS}-${MARKET}`, "write-like-me"));
+  const fork = machine(t, "a-fork");
+  assert.equal(previousHome("picture-this", fork.env), path.join(fork.data, `${PREVIOUS}-a-fork`, "picture-this"));
+  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentic-engineering"), "", undefined]) {
+    assert.equal(previousHome("write-like-me", { CLAUDE_PLUGIN_DATA: data }), null, String(data));
+  }
+});
+
+test("data the 1.x plugin wrote is copied into the area's home once, and never over anything", (t) => {
+  const m = machine(t);
+  const from = m.previous("write-like-me");
+  write(from, "observations.jsonl", '{"label": "tone"}\n');
+  write(from, "samples/emails/one.md", "a sample\n");
+  write(m.previous("picture-this"), "kit/package.json", "{}\n");
+  const before = tree(from);
+  assert.deepEqual(inherit("write-like-me", m.env), ["observations.jsonl", "samples"]);
+  assert.deepEqual(tree(m.home("write-like-me")), before);
+  assert.deepEqual(tree(from), before, "a copy: nothing is moved");
+  assert.deepEqual(fs.readdirSync(m.current), ["write-like-me"], "and no other area's folder is made");
+  // A second run, with the old plugin still writing, copies nothing and overwrites nothing.
+  write(m.home("write-like-me"), "observations.jsonl", "kept\n");
+  write(from, "later.md", "later\n");
+  assert.deepEqual(inherit("write-like-me", m.env), []);
+  assert.equal(fs.readFileSync(path.join(m.home("write-like-me"), "observations.jsonl"), "utf8"), "kept\n");
+  assert.equal(fs.existsSync(path.join(m.home("write-like-me"), "later.md")), false);
+});
+
+test("the previous plugin's data wins over an area's own old directory, and either is used alone", (t) => {
+  const both = machine(t);
+  write(both.previous("write-like-me"), "observations.jsonl", "from the 1.x plugin\n");
+  write(both.former("write-like-me"), "observations.jsonl", "from the area's own plugin\n");
+  assert.deepEqual(inherit("write-like-me", both.env), ["observations.jsonl"]);
+  assert.deepEqual(tree(both.home("write-like-me")), { "observations.jsonl": "from the 1.x plugin\n" });
+
+  const alone = machine(t);
+  fs.mkdirSync(alone.previous("write-like-me"), { recursive: true });
+  write(alone.former("write-like-me"), "changelog.md", "# Changelog\n");
+  assert.deepEqual(inherit("write-like-me", alone.env), ["changelog.md"], "an empty previous folder falls through to the area's own");
 });
 
 test("what an area kept as a plugin of its own is copied into its home, and the old directory is left as it was", (t) => {
@@ -104,7 +148,7 @@ test("with nothing to copy it does nothing, and makes no folder", (t) => {
 });
 
 test("loading the module reads and writes nothing", () => {
-  const source = fs.readFileSync(new URL("../../../plugins/agentcraft/lib/data-home.mjs", import.meta.url), "utf8");
+  const source = fs.readFileSync(new URL("../../../plugins/agentic-engineering/lib/data-home.mjs", import.meta.url), "utf8");
   // Nothing at the top level but imports, constants and functions: no call to fs outside a function body.
   const top = source.split("\n").filter((line) => /^\S/.test(line) && !/^(\/\/|\/\*| \*|import |export (function|const)|const |function |\}|\))/.test(line));
   assert.deepEqual(top, []);

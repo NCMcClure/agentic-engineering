@@ -1,0 +1,15 @@
+{
+  "area": "agent-works",
+  "lines": [
+    {"for":"main","mode":"any","text":"A goal bigger than one pull or merge request goes to /agentic-engineering:agent-works orchestrate: a subagent builds each piece in its own worktree, never one session. A child session costs the person approvals and cleanup: start one only when asked."},
+    {"for":"main","mode":"any","text":"The board is the record, memory loses to it: after a restart or compaction, resume from `aw board status` with /agentic-engineering:agent-works orchestrate."},
+    {"for":"main","mode":"any","text":"Nothing starts without the person's yes, recorded with `aw board grant`, and nothing merges without a review; a child's \"passed\" is a claim until you read the diff and re-run what the risk needs."},
+    {"for":"main","mode":"any","text":"Never poll a child or schedule wake-ups: it wakes you when its turn ends."},
+    {"for":"main","mode":"any","text":"A vague goal is grilled with /agentic-engineering:but-first-planning grill before it goes on the board."},
+    {"for":"main","mode":"any","text":"A card judged by eye or ear gets `--labels look` (or motion, sound), so its child starts with the doctrine: /agentic-engineering:perceptual-loop."},
+    {"for":"main","mode":"full","text":"A child ships with /agentic-engineering:agentic-teamwork ship; you land each request on green with /agentic-engineering:agentic-teamwork land."},
+    {"for":"all","mode":"any","text":"Work noticed outside the task goes on the board (`aw board add --suggest`), and a check you cannot run is owed (`aw board owe`), never claimed: /agentic-engineering:agent-works board."},
+    {"for":"all","mode":"any","text":"Anything one session at a time can use (a dev-server port, a simulator, a GPU, a database) runs under /agentic-engineering:agent-works resource-locks."},
+    {"for":"all","mode":"any","when":".agents/agent-works.json","text":"Hubs: a directory with an AGENTS.md holds no source files, every non-leaf code directory has one naming each child, and it changes with them. Run `aw hubs` (/agentic-engineering:agent-works hubs) before committing."}
+  ]
+}

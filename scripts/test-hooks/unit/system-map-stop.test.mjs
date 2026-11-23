@@ -9,10 +9,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
-import { run } from "../../../plugins/agentcraft/skills/system-map/scripts/system-map.mjs";
+import { run } from "../../../plugins/agentic-engineering/skills/system-map/scripts/system-map.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const ROOT = path.join(REPO, "plugins", "agentcraft");
+const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 const PLUGIN = path.join(ROOT, "skills", "system-map");
 // The one plugin registers every area's hooks; this area's are the ones under its folder.
 const HOOKS = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8")).hooks;
@@ -84,7 +84,7 @@ const silent = (out, why) => assert.deepEqual([out.status, out.stdout, out.stder
 // ---- what is registered -----------------------------------------------------
 
 test("the plugin's hook map runs the Stop hook once, behind the quiet guard, with time to walk a tree", () => {
-  const command = hookCommand("agentcraft", "skills/system-map/hooks/stop-check.mjs");
+  const command = hookCommand("agentic-engineering", "skills/system-map/hooks/stop-check.mjs");
   const groups = HOOKS.Stop.filter((g) => g.hooks.some((h) => h.command === command));
   assert.equal(groups.length, 1);
   const [entry, ...more] = groups[0].hooks;
@@ -103,7 +103,7 @@ test("an import nobody declared reaches the agent with its file and line, and sa
   assert.equal(out.parsed.hookSpecificOutput.hookEventName, "Stop");
   assert.match(out.context, /^System map, before you finish:/);
   assert.match(out.context, /UNDECLARED_IMPORT cart\/index\.mjs:4/);
-  assert.ok(out.context.includes("/agentcraft:system-map diagrams-sync"), out.context);
+  assert.ok(out.context.includes("/agentic-engineering:system-map diagrams-sync"), out.context);
   assert.ok(out.context.includes("Diagram: none, <why>"), out.context);
   assert.match(out.line, /^system-map told the agent the map fell behind this turn: 1 finding\.$/);
   assert.ok(!out.context.includes(dir), "the note carries the repo's path");

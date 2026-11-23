@@ -5,9 +5,9 @@
 // where no plugin root is set, so every path in it is absolute.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { BoardError, boardConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
-import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, areaForm, defaultBranch, grantText, renderBrief, stepsDown } from "../../../plugins/agentcraft/skills/agent-works/lib/brief.mjs";
-import { conflictConfig } from "../../../plugins/agentcraft/skills/agent-works/lib/conflicts.mjs";
+import { BoardError, boardConfig } from "../../../plugins/agentic-engineering/skills/agent-works/lib/board.mjs";
+import { BRANCH, BRIEF_TEMPLATE as TEMPLATE, areaForm, defaultBranch, grantText, renderBrief, stepsDown } from "../../../plugins/agentic-engineering/skills/agent-works/lib/brief.mjs";
+import { conflictConfig } from "../../../plugins/agentic-engineering/skills/agent-works/lib/conflicts.mjs";
 
 const CLI = { board: 'node "/opt/plugin/scripts/aw.mjs" board', lock: 'node "/opt/plugin/scripts/aw.mjs" lock' };
 const T0 = "2026-10-01T09:00:00.000Z";
@@ -80,7 +80,7 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
     acceptance: [{ done: false, text: "`--max` takes a number" }, { done: true, text: "`--ids` takes a list" }],
   });
   const text = brief(c, [c], { cardPath: "/repo/.agents/kanban/plan-01-02-03.md", planRef: "origin/main" });
-  assert.match(text, /Build it with `\/agentcraft:but-first-planning build-tdd`, which flips the issue to done/);
+  assert.match(text, /Build it with `\/agentic-engineering:but-first-planning build-tdd`, which flips the issue to done/);
   assert.match(text, /- \[ \] `--max` takes a number\n- \[ \] `--ids` takes a list\n- \[ \] the issue's testing checkpoint exits 0/);
   assert.match(text, /\.agents\/plan\/plan\/01-cli\/02-flags\/issues\/03_issue_PARSE-FLAGS\.md/);
   assert.match(text, /~~~~markdown\n# Parse the flags\n/);
@@ -90,19 +90,19 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
   const n = card("billing.01-02-03", { ...c, id: "billing.01-02-03", plan: "billing.01-02-03", file: ".agents/plans/billing/plan/01-cli/02-flags/issues/03_issue_PARSE-FLAGS.md" });
   const named = brief(n, [n], { cardPath: "/repo/.agents/kanban/plan-billing.01-02-03.md", planRef: "origin/main" });
   assert.match(named, /Plan issue billing\.01-02-03 \(AFK\), at `\.agents\/plans\/billing\/plan\//);
-  assert.match(named, /Build it with `\/agentcraft:but-first-planning build-tdd --plan billing`, which flips the issue to done/);
+  assert.match(named, /Build it with `\/agentic-engineering:but-first-planning build-tdd --plan billing`, which flips the issue to done/);
 });
 
 test("a task judged by eye or ear loads perceptual-loop first, and a card's own skills are named", () => {
   const c = card("0007", { files: ["src/"], labels: ["look"], skills: [was("docs-parity", "docs-shots")] });
   const text = brief(c, [c]);
-  assert.match(text, /judged by eye or ear: load `\/agentcraft:perceptual-loop iterate-shots` before the first test/);
-  assert.match(text, /Load first: `\/agentcraft:docs-parity docs-shots`\./);
+  assert.match(text, /judged by eye or ear: load `\/agentic-engineering:perceptual-loop iterate-shots` before the first test/);
+  assert.match(text, /Load first: `\/agentic-engineering:docs-parity docs-shots`\./);
   assert.doesNotMatch(brief(card("0008", { files: ["src/"] }), []), /perceptual-loop/);
   // A card that names the area's skill, in either form, is judged by eye or ear too, and the skill is not named twice.
-  for (const skill of [was("perceptual-loop", "iterate-shots"), "agentcraft:perceptual-loop iterate-shots"]) {
+  for (const skill of [was("perceptual-loop", "iterate-shots"), "agentic-engineering:perceptual-loop iterate-shots"]) {
     const named = brief(card("0009", { files: ["src/"], skills: [skill] }), []);
-    assert.match(named, /load `\/agentcraft:perceptual-loop iterate-shots` before the first test/, skill);
+    assert.match(named, /load `\/agentic-engineering:perceptual-loop iterate-shots` before the first test/, skill);
     assert.doesNotMatch(named, /Load first/, skill);
   }
 });
@@ -112,18 +112,18 @@ test("a task judged by eye or ear loads perceptual-loop first, and a card's own 
 test("a card's skill is named by the area and its route, however the card wrote it", () => {
   const forms = [
     // As a plugin's own skill, before the areas moved into one plugin.
-    [was("docs-parity", "docs-shots"), "/agentcraft:docs-parity docs-shots"],
-    [`/${was("code-diet", "ladder")}`, "/agentcraft:code-diet ladder"],
-    [was("agent-works", "board"), "/agentcraft:agent-works board"],
-    [was("but-first-planning", "build-tdd"), "/agentcraft:but-first-planning build-tdd"],
+    [was("docs-parity", "docs-shots"), "/agentic-engineering:docs-parity docs-shots"],
+    [`/${was("code-diet", "ladder")}`, "/agentic-engineering:code-diet ladder"],
+    [was("agent-works", "board"), "/agentic-engineering:agent-works board"],
+    [was("but-first-planning", "build-tdd"), "/agentic-engineering:but-first-planning build-tdd"],
     // The skill that carried its plugin's name is the area itself.
-    [was("picture-this"), "/agentcraft:picture-this"],
-    [was("write-like-me"), "/agentcraft:write-like-me"],
+    [was("picture-this"), "/agentic-engineering:picture-this"],
+    [was("write-like-me"), "/agentic-engineering:write-like-me"],
     // Today's form, with and without its slash, and with what follows the route.
-    ["agentcraft:docs-parity docs-shots", "/agentcraft:docs-parity docs-shots"],
-    ["/agentcraft:agent-works dispatch 0007 --serial", "/agentcraft:agent-works dispatch 0007 --serial"],
-    ["agentcraft:agentic-teamwork", "/agentcraft:agentic-teamwork"],
-    ["agentcraft:start-here", "/agentcraft:start-here"],
+    ["agentic-engineering:docs-parity docs-shots", "/agentic-engineering:docs-parity docs-shots"],
+    ["/agentic-engineering:agent-works dispatch 0007 --serial", "/agentic-engineering:agent-works dispatch 0007 --serial"],
+    ["agentic-engineering:agentic-teamwork", "/agentic-engineering:agentic-teamwork"],
+    ["agentic-engineering:start-here", "/agentic-engineering:start-here"],
     // Another plugin's skill, and a skill of no plugin, are left as written.
     ["acme-tools:planning grill", "/acme-tools:planning grill"],
     ["power-automate:debug-flow", "/power-automate:debug-flow"],
@@ -132,8 +132,8 @@ test("a card's skill is named by the area and its route, however the card wrote 
   ];
   for (const [written, loaded] of forms) assert.equal(areaForm(written), loaded, written);
   for (const [, loaded] of forms) assert.equal(areaForm(loaded), loaded, `${loaded} is already what a child loads`);
-  const c = card("0007", { files: ["src/"], skills: [was("code-diet", "ladder"), "agentcraft:docs-parity readme", "power-automate:debug-flow"] });
-  assert.match(brief(c, [c]), /Load first: `\/agentcraft:code-diet ladder`, `\/agentcraft:docs-parity readme`, `\/power-automate:debug-flow`\./);
+  const c = card("0007", { files: ["src/"], skills: [was("code-diet", "ladder"), "agentic-engineering:docs-parity readme", "power-automate:debug-flow"] });
+  assert.match(brief(c, [c]), /Load first: `\/agentic-engineering:code-diet ladder`, `\/agentic-engineering:docs-parity readme`, `\/power-automate:debug-flow`\./);
 });
 
 test("the repo's config says how to sync: regenerate, keep both sides, re-bump", () => {
@@ -179,7 +179,7 @@ test("a child is told its subagents step down a tier, never below the floor, and
     const text = brief(c, [c]);
     assert.match(text, /^## Subagents$/m);
     assert.match(text, /one tier below your own model and never below Sonnet: pass `model` on each Agent call \(`opus` from Fable, `sonnet` from Opus or Sonnet\)/);
-    assert.match(text, /`agentcraft:vision-critic`, `agentcraft:cold-reader`[^.]*whose verdict gates a merge\) takes no `model`/, "a judge is not weaker than the builder it checks");
+    assert.match(text, /`agentic-engineering:vision-critic`, `agentic-engineering:cold-reader`[^.]*whose verdict gates a merge\) takes no `model`/, "a judge is not weaker than the builder it checks");
     assert.match(text, /a workflow keeps the tiers its script names/);
   }
   assert.ok(TEMPLATE.indexOf("## Subagents") > TEMPLATE.indexOf("## Cadence") && TEMPLATE.indexOf("## Subagents") < TEMPLATE.indexOf("## When the base moves"));

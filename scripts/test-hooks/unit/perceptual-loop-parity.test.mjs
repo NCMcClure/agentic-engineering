@@ -7,9 +7,9 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import test from "node:test";
-import { measure } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/gate.mjs";
-import { analyse, regionMetrics, regionsFromBoxes, regionsFromId } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/metrics.mjs";
-import { encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import { measure } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/gate.mjs";
+import { analyse, regionMetrics, regionsFromBoxes, regionsFromId } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/metrics.mjs";
+import { encodePng } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/png.mjs";
 import { PL, calibrateRuns, goldenCases, goldenSounds, idPass, noisy, runNode, scene, shifted, tempDir, u8, wavF32 } from "./perceptual-loop-fixtures.mjs";
 
 // ---- pictures ------------------------------------------------------------------------------

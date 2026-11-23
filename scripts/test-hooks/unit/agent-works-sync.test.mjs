@@ -6,13 +6,13 @@
 // wins. All pure, over boards built here, so no hook, git or tracker runs.
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { boardConfig, briefLine, note, summary } from "../../../plugins/agentcraft/skills/agent-works/lib/board.mjs";
+import { boardConfig, briefLine, note, summary } from "../../../plugins/agentic-engineering/skills/agent-works/lib/board.mjs";
 import {
   NUDGE_MS, ASK_MS, adoptColumns, afterTool, ago, cardFromIssue, cardHash, cardsOf, decide, drift, epicLabel, epicOfIssue, epicOfLabels, githubHad,
   githubIssue, githubLabels, githubParent, githubProject, gitlabBoard, gitlabFields, gitlabIssue, isBoardLabel, isEpicUrl, isLocalOnly, issueOfForge,
   ledgerOf, linked, milestoneTitle, observe, parentKeys, planOf, pulled, record, remoteHash, remoteKey, section, signals, sprintOfIssue, stale,
   statusLabel, statusOf, stopAsk, sweepCards, tally, working,
-} from "../../../plugins/agentcraft/skills/agent-works/lib/sync.mjs";
+} from "../../../plugins/agentic-engineering/skills/agent-works/lib/sync.mjs";
 
 const T0 = Date.parse("2026-11-03T12:00:00.000Z");
 const iso = (ms) => new Date(ms).toISOString();
@@ -67,8 +67,8 @@ test("board verbs and the model's board tools name their cards", () => {
   assert.equal(observe({ tool: "Bash", input: { command: "aw lock run gpu --for x -- echo 0007" } }), null);
   const moved = { kind: "board", verb: "move", ids: ["0007"], column: "in-progress" };
   // The mod's tools carry the name of the plugin that loads it, with the host's own prefix or without.
-  for (const tool of ["mcp__agentcraft__move_task", "mcp__plugin_agentcraft_board__move_task"]) assert.deepEqual(observe({ tool, input: { id: "0007", column: "in-progress" } }), moved, tool);
-  assert.equal(observe({ tool: "mcp__agentcraft__list_tasks", input: {} }), null);
+  for (const tool of ["mcp__agentic-engineering__move_task", "mcp__plugin_agentic-engineering_board__move_task"]) assert.deepEqual(observe({ tool, input: { id: "0007", column: "in-progress" } }), moved, tool);
+  assert.equal(observe({ tool: "mcp__agentic-engineering__list_tasks", input: {} }), null);
   // Another plugin's tool of the same name is not this board's.
   for (const tool of ["mcp__agent-works__move_task", "mcp__kanban__move_task"]) assert.equal(observe({ tool, input: { id: "0007", column: "in-progress" } }), null, tool);
 });
@@ -216,7 +216,7 @@ test("a subagent is asked only about its own work that left the worktree", () =>
 test("the briefing names in-flight cards untouched for a day", () => {
   const b = boardOf(card("0001", { status: "in-progress", updated: iso(T0 - 25 * 60 * MIN) }), card("0002", { status: "review", mr: 3 }));
   assert.equal(summary(b).untouched, 0, "without a time it counts nothing");
-  assert.equal(briefLine(summary(b, T0)), "Board: 1 in progress (0001), 1 in review (0002 !3). 1 in flight has not changed for a day: /agentcraft:agent-works sync-cards checks it.");
+  assert.equal(briefLine(summary(b, T0)), "Board: 1 in progress (0001), 1 in review (0002 !3). 1 in flight has not changed for a day: /agentic-engineering:agent-works sync-cards checks it.");
 });
 
 test("a note lands under Notes, dated, and refuses a plan card", () => {

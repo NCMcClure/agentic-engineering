@@ -9,14 +9,14 @@ import { pathToFileURL } from "node:url";
 import { hookCommand } from "../../lib.mjs";
 import { REPO } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
-const ROOT = path.join(REPO, "plugins", "agentcraft");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works");
+const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 const read = (rel) => JSON.parse(fs.readFileSync(path.join(PLUGIN, rel), "utf8"));
 const config = JSON.parse(fs.readFileSync(path.join(ROOT, "hooks", "hooks.json"), "utf8"));
 const DOOR = read("door.json");
 /** This area's hooks on an event: the groups of the plugin's map that run a file of its hooks/ folder. */
 const mine = (event) => (config.hooks[event] ?? []).filter((g) => g.hooks.some((h) => String(h.command).includes("/skills/agent-works/hooks/")));
-const own = (script) => hookCommand("agentcraft", `skills/agent-works/hooks/${script}`);
+const own = (script) => hookCommand("agentic-engineering", `skills/agent-works/hooks/${script}`);
 /** The one group on an event that runs this script of the area's. */
 const only = (event, script) => {
   const groups = mine(event).filter((g) => g.hooks.some((h) => h.command === own(script)));
@@ -28,7 +28,7 @@ const only = (event, script) => {
 const scripts = (event) => mine(event).flatMap((g) => g.hooks.map((h) => /\/hooks\/([\w-]+\.mjs)"$/.exec(h.command)?.[1]));
 const matches = (matcher, name) => new RegExp(`^(?:${matcher})$`).test(name);
 // A mod's tool as the host names it: by the plugin that loads the mod.
-const hostId = (name) => `mcp__agentcraft__${name}`;
+const hostId = (name) => `mcp__agentic-engineering__${name}`;
 
 test("agent-works hooks.json: the events it has a hook on, and nothing else", () => {
   assert.deepEqual(Object.keys(config).sort(), ["description", "hooks", "modules"]);
@@ -46,7 +46,7 @@ test("agent-works has no session hook of its own: its lines and its briefing go 
   assert.deepEqual([mine("SessionStart"), mine("SubagentStart")], [[], []]);
   assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);
   assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "briefing.mjs")));
-  const briefing = config.hooks.SessionStart.flatMap((g) => g.hooks).find((h) => h.command === hookCommand("agentcraft", "hooks/briefing.mjs"));
+  const briefing = config.hooks.SessionStart.flatMap((g) => g.hooks).find((h) => h.command === hookCommand("agentic-engineering", "hooks/briefing.mjs"));
   // A migration is given three seconds by the helper, and the briefing reads the board after it.
   assert.ok(briefing.timeout >= 5);
 });
@@ -124,16 +124,16 @@ test("agent-works critical.json: ten lines within the cap, the hub line only whe
     ["main", "any", null], ["main", "any", null], ["main", "full", null],
     ["all", "any", null], ["all", "any", null], ["all", "any", ".agents/agent-works.json"],
   ]);
-  assert.match(data.lines[4].text, /\/agentcraft:but-first-planning grill/);
-  assert.match(data.lines[5].text, /\/agentcraft:perceptual-loop\.$/);
-  assert.match(data.lines[6].text, /\/agentcraft:agentic-teamwork ship; .* \/agentcraft:agentic-teamwork land\.$/);
+  assert.match(data.lines[4].text, /\/agentic-engineering:but-first-planning grill/);
+  assert.match(data.lines[5].text, /\/agentic-engineering:perceptual-loop\.$/);
+  assert.match(data.lines[6].text, /\/agentic-engineering:agentic-teamwork ship; .* \/agentic-engineering:agentic-teamwork land\.$/);
   assert.match(data.lines.at(-1).text, /^Hubs: a directory with an AGENTS\.md holds no source files, .* Run `aw hubs`/);
   // The cap is CRITICAL_CAPS in scripts/validate.mjs.
   const size = "Critical, from agent-works:".length + data.lines.reduce((n, l) => n + l.text.length + 3, 0);
   assert.ok(size <= 2100, `${size} characters`);
   const routes = fs.readdirSync(path.join(PLUGIN, "routes"));
   for (const line of data.lines) {
-    for (const m of line.text.matchAll(/\/agentcraft:agent-works ([a-z-]+)/g)) {
+    for (const m of line.text.matchAll(/\/agentic-engineering:agent-works ([a-z-]+)/g)) {
       assert.ok(routes.includes(m[1]), m[0]);
       assert.notEqual(DOOR.routes[m[1]]?.starts, "person", `${m[0]} is one the model can start`);
     }

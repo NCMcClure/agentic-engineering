@@ -95,12 +95,12 @@ test("a detached HEAD is named as one", (t) => {
 
 test("a manifest with no lanes yet is told to upgrade, since the lanes come from it", (t) => {
   const { context } = session(marked(t, { manifestExtra: { lanes: {} } }).dir);
-  assert.match(context, /This repo's manifest names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade, on a branch, then commit what it changes\./);
+  assert.match(context, /This repo's manifest names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentic-engineering:agentic-teamwork init-project with --upgrade, on a branch, then commit what it changes\./);
 });
 
 test("rule files the manifest owns and still carries are told to upgrade, since they load twice", (t) => {
   const { context } = session(marked(t, { manifestExtra: { owned: { ".agents/rules/ladder.md": "0".repeat(64) } }, files: { ".agents/rules/ladder.md": "# The ladder\n" } }).dir);
-  assert.match(context, /still carries rule files the plugin now delivers at session start, so they load twice: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade, on a branch/);
+  assert.match(context, /still carries rule files the plugin now delivers at session start, so they load twice: ask the person whether to upgrade it: on their yes that is \/agentic-engineering:agentic-teamwork init-project with --upgrade, on a branch/);
 });
 
 test("a repo's own rules are not mistaken for the plugin's", (t) => {
@@ -111,7 +111,7 @@ test("a repo's own rules are not mistaken for the plugin's", (t) => {
 // ---- the pre-commit mirror -----------------------------------------------
 
 test("a committed mirror that git would skip gets one line, and one that can run gets none", (t) => {
-  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
+  const mirror = fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit"), "utf8");
   const { dir, git } = marked(t, { files: { ".githooks/pre-commit": mirror } });
   git("update-index", "--chmod=-x", ".githooks/pre-commit");
   assert.match(session(dir).context, /\.githooks\/pre-commit is not executable, so git skips it and commits made in a terminal go unchecked: chmod \+x \.githooks\/pre-commit && git add --chmod=\+x \.githooks\/pre-commit\./);
@@ -135,7 +135,7 @@ test("answered team with no manifest: bootstrap before writing code", (t) => {
   const { dir, git } = tempRepo(t, "tw-start-team-");
   git("config", "--local", "agentic-engineering.plugins", "team Test 2026-01-01T00:00Z");
   const { context } = session(dir);
-  assert.match(context, /^This repo is not on the team conventions yet: no \.agents\/manifest\.json\. Before writing code, ask the person whether to put it on them: on their yes that is \/agentcraft:agentic-teamwork bootstrap, which works locally and pushes nothing\./);
+  assert.match(context, /^This repo is not on the team conventions yet: no \.agents\/manifest\.json\. Before writing code, ask the person whether to put it on them: on their yes that is \/agentic-engineering:agentic-teamwork bootstrap, which works locally and pushes nothing\./);
   assert.match(context, /Critical, from agentic-teamwork:/);
 });
 
@@ -151,7 +151,7 @@ test("answered on: the portable lines and no briefing at all", (t) => {
 test("nobody answered: the question, never the bootstrap nudge", (t) => {
   const { dir } = tempRepo(t, "tw-start-none-");
   const { context } = session(dir);
-  assert.match(context, /^Before other work, ask the person once whether to use the agentcraft plugin in this repo/);
+  assert.match(context, /^Before other work, ask the person once whether to use the agentic-engineering plugin in this repo/);
   assert.doesNotMatch(context, /not on the team conventions/);
 });
 
