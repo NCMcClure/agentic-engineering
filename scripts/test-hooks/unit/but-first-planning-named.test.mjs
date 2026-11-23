@@ -12,7 +12,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const AREA = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
+const AREA = path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning");
 const SCAFFOLD = path.join(AREA, "routes", "spec-init", "scaffold.mjs");
 const { LAUNCHERS, NAMED_PAGES, PLANS, SHARED, SHARED_SCRIPTS, WORKSPACE, asset, nameProblem, scaffold, scaffoldNamed, staleShared, workspaces } = await import(pathToFileURL(SCAFFOLD).href);
 const tracker = await import(pathToFileURL(path.join(AREA, "routes", "spec-init", "assets", "tracker.mjs")).href);

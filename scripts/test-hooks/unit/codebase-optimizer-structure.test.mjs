@@ -5,10 +5,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   LADDER, exitCodeOf, gradeHubFinding, parseArgs, verifyStructure,
-} from "../../../plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/scripts/verify-structure.mjs";
+} from "../../../plugins/agentic-engineering/skills/codebase-optimizer/routes/codebase-organizer/scripts/verify-structure.mjs";
 import { runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const SCRIPT = "plugins/agentcraft/skills/codebase-optimizer/routes/codebase-organizer/scripts/verify-structure.mjs";
+const SCRIPT = "plugins/agentic-engineering/skills/codebase-optimizer/routes/codebase-organizer/scripts/verify-structure.mjs";
 const lines = (n) => "x\n".repeat(n);
 const rows = (report) => report.findings.map((f) => `${f.severity} ${f.check} ${f.path}`);
 

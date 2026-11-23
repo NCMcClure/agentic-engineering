@@ -53,7 +53,7 @@ fs.mkdirSync(home);
 test.after(() => fs.rmSync(root, { recursive: true, force: true }));
 
 // The one plugin: every hook runs from its hook map, whichever area holds the file.
-const PLUGIN = "agentcraft";
+const PLUGIN = "agentic-engineering";
 const PLUGIN_ROOT = path.join(REPO, "plugins", PLUGIN);
 /** A hook file, plugin-relative: the plugin's own, or an area's. */
 const hookPath = (owner, script) => (owner === PLUGIN ? `hooks/${script}` : `skills/${owner}/hooks/${script}`);

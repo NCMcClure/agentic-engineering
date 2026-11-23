@@ -81,7 +81,7 @@ function Scene() {
   return (
     <g opacity={f.present}>
       {/* What a session lists: fourteen names. */}
-      <text className="pt-label" x={DOOR.x} y={28}>agentcraft lists</text>
+      <text className="pt-label" x={DOOR.x} y={28}>agentic-engineering lists</text>
       <text className="pt-tag" x={DOOR.x + 126} y={28}>14 names</text>
       <rect className="pt-panel" x={DOOR.x} y={DOOR.y} width={DOOR.width} height={DOOR.height} rx={6}
         style={{ stroke: mix("var(--pt-accent)", mix("var(--pt-line)", "var(--pt-line-2)", f.on("listed")), f.on("listed", "typed", "handoff")), fill: mix("var(--pt-accent-soft)", "var(--pt-top)", f.on("typed", "handoff")) }} />

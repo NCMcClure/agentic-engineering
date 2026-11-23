@@ -6,10 +6,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { LARGE, sweep, unit } from "../../../plugins/agentcraft/skills/system-map/scripts/map-sweep.mjs";
+import { LARGE, sweep, unit } from "../../../plugins/agentic-engineering/skills/system-map/scripts/map-sweep.mjs";
 import { REPO, runNode, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "system-map");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "system-map");
 const SCRIPT = path.join(PLUGIN, "scripts", "map-sweep.mjs");
 const WORKFLOW = path.join(PLUGIN, "routes", "diagrams-sync", "workflows", "sweep.js");
 
@@ -76,7 +76,7 @@ test("a repo without the map is null, and the CLI exits 1 saying who sets it up"
   assert.equal(sweep(dir), null);
   const res = runNode(SCRIPT, ["--root", dir]);
   assert.equal(res.status, 1);
-  assert.match(JSON.parse(res.stdout).message, /the person asks for \/agentcraft:system-map diagrams-init to set the map up/);
+  assert.match(JSON.parse(res.stdout).message, /the person asks for \/agentic-engineering:system-map diagrams-init to set the map up/);
 });
 
 test("the CLI prints the sweep and one unit as JSON", (t) => {

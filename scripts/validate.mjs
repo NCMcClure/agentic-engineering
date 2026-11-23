@@ -2,7 +2,7 @@
 // Structural gate for the marketplace. Every rule here is stated in
 // .agents/rules/dev-rules.md; change both together. Node 22 stdlib only.
 //
-// Usage: node scripts/validate.mjs [--root <dir>] [--tag agentcraft/v<version>]
+// Usage: node scripts/validate.mjs [--root <dir>] [--tag agentic-engineering/v<version>]
 //
 // --root points the checks at another checkout, which is how they get tested
 // against a tree that is meant to fail. --tag checks one thing only: that the
@@ -15,7 +15,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
+import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, OLD_PLUGIN_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -36,14 +36,14 @@ const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "
 // a model download, which no stdlib rewrite replaces; the third fronts a
 // MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
-  "plugins/agentcraft/skills/but-first-planning/routes/spec-init/assets/comments-server.py",
-  "plugins/agentcraft/skills/perceptual-loop/scripts/keypoints.py",
-  "plugins/agentcraft/skills/perceptual-loop/scripts/semantic.py",
+  `plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/comments-server.py`,
+  `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/keypoints.py`,
+  `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/semantic.py`,
 ]);
 const NON_NODE_EXT = /\.(py|sh|bash|zsh|ps1|rb|pl)$/;
 // A vendored app tree carries its toolchain's own files; path rules skip it.
 // It sits at an area's root.
-const VENDORED = /^plugins\/agentcraft\/skills\/[^/]+\/app\//;
+const VENDORED = new RegExp(`^plugins/${AREA_PLUGIN}/skills/[^/]+/app/`);
 const ABS_PATH = new RegExp("/(?:Users|home/[a-z]|fast)/");
 // A Node file here never calls exit, and neither does a one-line command a
 // test hands to node: with NODE_USE_SYSTEM_CA set, Node 24 reads the system's
@@ -82,7 +82,7 @@ const CUE_CAP = 60;
 const NOT_ADDRESSES = new Set(["agent-works:plugins"]);
 // The area that is a Claude Code mod: the handlers that answer its tools, and
 // the pattern the card sync reads a tool's name with.
-const MOD = { handlers: "plugins/agentcraft/skills/agent-works/hooks/kanban/register.mjs", observer: "plugins/agentcraft/skills/agent-works/lib/sync.mjs" };
+const MOD = { handlers: `plugins/${AREA_PLUGIN}/skills/agent-works/hooks/kanban/register.mjs`, observer: `plugins/${AREA_PLUGIN}/skills/agent-works/lib/sync.mjs` };
 
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
 const exists = (p) => fs.existsSync(p);
@@ -494,9 +494,9 @@ async function validate() {
   // ---- old names -------------------------------------------------------------
   // Each area was a plugin of its own, and the catalog lists none of them now:
   // a line that tells its reader to install one sends them to a plugin that is
-  // not there. A changelog, a recording, and a template copy keep what they
-  // say.
-  const oldNames = [...new Set([...foundAreas.map((a) => a.area), ...Object.keys(OLD_NAMES)])].filter((name) => name !== ONE_PLUGIN);
+  // not there. So does the plugin's own name before 2.0.0 (OLD_PLUGIN_NAMES).
+  // A changelog, a recording, and a template copy keep what they say.
+  const oldNames = [...new Set([...foundAreas.map((a) => a.area), ...Object.keys(OLD_NAMES), ...OLD_PLUGIN_NAMES])].filter((name) => name !== ONE_PLUGIN);
   {
     const before = failures();
     const install = oldNames.length ? new RegExp(`\\binstall\\b[^\\n]*?(?<![\\w-])(${oldNames.join("|")})@${catalog.name}(?![\\w-])`) : null;
@@ -544,7 +544,7 @@ async function validate() {
     // name is read as a plugin's too, so an address left behind is found.
     const owners = new Map([...targets].flatMap(([plugin, target]) => [...target.areas.keys()].filter((area) => area !== plugin).map((area) => [area, { owner: plugin, area }])));
     for (const [old, area] of Object.entries(OLD_NAMES)) if (owners.has(area) && !targets.has(old)) owners.set(old, owners.get(area));
-    const find = addressFinder([...new Set([...targets.keys(), ...owners.keys()])]);
+    const find = addressFinder([...new Set([...targets.keys(), ...owners.keys(), ...OLD_PLUGIN_NAMES])]);
     const counted = { skill: 0, agent: 0, server: 0, route: 0 };
     for (const f of textFiles) {
       if (path.basename(f) === "CHANGELOG.md" || VENDORED.test(f)) continue;
@@ -553,6 +553,11 @@ async function validate() {
           if (NOT_ADDRESSES.has(`${a.plugin}:${a.name}`)) continue;
           // The area's old name as a plugin: `/<area>:<route>`, or through the
           // skill named after it, `/<area>:<area> <route>`.
+          // The plugin's own name before the rename: the plugin it is now owns the address.
+          if (OLD_PLUGIN_NAMES.includes(a.plugin)) {
+            if (!isRecording(f) && !isTemplateCopy(f)) fail(`${f}:${i + 1}: ${a.text} names ${a.plugin}, the plugin's name before ${ONE_PLUGIN}; write ${a.text.replace(a.plugin, ONE_PLUGIN)}${a.route ? ` ${a.route}` : ""}`, f);
+            continue;
+          }
           const { owner, area } = owners.get(a.plugin) ?? {};
           if (owner) {
             if (isRecording(f)) continue;
@@ -583,6 +588,15 @@ async function validate() {
           if (routes.has(a.route)) counted.route++;
           else fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is not a route of the ${a.name} area; an area named alone is followed by punctuation or the end of its code span`, f);
         }
+      });
+    }
+    // A tool of the plugin's mod under the plugin's old name, mcp__<old>__<tool>,
+    // is no address `find` reads (it has no colon); it is held to the same rule.
+    const deadTool = OLD_PLUGIN_NAMES.length ? new RegExp(`(?<![\\w-])mcp__(${OLD_PLUGIN_NAMES.join("|")})__(\\w+)`, "g") : null;
+    for (const f of deadTool ? textFiles : []) {
+      if (path.basename(f) === "CHANGELOG.md" || VENDORED.test(f) || isRecording(f) || isTemplateCopy(f)) continue;
+      fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
+        for (const m of line.matchAll(deadTool)) fail(`${f}:${i + 1}: ${m[0]} names ${m[1]}, the plugin's name before ${ONE_PLUGIN}; write mcp__${ONE_PLUGIN}__${m[2]}`, f);
       });
     }
     if (failures() === before) ok(`${counted.skill + counted.agent + counted.server} addresses resolve (${counted.skill} skill, ${counted.agent} agent, ${counted.server} MCP server), ${counted.route} of them on through an area to its route`);

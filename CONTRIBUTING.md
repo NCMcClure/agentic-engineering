@@ -16,18 +16,18 @@ macOS and Windows under Node 22 and 24.
 
 ## The dev loop
 
-Everything that ships is in `plugins/agentcraft/`. Edit it in this checkout,
+Everything that ships is in `plugins/agentic-engineering/`. Edit it in this checkout,
 then:
 
 ```bash
-node scripts/refresh.mjs             # validate, then install agentcraft for your user
+node scripts/refresh.mjs             # validate, then install agentic-engineering for your user
 node scripts/install.mjs --dry-run   # print every write, touch nothing
 ```
 
 `refresh.mjs` installs nothing on a red gate. Claude Code loads plugins at
 session start, so start a new session to see the change.
 
-The installer copies `agentcraft`, the one plugin. If an earlier run left one
+The installer copies `agentic-engineering`, the one plugin. If an earlier run left one
 of the old plugins installed under the name an area had as a plugin of its
 own, the installer retires that copy first (its cache folder, its install
 record, its enable flag), so no hook runs twice. It leaves the old plugin's
@@ -61,7 +61,7 @@ The gate fails a stale copy of any of them.
 
 ## One copy of a shared file
 
-What several areas use lives once, in `plugins/agentcraft/lib/`, and each area
+What several areas use lives once, in `plugins/agentic-engineering/lib/`, and each area
 imports it from there. There is nothing to sync.
 
 One file is still held as a copy, because a user's repo gets it:
@@ -86,8 +86,8 @@ npm run test:live -- --write-baseline=skills   # record only what each prompt re
 
 ## Releasing
 
-There is one version, in `plugins/agentcraft/.claude-plugin/plugin.json`, and
-`plugins/agentcraft/CHANGELOG.md` has it as its top entry. An area has no
+There is one version, in `plugins/agentic-engineering/.claude-plugin/plugin.json`, and
+`plugins/agentic-engineering/CHANGELOG.md` has it as its top entry. An area has no
 version of its own: its `CHANGELOG.md` is its history as a plugin and takes no
 new line.
 
@@ -96,9 +96,9 @@ A change is released the moment it reaches `main` with a version bump:
 one form, on the commit that carries the version:
 
 ```bash
-git tag agentcraft/v1.0.1 main
-git push origin agentcraft/v1.0.1
+git tag agentic-engineering/v1.0.1 main
+git push origin agentic-engineering/v1.0.1
 ```
 
 CI checks the tag against that `plugin.json` and fails on a mismatch, and on a
-tag that names anything but `agentcraft`.
+tag that names anything but `agentic-engineering`.

@@ -7,12 +7,12 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { instructions, pointer } from "../../../plugins/agentcraft/skills/agent-works/lib/planmode.mjs";
-import { locate, planStateDir, readPlanState } from "../../../plugins/agentcraft/skills/agent-works/scripts/io.mjs";
+import { instructions, pointer } from "../../../plugins/agentic-engineering/skills/agent-works/lib/planmode.mjs";
+import { locate, planStateDir, readPlanState } from "../../../plugins/agentic-engineering/skills/agent-works/scripts/io.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOK = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "plan-gate.mjs");
-const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
+const HOOK = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "hooks", "plan-gate.mjs");
+const AW = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "scripts", "aw.mjs");
 const RECORDED = JSON.parse(fs.readFileSync(path.join(REPO, "scripts", "test-hooks", "cases", "agent-works", "plan-mode", "payloads.json"), "utf8")).payloads;
 
 const TABLE = [
@@ -204,7 +204,7 @@ test("a plan with a session unit is handed the board's own command, the route th
   assert.equal(hook(r, exit(r, withSession)), null, "the gate takes it");
   const text = context(hook(r, approve(r, withSession)));
   assert.ok(text.includes(`node "${AW}" board epic "<plan title>"`), "the launcher, by its absolute path");
-  assert.match(text, /\/agentcraft:agent-works dispatch/);
+  assert.match(text, /\/agentic-engineering:agent-works dispatch/);
   assert.doesNotMatch(text, /PLUGIN_ROOT/);
   assert.match(hook(r, exit(r, withSession.replace(/\nApproval:.*\n/, "\n"), { session_id: "s2" })).hookSpecificOutput.permissionDecisionReason, /opens its pull or merge request without asking/);
 });

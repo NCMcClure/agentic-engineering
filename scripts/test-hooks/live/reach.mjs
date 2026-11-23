@@ -23,7 +23,7 @@
 // reads the file.
 
 /** The one plugin every plugin becomes an area of. */
-export const MERGED = "agentcraft";
+export const MERGED = "agentic-engineering";
 
 export function parseTranscript(text) {
   const entries = [];

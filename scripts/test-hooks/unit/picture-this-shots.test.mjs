@@ -6,16 +6,16 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { sheet, still } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/shots.mjs";
-import { PtError } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/args.mjs";
-import { layout } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/config.mjs";
-import { findFigure, listFigures } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/figures.mjs";
-import { GIF_MAX_BYTES, GIF_WARN_BYTES, loopFrames, sizeOf } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/gif.mjs";
-import { altText, imageSnippet, pictureSnippet, stripAlt } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/snippet.mjs";
-import { homeLayout, lockHash, playwrightVersion } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/studio.mjs";
+import { sheet, still } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/commands/shots.mjs";
+import { PtError } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/args.mjs";
+import { layout } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/config.mjs";
+import { findFigure, listFigures } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/figures.mjs";
+import { GIF_MAX_BYTES, GIF_WARN_BYTES, loopFrames, sizeOf } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/gif.mjs";
+import { altText, imageSnippet, pictureSnippet, stripAlt } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/snippet.mjs";
+import { homeLayout, lockHash, playwrightVersion } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/studio.mjs";
 import { REPO, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "picture-this");
 const LOCKFILE = path.join(PLUGIN, "app", "package-lock.json");
 const MODEL = fs.readFileSync(path.join(PLUGIN, "studies", "iso-flow", "model.json"), "utf8");
 

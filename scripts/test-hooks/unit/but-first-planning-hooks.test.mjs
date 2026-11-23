@@ -11,12 +11,12 @@ import path from "node:path";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { hookCommand } from "../../lib.mjs";
-import { CONFIG_KEY } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
+import { CONFIG_KEY } from "../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning");
 const CRITICAL = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8"));
-const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8")).hooks;
+const HOOKS = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "hooks", "hooks.json"), "utf8")).hooks;
 const DOOR = JSON.parse(fs.readFileSync(path.join(PLUGIN, "door.json"), "utf8"));
 const { SCRIPTS, scaffold, scaffoldNamed } = await import(pathToFileURL(path.join(PLUGIN, "routes", "spec-init", "scaffold.mjs")).href);
 const [GRILL, PLAN, BOARD] = CRITICAL.lines.map((l) => l.text);
@@ -68,7 +68,7 @@ function namedRepo(t, { broken = false } = {}) {
 
 test("the plugin's hook map runs the gate on TaskCompleted, and the area has no session hook of its own", () => {
   const gates = HOOKS.TaskCompleted.flatMap((g) => g.hooks.map((h) => ({ matcher: g.matcher, command: h.command })));
-  assert.deepEqual(gates, [{ matcher: undefined, command: hookCommand("agentcraft", "skills/but-first-planning/hooks/plan-gate.mjs") }], "TaskCompleted takes no matcher");
+  assert.deepEqual(gates, [{ matcher: undefined, command: hookCommand("agentic-engineering", "skills/but-first-planning/hooks/plan-gate.mjs") }], "TaskCompleted takes no matcher");
   assert.ok(fs.existsSync(path.join(PLUGIN, "hooks", "briefing.mjs")), "its briefing is a part of the plugin's");
   assert.equal(fs.existsSync(path.join(PLUGIN, "hooks", "session-start.mjs")), false);
   assert.doesNotMatch(JSON.stringify(HOOKS), /but-first-planning\/hooks\/(session-start|briefing)/, "the plugin's two session commands speak for it");
@@ -81,7 +81,7 @@ test("critical.json: three lines, none waiting on another plugin, and every rout
   assert.ok(CRITICAL.lines.every((l) => !("partner" in l)));
   // The line that hands a published plan to the board stands behind the plan itself.
   assert.deepEqual(CRITICAL.lines.map((l) => [l.for, Boolean(l.when)]), [["main", false], ["all", true], ["main", true]]);
-  const named = CRITICAL.lines.flatMap((l) => [...l.text.matchAll(/\/agentcraft:but-first-planning ([a-z-]+)/g)].map((m) => m[1]));
+  const named = CRITICAL.lines.flatMap((l) => [...l.text.matchAll(/\/agentic-engineering:but-first-planning ([a-z-]+)/g)].map((m) => m[1]));
   assert.deepEqual([...new Set(named)].sort(), ["build-tdd", "grill", "spec-edit"]);
   for (const route of named) {
     assert.ok(fs.existsSync(path.join(PLUGIN, "routes", route, "ROUTE.md")), route);
@@ -111,7 +111,7 @@ test("a repo with a plan workspace hears both lines; one that only opted in hear
 test("a repo whose only workspace is a named one hears the plan lines too, and the line says a plan has two homes", (t) => {
   const named = session(t, namedRepo(t));
   assert.ok(named.context.includes(GRILL) && named.context.includes(PLAN) && named.context.includes(BOARD));
-  assert.match(PLAN, /^A plan lives in \.agents\/plan\/, or in \.agents\/plans\/<name>\/ for one feature or task: a spec decision changes through \/agentcraft:but-first-planning spec-edit, /);
+  assert.match(PLAN, /^A plan lives in \.agents\/plan\/, or in \.agents\/plans\/<name>\/ for one feature or task: a spec decision changes through \/agentic-engineering:but-first-planning spec-edit, /);
   assert.doesNotMatch(PLAN, /say which/);
 });
 

@@ -9,7 +9,7 @@ import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
 /** The plugin, which holds the launchers and the manifest, and the area of it the command line is in. */
-const ROOT = path.join(REPO, "plugins", "agentcraft");
+const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 const AREA = path.join("skills", "agent-works");
 const PLUGIN = path.join(ROOT, AREA);
 const real = (p) => fs.realpathSync.native(p);
@@ -58,7 +58,7 @@ before(async (t) => {
   for (const f of ["lib/common.mjs", "lib/config.mjs", "scripts/aw.mjs"]) write(plugin, f, fs.readFileSync(path.join(PLUGIN, f)));
   for (const f of ["bin/aw", "bin/aw.cmd"]) write(root, f, fs.readFileSync(path.join(ROOT, f)));
   fs.chmodSync(path.join(root, "bin", "aw"), 0o755);
-  write(root, ".claude-plugin/plugin.json", '{ "name": "agentcraft", "version": "9.8.7" }\n');
+  write(root, ".claude-plugin/plugin.json", '{ "name": "agentic-engineering", "version": "9.8.7" }\n');
   for (const [file, text] of Object.entries(STUBS)) write(plugin, file, text);
   aw = await import(pathToFileURL(path.join(plugin, "scripts", "aw.mjs")).href);
   common = await import(pathToFileURL(path.join(plugin, "lib", "common.mjs")).href);

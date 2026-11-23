@@ -6,10 +6,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { BUDGET, countLines } from "../../../plugins/agentcraft/skills/write-like-me/scripts/wlm/profile-budget.mjs";
+import { BUDGET, countLines } from "../../../plugins/agentic-engineering/skills/write-like-me/scripts/wlm/profile-budget.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const SCRIPT = path.join(REPO, "plugins", "agentcraft", "skills", "write-like-me", "scripts", "wlm", "profile-budget.mjs");
+const SCRIPT = path.join(REPO, "plugins", "agentic-engineering", "skills", "write-like-me", "scripts", "wlm", "profile-budget.mjs");
 
 function budget(t, args, env = {}) {
   const home = env.HOME ?? tempDir(t, "wlm-budget-");
@@ -18,7 +18,7 @@ function budget(t, args, env = {}) {
 
 test("the budget is sixty lines, and the bundled template fits it", () => {
   assert.equal(BUDGET, 60);
-  const template = fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "skills", "write-like-me", "routes", "calibrate", "assets", "profile-template.md"), "utf8");
+  const template = fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "skills", "write-like-me", "routes", "calibrate", "assets", "profile-template.md"), "utf8");
   assert.ok(countLines(template) <= BUDGET, `the template is ${countLines(template)} lines`);
 });
 

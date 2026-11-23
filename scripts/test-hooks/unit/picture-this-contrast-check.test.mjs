@@ -5,10 +5,10 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { test } from "node:test";
-import { contrast, parseColor, relLuminance } from "../../../plugins/agentcraft/skills/picture-this/scripts/contrast-check.mjs";
+import { contrast, parseColor, relLuminance } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/contrast-check.mjs";
 import { REPO, runNode } from "./helpers.mjs";
 
-const SCRIPT = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "scripts", "contrast-check.mjs");
+const SCRIPT = path.join(REPO, "plugins", "agentic-engineering", "skills", "picture-this", "scripts", "contrast-check.mjs");
 const check = (...pairs) => runNode(SCRIPT, pairs);
 const line = (fg, bg, ratio, body, large) => `${fg} on ${bg}: ${ratio}:1  body(4.5:1)=${body}  large/UI(3:1)=${large}\n`;
 

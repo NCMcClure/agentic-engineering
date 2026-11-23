@@ -4,11 +4,11 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { audit } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/audit-project.mjs";
+import { audit } from "../../../plugins/agentic-engineering/skills/agentic-teamwork/scripts/audit-project.mjs";
 import { runNode, tempRepo, write } from "./helpers.mjs";
 
-const AUDIT = "plugins/agentcraft/skills/agentic-teamwork/scripts/audit-project.mjs";
-const INIT = "plugins/agentcraft/skills/agentic-teamwork/scripts/init-project.mjs";
+const AUDIT = "plugins/agentic-engineering/skills/agentic-teamwork/scripts/audit-project.mjs";
+const INIT = "plugins/agentic-engineering/skills/agentic-teamwork/scripts/init-project.mjs";
 const UPGRADE = /init-project --upgrade/;
 
 /** A repo a fresh scaffold made, committed, with the pre-commit hook turned on. */
@@ -42,7 +42,7 @@ test("it reports and never fails: the exit code is 0 whatever it found", (t) => 
   const { dir } = tempRepo(t, "audit-bare-");
   const cli = runNode(AUDIT, ["--root", dir]);
   assert.equal(cli.status, 0);
-  assert.match(cli.stdout, /^error: marker: no \.agents\/manifest\.json: this repo is not on the conventions -> on the person's say-so, \/agentcraft:agentic-teamwork init-project --upgrade$/m);
+  assert.match(cli.stdout, /^error: marker: no \.agents\/manifest\.json: this repo is not on the conventions -> on the person's say-so, \/agentic-engineering:agentic-teamwork init-project --upgrade$/m);
   assert.match(cli.stdout, /^1 error\(s\), 0 warning\(s\)$/m);
   assert.equal(audit(dir).findings.length, 1, "an unmarked repo is one finding, not a list of everything it lacks");
 });
@@ -156,7 +156,7 @@ test("a repo that calls a model and has no live lane is an error", (t) => {
   const live = one(dir, "live-lane");
   assert.equal(live.severity, "error");
   assert.match(live.detail, /calls a model \(@anthropic-ai\/sdk\) and has no live lane/);
-  assert.match(live.fix, /\/agentcraft:agentic-teamwork tdd, its references\/live-lane\.md/);
+  assert.match(live.fix, /\/agentic-engineering:agentic-teamwork tdd, its references\/live-lane\.md/);
 
   saveMarker(dir, { ...marker(dir), lanes: { ...marker(dir).lanes, live: "RUN_LIVE_TESTS=1 node --test test/live" } });
   assert.deepEqual(found(dir, "live-lane"), [], "a wired live lane answers it");

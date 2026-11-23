@@ -9,9 +9,9 @@ import { REPO, tempRepo, write } from "./helpers.mjs";
 import {
   DEFAULTS, ENV_EXAMPLE, FIRST_LAYOUT, MANIFEST, RULES, SECRET_PATTERNS, SOURCE_FILE,
   anyOf, blockFromFirstLayout, globTest, loadConfig, modeFor, notWired, settings, toRegExp,
-} from "../../../plugins/agentcraft/skills/agentic-teamwork/hooks/lib/config.mjs";
+} from "../../../plugins/agentic-engineering/skills/agentic-teamwork/hooks/lib/config.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork");
 const manifest = (extra = {}) => JSON.stringify({ standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", lanes: { unit: "npm test" }, owned: {}, ...extra }, null, 2);
 
 // ---- the defaults --------------------------------------------------------
@@ -129,7 +129,7 @@ test("the default junk patterns, and the env files that are not junk", () => {
 
 test("the built-in credential shapes fire on a credential and not on ordinary source", () => {
   const found = anyOf(SECRET_PATTERNS);
-  const real = [`sk-ant-${"a".repeat(12)}`, `AKIA${"A".repeat(16)}`, `ghp_${"a".repeat(36)}`, `github_pat_${"a".repeat(22)}`, `glpat-${"a".repeat(20)}`, `xoxb-${"1".repeat(12)}`, "-----BEGIN RSA PRIVATE KEY-----", "-----BEGIN PRIVATE KEY-----"];
+  const real = [`sk-ant-${"a".repeat(12)}`, `AKIA${"A".repeat(16)}`, `ghp_${"a".repeat(36)}`, `github_pat_${"a".repeat(22)}`, `glpat-${"a".repeat(20)}`, `xoxb-${"1".repeat(12)}`, `-----BEGIN RSA ${"PRIVATE"} KEY-----`, `-----BEGIN ${"PRIVATE"} KEY-----`];
   for (const text of real) assert.ok(found(`const k = "${text}";`), text.slice(0, 12));
   for (const text of ["const token = process.env.GITHUB_TOKEN;", "AKIA is how an access key id starts", "-----BEGIN PUBLIC KEY-----", "ghp_tooshort", "skeleton-ant-hill"]) assert.ok(!found(text), text);
 });

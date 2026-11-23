@@ -9,14 +9,14 @@ import http from "node:http";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { test } from "node:test";
-import { CODES, LEVELS, diagnose, renderDiagnosis, summary } from "../../../plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs";
-import { loadSources } from "../../../plugins/agentcraft/skills/context-doctor/scripts/sources.mjs";
-import * as thresholds from "../../../plugins/agentcraft/skills/context-doctor/scripts/thresholds.mjs";
-import { buildSession } from "../../../plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs";
-import { DENYLIST } from "../../../plugins/agentcraft/hooks/critical-context.mjs";
+import { CODES, LEVELS, diagnose, renderDiagnosis, summary } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/diagnose.mjs";
+import { loadSources } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/sources.mjs";
+import * as thresholds from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/thresholds.mjs";
+import { buildSession } from "../../../plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs";
+import { DENYLIST } from "../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const AREA = path.join(REPO, "plugins", "agentcraft", "skills", "context-doctor");
+const AREA = path.join(REPO, "plugins", "agentic-engineering", "skills", "context-doctor");
 const CLI = path.join(AREA, "scripts", "context-lens.mjs");
 const CWD = "/srv/demo";
 
@@ -27,7 +27,7 @@ const START = "startup|resume|clear|compact";
 /** A ~/.claude with one plugin of two areas in the focus marketplace, and one plugin from elsewhere. */
 function claudeDir(t) {
   const dir = tempDir(t, "context-doctor-");
-  const root = "plugins/cache/agentic-engineering/agentcraft/1.1.0";
+  const root = "plugins/cache/agentic-engineering/agentic-engineering/1.1.0";
   write(dir, `${root}/hooks/hooks.json`, JSON.stringify({ hooks: {
     SessionStart: [{ matcher: START, hooks: [{ type: "command", command: command("session-start.mjs"), statusMessage: "Reading what applies here" }] }],
     SubagentStart: [{ hooks: [{ type: "command", command: command("session-start.mjs") }] }],
@@ -39,7 +39,7 @@ function claudeDir(t) {
     SessionStart: [{ matcher: START, hooks: [{ type: "command", command: command("hello.mjs"), statusMessage: "Saying hello" }] }],
   } }));
   write(dir, "plugins/known_marketplaces.json", JSON.stringify({ "agentic-engineering": { installLocation: path.join(dir, "plugins", "marketplaces", "agentic-engineering") } }));
-  write(dir, "plugins/marketplaces/agentic-engineering/.claude-plugin/marketplace.json", JSON.stringify({ name: "agentic-engineering", plugins: [{ name: "agentcraft" }] }));
+  write(dir, "plugins/marketplaces/agentic-engineering/.claude-plugin/marketplace.json", JSON.stringify({ name: "agentic-engineering", plugins: [{ name: "agentic-engineering" }] }));
   return dir;
 }
 
@@ -83,11 +83,11 @@ const only = (findings, code) => {
 /** A session where nothing is wrong: a small start, a turn, a compaction that brings the start back. */
 const clean = () => [
   started("Team conventions v1."),
-  listing(["- agentcraft:start-here: Use when a person asks what is here.", "- agentcraft:agentic-teamwork: Use for the team's git conventions."]),
+  listing(["- agentic-engineering:start-here: Use when a person asks what is here.", "- agentic-engineering:agentic-teamwork: Use for the team's git conventions."]),
   prompt(), assistant("r1"),
   compact(),
   started("Team conventions v1.", "compact"),
-  listing(["- agentcraft:start-here: Use when a person asks what is here.", "- agentcraft:agentic-teamwork: Use for the team's git conventions."]),
+  listing(["- agentic-engineering:start-here: Use when a person asks what is here.", "- agentic-engineering:agentic-teamwork: Use for the team's git conventions."]),
   assistant("r2", 21_000),
 ];
 
@@ -104,7 +104,7 @@ test("a session where nothing went wrong has no findings, and says what that cov
 test("a hook over the host's cap is critical, one near it a warning, and one under neither", (t) => {
   const big = (n) => "x".repeat(n);
   const over = only(diagnose(read(t, [started(big(10_001)), prompt(), assistant("r1")])), "HOOK_OVER_CAP");
-  assert.deepEqual([over.level, over.owner, over.segment], ["critical", "agentcraft", 0]);
+  assert.deepEqual([over.level, over.owner, over.segment], ["critical", "agentic-engineering", 0]);
   assert.match(over.what, /printed 10,001 characters/);
   assert.equal(over.events.length, 1);
   // At the cap exactly the host still sends the text.
@@ -118,14 +118,14 @@ test("a hook over the host's cap is critical, one near it a warning, and one und
 test("start context a compaction did not bring back is critical, and the cause is read from what ran after it", (t) => {
   const lost = (afterCompaction) => only(diagnose(read(t, [started("Team conventions v1."), prompt(), assistant("r1"), compact(), ...afterCompaction, assistant("r2", 21_000)])), "COMPACT_LOST");
   const matcher = lost([]);
-  assert.deepEqual([matcher.level, matcher.owner, matcher.segment, matcher.compaction], ["critical", "agentcraft", 1, 0]);
+  assert.deepEqual([matcher.level, matcher.owner, matcher.segment, matcher.compaction], ["critical", "agentic-engineering", 1, 0]);
   assert.match(matcher.what, /before compaction 1 and no request after it carried it\. No SessionStart hook of its ran/);
   assert.match(matcher.fix, /Add `compact` to the SessionStart matcher/);
   const silent = lost([hookRun("SessionStart:compact", "Reading what applies here", "")]);
   assert.match(silent.what, /ran after the compaction and printed nothing/);
   assert.match(silent.fix, /whatever started the session/);
   assert.equal(silent.events.length, 1, "the silent run is where to look");
-  const broke = lost([failed("SessionStart", "Error: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/1.0.0/hooks/session-start.mjs'")]);
+  const broke = lost([failed("SessionStart", "Error: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/1.0.0/hooks/session-start.mjs'")]);
   assert.match(broke.what, /failed on the run after the compaction/);
 });
 
@@ -138,7 +138,7 @@ test("context that came back only because the session was resumed is a warning, 
   const entries = [started("Team conventions v1."), prompt(), assistant("r1"), compact(), assistant("r2", 21_000), assistant("r3", 22_000), started("Team conventions v1.", "resume"), prompt(), assistant("r4", 23_000)];
   const findings = diagnose(read(t, entries));
   const late = only(findings, "COMPACT_ONLY_RESUME");
-  assert.deepEqual([late.level, late.owner, late.segment, late.compaction], ["warning", "agentcraft", 1, 0]);
+  assert.deepEqual([late.level, late.owner, late.segment, late.compaction], ["warning", "agentic-engineering", 1, 0]);
   assert.match(late.what, /came back only on a later resume: 2 requests went out without it first/);
   assert.ok(!codes(findings).includes("COMPACT_LOST"), "the lens reads it as kept, which is what hides it");
   // The same resume after a hook that did match `compact` is only a repeat.
@@ -152,10 +152,10 @@ test("a call the host refused is critical and quotes what the host said; a skill
   const entries = [
     started("Team conventions v1."), prompt(),
     toolUse("t1", "Skill", { skill: "other-tool:setup" }), toolResult("t1", { is_error: true, content: "This skill can only be started by the user." }),
-    toolUse("t2", "Skill", { skill: "agentcraft:agentic-teamwork", args: "ship" }), toolResult("t2"),
+    toolUse("t2", "Skill", { skill: "agentic-engineering:agentic-teamwork", args: "ship" }), toolResult("t2"),
     prompt(),
-    toolUse("t3", "Skill", { skill: "agentcraft:agentic-teamwork", args: "land" }), toolResult("t3"),
-    toolUse("t4", "Skill", { skill: "agentcraft:write-like-me" }), toolResult("t4"),
+    toolUse("t3", "Skill", { skill: "agentic-engineering:agentic-teamwork", args: "land" }), toolResult("t3"),
+    toolUse("t4", "Skill", { skill: "agentic-engineering:write-like-me" }), toolResult("t4"),
   ];
   const findings = diagnose(read(t, entries));
   const refused = only(findings, "SKILL_REFUSED");
@@ -169,20 +169,20 @@ test("a call the host refused is critical and quotes what the host said; a skill
 });
 
 test("the same skill called once on each side of a compaction is not called twice", (t) => {
-  const call = (id) => [toolUse(id, "Skill", { skill: "agentcraft:agentic-teamwork" }), toolResult(id)];
+  const call = (id) => [toolUse(id, "Skill", { skill: "agentic-engineering:agentic-teamwork" }), toolResult(id)];
   const findings = diagnose(read(t, [started("v1"), prompt(), ...call("t1"), compact(), started("v1", "compact"), prompt(), ...call("t2")]));
   assert.ok(!codes(findings).includes("SKILL_REINVOKED"), JSON.stringify(codes(findings)));
 });
 
 test("a hook that failed is a warning, and a missing file is read as an update that replaced the plugin's root", (t) => {
-  const gone = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "Error: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs'")])), "HOOK_FAILED");
+  const gone = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "Error: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs'")])), "HOOK_FAILED");
   assert.deepEqual([gone.level, gone.owner, gone.turn], ["warning", "agentic-teamwork", 1]);
   assert.match(gone.what, /Its Stop hook failed 1 time: Error: Cannot find module/);
   assert.match(gone.fix, /an update replaces the plugin's root/);
-  const other = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "TypeError: x is not a function at /opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs")])), "HOOK_FAILED");
+  const other = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "TypeError: x is not a function at /opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs")])), "HOOK_FAILED");
   assert.match(other.fix, /Run the hook's command by hand/);
   // The host wraps a failure in its own preamble and Node adds a stack: the finding quotes the error's own line.
-  const wrapped = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "Failed with non-blocking status code: node:internal/modules/cjs/loader:1413\n  throw err;\n  ^\n\nError: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs'\n    at Function._resolveFilename (node:internal/modules/cjs/loader:1410:15)")])), "HOOK_FAILED");
+  const wrapped = only(diagnose(read(t, [started("v1"), prompt(), assistant("r1"), failed("Stop", "Failed with non-blocking status code: node:internal/modules/cjs/loader:1413\n  throw err;\n  ^\n\nError: Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/1.0.0/skills/agentic-teamwork/hooks/stop-gate.mjs'\n    at Function._resolveFilename (node:internal/modules/cjs/loader:1410:15)")])), "HOOK_FAILED");
   assert.match(wrapped.what, /failed 1 time: Error: Cannot find module '[^']+stop-gate\.mjs'\. A hook that fails/);
 });
 
@@ -208,8 +208,8 @@ test("the same hook text on five turns repeats; on four, or changing each turn, 
 test("a long line that two sources both put in at the start is said twice; a short one, or one source twice, is not", (t) => {
   const rule = "- Never force push, never --no-verify, never push unless the person asked.";
   const twice = only(diagnose(read(t, [started(`Critical, from agentic-teamwork:\n${rule}`), rules(`# Team rules\n\n${rule}\n`), prompt(), assistant("r1")])), "DUP_TEXT");
-  assert.deepEqual([twice.level, twice.owner, twice.events.length], ["warning", "agentcraft", 2]);
-  assert.match(twice.what, /1 line \(72 characters\) reached the model twice at the start, from the SessionStart hook of agentcraft and from \.agents\/rules\/team\.md/);
+  assert.deepEqual([twice.level, twice.owner, twice.events.length], ["warning", "agentic-engineering", 2]);
+  assert.match(twice.what, /1 line \(72 characters\) reached the model twice at the start, from the SessionStart hook of agentic-engineering and from \.agents\/rules\/team\.md/);
   assert.deepEqual(codes(diagnose(read(t, [started("- Never force push."), rules("- Never force push.\n"), prompt(), assistant("r1")]))), []);
   // A resume prints the hook again: the host's repeat, not the plugin's duplicate.
   assert.deepEqual(codes(diagnose(read(t, [started(rule), started(rule, "resume"), prompt(), assistant("r1")]))), ["RESUME_REPEAT"]);
@@ -226,7 +226,7 @@ test("critical lines over their total are a warning, counted once however often 
 });
 
 test("the last route read before a compaction and not read again is a warning", (t) => {
-  const route = (name) => `/opt/x/.claude/plugins/cache/agentic-engineering/agentcraft/1.1.0/skills/agentic-teamwork/routes/${name}/ROUTE.md`;
+  const route = (name) => `/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/1.1.0/skills/agentic-teamwork/routes/${name}/ROUTE.md`;
   const reading = (id, name) => [toolUse(id, "Read", { file_path: route(name) }), toolResult(id)];
   const before = [started("v1"), prompt(), ...reading("t1", "tdd"), ...reading("t2", "ship"), compact(), started("v1", "compact")];
   const gone = only(diagnose(read(t, [...before, prompt(), assistant("r2", 21_000)])), "ROUTE_NOT_REREAD");
@@ -237,18 +237,18 @@ test("the last route read before a compaction and not read again is a warning", 
 });
 
 test("skills of a focus plugin listed by name only are a warning; another marketplace's are its own business", (t) => {
-  const bare = only(diagnose(read(t, [started("v1"), listing(["- agentcraft:start-here", "- agentcraft:agentic-teamwork", "- agentcraft:write-like-me: Use for prose.", "- other-tool:setup"]), prompt(), assistant("r1")])), "LISTING_BARE");
+  const bare = only(diagnose(read(t, [started("v1"), listing(["- agentic-engineering:start-here", "- agentic-engineering:agentic-teamwork", "- agentic-engineering:write-like-me: Use for prose.", "- other-tool:setup"]), prompt(), assistant("r1")])), "LISTING_BARE");
   // One finding for the plugin, over the listing of each of its areas and of the skill a person types.
-  assert.deepEqual([bare.level, bare.owner, bare.events.length], ["warning", "agentcraft", 3]);
-  assert.match(bare.what, /2 of 3 skills from agentcraft were listed by name only: start-here, agentic-teamwork\./);
-  assert.deepEqual(codes(diagnose(read(t, [started("v1"), listing(["- agentcraft:start-here: Use when a person asks.", "- other-tool:setup"]), prompt(), assistant("r1")]))), []);
+  assert.deepEqual([bare.level, bare.owner, bare.events.length], ["warning", "agentic-engineering", 3]);
+  assert.match(bare.what, /2 of 3 skills from agentic-engineering were listed by name only: start-here, agentic-teamwork\./);
+  assert.deepEqual(codes(diagnose(read(t, [started("v1"), listing(["- agentic-engineering:start-here: Use when a person asks.", "- other-tool:setup"]), prompt(), assistant("r1")]))), []);
 });
 
 test("a searcher that started with plugin context is a warning on the session that started it; a builder is not", (t) => {
   const sub = (agentType) => ({ agentType, session: read(t, [hookRun("SubagentStart", command("session-start.mjs"), additional("SubagentStart", "Critical, from agentic-teamwork:\n- Never force push.")), prompt("Find the config loader."), assistant("s1", 9_000)]) });
   const main = read(t, [started("v1"), prompt(), assistant("r1")]);
   const told = only(diagnose(main, { subagents: [sub("Explore"), sub("Explore"), sub("general-purpose")] }), "SUBAGENT_CONTEXT");
-  assert.deepEqual([told.level, told.owner, told.events], ["warning", "agentcraft", []]);
+  assert.deepEqual([told.level, told.owner, told.events], ["warning", "agentic-engineering", []]);
   assert.match(told.what, /2 Explore subagents started with ~\d+ tokens of its context/);
   assert.deepEqual(codes(diagnose(main, { subagents: [sub("general-purpose")] })), []);
   // A subagent's own transcript, diagnosed directly, carries its agent type and points at the event.
@@ -270,7 +270,7 @@ test("what limits the reading is said: hooks no plugin claimed, unreadable lines
 test("findings come most serious first, and the text names each with where it is and its fix", (t) => {
   const entries = [
     hookRun("SessionStart:startup", "node ~/.claude/my-hook.mjs", additional("SessionStart", "From settings.json.")),
-    started("Team conventions v1."), listing(["- agentcraft:agentic-teamwork"]),
+    started("Team conventions v1."), listing(["- agentic-engineering:agentic-teamwork"]),
     prompt(), assistant("r1"), compact(), assistant("r2", 21_000),
   ];
   const session = read(t, entries);
@@ -287,8 +287,8 @@ test("findings come most serious first, and the text names each with where it is
   }
   const text = renderDiagnosis(session, findings);
   assert.match(text, /\n2 critical, 1 warning, 1 note\./);
-  assert.match(text, /\ncritical COMPACT_LOST · agentcraft · segment 2\n {2}what {2}Its SessionStart context .*\n {2}fix {3}Add `compact`/);
-  assert.match(text, /\nwarning {2}LISTING_BARE · agentcraft · segment 1\n/);
+  assert.match(text, /\ncritical COMPACT_LOST · agentic-engineering · segment 2\n {2}what {2}Its SessionStart context .*\n {2}fix {3}Add `compact`/);
+  assert.match(text, /\nwarning {2}LISTING_BARE · agentic-engineering · segment 1\n/);
   assert.deepEqual(summary(session, findings).counts, { critical: 2, warning: 1, info: 1 });
 });
 
@@ -307,7 +307,7 @@ test("the thresholds are the gate's, the scanner's, and the session hook's own n
     assert.ok(m, `${name} in ${file}`);
     return Number(m[1].replace(/_/g, ""));
   };
-  const scanner = "plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
+  const scanner = "plugins/agentic-engineering/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
   assert.equal(thresholds.HOOK_OUTPUT_CAP, constant("scripts/validate.mjs", "HOOK_OUTPUT_CAP"));
   assert.equal(thresholds.HOOK_OUTPUT_CAP, constant(scanner, "HOOK_OUTPUT_CAP"));
   assert.equal(thresholds.CRITICAL_TOTAL, constant("scripts/validate.mjs", "CRITICAL_TOTAL"));
@@ -339,8 +339,8 @@ test("diagnose prints the findings as text and as JSON, reads the session's quie
   const text = runNode(CLI, ["diagnose", "abc", "--claude-dir", dir]);
   assert.equal(text.status, 0, text.stderr);
   assert.match(text.stdout, /^Context Doctor: /);
-  assert.match(text.stdout, /critical COMPACT_LOST · agentcraft · segment 2/);
-  assert.match(text.stdout, /warning {2}SUBAGENT_CONTEXT · agentcraft\n {2}what {2}1 Explore subagent started/);
+  assert.match(text.stdout, /critical COMPACT_LOST · agentic-engineering · segment 2/);
+  assert.match(text.stdout, /warning {2}SUBAGENT_CONTEXT · agentic-engineering\n {2}what {2}1 Explore subagent started/);
   assert.ok(text.stdout.trimEnd().endsWith(file), "the transcript it read is the last line");
 
   const json = runNode(CLI, ["diagnose", file, "--json", "--claude-dir", dir]);

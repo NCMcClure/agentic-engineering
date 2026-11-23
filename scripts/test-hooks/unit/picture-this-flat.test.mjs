@@ -6,7 +6,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO } from "./helpers.mjs";
 
-const KIT = path.join(REPO, "plugins", "agentcraft", "skills", "picture-this", "kit");
+const KIT = path.join(REPO, "plugins", "agentic-engineering", "skills", "picture-this", "kit");
 const skip = process.features.typescript ? false : "this Node cannot import TypeScript";
 const G = skip ? null : await import(new URL(`file://${path.join(KIT, "flat", "geometry.ts").split(path.sep).join("/").replace(/^([A-Za-z]:)/, "/$1")}`).href);
 const box = { x: 100, y: 40, width: 200, height: 80 };

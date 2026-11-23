@@ -8,11 +8,11 @@ import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
 import { test } from "node:test";
-import { findOnPath, lockHash, main, prerequisites, runningPort } from "../../../plugins/agentcraft/skills/workflow-studio/scripts/launch-studio.mjs";
+import { findOnPath, lockHash, main, prerequisites, runningPort } from "../../../plugins/agentic-engineering/skills/workflow-studio/scripts/launch-studio.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
 /** The plugin's root, which the skill passes the launcher, and the area of it the studio is in. */
-const ROOT = path.join(REPO, "plugins", "agentcraft");
+const ROOT = path.join(REPO, "plugins", "agentic-engineering");
 const PLUGIN = path.join(ROOT, "skills", "workflow-studio");
 const APP = path.join(PLUGIN, "app");
 const SCRIPT = path.join(PLUGIN, "scripts", "launch-studio.mjs");

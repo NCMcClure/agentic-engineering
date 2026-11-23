@@ -5,7 +5,7 @@ name: validate
 on:
   push:
     branches: [main, next]
-    tags: ["agentcraft/v*"]
+    tags: ["agentic-engineering/v*"]
   pull_request:
 
 concurrency:
@@ -36,7 +36,7 @@ jobs:
           node-version: ${{ matrix.node }}
       - run: node --test "scripts/test-hooks/**/*.test.mjs"
 
-  # There is one plugin and one tag form, agentcraft/v<version>: the tag has to
+  # There is one plugin and one tag form, agentic-engineering/v<version>: the tag has to
   # name the version its plugin.json carries.
   release-check:
     if: startsWith(github.ref, 'refs/tags/')

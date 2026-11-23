@@ -8,7 +8,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const HOOKS = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "hooks");
+const HOOKS = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork", "hooks");
 const suite = { after };
 const HOME = tempDir(suite, "tw-stop-home-");
 const TMP = tempDir(suite, "tw-stop-tmp-");

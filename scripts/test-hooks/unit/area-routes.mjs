@@ -8,7 +8,7 @@ import path from "node:path";
 import { parseFrontmatter, skillBody } from "../../lib.mjs";
 import { REPO } from "../fixtures.mjs";
 
-export const AGENTCRAFT = path.join(REPO, "plugins", "agentcraft");
+export const AGENTCRAFT = path.join(REPO, "plugins", "agentic-engineering");
 
 /** What a route's frontmatter may carry. Who may start it is its door's to say, never the route's. */
 export const ROUTE_KEYS = ["name", "description", "argument-hint"];

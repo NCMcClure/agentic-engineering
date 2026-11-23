@@ -16,7 +16,7 @@ and PR. When a rule changes, change the check in the same commit.
 
 ## Layout invariants
 
-- The marketplace ships one plugin, `plugins/agentcraft/`, and `plugins/`
+- The marketplace ships one plugin, `plugins/agentic-engineering/`, and `plugins/`
   holds no other directory. What is new goes in as an area.
 - The plugin holds `.claude-plugin/plugin.json`, `README.md`, `CHANGELOG.md`,
   `hooks/`, `lib/`, `agents/`, `bin/`, `.mcp.json`, and `skills/`: the entry
@@ -29,9 +29,12 @@ and PR. When a rule changes, change the check in the same commit.
   has to last goes under `${CLAUDE_PLUGIN_DATA}/<area>/` (`lib/data-home.mjs`).
 - No absolute machine path, `.DS_Store`, `node_modules/`, build artifact, or
   cache in the tree. LF line endings.
-- The catalog has one entry, `agentcraft`, and never a `version` key. An
+- The catalog has one entry, `agentic-engineering`, and never a `version` key. An
   area's name, or the name its plugin had before it moved in (`OLD_NAMES` in
   `scripts/lib.mjs`), is not a plugin: nothing tells a reader to install one.
+  The same holds for the name this plugin had before 2.0.0, `agentcraft`
+  (`OLD_PLUGIN_NAMES`): an install line, an address, or an MCP tool name that
+  carries it fails with what to write.
 
 ## Areas
 
@@ -63,7 +66,7 @@ and PR. When a rule changes, change the check in the same commit.
 - `skills/start-here/` is the one skill a person can type. A person cannot
   type an area: the host refuses it. So nothing written for a person (a
   README, a doc, a message a hook shows them) tells them to. It says
-  `/agentcraft:start-here`, or to ask in plain words.
+  `/agentic-engineering:start-here`, or to ask in plain words.
 - `start-here.json` holds what a person is asked: one to four groups, each a
   question of two to four options, every area in exactly one group, and per
   area a cue, a one-line how, and one to four uses that each hand off to a
@@ -71,8 +74,8 @@ and PR. When a rule changes, change the check in the same commit.
 
 ## Addresses
 
-- An agent reaches a route as `/agentcraft:<area> <route>`, an agent as
-  `agentcraft:<name>`, a tool of the plugin's mod as `mcp__agentcraft__<tool>`.
+- An agent reaches a route as `/agentic-engineering:<area> <route>`, an agent as
+  `agentic-engineering:<name>`, a tool of the plugin's mod as `mcp__agentic-engineering__<tool>`.
   Every address in a tracked file resolves to something the plugin ships; an
   old plugin's name, or a route named as a skill, fails with what to write.
 - A changelog, a recording, and a template copy keep what they say. A test
@@ -116,11 +119,11 @@ and PR. When a rule changes, change the check in the same commit.
 
 ## Versioning
 
-- One version, in `plugins/agentcraft/.claude-plugin/plugin.json`. Bump it on
+- One version, in `plugins/agentic-engineering/.claude-plugin/plugin.json`. Bump it on
   every user-visible change (patch: fixes and wording; minor: a new route or
   behavior; major: a breaking change). No bump, and installed users never
   receive the change.
-- One line at the top of `plugins/agentcraft/CHANGELOG.md`, newest first:
+- One line at the top of `plugins/agentic-engineering/CHANGELOG.md`, newest first:
   validate fails a top entry that is not the `plugin.json` version.
 - An area has no version: its `CHANGELOG.md` is its history as a plugin of its
   own and takes no new line.
@@ -144,21 +147,21 @@ and PR. When a rule changes, change the check in the same commit.
   `scripts/test-hooks/cases/<owner>/`: a real payload, empty stdin, and
   malformed JSON.
 - `npm run test:live` is the live lane: real sessions against
-  `plugins/agentcraft`, read back from their transcripts. Opt-in, never in CI.
+  `plugins/agentic-engineering`, read back from their transcripts. Opt-in, never in CI.
   Run it after changing a hook, a description, a cue, or anything else an
   agent sees, and record the new baseline in the same change.
 - `scripts/test-hooks/README.md` has the case format and the baseline ratchet.
 
 ## Testing locally
 
-- `node scripts/refresh.mjs` validates the tree, then installs `agentcraft`
+- `node scripts/refresh.mjs` validates the tree, then installs `agentic-engineering`
   for your user; start a new session to load it.
   `node scripts/install.mjs --uninstall` takes it back off.
 
 ## Releases and tags
 
 - `npm run validate && npm test` before every commit, then one tag form,
-  `agentcraft/v<version>`, on the commit that bumps the version. CI fails a
+  `agentic-engineering/v<version>`, on the commit that bumps the version. CI fails a
   tag whose version is not the one in `plugin.json`, and a tag that names
   anything else.
 - Users get updates from `main` through `/plugin marketplace update`. Tags are

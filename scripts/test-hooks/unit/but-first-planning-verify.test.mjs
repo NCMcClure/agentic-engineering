@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const { scaffold } = await import(pathToFileURL(path.join(REPO, "plugins", "agentcraft", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
+const { scaffold } = await import(pathToFileURL(path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
 
 const P = ".agents/plan";
 const SPRINT = "plan/01-core/01-store";

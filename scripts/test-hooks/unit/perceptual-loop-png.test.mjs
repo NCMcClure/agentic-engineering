@@ -6,7 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import zlib from "node:zlib";
 
-import { decodePng, encodePng } from "../../../plugins/agentcraft/skills/perceptual-loop/scripts/lib/png.mjs";
+import { decodePng, encodePng } from "../../../plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/png.mjs";
 
 // ---- an independent encoder ------------------------------------------------
 

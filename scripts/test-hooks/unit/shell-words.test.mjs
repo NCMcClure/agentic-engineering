@@ -6,7 +6,7 @@ import { test } from "node:test";
 import {
   LEADERS, SHELLS, assignments, baseName, commandWords, expand, gitCommand, psAssignment, shellWords,
   splitCommand, splitLead, textOf, trackCwd, unwrap,
-} from "../../../plugins/agentcraft/lib/shell-words.mjs";
+} from "../../../plugins/agentic-engineering/lib/shell-words.mjs";
 
 // The wrapper the recorded readings were taken with: `aw lock run <resource> ... -- <command>` and
 // `aw lease <resource> ... -- <command>` run a command, `--json` may stand anywhere, any other use runs none.

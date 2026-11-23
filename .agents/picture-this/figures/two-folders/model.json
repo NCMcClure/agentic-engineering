@@ -12,14 +12,14 @@
       "kind": "client",
       "note": "edits diagram.json directly",
       "hue": "violet",
-      "source": "plugins/agentcraft/skills/workflow-studio/routes/author-workflow/ROUTE.md:13"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/routes/author-workflow/ROUTE.md:13"
     },
     {
       "id": "project",
       "label": "Your project",
       "kind": "folder",
       "note": "Publish never writes outside it",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:43"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:43"
     },
     {
       "id": "studio",
@@ -27,7 +27,7 @@
       "kind": "folder",
       "note": "Compile writes only in here",
       "parent": "project",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:35"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:35"
     },
     {
       "id": "diagram",
@@ -35,14 +35,14 @@
       "kind": "store",
       "note": "the graph",
       "parent": "studio",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:125"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:125"
     },
     {
       "id": "server",
       "label": "Studio server",
       "kind": "service",
       "note": "watches the studio root",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:289"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:289"
     },
     {
       "id": "canvas",
@@ -50,7 +50,7 @@
       "kind": "client",
       "note": "the graph in your browser",
       "hue": "blue",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/src/App.tsx:299"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/src/App.tsx:299"
     },
     {
       "id": "compiled",
@@ -59,7 +59,7 @@
       "note": "made only by Compile",
       "parent": "studio",
       "born": "compile",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:126"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:126"
     },
     {
       "id": "published",
@@ -68,7 +68,7 @@
       "note": "what Claude Code runs",
       "parent": "project",
       "born": "publish",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:413"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:413"
     }
   ],
   "flows": [
@@ -78,7 +78,7 @@
       "to": "diagram",
       "kind": "write",
       "label": "save, via server",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/src/hooks/usePersistence.ts:78"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/src/hooks/usePersistence.ts:78"
     },
     {
       "id": "handedit",
@@ -86,7 +86,7 @@
       "to": "diagram",
       "kind": "write",
       "label": "hand edit",
-      "source": "plugins/agentcraft/skills/workflow-studio/SKILL.md:49"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/SKILL.md:49"
     },
     {
       "id": "watch",
@@ -94,7 +94,7 @@
       "to": "server",
       "kind": "event",
       "label": "change",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:290"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:290"
     },
     {
       "id": "notify",
@@ -102,7 +102,7 @@
       "to": "canvas",
       "kind": "event",
       "label": "studio:changed",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:286"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:286"
     },
     {
       "id": "reload",
@@ -110,7 +110,7 @@
       "to": "diagram",
       "kind": "read",
       "label": "load, via server",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/src/App.tsx:343"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/src/App.tsx:343"
     },
     {
       "id": "compile",
@@ -118,7 +118,7 @@
       "to": "compiled",
       "kind": "write",
       "label": "compile",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/src/App.tsx:375"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/src/App.tsx:375"
     },
     {
       "id": "publish",
@@ -126,7 +126,7 @@
       "to": "published",
       "kind": "write",
       "label": "publish",
-      "source": "plugins/agentcraft/skills/workflow-studio/app/vite.config.ts:418"
+      "source": "plugins/agentic-engineering/skills/workflow-studio/app/vite.config.ts:418"
     }
   ],
   "beats": [

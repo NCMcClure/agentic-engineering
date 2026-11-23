@@ -18,14 +18,14 @@ const AREAS = [
 const SKILLS = path.join(AGENTCRAFT, "skills");
 const dirs = (dir) => fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
 
-test("agentcraft: its only skills are start-here and the thirteen areas", () => {
+test("agentic-engineering: its only skills are start-here and the thirteen areas", () => {
   assert.equal(path.basename(AGENTCRAFT), AREA_PLUGIN);
   assert.deepEqual(dirs(SKILLS), [...AREAS, ENTRY_SKILL].sort());
   for (const name of AREAS) assert.ok(fs.existsSync(path.join(SKILLS, name, "routes")), `${name} holds routes/, which is what makes a skill an area`);
   assert.equal(fs.existsSync(path.join(SKILLS, ENTRY_SKILL, "routes")), false, "the entry skill is not an area");
 });
 
-test("agentcraft: a person can type the entry skill and nothing else", () => {
+test("agentic-engineering: a person can type the entry skill and nothing else", () => {
   const entry = parseFrontmatter(fs.readFileSync(path.join(SKILLS, ENTRY_SKILL, "SKILL.md"), "utf8"));
   assert.equal(entry.name, ENTRY_SKILL);
   assert.notEqual(entry["user-invocable"], "false");
@@ -33,7 +33,7 @@ test("agentcraft: a person can type the entry skill and nothing else", () => {
   for (const name of AREAS) assert.equal(area(name).skill.fields["user-invocable"], "false", `${name} is in the slash menu`);
 });
 
-test("agentcraft: the entry skill asks about every area once, and names each to an agent", () => {
+test("agentic-engineering: the entry skill asks about every area once, and names each to an agent", () => {
   const entry = JSON.parse(fs.readFileSync(path.join(SKILLS, ENTRY_SKILL, "start-here.json"), "utf8"));
   assert.deepEqual(entry.groups.flatMap((g) => g.areas).sort(), AREAS, "each area is in exactly one group");
   assert.deepEqual(Object.keys(entry.areas).sort(), AREAS);
@@ -46,7 +46,7 @@ test("agentcraft: the entry skill asks about every area once, and names each to 
   for (const name of AREAS) assert.ok(description.includes(name), `the entry skill's description does not name ${name}`);
 });
 
-test("agentcraft: it is the only directory under plugins/, and the only plugin the catalog lists", () => {
+test("agentic-engineering: it is the only directory under plugins/, and the only plugin the catalog lists", () => {
   assert.deepEqual(dirs(path.join(REPO, "plugins")), [AREA_PLUGIN]);
   const catalog = JSON.parse(fs.readFileSync(path.join(REPO, ".claude-plugin", "marketplace.json"), "utf8"));
   assert.deepEqual(catalog.plugins.map((p) => p.name), [AREA_PLUGIN]);

@@ -56,7 +56,7 @@ test("write-like-me routes: no page, reference or rules file names Python or a s
 
 test("write-like-me routes: every route a document points at is one the area ships", () => {
   for (const { name, text } of docs) {
-    for (const m of text.matchAll(/(?<![\w/.-])\/agentcraft:write-like-me ([a-z][a-z-]*)\b/g)) assert.ok(names.includes(m[1]), `${name}: ${m[0]}`);
+    for (const m of text.matchAll(/(?<![\w/.-])\/agentic-engineering:write-like-me ([a-z][a-z-]*)\b/g)) assert.ok(names.includes(m[1]), `${name}: ${m[0]}`);
     assert.doesNotMatch(text, /(?<![\w/.-])\/write-like-me:[a-z]/, `${name}: an address under the plugin's old name`);
   }
 });

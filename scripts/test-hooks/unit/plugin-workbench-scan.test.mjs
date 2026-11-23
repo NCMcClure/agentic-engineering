@@ -9,10 +9,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { hookCommand, parseHookCommand } from "../../lib.mjs";
-import { runScan, runScore } from "../../../plugins/agentcraft/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
+import { runScan, runScore } from "../../../plugins/agentic-engineering/skills/plugin-workbench/core/scripts/plugin-scan.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const WORKBENCH = path.join(REPO, "plugins", "agentcraft", "skills", "plugin-workbench");
+const WORKBENCH = path.join(REPO, "plugins", "agentic-engineering", "skills", "plugin-workbench");
 const SCAN = path.join(WORKBENCH, "core", "scripts", "plugin-scan.mjs");
 
 /** A plugin directory named `name` holding `files` (relative path to contents). */
@@ -470,7 +470,7 @@ test("MH5 judges a file with no extension by its shebang, and leaves workflows a
 const SHORT = {};
 
 test("the plugin the workbench ships in passes the mechanical checks it applies to others, bar the ones listed", () => {
-  const scan = runScan(path.join(REPO, "plugins", "agentcraft"));
+  const scan = runScan(path.join(REPO, "plugins", "agentic-engineering"));
   const short = Object.fromEntries(Object.entries(scan.mechanical_grades).filter(([, g]) => g.grade !== 4).map(([check, g]) => [check, g.grade]));
   assert.deepEqual(short, SHORT, JSON.stringify(Object.fromEntries(Object.keys(short).map((check) => [check, scan.mechanical_grades[check].basis])), null, 2));
   assert.equal(scan.mechanical_grades.CS7.grade, 4, "one SessionStart command tells the person Node is missing, and the rest are quiet");
@@ -483,7 +483,7 @@ test("the plugin the workbench ships in passes the mechanical checks it applies 
   assert.deepEqual(scan.hidden_mentions, []);
   // Its agents are named by address and its template trees by directory, so neither is an orphan.
   assert.deepEqual(scan.orphans, []);
-  assert.ok(fs.existsSync(path.join(REPO, "plugins", "agentcraft", "agents", "vision-critic.md")));
+  assert.ok(fs.existsSync(path.join(REPO, "plugins", "agentic-engineering", "agents", "vision-critic.md")));
 });
 
 // ---- areas and routes ----------------------------------------------------
@@ -720,8 +720,8 @@ test("a diagnosis rides on the score as a block of its own, and moves no number"
   const dir = demo(t);
   const scan = runScan(dir);
   const grades = write(dir, "../grades.json", JSON.stringify({ grades: scan.applicable_judgment_checks.map((check) => ({ check, grade: 3, evidence: "f: \"q\"", ...(scan.per_skill_checks.includes(check) ? { skill: "demo" } : {}) })) }));
-  const { diagnose, summary } = await import("../../../plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs");
-  const { buildSession } = await import("../../../plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs");
+  const { diagnose, summary } = await import("../../../plugins/agentic-engineering/skills/context-doctor/scripts/diagnose.mjs");
+  const { buildSession } = await import("../../../plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs");
   const at = (n) => new Date(Date.parse("2026-11-15T20:00:00Z") + n * 1000).toISOString();
   const session = { ...buildSession([
     { type: "user", timestamp: at(1), cwd: "/srv/demo", sessionId: "abc", version: "2.1.325", origin: { kind: "human" }, message: { role: "user", content: "Set it up." } },

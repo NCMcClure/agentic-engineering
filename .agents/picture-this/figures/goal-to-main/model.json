@@ -11,63 +11,63 @@
       "label": "but-first-planning",
       "kind": "area",
       "note": "grills the goal, writes the plan",
-      "source": "plugins/agentcraft/skills/but-first-planning/door.json:2"
+      "source": "plugins/agentic-engineering/skills/but-first-planning/door.json:2"
     },
     {
       "id": "agent-works",
       "label": "agent-works",
       "kind": "area",
       "note": "a board, and a session per card",
-      "source": "plugins/agentcraft/skills/agent-works/door.json:2"
+      "source": "plugins/agentic-engineering/skills/agent-works/door.json:2"
     },
     {
       "id": "agentic-teamwork",
       "label": "agentic-teamwork",
       "kind": "area",
       "note": "tests first, then ship and land",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/door.json:2"
+      "source": "plugins/agentic-engineering/skills/agentic-teamwork/door.json:2"
     },
     {
       "id": "code-diet",
       "label": "code-diet",
       "kind": "area",
       "note": "the least code that passes",
-      "source": "plugins/agentcraft/skills/code-diet/door.json:2"
+      "source": "plugins/agentic-engineering/skills/code-diet/door.json:2"
     },
     {
       "id": "perceptual-loop",
       "label": "perceptual-loop",
       "kind": "area",
       "note": "shots for work judged by eye",
-      "source": "plugins/agentcraft/skills/perceptual-loop/door.json:2"
+      "source": "plugins/agentic-engineering/skills/perceptual-loop/door.json:2"
     },
     {
       "id": "docs-parity",
       "label": "docs-parity",
       "kind": "area",
       "note": "pages and shots, in the same change",
-      "source": "plugins/agentcraft/skills/docs-parity/door.json:2"
+      "source": "plugins/agentic-engineering/skills/docs-parity/door.json:2"
     },
     {
       "id": "write-like-me",
       "label": "write-like-me",
       "kind": "area",
       "note": "the prose, in your voice",
-      "source": "plugins/agentcraft/skills/write-like-me/door.json:2"
+      "source": "plugins/agentic-engineering/skills/write-like-me/door.json:2"
     },
     {
       "id": "system-map",
       "label": "system-map",
       "kind": "area",
       "note": "a map checked against the imports",
-      "source": "plugins/agentcraft/skills/system-map/door.json:2"
+      "source": "plugins/agentic-engineering/skills/system-map/door.json:2"
     },
     {
       "id": "codebase-optimizer",
       "label": "codebase-optimizer",
       "kind": "area",
       "note": "reorganizes in stages, on green",
-      "source": "plugins/agentcraft/skills/codebase-optimizer/door.json:2"
+      "source": "plugins/agentic-engineering/skills/codebase-optimizer/door.json:2"
     }
   ],
   "flows": [
@@ -77,7 +77,7 @@
       "to": "agent-works",
       "kind": "event",
       "label": "issues as cards",
-      "source": "plugins/agentcraft/skills/but-first-planning/hooks/critical.json:6"
+      "source": "plugins/agentic-engineering/skills/but-first-planning/hooks/critical.json:6"
     },
     {
       "id": "tdd",
@@ -85,7 +85,7 @@
       "to": "agentic-teamwork",
       "kind": "event",
       "label": "tdd",
-      "source": "plugins/agentcraft/skills/agent-works/routes/work-card/ROUTE.md:46"
+      "source": "plugins/agentic-engineering/skills/agent-works/routes/work-card/ROUTE.md:46"
     },
     {
       "id": "ladder",
@@ -93,7 +93,7 @@
       "to": "code-diet",
       "kind": "event",
       "label": "ladder",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/routes/tdd/ROUTE.md:18"
+      "source": "plugins/agentic-engineering/skills/agentic-teamwork/routes/tdd/ROUTE.md:18"
     },
     {
       "id": "look",
@@ -101,7 +101,7 @@
       "to": "perceptual-loop",
       "kind": "event",
       "label": "a look label",
-      "source": "plugins/agentcraft/skills/agent-works/hooks/critical.json:9"
+      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:9"
     },
     {
       "id": "locks",
@@ -109,7 +109,7 @@
       "to": "agent-works",
       "kind": "read",
       "label": "resource-locks",
-      "source": "plugins/agentcraft/skills/perceptual-loop/hooks/critical.json:8"
+      "source": "plugins/agentic-engineering/skills/perceptual-loop/hooks/critical.json:8"
     },
     {
       "id": "docs",
@@ -117,7 +117,7 @@
       "to": "docs-parity",
       "kind": "event",
       "label": "docs-sync",
-      "source": "plugins/agentcraft/skills/but-first-planning/routes/build-tdd/ROUTE.md:126"
+      "source": "plugins/agentic-engineering/skills/but-first-planning/routes/build-tdd/ROUTE.md:126"
     },
     {
       "id": "voice",
@@ -125,7 +125,7 @@
       "to": "write-like-me",
       "kind": "event",
       "label": "prose",
-      "source": "plugins/agentcraft/skills/docs-parity/routes/docs-sync/ROUTE.md:47"
+      "source": "plugins/agentic-engineering/skills/docs-parity/routes/docs-sync/ROUTE.md:47"
     },
     {
       "id": "review",
@@ -133,7 +133,7 @@
       "to": "code-diet",
       "kind": "query",
       "label": "review-diet",
-      "source": "plugins/agentcraft/skills/agent-works/routes/review-card/ROUTE.md:38"
+      "source": "plugins/agentic-engineering/skills/agent-works/routes/review-card/ROUTE.md:38"
     },
     {
       "id": "land",
@@ -141,7 +141,7 @@
       "to": "agentic-teamwork",
       "kind": "write",
       "label": "ship, land",
-      "source": "plugins/agentcraft/skills/agent-works/hooks/critical.json:10"
+      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:10"
     },
     {
       "id": "reorganise",
@@ -149,7 +149,7 @@
       "to": "codebase-optimizer",
       "kind": "event",
       "label": "moving code",
-      "source": "plugins/agentcraft/skills/agent-works/routes/hubs/ROUTE.md:13"
+      "source": "plugins/agentic-engineering/skills/agent-works/routes/hubs/ROUTE.md:13"
     },
     {
       "id": "decisions",
@@ -157,7 +157,7 @@
       "to": "agent-works",
       "kind": "write",
       "label": "decisions",
-      "source": "plugins/agentcraft/skills/codebase-optimizer/routes/improve-codebase-architecture/ROUTE.md:40"
+      "source": "plugins/agentic-engineering/skills/codebase-optimizer/routes/improve-codebase-architecture/ROUTE.md:40"
     }
   ],
   "data": {

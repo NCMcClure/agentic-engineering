@@ -11,7 +11,7 @@
       "label": "SessionStart hook",
       "kind": "hook",
       "note": "matcher: startup|resume|clear",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:219"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:219"
     },
     {
       "id": "context",
@@ -19,14 +19,14 @@
       "kind": "context",
       "note": "the team's rules, ~102 tokens",
       "parent": "window",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:231"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:231"
     },
     {
       "id": "window",
       "label": "Model's window",
       "kind": "window",
       "note": "what each request carries",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:428"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:428"
     },
     {
       "id": "compaction",
@@ -34,21 +34,21 @@
       "kind": "boundary",
       "note": "163,000 to 18,000 tokens",
       "born": "compact",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:262"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:262"
     },
     {
       "id": "transcript",
       "label": "Session transcript",
       "kind": "record",
       "note": "~/.claude/projects/<slug>/<id>.jsonl",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/context-lens.mjs:98"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/context-lens.mjs:98"
     },
     {
       "id": "lens",
       "label": "The lens",
       "kind": "script",
       "note": "compares each segment's start",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:492"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:492"
     },
     {
       "id": "finding",
@@ -56,7 +56,7 @@
       "kind": "finding",
       "note": "critical, with its fix",
       "born": "finding",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:252"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/diagnose.mjs:252"
     }
   ],
   "flows": [
@@ -66,7 +66,7 @@
       "to": "window",
       "kind": "write",
       "label": "additionalContext",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:227"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:227"
     },
     {
       "id": "drop",
@@ -74,7 +74,7 @@
       "to": "context",
       "kind": "write",
       "label": "dropped",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:265"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:265"
     },
     {
       "id": "record",
@@ -82,7 +82,7 @@
       "to": "transcript",
       "kind": "event",
       "label": "every request",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:432"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:432"
     },
     {
       "id": "read",
@@ -90,7 +90,7 @@
       "to": "transcript",
       "kind": "read",
       "label": "reads back",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/transcript.mjs:473"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/transcript.mjs:473"
     },
     {
       "id": "raise",
@@ -98,7 +98,7 @@
       "to": "finding",
       "kind": "event",
       "label": "lost",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:244"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/diagnose.mjs:244"
     },
     {
       "id": "fix",
@@ -106,7 +106,7 @@
       "to": "hook",
       "kind": "event",
       "label": "add compact",
-      "source": "plugins/agentcraft/skills/context-doctor/scripts/diagnose.mjs:259"
+      "source": "plugins/agentic-engineering/skills/context-doctor/scripts/diagnose.mjs:259"
     }
   ],
   "data": {

@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { mergeFencedBlock, render, renderText, sha256, walk, writeOwned } from "../../../plugins/agentcraft/skills/agentic-teamwork/scripts/render.mjs";
+import { mergeFencedBlock, render, renderText, sha256, walk, writeOwned } from "../../../plugins/agentic-engineering/skills/agentic-teamwork/scripts/render.mjs";
 import { runNode, tempDir, write } from "./helpers.mjs";
 
-const RENDER = "plugins/agentcraft/skills/agentic-teamwork/scripts/render.mjs";
+const RENDER = "plugins/agentic-engineering/skills/agentic-teamwork/scripts/render.mjs";
 const hash = (text) => sha256(Buffer.from(text));
 
 test("renderText replaces known tokens and reports unknown ones", () => {

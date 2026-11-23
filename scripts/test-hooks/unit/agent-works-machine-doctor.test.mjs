@@ -77,9 +77,9 @@ test("agent-works machine-doctor: a build older than the floor warns with both w
   const old = checks(build("2.1.99"));
   assert.deepEqual([old.hard, old.status], [false, "misconfigured"]);
   assert.ok(old.detail.startsWith(`Claude Code 2.1.99 is older than ${machine.CLAUDE_CODE_FLOOR}: `), old.detail);
-  assert.match(old.detail, /a stub that depends on agentcraft@agentic-engineering/);
+  assert.match(old.detail, /a stub that depends on agentic-engineering@agentic-engineering/);
   assert.match(old.fix, /updates Claude Code/);
-  assert.match(old.fix, /claude plugin install agentcraft@agentic-engineering/);
+  assert.match(old.fix, /claude plugin install agentic-engineering@agentic-engineering/);
   assert.equal(checks(build("2.2.0")).status, "ok");
   assert.equal(checks(build("3.0.0")).status, "ok");
   const none = checks(build(null));

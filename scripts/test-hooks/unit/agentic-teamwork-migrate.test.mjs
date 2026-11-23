@@ -9,9 +9,9 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { makeFixture } from "../fixtures.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
-import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentcraft/skills/agentic-teamwork/hooks/lib/config.mjs";
+import { blockFromFirstLayout, loadConfig } from "../../../plugins/agentic-engineering/skills/agentic-teamwork/hooks/lib/config.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork");
 const HOOKS = path.join(PLUGIN, "hooks");
 const suite = { after };
 const HOME = tempDir(suite, "tw-migrate-home-");
@@ -163,7 +163,7 @@ test("a first-layout test command in its own folder becomes a lane that goes the
   const { context } = start(none.dir);
   assert.deepEqual(json(none.dir, ".agents/manifest.json").lanes, {});
   assert.equal(json(none.dir, ".agents/manifest.json").default_branch, "trunk");
-  assert.match(context, /names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentcraft:agentic-teamwork init-project with --upgrade/);
+  assert.match(context, /names no lanes yet: ask the person whether to upgrade it: on their yes that is \/agentic-engineering:agentic-teamwork init-project with --upgrade/);
 });
 
 test("it runs for the kinds of repo the first layout was used in", (t) => {

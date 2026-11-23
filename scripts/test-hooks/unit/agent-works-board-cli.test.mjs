@@ -11,13 +11,13 @@ import { execFileSync, spawn } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { cardView, parseCard } from "../../../plugins/agentcraft/skills/agent-works/lib/cards.mjs";
-import { bufferedIo } from "../../../plugins/agentcraft/skills/agent-works/lib/common.mjs";
-import { main as board } from "../../../plugins/agentcraft/skills/agent-works/scripts/board.mjs";
-import { LOCK_FILE, findings, readBoard } from "../../../plugins/agentcraft/skills/agent-works/scripts/io.mjs";
+import { cardView, parseCard } from "../../../plugins/agentic-engineering/skills/agent-works/lib/cards.mjs";
+import { bufferedIo } from "../../../plugins/agentic-engineering/skills/agent-works/lib/common.mjs";
+import { main as board } from "../../../plugins/agentic-engineering/skills/agent-works/scripts/board.mjs";
+import { LOCK_FILE, findings, readBoard } from "../../../plugins/agentic-engineering/skills/agent-works/scripts/io.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
+const AW = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "scripts", "aw.mjs");
 const GOLDEN = path.join(REPO, "scripts", "test-hooks", "cases", "agent-works", "cards");
 const OLD = "2020-01-01T00:00:00.000Z";
 const QUIET = { CLAUDECODE: "", AW_AGENT: "", PL_AGENT: "", CLAUDE_AGENT_NAME: "" };
@@ -855,8 +855,8 @@ test("a tracker nobody can reach fails the pass with what to do, and writes noth
 });
 
 test("bind records a card built by a subagent, and takes exactly one way of working it", async (t) => {
-  const { main } = await import("../../../plugins/agentcraft/skills/agent-works/scripts/board.mjs");
-  const { bufferedIo } = await import("../../../plugins/agentcraft/skills/agent-works/lib/common.mjs");
+  const { main } = await import("../../../plugins/agentic-engineering/skills/agent-works/scripts/board.mjs");
+  const { bufferedIo } = await import("../../../plugins/agentic-engineering/skills/agent-works/lib/common.mjs");
   const { tempRepo } = await import("./helpers.mjs");
   const { dir } = tempRepo(t, "aw-bind-subagent-");
   const run = async (...argv) => { const io = bufferedIo({ cwd: dir, env: { ...process.env } }); const code = await main(argv, io); return { code, out: io.out(), err: io.err() }; };

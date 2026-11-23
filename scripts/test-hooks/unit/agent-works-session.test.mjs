@@ -12,8 +12,8 @@ import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 // The area's part alone, run through the plugin's helper (area-session.mjs says why).
 const HOOK = path.join(import.meta.dirname, "area-session.mjs");
-const PART = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "hooks", "briefing.mjs");
-const AW = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "scripts", "aw.mjs");
+const PART = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "hooks", "briefing.mjs");
+const AW = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "scripts", "aw.mjs");
 const CONFIG = ".agents/agent-works.json";
 const STAMP = new Date().toISOString();
 const SETTLED = { version: 1, claude: { twins: "link" }, guard: { locks: "warn" } };
@@ -80,7 +80,7 @@ test("agent-works session: the main checkout gets the board in one line", (t) =>
   card(r.kanban, "0003", "Live lane", "status: backlog\norder: 2\nkind: gate\nneeds: the person\nref: !12\n");
   const out = hook(r, start(r.main));
   assert.equal(out.hookSpecificOutput.hookEventName, "SessionStart");
-  assert.equal(briefing(out), "Board: 1 in progress (0001 card-0001 !12), 0 in review, 1 ready, 1 gate owed. The board is the record: /agentcraft:agent-works orchestrate resumes it.");
+  assert.equal(briefing(out), "Board: 1 in progress (0001 card-0001 !12), 0 in review, 1 ready, 1 gate owed. The board is the record: /agentic-engineering:agent-works orchestrate resumes it.");
 });
 
 test("agent-works session: the board line is the one `aw board status --brief` prints", (t) => {
@@ -97,7 +97,7 @@ test("agent-works session: a worktree whose branch a card names is told which ca
   // A worktree session is handed the main checkout as its project dir; the payload's cwd is what counts.
   const out = hook(r, start(r.worktree), { cwd: r.main, env: { CLAUDE_PROJECT_DIR: r.main } });
   assert.equal(briefing(out), `You are working card 0007 "Claim the push grant". Done when: the grant is in git config; a second claim is refused. `
-    + `Its brief: node "${AW}" board brief 0007. Cadence: /agentcraft:agent-works work-card; end your final message with the CARD line.`);
+    + `Its brief: node "${AW}" board brief 0007. Cadence: /agentic-engineering:agent-works work-card; end your final message with the CARD line.`);
 });
 
 test("agent-works session: a card written before `## Done when` is read by its old heading, and one without criteria is still named", (t) => {
@@ -135,7 +135,7 @@ test("agent-works session: a subagent gets the lines for every agent and no brie
   card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
   const text = context(hook(r, { hook_event_name: "SubagentStart", agent_type: "general-purpose", session_id: "s", cwd: r.main }));
   assert.match(text, /^Critical, from agent-works:/);
-  assert.match(text, /\/agentcraft:agent-works resource-locks/);
+  assert.match(text, /\/agentic-engineering:agent-works resource-locks/);
   assert.match(text, /Hubs: a directory with an AGENTS\.md/);
   assert.doesNotMatch(text, /Board:|orchestrate/);
   assert.equal(hook(r, { hook_event_name: "SubagentStart", agent_type: "Explore", session_id: "s", cwd: r.main }), null);
@@ -205,20 +205,20 @@ test("agent-works session: the briefing stays a few lines however full the board
   for (let i = 1; i <= 40; i++) card(r.kanban, String(i).padStart(4, "0"), `Card number ${i}`, `status: in-progress\norder: ${i}\nsession: card-session-${i}\nmr: ${1000 + i}\n`);
   const boardLine = briefing(hook(r, start(r.main)));
   assert.match(boardLine, /^Board: 40 in progress \(0001 card-session-1 !1001; .*\.\.\. The board is the record/);
-  assert.ok(boardLine.length <= 313, `${boardLine.length} characters`);
+  assert.ok(boardLine.length <= 322, `${boardLine.length} characters`);
 
   const long = "a criterion that goes on and on ".repeat(20);
   card(r.kanban, "0041", `A title ${"so long ".repeat(20)}`, "status: in-progress\norder: 41\nbranch: feat/child\n", `\n## Done when\n- ${long}\n`);
   // The worst case: a fresh worktree of a card, so the twin was just written too.
   const worst = briefing(hook(r, start(r.worktree), { cwd: r.worktree }));
   assert.match(worst, /^This checkout had no CLAUDE\.md.* You are working card 0041 "A title so long .*\.\.\."\. Done when: a criterion .*\.\.\.\. Its brief: /);
-  assert.ok(worst.length - AW.length <= 511, `${worst.length - AW.length} characters besides the plugin's own path`);
+  assert.ok(worst.length - AW.length <= 520, `${worst.length - AW.length} characters besides the plugin's own path`);
 });
 
 // The launcher as it was written before agent-works was an area: the same first lines, and only the old plugin's folder looked in.
 const OLD_LAUNCHER = '#!/usr/bin/env node\n// aw: launcher of the agent-works command line (written by `aw setup --install-launcher`).\n'
   + 'const copies = list(cache).flatMap((market) => list(path.join(cache, market, "agent-works")));\n';
-const LAUNCHER_LINE = /The `aw` launcher at (\S+) was written before agent-works moved into agentcraft, so it finds no plugin: ask the person to rerun the setup route \(\/agentcraft:agent-works setup\), which writes it again\.$/;
+const LAUNCHER_LINE = /The `aw` launcher at (\S+) was written before agent-works moved into agentic-engineering, so it finds no plugin: ask the person to rerun the setup route \(\/agentic-engineering:agent-works setup\), which writes it again\.$/;
 
 test("agent-works session: a launcher from before the area moved in is named last, with the route that writes it again", (t) => {
   const r = repoWithWorktree(t, { config: SETTLED });
@@ -242,7 +242,7 @@ test("agent-works session: a current launcher, another program called aw, and a 
   const old = tempDir(t, "aw-old-launcher-");
   write(old, "aw", OLD_LAUNCHER);
   const current = tempDir(t, "aw-current-launcher-");
-  write(current, "aw", OLD_LAUNCHER.replace('"agent-works")));', '"agentcraft", "skills", "agent-works")));'));
+  write(current, "aw", OLD_LAUNCHER.replace('"agent-works")));', '"agentic-engineering", "skills", "agent-works")));'));
   // The first aw on the PATH is the one a shell runs: a current one, or another program's, ahead of the old one settles it.
   for (const first of [current, path.join(r.home, "bin")]) {
     assert.doesNotMatch(briefing(hook(r, start(r.main), { env: { PATH: onPath(first, old) } })), /launcher/, first);
@@ -274,7 +274,7 @@ test("agent-works session: the launcher line is left out whole where the rest ha
 
 // ---- a plan approved in plan mode, still in force ------------------------------
 
-const AREA = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
+const AREA = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works");
 const { parseOrchestration, stateOf } = await import(pathToFileURL(path.join(AREA, "lib", "planmode.mjs")).href);
 const { locate, writePlanState } = await import(pathToFileURL(path.join(AREA, "scripts", "io.mjs")).href);
 const ORCHESTRATION = [
@@ -299,7 +299,7 @@ test("agent-works session: a board and an approved plan are both told, the board
   const r = repoWithWorktree(t);
   card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
   approve(r.main);
-  assert.equal(briefing(hook(r, start(r.main))), `Board: 0 in progress, 0 in review, 1 ready. The board is the record: /agentcraft:agent-works orchestrate resumes it. ${PLAN_LINE}`);
+  assert.equal(briefing(hook(r, start(r.main))), `Board: 0 in progress, 0 in review, 1 ready. The board is the record: /agentic-engineering:agent-works orchestrate resumes it. ${PLAN_LINE}`);
 });
 
 test("agent-works session: a plan is its own work tree's, and one no longer in force is not told", (t) => {
@@ -346,6 +346,6 @@ test("agent-works session: alone in a repo nobody answered for, it asks the ques
   const r = repoWithWorktree(t, { answer: null });
   card(r.kanban, "0001", "Cards", "status: backlog\norder: 1\n");
   const text = context(hook(r, start(r.main)));
-  assert.match(text, /ask the person once whether to use the agentcraft plugin in this repo/);
+  assert.match(text, /ask the person once whether to use the agentic-engineering plugin in this repo/);
   assert.doesNotMatch(text, /Board:|Critical/);
 });

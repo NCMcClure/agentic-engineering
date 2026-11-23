@@ -9,7 +9,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const SCRIPTS = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "common", ".agents", "scripts");
+const SCRIPTS = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork", "templates", "common", ".agents", "scripts");
 const ship = (dir, script) => write(dir, `.agents/scripts/${script}`, fs.readFileSync(path.join(SCRIPTS, script), "utf8"));
 
 // ---------------------------------------------------------------------------
@@ -70,8 +70,8 @@ test("no lane named, an unknown lane, and no marker are usage errors", (t) => {
 // ---------------------------------------------------------------------------
 // plugin-check.mjs
 
-const PLUGIN = "agentcraft@agentic-engineering";
-// The id the conventions shipped under before they became an area of agentcraft.
+const PLUGIN = "agentic-engineering@agentic-engineering";
+// The id the conventions shipped under before they became an area of agentic-engineering.
 const EARLIER = "agentic-teamwork@agentic-engineering";
 const OFFER = "Tell the person once";
 
@@ -107,10 +107,10 @@ test("silent when the plugin is installed and enabled", (t) => {
 
 test("silent where only the plugin's earlier id is enabled: that machine has the conventions too", (t) => {
   assert.equal(check(fixture(t, { enabled: { [EARLIER]: true }, installed: [EARLIER] })), null);
-  // Installed under the earlier id and turned off is not the plugin running, and the one offered is agentcraft.
+  // Installed under the earlier id and turned off is not the plugin running, and the one offered is agentic-engineering.
   const line = check(fixture(t, { enabled: { [EARLIER]: false }, installed: [EARLIER] }));
   assert.ok(line.includes(OFFER));
-  assert.ok(line.includes(`/plugin install ${PLUGIN} `), "the offer names agentcraft, never the earlier id");
+  assert.ok(line.includes(`/plugin install ${PLUGIN} `), "the offer names agentic-engineering, never the earlier id");
   assert.equal(line.includes(EARLIER), false);
 });
 
@@ -119,7 +119,7 @@ test("not installed: one line that reaches the model, with the two commands and 
   assert.ok(line, "an offer");
   assert.equal(line.includes("\n"), false, "one line");
   assert.ok(line.includes(OFFER));
-  assert.match(line, /It is not installed: they type \/plugin marketplace add \S+ and then \/plugin install agentcraft@agentic-engineering themselves/);
+  assert.match(line, /It is not installed: they type \/plugin marketplace add \S+ and then \/plugin install agentic-engineering@agentic-engineering themselves/);
   assert.match(line, /git config --local agentic-engineering\.plugins "off Test \d{4}-\d{2}-\d{2}T\d{2}:\d{2}Z"/);
 });
 

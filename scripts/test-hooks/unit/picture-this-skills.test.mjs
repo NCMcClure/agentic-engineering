@@ -7,10 +7,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
 import { parseFrontmatter, pluginRootPaths } from "../../lib.mjs";
-import { COMMANDS } from "../../../plugins/agentcraft/skills/picture-this/scripts/pt.mjs";
-import { STATEMENT, studies } from "../../../plugins/agentcraft/skills/picture-this/scripts/commands/draft.mjs";
-import { LENSES } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/model-check.mjs";
-import { THREE_PACKAGES } from "../../../plugins/agentcraft/skills/picture-this/scripts/lib/owned.mjs";
+import { COMMANDS } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/pt.mjs";
+import { STATEMENT, studies } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/commands/draft.mjs";
+import { LENSES } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/model-check.mjs";
+import { THREE_PACKAGES } from "../../../plugins/agentic-engineering/skills/picture-this/scripts/lib/owned.mjs";
 import { AGENTCRAFT, area, routeBasics } from "./area-routes.mjs";
 
 const AREA = area("picture-this");
@@ -74,8 +74,8 @@ test("picture-this routes: the documents name the commands, studies, agent and l
   const agent = parseFrontmatter(fs.readFileSync(agentFile, "utf8"));
   assert.equal(agent.name, "cold-reader");
   assert.equal(agent.tools, "Read", "the reader opens the picture and nothing else");
-  assert.match(visualize.text, /`agentcraft:cold-reader`/);
-  assert.match(read("routes/visualize/references/review.md"), /`agentcraft:cold-reader`/);
+  assert.match(visualize.text, /`agentic-engineering:cold-reader`/);
+  assert.match(read("routes/visualize/references/review.md"), /`agentic-engineering:cold-reader`/);
   assert.match(read("routes/visualize/references/review.md"), /sheet\.nocap\.png/);
 
   const model = read("routes/visualize/references/model.md");

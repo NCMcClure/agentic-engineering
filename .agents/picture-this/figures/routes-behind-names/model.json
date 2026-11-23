@@ -4,42 +4,42 @@
   "mechanism": "A person types start-here and an agent calls an area by name; either way the area reads one route document by path, and the other 74 stay unread.",
   "lens": "path",
   "claim": "A session lists fourteen names, not 75 routes: a route is a document that takes no room in the context window until an area reads it.",
-  "implication": "One thing to remember: /agentcraft:start-here. Or ask in plain words, and the agent picks the area.",
+  "implication": "One thing to remember: /agentic-engineering:start-here. Or ask in plain words, and the agent picks the area.",
   "entities": [
     {
       "id": "listing",
       "label": "Skill listing",
       "kind": "list",
       "note": "fourteen names, and no route",
-      "source": "plugins/agentcraft/hooks/critical-context.mjs:181"
+      "source": "plugins/agentic-engineering/hooks/critical-context.mjs:181"
     },
     {
       "id": "person",
       "label": "A person",
       "kind": "client",
       "note": "types one thing",
-      "source": "plugins/agentcraft/skills/start-here/SKILL.md:11"
+      "source": "plugins/agentic-engineering/skills/start-here/SKILL.md:11"
     },
     {
       "id": "start",
       "label": "start-here",
       "kind": "skill",
       "note": "asks, explains, hands off once",
-      "source": "plugins/agentcraft/skills/start-here/SKILL.md:2"
+      "source": "plugins/agentic-engineering/skills/start-here/SKILL.md:2"
     },
     {
       "id": "index",
       "label": "Route index",
       "kind": "hook",
       "note": "each area's routes, by name",
-      "source": "plugins/agentcraft/hooks/critical-context.mjs:200"
+      "source": "plugins/agentic-engineering/hooks/critical-context.mjs:200"
     },
     {
       "id": "agent",
       "label": "An agent",
       "kind": "client",
       "note": "calls an area by name",
-      "source": "plugins/agentcraft/skills/start-here/SKILL.md:15"
+      "source": "plugins/agentic-engineering/skills/start-here/SKILL.md:15"
     },
     {
       "id": "area",
@@ -47,7 +47,7 @@
       "kind": "skill",
       "note": "an area: user-invocable: false",
       "repeat": 13,
-      "source": "plugins/agentcraft/skills/agentic-teamwork/SKILL.md:4"
+      "source": "plugins/agentic-engineering/skills/agentic-teamwork/SKILL.md:4"
     },
     {
       "id": "route",
@@ -55,7 +55,7 @@
       "kind": "document",
       "note": "a route: read by path",
       "parent": "area",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/routes/ship/ROUTE.md:2"
+      "source": "plugins/agentic-engineering/skills/agentic-teamwork/routes/ship/ROUTE.md:2"
     }
   ],
   "flows": [
@@ -64,8 +64,8 @@
       "from": "person",
       "to": "start",
       "kind": "event",
-      "label": "/agentcraft:start-here",
-      "source": "plugins/agentcraft/skills/start-here/SKILL.md:76"
+      "label": "/agentic-engineering:start-here",
+      "source": "plugins/agentic-engineering/skills/start-here/SKILL.md:76"
     },
     {
       "id": "handoff",
@@ -73,7 +73,7 @@
       "to": "area",
       "kind": "event",
       "label": "hands off",
-      "source": "plugins/agentcraft/skills/start-here/SKILL.md:122"
+      "source": "plugins/agentic-engineering/skills/start-here/SKILL.md:122"
     },
     {
       "id": "names",
@@ -81,15 +81,15 @@
       "to": "agent",
       "kind": "event",
       "label": "routes, by area",
-      "source": "plugins/agentcraft/hooks/session-start.mjs:20"
+      "source": "plugins/agentic-engineering/hooks/session-start.mjs:20"
     },
     {
       "id": "call",
       "from": "agent",
       "to": "area",
       "kind": "event",
-      "label": "agentcraft:agentic-teamwork ship",
-      "source": "plugins/agentcraft/hooks/critical-context.mjs:185"
+      "label": "agentic-engineering:agentic-teamwork ship",
+      "source": "plugins/agentic-engineering/hooks/critical-context.mjs:185"
     },
     {
       "id": "read",
@@ -97,15 +97,15 @@
       "to": "route",
       "kind": "read",
       "label": "read by path",
-      "source": "plugins/agentcraft/skills/agentic-teamwork/SKILL.md:24"
+      "source": "plugins/agentic-engineering/skills/agentic-teamwork/SKILL.md:24"
     }
   ],
   "beats": [
     {
       "id": "listed",
       "title": "Fourteen names",
-      "plain": "The agentcraft plugin lists fourteen skills by name: start-here and thirteen areas. Its 75 routes are not on the list.",
-      "technical": "At a 200k window the host lists a plugin's skills by name alone: agentcraft:start-here and thirteen areas. No route is a skill.",
+      "plain": "The agentic-engineering plugin lists fourteen skills by name: start-here and thirteen areas. Its 75 routes are not on the list.",
+      "technical": "At a 200k window the host lists a plugin's skills by name alone: agentic-engineering:start-here and thirteen areas. No route is a skill.",
       "focus": [
         "listing"
       ],
@@ -115,7 +115,7 @@
     {
       "id": "typed",
       "title": "A person types one",
-      "plain": "A person types /agentcraft:start-here. It asks what they want and explains the area that does it.",
+      "plain": "A person types /agentic-engineering:start-here. It asks what they want and explains the area that does it.",
       "technical": "start-here is the only entry in the slash menu. An area typed by hand is refused by the host: each is user-invocable: false.",
       "focus": [
         "person",
@@ -130,7 +130,7 @@
       "id": "handoff",
       "title": "It hands off once",
       "plain": "start-here names the area and route that fit, then calls the area, once. Calling an area loads its short table of routes.",
-      "technical": "It invokes agentcraft:agentic-teamwork with the Skill tool, ship as the first word. The area's SKILL.md loads: 4,898 characters.",
+      "technical": "It invokes agentic-engineering:agentic-teamwork with the Skill tool, ship as the first word. The area's SKILL.md loads: 4,898 characters.",
       "focus": [
         "start",
         "area"
@@ -158,7 +158,7 @@
       "id": "called",
       "title": "An agent calls the area",
       "plain": "An agent that knows its area goes straight to it. It calls the area by name, with the route as the first word.",
-      "technical": "Skill(agentcraft:agentic-teamwork, \"ship\"): the same call start-here makes. No route is a skill, so none is called by name.",
+      "technical": "Skill(agentic-engineering:agentic-teamwork, \"ship\"): the same call start-here makes. No route is a skill, so none is called by name.",
       "focus": [
         "agent",
         "area"

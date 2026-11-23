@@ -7,8 +7,8 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { PATTERNS, detect, excerpt, stripHarnessNoise } from "../../../plugins/agentcraft/skills/write-like-me/scripts/wlm/feedback.mjs";
-import { append, clear, pending } from "../../../plugins/agentcraft/skills/write-like-me/scripts/wlm/observations.mjs";
+import { PATTERNS, detect, excerpt, stripHarnessNoise } from "../../../plugins/agentic-engineering/skills/write-like-me/scripts/wlm/feedback.mjs";
+import { append, clear, pending } from "../../../plugins/agentic-engineering/skills/write-like-me/scripts/wlm/observations.mjs";
 import { tempDir } from "./helpers.mjs";
 
 // [prompt, label, matched words], or [prompt, null] for a prompt that is not style feedback.

@@ -9,7 +9,7 @@ import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const MIRROR = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit");
+const MIRROR = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork", "templates", "githooks", "pre-commit");
 const SOURCE = fs.readFileSync(MIRROR, "utf8");
 const suite = { after };
 const HOME = tempDir(suite, "tw-mirror-home-");

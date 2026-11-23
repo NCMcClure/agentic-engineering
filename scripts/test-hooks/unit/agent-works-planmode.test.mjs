@@ -8,7 +8,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO } from "./helpers.mjs";
 
-const LIB = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works", "lib");
+const LIB = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "lib");
 const load = (name) => import(pathToFileURL(path.join(LIB, name)).href);
 const {
   PLAN_LINE_CHARS, RUNS, UNIT_MODELS, agentGate, familyOf, handoff, idleAsk, instructions, parseOrchestration, planLine, pointer, progress,
@@ -177,7 +177,7 @@ test("the handoff lists the waves and the rules, and leaves session lines out wh
   assert.match(long, /--model <the plan's model> --from-file <its done criteria from the plan, under "## Done when">/, "a card is briefed from that heading");
   assert.ok(long.includes(`${cli} grant`));
   assert.ok(long.includes(`plan approved ${AT}`));
-  assert.match(long, /\/agentcraft:agent-works dispatch/);
+  assert.match(long, /\/agentic-engineering:agent-works dispatch/);
   assert.match(long, /once those finish/);
 });
 

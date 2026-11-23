@@ -11,7 +11,7 @@ import { after, test } from "node:test";
 import { hookCommand } from "../../lib.mjs";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft", "skills", "docs-parity");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering", "skills", "docs-parity");
 const SESSION = path.join(import.meta.dirname, "area-session.mjs");
 const STOP = path.join(PLUGIN, "hooks", "stop-check.mjs");
 const CONFIG = ".agents/docs-parity.json";
@@ -72,7 +72,7 @@ test("the rule is one line, for every agent that acts, in any mode, only where t
 });
 
 test("the line says what the rule asks: same change, the harness, the Docs: line, the skill, the contract", () => {
-  for (const part of ["same change", "capture harness", "never by hand", "`Docs: <pages>`", "`Docs: none, <why>`", "/agentcraft:docs-parity docs-sync", ".agents/docs-contract.md"]) {
+  for (const part of ["same change", "capture harness", "never by hand", "`Docs: <pages>`", "`Docs: none, <why>`", "/agentic-engineering:docs-parity docs-sync", ".agents/docs-contract.md"]) {
     assert.ok(line.text.includes(part), part);
   }
 });
@@ -81,7 +81,7 @@ test("a second line sends a README to its route, in the main session, only where
   // At the default window the live lane reached the readme route 0 of 3 without it and 3 of 3 with it.
   const readme = JSON.parse(fs.readFileSync(path.join(PLUGIN, "hooks", "critical.json"), "utf8")).lines[1];
   assert.deepEqual([readme.for, readme.mode, readme.when], ["main", "any", CONFIG]);
-  assert.ok(readme.text.includes("/agentcraft:docs-parity readme"));
+  assert.ok(readme.text.includes("/agentic-engineering:docs-parity readme"));
   assert.ok(!readme.text.includes("\n"));
 });
 
@@ -100,8 +100,8 @@ test("the long form ships beside it, under fifty lines", () => {
 });
 
 test("the plugin's hook map runs the Stop check behind the quiet guard, and the area has no session hook of its own", () => {
-  const { hooks } = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentcraft", "hooks", "hooks.json"), "utf8"));
-  const stop = hookCommand("agentcraft", "skills/docs-parity/hooks/stop-check.mjs");
+  const { hooks } = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", "agentic-engineering", "hooks", "hooks.json"), "utf8"));
+  const stop = hookCommand("agentic-engineering", "skills/docs-parity/hooks/stop-check.mjs");
   assert.equal(hooks.Stop.flatMap((g) => g.hooks).filter((h) => h.command === stop).length, 1);
   assert.deepEqual(fs.readdirSync(path.join(PLUGIN, "hooks")).filter((f) => f.endsWith(".mjs") || f.endsWith(".json")).sort(), ["briefing.mjs", "critical.json", "stop-check.mjs"]);
   assert.doesNotMatch(JSON.stringify(Object.entries(hooks).filter(([event]) => event !== "Stop")), /skills\/docs-parity\//, "the plugin's two session commands speak for it");
@@ -242,7 +242,7 @@ test("a surface's code changed without its docs: the agent is told, and the pers
   assert.equal(r.context, [
     "Docs parity, before you finish:",
     "- surface export changed (1 file(s)) but none of its pages (docs/export.md) or shots changed (capture group export).",
-    "Update the pages and retake the shots in this change (/agentcraft:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
+    "Update the pages and retake the shots in this change (/agentic-engineering:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
   ].join("\n"));
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 1 surface changed without its docs.");
   assert.equal(r.out.decision, undefined, "a warning, never a refusal");
@@ -277,7 +277,7 @@ test("tree findings are reported only on files this turn changed", (t) => {
   assert.equal(r.context, [
     "Docs parity, before you finish:",
     "- LINK_BROKEN docs/export.md:3: missing.md resolves to no page.",
-    "Update the pages and retake the shots in this change (/agentcraft:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
+    "Update the pages and retake the shots in this change (/agentic-engineering:docs-parity docs-sync), or write `Docs: none, <why>` in the commit message.",
   ].join("\n"));
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 1 finding on changed pages.");
 });
@@ -345,7 +345,7 @@ test("a changed README is checked only in a repo whose config carries a readme b
   write(opted, "README.md", README.replace("## Install", "## Installation"));
   const r = stop(t, opted);
   assert.match(r.context, /^A README this turn changed does not pass readme-check:\n- readme-sections: README\.md: no `## Install` section/);
-  assert.match(r.context, /\/agentcraft:docs-parity readme/);
+  assert.match(r.context, /\/agentic-engineering:docs-parity readme/);
   assert.equal(r.out.systemMessage, "docs-parity told the agent the docs fell behind this turn: 2 README findings.");
 });
 

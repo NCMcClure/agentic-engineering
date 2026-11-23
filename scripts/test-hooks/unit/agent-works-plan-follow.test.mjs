@@ -12,7 +12,7 @@ import { test } from "node:test";
 import { pathToFileURL } from "node:url";
 import { REPO, runNode, tempRepo, write } from "./helpers.mjs";
 
-const O = path.join(REPO, "plugins", "agentcraft", "skills", "agent-works");
+const O = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works");
 const HOOK = path.join(O, "hooks", "plan-follow.mjs");
 const load = (...rel) => import(pathToFileURL(path.join(O, ...rel)).href);
 const { parseOrchestration, stateOf } = await load("lib", "planmode.mjs");

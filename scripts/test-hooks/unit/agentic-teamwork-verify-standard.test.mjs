@@ -8,7 +8,7 @@ import path from "node:path";
 import { test } from "node:test";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const SCRIPTS = path.join(REPO, "plugins", "agentcraft", "skills", "agentic-teamwork", "templates", "common", ".agents", "scripts");
+const SCRIPTS = path.join(REPO, "plugins", "agentic-engineering", "skills", "agentic-teamwork", "templates", "common", ".agents", "scripts");
 const WORKFLOW = ".github/workflows/team-conventions.yml";
 const FENCE = "# >>> agentic-teamwork\n.env\n# <<< agentic-teamwork\n";
 const MARKER = { standard: "agentic-engineering", standard_version: 1, project: "fixture", default_branch: "main", forge: "github", lanes: { unit: "true" }, owned: {} };

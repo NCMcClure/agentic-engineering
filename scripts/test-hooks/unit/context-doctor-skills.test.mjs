@@ -41,10 +41,10 @@ test("context-doctor routes: every subcommand a route runs is one the script tak
 });
 
 test("context-doctor routes: each sends the other's question to the other, by address", () => {
-  assert.match(AREA.route("lens").body, /\/agentcraft:context-doctor diagnose/);
-  assert.match(AREA.route("diagnose").body, /\/agentcraft:context-doctor lens/);
+  assert.match(AREA.route("lens").body, /\/agentic-engineering:context-doctor diagnose/);
+  assert.match(AREA.route("diagnose").body, /\/agentic-engineering:context-doctor lens/);
   // The boundary with the doctor that reads a repo's files, not a session.
-  assert.match(AREA.route("diagnose").body, /\/agentcraft:agent-works doctor/);
+  assert.match(AREA.route("diagnose").body, /\/agentic-engineering:agent-works doctor/);
 });
 
 test("context-doctor: the area's own text says a fix is made only when asked, and never by a script", () => {

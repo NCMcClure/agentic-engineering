@@ -4,10 +4,10 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { MARKER, parsePayload, renderLedger, scan, triggerless } from "../../../plugins/agentcraft/skills/code-diet/scripts/debt.mjs";
+import { MARKER, parsePayload, renderLedger, scan, triggerless } from "../../../plugins/agentic-engineering/skills/code-diet/scripts/debt.mjs";
 import { REPO, runNode, tempDir, write } from "./helpers.mjs";
 
-const DEBT = path.join(REPO, "plugins", "agentcraft", "skills", "code-diet", "scripts", "debt.mjs");
+const DEBT = path.join(REPO, "plugins", "agentic-engineering", "skills", "code-diet", "scripts", "debt.mjs");
 
 const NOTES = [
   "# Notes",
@@ -145,7 +145,7 @@ test("a ledger that cannot be written exits 1 and says so", (t) => {
 });
 
 test("the plugin's own tree carries no marker without a trigger", () => {
-  const own = scan(path.join(REPO, "plugins", "agentcraft", "skills", "code-diet")).filter((m) => /\.(mjs|js)$/.test(m.file));
+  const own = scan(path.join(REPO, "plugins", "agentic-engineering", "skills", "code-diet")).filter((m) => /\.(mjs|js)$/.test(m.file));
   assert.ok(own.length > 0, "the plugin marks its own shortcuts");
   assert.deepEqual(own.filter((m) => m.no_trigger), []);
 });
