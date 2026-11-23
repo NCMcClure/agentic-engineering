@@ -2,7 +2,7 @@
 // UserPromptSubmit, PreToolUse and PostToolUse: make a plan written in Claude
 // Code's plan mode carry its orchestration, and record it when the person
 // approves. (Plan mode is the host's; the spec and plan tree in a repo are the
-// but-first-planning area's, and this hook never reads them.)
+// planning area's, and this hook never reads them.)
 //
 // While the session is in plan mode, a prompt (or the model entering plan mode
 // itself) is told the format of the plan's `## Orchestration` section, in full

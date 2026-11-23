@@ -177,7 +177,7 @@ export function plan(root, opts = {}) {
         { commands: [`git mv ${OLD_BOARD} ${R(newBoard)}`] });
     }
   }
-  if (found.plan) add("report", ".plan", "a but-first-planning workspace in its old place: its 4.0 skills move it to .agents/plan");
+  if (found.plan) add("report", ".plan", "a planning workspace in its old place: its 4.0 skills move it to .agents/plan");
   if (found.perceptualLoop) {
     add("report", ".perceptual-loop", "perceptual-loop is in use: its locks are now `aw lock` (declare the applications under \"resources\" in the config)");
   }

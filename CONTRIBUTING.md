@@ -65,7 +65,7 @@ What several areas use lives once, in `plugins/agentic-engineering/lib/`, and ea
 imports it from there. There is nothing to sync.
 
 One file is still held as a copy, because a user's repo gets it:
-`skills/but-first-planning/routes/spec-init/assets/provider.mjs` has to equal
+`skills/planning/routes/spec-init/assets/provider.mjs` has to equal
 `lib/provider.mjs`. Edit the one in `lib/`, copy it over, and the gate fails a
 copy that has drifted.
 
@@ -88,8 +88,8 @@ npm run test:live -- --write-baseline=skills   # record only what each prompt re
 
 There is one version, in `plugins/agentic-engineering/.claude-plugin/plugin.json`, and
 `plugins/agentic-engineering/CHANGELOG.md` has it as its top entry. An area has no
-version of its own: its `CHANGELOG.md` is its history as a plugin and takes no
-new line.
+version and no changelog of its own: `history/<old-name>.md` beside it holds
+the changelog of each plugin it was made from, and takes no new line.
 
 A change is released the moment it reaches `main` with a version bump:
 `/plugin marketplace update` picks it up. Tags are the history, and there is

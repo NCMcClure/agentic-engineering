@@ -56,18 +56,18 @@ test("this checkout passes", (t) => {
   const result = validate(tree(t));
   assert.equal(result.status, 0, result.stdout);
   assert.match(result.stdout, /^validate: all green$/m);
-  assert.match(result.stdout, /^ok: 13 areas: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
+  assert.match(result.stdout, /^ok: 10 areas: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
   assert.match(result.stdout, /^ok: 1 plugin directory: /m);
   assert.match(result.stdout, new RegExp(`^ok: no install line names an area or a plugin's old name: the one to install is ${ONE}@agentic-engineering$`, "m"));
-  assert.match(result.stdout, /^ok: the entry skill offers 13 areas/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 10 areas/m);
 });
 
 test("a new area that meets every rule passes", (t) => {
   const result = validate(tree(t, withArea()));
   assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^ok: 14 areas: /m);
+  assert.match(result.stdout, /^ok: 11 areas: /m);
   assert.match(result.stdout, /^ok: \d+ addresses resolve \(.*\), [1-9]\d* of them on through an area to its route$/m);
-  assert.match(result.stdout, /^ok: the entry skill offers 14 areas/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 11 areas/m);
 });
 
 test("a catalog entry with a version key fails", (t) => {
@@ -106,14 +106,15 @@ test("an external entry passes as a github object and fails as an unknown kind",
 
 // History has one home: CHANGELOG.md inside the plugin, newest first, its top
 // entry the one version, which plugin.json carries. A README keeps no
-// changelog. An area's CHANGELOG.md is its history as a plugin of its own,
-// and is held to nothing.
-test("the plugin with no CHANGELOG.md fails, and an area without one does not", (t) => {
+// changelog. An area has no changelog: it keeps the history of each plugin
+// it was made from at history/<old-name>.md, and is held to nothing.
+test("the plugin with no CHANGELOG.md fails, and an area without its history does not", (t) => {
   const result = validate(tree(t, { remove: [`${HOME}/CHANGELOG.md`] }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${ONE}: missing CHANGELOG\\.md`, "m"));
-  const area = validate(tree(t, { remove: [`${HOME}/skills/code-diet/CHANGELOG.md`] }));
-  assert.doesNotMatch(area.stdout, /^FAIL: .*CHANGELOG/m);
+  const area = validate(tree(t, { remove: [`${HOME}/skills/code/history/code-diet.md`, `${HOME}/skills/code/history/codebase-optimizer.md`] }));
+  assert.doesNotMatch(area.stdout, /^FAIL: .*(CHANGELOG|history)/m);
+  assert.equal(area.status, 0, area.stdout);
 });
 
 test("a CHANGELOG.md whose top entry is not the plugin.json version fails", (t) => {
@@ -171,16 +172,16 @@ test("an unknown hook event and a command that points at nothing both fail", (t)
 });
 
 test("a hooks module that is missing, outside the plugin, or not .mjs fails", (t) => {
-  const result = validate(tree(t, mapped(modules("./missing.mjs", "../../code-diet/README.md", "./pane.tsx"))));
+  const result = validate(tree(t, mapped(modules("./missing.mjs", "../../code/README.md", "./pane.tsx"))));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\./missing\\.mjs does not exist`, "m"));
-  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\.\\./\\.\\./code-diet/README\\.md is outside the plugin`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\.\\./\\.\\./code/README\\.md is outside the plugin`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${WHERE}: module \\./pane\\.tsx is not a \\.mjs or \\.js file`, "m"));
 });
 
 test("an absolute machine path in a tracked file fails", (t) => {
   const home = ["", "Users", "someone", "checkout"].join("/");
-  const file = `${HOME}/skills/code-diet/README.md`;
+  const file = `${HOME}/skills/code/README.md`;
   const result = validate(tree(t, { text: { [file]: (s) => `${s}\nInstall from ${home}.\n` } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${file.replace(".", "\\.")} carries an absolute machine path`, "m"));
@@ -189,12 +190,12 @@ test("an absolute machine path in a tracked file fails", (t) => {
 test("a Node file that calls process.exit fails, a test's one-line command included, and a comment does not", (t) => {
   const call = ["process", "exit(1)"].join(".");
   const result = validate(tree(t, { write: {
-    [`${HOME}/skills/code-diet/scripts/sweep.mjs`]: `console.log("swept");\n${call};\n`,
-    [`${HOME}/skills/code-diet/scripts/note.mjs`]: `// never ${call}: set the exit code\nprocess.exitCode = 1;\n`,
+    [`${HOME}/skills/code/scripts/sweep.mjs`]: `console.log("swept");\n${call};\n`,
+    [`${HOME}/skills/code/scripts/note.mjs`]: `// never ${call}: set the exit code\nprocess.exitCode = 1;\n`,
     "scripts/test-hooks/unit/tidy.test.mjs": `const FAILING = 'node -e "${call}"';\n`,
   } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, new RegExp(`^FAIL: ${HOME}/skills/code-diet/scripts/sweep\\.mjs:2 calls process\\.exit: set process\\.exitCode and let Node unwind`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HOME}/skills/code/scripts/sweep\\.mjs:2 calls process\\.exit: set process\\.exitCode and let Node unwind`, "m"));
   assert.match(result.stdout, /^FAIL: scripts\/test-hooks\/unit\/tidy\.test\.mjs:1 calls process\.exit/m);
   assert.doesNotMatch(result.stdout, /note\.mjs/);
   assert.equal(result.stdout.match(/^FAIL: /gm).length, 2, result.stdout);
@@ -254,7 +255,7 @@ test("a shared file with no suite of its own fails, and so do the folders that h
   const result = gate(tree(t, { write: {
     [`${LIB}/untested.mjs`]: "export const nothing = null;\n",
     "scripts/shared/provider.mjs": "export const copy = true;\n",
-    "scripts/plugins/code-diet.json": "{ \"shared\": [] }\n",
+    "scripts/plugins/code.json": "{ \"shared\": [] }\n",
   } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${LIB}/untested\\.mjs has no scripts/test-hooks/unit/untested\\.test\\.mjs`, "m"));
@@ -263,7 +264,7 @@ test("a shared file with no suite of its own fails, and so do the folders that h
 });
 
 test("the copy a route puts in a user's repo is held equal to the one in lib/", (t) => {
-  const copy = AREA("but-first-planning", "routes/spec-init/assets/provider.mjs");
+  const copy = AREA("planning", "routes/spec-init/assets/provider.mjs");
   assert.match(gate(tree(t)).stdout, /^ok: duplicated files hash-equal \(1 copy\/copies present\)$/m);
   const result = gate(tree(t, { text: { [copy]: (s) => `${s}// edited here\n` } }));
   assert.equal(result.status, 1);
@@ -306,12 +307,12 @@ test("every area is present, so a chains block and a line that names a partner b
 });
 
 test("lines past the total, or a command that could print past what a host shows in full, fail", (t) => {
-  const big = Object.assign({}, ...["agent-works", "agentic-teamwork", "perceptual-loop"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
+  const big = Object.assign({}, ...["agent-works", "delivery", "perceptual-loop"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
   let result = gate(tree(t, { write: big }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: critical lines and the route index total \d+ characters, over the 7500 target/m);
 
-  result = gate(tree(t, { write: Object.assign(big, lines("but-first-planning", { lines: [line("x".repeat(1500))] })) }));
+  result = gate(tree(t, { write: Object.assign(big, lines("planning", { lines: [line("x".repeat(1500))] })) }));
   assert.match(result.stdout, /^FAIL: the lines command can print \d+ characters, over the host's 10000/m);
 
   result = gate(tree(t, { text: { [HELPER]: (s) => s.replace("export const MIGRATION_CHARS = 4200;", "export const MIGRATION_CHARS = 9000;") } }));
@@ -338,23 +339,23 @@ test("AREAS in the helper and the caps in the gate name the same areas, each wit
   assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists tidy, which has no plugins/${ONE}/skills/tidy/hooks/critical\\.json`, "m"));
   assert.match(result.stdout, new RegExp(`^${where("system-map")}system-map is not in AREAS in ${HELPER}, so its lines never print`, "m"));
 
-  result = gate(tree(t, { remove: [AREA("code-diet", "hooks/critical.json")] }));
-  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists code-diet, which has no plugins/${ONE}/skills/code-diet/hooks/critical\\.json`, "m"));
+  result = gate(tree(t, { remove: [AREA("code", "hooks/critical.json")] }));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists code, which has no plugins/${ONE}/skills/code/hooks/critical\\.json`, "m"));
 });
 
 test("a second copy of the helper, an area's own session hook, and a briefing with no allowance or no file fail", (t) => {
   const result = gate(tree(t, {
     write: {
-      [AREA("code-diet", "hooks/critical-context.mjs")]: fs.readFileSync(path.join(REPO, HELPER), "utf8"),
-      [AREA("code-diet", "hooks/session-start.mjs")]: "process.exitCode = 0;\n",
-      [AREA("code-diet", "hooks/briefing.mjs")]: "export const briefing = () => \"\";\n",
+      [AREA("code", "hooks/critical-context.mjs")]: fs.readFileSync(path.join(REPO, HELPER), "utf8"),
+      [AREA("code", "hooks/session-start.mjs")]: "process.exitCode = 0;\n",
+      [AREA("code", "hooks/briefing.mjs")]: "export const briefing = () => \"\";\n",
     },
     remove: [AREA("system-map", "hooks/briefing.mjs")],
   }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/critical-context\\.mjs")} is a second copy of the session helper; the one copy is ${HELPER}`, "m"));
-  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/session-start\\.mjs")}: an area has no session hook of its own`, "m"));
-  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code-diet", "hooks/briefing\\.mjs")} has no allowance in BRIEFING_CHARS in ${HELPER}, so the briefing command never loads it`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/critical-context\\.mjs")} is a second copy of the session helper; the one copy is ${HELPER}`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/session-start\\.mjs")}: an area has no session hook of its own`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/briefing\\.mjs")} has no allowance in BRIEFING_CHARS in ${HELPER}, so the briefing command never loads it`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: BRIEFING_CHARS gives system-map an allowance, and plugins/${ONE}/skills/system-map/hooks/briefing\\.mjs is not there`, "m"));
 });
 
@@ -396,36 +397,36 @@ test("an area the entry skill never asks about fails, and so does one it asks ab
   assert.match(unasked.stdout, /^FAIL: .*start-here\.json: no group asks about tidy, so a person is never offered it/m);
   const gone = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, areas: [...g.areas.slice(1), "no-such-area"] })) }))));
   assert.match(gone.stdout, new RegExp(`^FAIL: .*a group names no-such-area, which is not an area of ${ONE}`, "m"));
-  assert.match(gone.stdout, /^FAIL: .*no group asks about but-first-planning/m);
-  assert.match(gone.stdout, /^FAIL: .*an entry for but-first-planning, which no group names/m);
+  assert.match(gone.stdout, /^FAIL: .*no group asks about planning/m);
+  assert.match(gone.stdout, /^FAIL: .*an entry for planning, which no group names/m);
 });
 
 test("the entry skill's data is held to what a question can offer", (t) => {
   // Five areas in one group is five options, and the last group carries "Learn more" as well.
   const wide = validate(tree(t, entryData((d) => ({ ...d, groups: [{ ...d.groups[0], areas: [...d.groups[0].areas, d.groups[1].areas[0]] }, { ...d.groups[1], areas: d.groups[1].areas.slice(1) }, ...d.groups.slice(2)] }))));
   assert.match(wide.stdout, /^FAIL: .*"Plan and run work" offers 5 options; a question takes two to four/m);
-  const long = validate(tree(t, entryData(area("code-diet", (a) => ({ ...a, cue: "x".repeat(61), uses: [...a.uses, { want: "a fifth thing", to: "ladder" }] })))));
-  assert.match(long.stdout, /^FAIL: .*code-diet needs a cue of 1 to 60 characters/m);
-  assert.match(long.stdout, /^FAIL: .*code-diet has 5 uses; a question takes one to four/m);
+  const long = validate(tree(t, entryData(area("code", (a) => ({ ...a, cue: "x".repeat(61), uses: [...a.uses, { want: "a fifth thing", to: "ladder" }] })))));
+  assert.match(long.stdout, /^FAIL: .*code needs a cue of 1 to 60 characters/m);
+  assert.match(long.stdout, /^FAIL: .*code has 5 uses; a question takes one to four/m);
   const label = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, header: "A label far too long" })) }))));
   assert.match(label.stdout, /^FAIL: .*"Plan and run work" needs a header of 1 to 12 characters/m);
 });
 
 test("a use of the entry skill names a route that is there, and says so when only a person can start it", (t) => {
-  const result = validate(tree(t, entryData((d) => area("agentic-teamwork", (a) => ({ ...a, uses: [{ want: "a thing nobody ships", to: "no-such-route" }, { want: "set a repo up", to: "bootstrap" }, { want: "ship it", to: "ship", starts: "person" }] }))(d))));
+  const result = validate(tree(t, entryData((d) => area("delivery", (a) => ({ ...a, uses: [{ want: "a thing nobody ships", to: "no-such-route" }, { want: "set a repo up", to: "bootstrap" }, { want: "ship it", to: "ship", starts: "person" }] }))(d))));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, /^FAIL: .*agentic-teamwork hands off to no-such-route, which is not one of its routes/m);
-  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:agentic-teamwork bootstrap is one only a person can start, so its use says "starts": "person"`, "m"));
-  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:agentic-teamwork ship can be started by an agent, so its use carries no "starts": "person"`, "m"));
+  assert.match(result.stdout, /^FAIL: .*delivery hands off to no-such-route, which is not one of its routes/m);
+  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:delivery bootstrap is one only a person can start, so its use says "starts": "person"`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: .*/${ONE}:delivery ship can be started by an agent, so its use carries no "starts": "person"`, "m"));
 });
 
 test("an entry skill whose areas section is stale, or that a person could not type, fails", (t) => {
   // The data moved and the skill was not regenerated.
-  const dir = tree(t, entryData(area("code-diet", (a) => ({ ...a, cue: "cut what the code does not need" }))));
+  const dir = tree(t, entryData(area("code", (a) => ({ ...a, cue: "cut what the code does not need" }))));
   assert.match(gate(dir).stdout, new RegExp(`^FAIL: ${ENTRY_FILE.replace(".", "\\.")} is stale: node scripts/gen-guide\\.mjs --write`, "m"));
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir]).status, 1);
   assert.equal(runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]).status, 0);
-  assert.match(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8"), /\| `code-diet` \| cut what the code does not need \|/);
+  assert.match(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8"), /\| `code` \| cut what the code does not need \|/);
   assert.equal(gate(dir).status, 0);
   // What is written by hand is kept, and the generated section stays the last thing in the file.
   assert.ok(fs.readFileSync(path.join(dir, ENTRY_FILE), "utf8").trimEnd().endsWith("<!-- end of the generated areas section -->"));
@@ -458,7 +459,7 @@ test("--tag passes on the plugin's version and fails on any other, an area's nam
   assert.equal(good.status, 0, good.stdout);
   for (const [tag, finding] of [
     [`${ONE}/v99.0.0`, new RegExp(`^FAIL: tag "${ONE}/v99\\.0\\.0" says 99\\.0\\.0, but .* is at ${VERSION.replaceAll(".", "\\.")}`, "m")],
-    ["code-diet/v2.0.0", new RegExp(`^FAIL: tag "code-diet/v2\\.0\\.0" names code-diet; the one release tag is ${ONE}/v<version>$`, "m")],
+    ["code/v2.0.0", new RegExp(`^FAIL: tag "code/v2\\.0\\.0" names code; the one release tag is ${ONE}/v<version>$`, "m")],
     ["v0.1.0", new RegExp(`^FAIL: tag "v0\\.1\\.0" is not ${ONE}/v<version>`, "m")],
   ]) {
     const bad = gate(dir, "--tag", tag);
@@ -635,4 +636,43 @@ test("the root README may run long and keep its own sections, but not an em-dash
   assert.match(dash.stdout, /^FAIL: README\.md uses an em-dash/m);
   const emoji = validate(tree(t, { text: { "plugins/agentic-engineering/README.md": (s) => s.replace("## Usage", "## Usage\n\nShip it \u{1F680}\n") } }));
   assert.match(emoji.stdout, /^FAIL: plugins\/agentic-engineering\/README\.md uses an emoji/m);
+});
+
+// The thirteen areas were regrouped into areas named for a domain of work,
+// some routes renamed on the way (OLD_NAMES and OLD_ROUTES in scripts/lib.mjs).
+// An address still written with an old area or route names nothing now, and
+// fails with the address to write; an area's history keeps what it says, and
+// a CSS selector that reads like a new area's address is no address. Every
+// retired name here is built from its parts, so this file prints none.
+const DIET = ["code", "diet"].join("-"), WORKBENCH = ["plugin", "workbench"].join("-"), VOICE = ["write", "like", "me"].join("-");
+const REGROUPED_PAGE = [
+  `Run /${ONE}:${DIET} ${["reuse", "first"].join("-")}.`,
+  `Or /${DIET}:${["review", "diet"].join("-")}.`,
+  `Or \`/${ONE}:harness ${["evaluate", "plugin"].join("-")}\`.`,
+  `Or /${ONE}:${VOICE}.`,
+  `Or \`/${ONE}:${WORKBENCH} ${["refresh", "marketplace"].join("-")}\`.`,
+  "code:not(.inline) { color: red; }",
+  `This works: \`/${ONE}:code reuse\`, and so does /${ONE}:harness plugin-evaluate.`,
+].join("\n");
+
+test("an area or a route retired in the regroup fails with the address it is now, and history keeps what it says", (t) => {
+  const result = gate(tree(t, { write: {
+    "docs/regrouped.md": `${REGROUPED_PAGE}\n`,
+    [`${HOME}/skills/code/history/code-diet.md`]: `# Changelog\n\n- **1.0.0**: /${DIET}:${["reuse", "first"].join("-")} and /${ONE}:${DIET} ladder.\n`,
+  } }));
+  assert.equal(result.status, 1);
+  const found = result.stdout.split("\n").filter((l) => l.startsWith("FAIL: docs/regrouped.md")).map((l) => l.slice(0, l.lastIndexOf(" (")));
+  assert.deepEqual(found, [
+    `FAIL: docs/regrouped.md:1: /${ONE}:${DIET} ${["reuse", "first"].join("-")} names ${DIET}, an area of ${ONE} before it moved into code; write /${ONE}:code reuse`,
+    `FAIL: docs/regrouped.md:2: /${DIET}:${["review", "diet"].join("-")} names ${DIET} as a plugin, and it is the code area of ${ONE}; write /${ONE}:code review`,
+    `FAIL: docs/regrouped.md:3: /${ONE}:harness ${["evaluate", "plugin"].join("-")}: ${["evaluate", "plugin"].join("-")} is the name the route had in ${WORKBENCH}; write /${ONE}:harness plugin-evaluate`,
+    `FAIL: docs/regrouped.md:4: /${ONE}:${VOICE} names ${VOICE}, an area of ${ONE} before it moved into writing; write /${ONE}:writing`,
+    `FAIL: docs/regrouped.md:5: /${ONE}:${WORKBENCH} ${["refresh", "marketplace"].join("-")} names ${WORKBENCH}, an area of ${ONE} before it moved into harness; write /${ONE}:harness marketplace-refresh`,
+  ]);
+  assert.deepEqual(result.stdout.split("\n").filter((l) => l.includes("skills/code/history/")), [], "an area's history keeps what it says");
+});
+
+test("an old area name is no install line either", (t) => {
+  const result = gate(tree(t, { write: { "docs/install.md": `Install it: \`/plugin install ${DIET}@agentic-engineering\`.\n` } }));
+  assert.match(result.stdout, new RegExp(`^FAIL: docs/install\\.md:1: tells its reader to install ${DIET}@agentic-engineering, which the catalog does not list; the plugin to install is ${ONE}@agentic-engineering`, "m"));
 });

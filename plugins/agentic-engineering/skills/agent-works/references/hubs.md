@@ -36,7 +36,7 @@ A hub describes the tree **as it is**, never a plan.
 
 Start a new hub from `assets/templates/agents-hub.md`. A directory that mixes loose source files with code
 sub-directories cannot take a hub until the files move down a level; moving code is a reorganisation, with imports
-and build files to fix, and belongs to a tool made for it (in this marketplace: codebase-optimizer).
+and build files to fix, and belongs to a tool made for it (in this marketplace: code).
 
 ## CLAUDE.md twins
 

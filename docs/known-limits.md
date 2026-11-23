@@ -172,7 +172,7 @@ paths replaced, in
 suites of the two plan hooks are built from them.
 
 Plan mode here is the host's: a plan file the session writes and the person
-approves. It is not the spec and plan tree the but-first-planning area keeps
+approves. It is not the spec and plan tree the planning area keeps
 under `.agents/plan/`, which no finding below touches.
 
 8. **`permission_mode` is `plan` on UserPromptSubmit, PreToolUse, PostToolUse,

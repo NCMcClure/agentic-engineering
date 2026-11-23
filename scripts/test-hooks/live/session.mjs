@@ -14,9 +14,9 @@ export { REPO, makeFixture };
 // The one plugin, loaded from the checkout.
 export const PLUGIN = AREA_PLUGIN;
 const PLUGIN_DIR = path.join(REPO, "plugins", PLUGIN);
-// The lens is the one the context-doctor area ships, so the lane reads
+// The lens is the one the harness area ships, so the lane reads
 // transcripts exactly as a person asking for the route does.
-const LENS = path.join(PLUGIN_DIR, "skills", "context-doctor", "scripts", "context-lens.mjs");
+const LENS = path.join(PLUGIN_DIR, "skills", "harness", "scripts", "context-lens.mjs");
 export const MARKETPLACE = "agentic-engineering";
 
 export const MODEL = "haiku";

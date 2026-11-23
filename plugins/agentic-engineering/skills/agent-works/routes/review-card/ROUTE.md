@@ -36,7 +36,7 @@ git diff --stat origin/<base>...origin/<branch>
   rather than stepping down. Without subagents,
   `W/routes/orchestrate/references/subagent-fallback.md` says what to do instead.
 - **Run it.** A smoke test from a scratch repository, or render the picture and look at it, as far as the risk
-  calls for. `/agentic-engineering:code-diet review-diet` in the child's worktree.
+  calls for. `/agentic-engineering:code review` in the child's worktree.
 
 ## Step 3: Send findings back
 
@@ -48,7 +48,7 @@ for the next report and review again from Step 1.
 ## Step 4: Land it
 
 Merge only the head you reviewed, after its checks are green: `gh pr merge <number>` or `glab mr merge <number>`,
-or `/agentic-engineering:agentic-teamwork land <number>`. A red pipeline goes back to the child with
+or `/agentic-engineering:delivery land <number>`. A red pipeline goes back to the child with
 the failed jobs; a conflict tells the child to sync.
 
 Requests that share files merge one at a time. Compare each one's `git diff --stat` with what merged since its

@@ -80,7 +80,7 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
     acceptance: [{ done: false, text: "`--max` takes a number" }, { done: true, text: "`--ids` takes a list" }],
   });
   const text = brief(c, [c], { cardPath: "/repo/.agents/kanban/plan-01-02-03.md", planRef: "origin/main" });
-  assert.match(text, /Build it with `\/agentic-engineering:but-first-planning build-tdd`, which flips the issue to done/);
+  assert.match(text, /Build it with `\/agentic-engineering:planning build-tdd`, which flips the issue to done/);
   assert.match(text, /- \[ \] `--max` takes a number\n- \[ \] `--ids` takes a list\n- \[ \] the issue's testing checkpoint exits 0/);
   assert.match(text, /\.agents\/plan\/plan\/01-cli\/02-flags\/issues\/03_issue_PARSE-FLAGS\.md/);
   assert.match(text, /~~~~markdown\n# Parse the flags\n/);
@@ -90,7 +90,7 @@ test("a plan card builds with build-tdd from its acceptance criteria, and the is
   const n = card("billing.01-02-03", { ...c, id: "billing.01-02-03", plan: "billing.01-02-03", file: ".agents/plans/billing/plan/01-cli/02-flags/issues/03_issue_PARSE-FLAGS.md" });
   const named = brief(n, [n], { cardPath: "/repo/.agents/kanban/plan-billing.01-02-03.md", planRef: "origin/main" });
   assert.match(named, /Plan issue billing\.01-02-03 \(AFK\), at `\.agents\/plans\/billing\/plan\//);
-  assert.match(named, /Build it with `\/agentic-engineering:but-first-planning build-tdd --plan billing`, which flips the issue to done/);
+  assert.match(named, /Build it with `\/agentic-engineering:planning build-tdd --plan billing`, which flips the issue to done/);
 });
 
 test("a task judged by eye or ear loads perceptual-loop first, and a card's own skills are named", () => {
@@ -113,16 +113,21 @@ test("a card's skill is named by the area and its route, however the card wrote 
   const forms = [
     // As a plugin's own skill, before the areas moved into one plugin.
     [was("docs-parity", "docs-shots"), "/agentic-engineering:docs-parity docs-shots"],
-    [`/${was("code-diet", "ladder")}`, "/agentic-engineering:code-diet ladder"],
+    [`/${was("code-diet", "ladder")}`, "/agentic-engineering:code ladder"],
+    // An area retired when the areas were regrouped, with a route renamed in the move.
+    [was("code-diet", "reuse-first"), "/agentic-engineering:code reuse"],
+    [was("codebase-optimizer", "optimize-codebase"), "/agentic-engineering:code restructure"],
+    [`${"agentic-engineering"}:${"plugin-workbench"} evaluate-plugin`, "/agentic-engineering:harness plugin-evaluate"],
+    [`/${"agentic-engineering"}:${"context-doctor"}`, "/agentic-engineering:harness"],
     [was("agent-works", "board"), "/agentic-engineering:agent-works board"],
-    [was("but-first-planning", "build-tdd"), "/agentic-engineering:but-first-planning build-tdd"],
+    [was("but-first-planning", "build-tdd"), "/agentic-engineering:planning build-tdd"],
     // The skill that carried its plugin's name is the area itself.
     [was("picture-this"), "/agentic-engineering:picture-this"],
-    [was("write-like-me"), "/agentic-engineering:write-like-me"],
+    [was("write-like-me"), "/agentic-engineering:writing"],
     // Today's form, with and without its slash, and with what follows the route.
     ["agentic-engineering:docs-parity docs-shots", "/agentic-engineering:docs-parity docs-shots"],
     ["/agentic-engineering:agent-works dispatch 0007 --serial", "/agentic-engineering:agent-works dispatch 0007 --serial"],
-    ["agentic-engineering:agentic-teamwork", "/agentic-engineering:agentic-teamwork"],
+    ["agentic-engineering:delivery", "/agentic-engineering:delivery"],
     ["agentic-engineering:start-here", "/agentic-engineering:start-here"],
     // Another plugin's skill, and a skill of no plugin, are left as written.
     ["acme-tools:planning grill", "/acme-tools:planning grill"],
@@ -133,7 +138,7 @@ test("a card's skill is named by the area and its route, however the card wrote 
   for (const [written, loaded] of forms) assert.equal(areaForm(written), loaded, written);
   for (const [, loaded] of forms) assert.equal(areaForm(loaded), loaded, `${loaded} is already what a child loads`);
   const c = card("0007", { files: ["src/"], skills: [was("code-diet", "ladder"), "agentic-engineering:docs-parity readme", "power-automate:debug-flow"] });
-  assert.match(brief(c, [c]), /Load first: `\/agentic-engineering:code-diet ladder`, `\/agentic-engineering:docs-parity readme`, `\/power-automate:debug-flow`\./);
+  assert.match(brief(c, [c]), /Load first: `\/agentic-engineering:code ladder`, `\/agentic-engineering:docs-parity readme`, `\/power-automate:debug-flow`\./);
 });
 
 test("the repo's config says how to sync: regenerate, keep both sides, re-bump", () => {

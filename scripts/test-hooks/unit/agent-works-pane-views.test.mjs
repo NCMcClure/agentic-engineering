@@ -214,7 +214,7 @@ test("closing a sprint is previewed the way the CLI closes it", () => {
 });
 
 test("a task's card: its fields to edit, each change handed on as one patch", () => {
-  const { tree, calls } = draw(fixture(), { view: { kind: "card", id: "0002" }, skills: ["agentic-engineering:agent-works", "agentic-engineering:code-diet"] });
+  const { tree, calls } = draw(fixture(), { view: { kind: "card", id: "0002" }, skills: ["agentic-engineering:agent-works", "agentic-engineering:code"] });
   assert.deepEqual(keys(tree, "Select"), ["status", "kind", "epic", "sprint", "priority", "skill-pick"]);
   assert.deepEqual(keys(tree, "Input"), ["title", "owner", "labels", "skill-type", "note"]);
   assert.deepEqual(need(tree, "epic", "Select").props.options.map((o) => o.value), ["none", "0001"]);
@@ -230,7 +230,7 @@ test("a task's card: its fields to edit, each change handed on as one patch", ()
   need(tree, "priority", "Select").props.onSelect("high");
   need(tree, "owner", "Input").props.onSubmit("sam");
   need(tree, "labels", "Input").props.onSubmit("ui, , pane");
-  need(tree, "skill-pick", "Select").props.onSelect("agentic-engineering:code-diet");
+  need(tree, "skill-pick", "Select").props.onSelect("agentic-engineering:code");
   need(tree, "skill-type", "Input").props.onSubmit("/agentic-engineering:agent-works");
   need(tree, "note", "Input").props.onSubmit("half done");
   need(tree, "archive").props.onPress();
@@ -238,14 +238,14 @@ test("a task's card: its fields to edit, each change handed on as one patch", ()
   assert.deepEqual(calls, [
     ["patch", "0002", { title: "Cache every listing" }], ["place", "0002", "review"], ["patch", "0002", { kind: "gate" }], ["patch", "0002", { epic: "none" }],
     ["patch", "0002", { sprint: "s3" }], ["patch", "0002", { priority: "high" }], ["patch", "0002", { owner: "sam" }], ["patch", "0002", { labels: ["ui", "pane"] }],
-    ["patch", "0002", { skills: ["agentic-engineering:code-diet"] }], ["patch", "0002", { skills: ["agentic-engineering:agent-works"] }], ["note", "0002", "half done"], ["archive", "0002"], ["start", "0002"],
+    ["patch", "0002", { skills: ["agentic-engineering:code"] }], ["patch", "0002", { skills: ["agentic-engineering:agent-works"] }], ["note", "0002", "half done"], ["archive", "0002"], ["start", "0002"],
   ]);
 
   const nudged = fixture();
-  nudged.cards[1].skills = ["agentic-engineering:code-diet"];
-  const again = draw(nudged, { view: { kind: "card", id: "0002" }, skills: ["agentic-engineering:code-diet"] });
+  nudged.cards[1].skills = ["agentic-engineering:code"];
+  const again = draw(nudged, { view: { kind: "card", id: "0002" }, skills: ["agentic-engineering:code"] });
   assert.equal(find(again.tree, "skill-pick", "Select"), null, "nothing left to offer");
-  need(again.tree, "skill-agentic-engineering:code-diet").props.onPress();
+  need(again.tree, "skill-agentic-engineering:code").props.onPress();
   assert.deepEqual(again.calls, [["patch", "0002", { skills: [] }]]);
 });
 

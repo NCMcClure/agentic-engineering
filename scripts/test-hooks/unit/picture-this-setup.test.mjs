@@ -200,7 +200,7 @@ test("a studio already serving this repo is handed back, and a dead one's lock i
   assert.deepEqual(w.calls, [], "no second server");
   assert.match(w.said.join("\n"), /already running for this repo\.\n {2}➜ {2}Local: {3}http:\/\/127\.0\.0\.1:5199\//);
 
-  for (const body of [{ ok: true, app: "workflow-studio", repo }, { ok: true, app: "picture-this", repo: path.join(repo, "other") }]) {
+  for (const body of [{ ok: true, app: "harness", repo }, { ok: true, app: "picture-this", repo: path.join(repo, "other") }]) {
     fs.writeFileSync(lock, JSON.stringify({ port: 5199, pid: 1 }));
     w.calls.length = 0;
     assert.equal(await studio(["--repo", repo], { ...w.deps, fetch: answers(body) }), 0);

@@ -44,7 +44,7 @@ Read `.agents/docs-contract.md` first; it is the project's version of the rules 
 - A new page goes into the nav manifest in reading order; a deleted page leaves it, and every link to it is
   fixed. A page whose audience changed moves to the right root (`audiences.md`), and no public page links
   into a private root.
-- Prose in the project's voice, as the contract states it. With write-like-me installed, write the prose
+- Prose in the project's voice, as the contract states it. With writing installed, write the prose
   through it.
 
 ## Step 3: Retake the shots

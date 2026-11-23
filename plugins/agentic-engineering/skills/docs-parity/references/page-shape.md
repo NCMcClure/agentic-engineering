@@ -45,7 +45,7 @@ build with the file and line. Any derived copy should work this way.
 
 The project's voice, written once in the contract. The defaults: warm and specific, the reader as "you", no
 em-dashes, no emoji, no hype words ("powerful", "seamless", "blazing"), state the mechanism instead. With
-write-like-me installed, it carries the voice.
+writing installed, it carries the voice.
 
 ## Grounding
 

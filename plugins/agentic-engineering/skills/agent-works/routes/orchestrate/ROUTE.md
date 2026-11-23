@@ -21,7 +21,7 @@ says `session`. Where they did not say, it is a subagent, and you do not ask whi
 `aw` below is `node "W/scripts/aw.mjs"`: call it that way. The `board` route has every action
 of `aw board`.
 
-Deciding what to build and breaking a spec into a backlog is planning (the but-first-planning area).
+Deciding what to build and breaking a spec into a backlog is planning (the planning area).
 This route is who works where, on what, with which rules, and what comes back.
 
 ## The rules of the round
@@ -64,7 +64,7 @@ not settle or archive them yourself. When the briefing says cards in flight have
 ## Step 1: Cut the tasks, and put them on the board
 
 Share intent, done criteria, out of scope, risks, likely files and checks with the person first
-(`/agentic-engineering:but-first-planning grill`). A child cannot ask what you meant, so a card goes
+(`/agentic-engineering:planning grill`). A child cannot ask what you meant, so a card goes
 out only with done criteria a stranger could check; `aw board brief` refuses one without.
 
 For each candidate task, list what it needs that only one agent can have at a time: files and modules, the main
@@ -82,7 +82,7 @@ task judged by eye or ear gets `--labels look` (or `motion`, `sound`), and `--sk
 first.
 
 **From a plan approved in plan mode.** This is Claude Code's own plan mode, where a session writes a plan file
-and the person approves it before anything changes; it is not the spec and plan tree the but-first-planning area
+and the person approves it before anything changes; it is not the spec and plan tree the planning area
 keeps under `.agents/plan/`. Such a plan ends with an `## Orchestration` table: each unit, what it runs as
 (`session`, `subagent`, or `here`), the units it waits on, its files, and its model. This area's hooks refuse a
 plan without one, hand this session the waves at approval, and the session briefing prints them again after a

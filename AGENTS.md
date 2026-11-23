@@ -1,6 +1,6 @@
 # agentic-engineering: a Claude Code plugin marketplace
 
-One plugin, `agentic-engineering`. Each of its thirteen areas is a fix for a problem
+One plugin, `agentic-engineering`. Each of its ten areas is a fix for a problem
 that keeps turning up when engineering with agents, and `start-here` is the
 one skill a person types to find the right one. The catalog lists that one
 plugin and nothing else. Nothing here runs in production; it runs in the agents, so a mistake ships to every

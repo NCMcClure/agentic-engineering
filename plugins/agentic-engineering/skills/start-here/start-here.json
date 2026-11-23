@@ -4,17 +4,16 @@
       "title": "Plan and run work",
       "header": "Plan & run",
       "areas": [
-        "but-first-planning",
+        "planning",
         "agent-works",
-        "agentic-teamwork",
-        "code-diet"
+        "delivery",
+        "code"
       ]
     },
     {
-      "title": "Shape the code and its docs",
-      "header": "Code & docs",
+      "title": "Document and draw the code",
+      "header": "Docs & maps",
       "areas": [
-        "codebase-optimizer",
         "docs-parity",
         "system-map",
         "picture-this"
@@ -25,21 +24,19 @@
       "header": "Judge, write",
       "areas": [
         "perceptual-loop",
-        "write-like-me",
-        "workflow-studio"
+        "writing"
       ]
     },
     {
-      "title": "Make plugins, and see what they cost",
-      "header": "Plugins",
+      "title": "Shape what agents know and may do",
+      "header": "Harness",
       "areas": [
-        "plugin-workbench",
-        "context-doctor"
+        "harness"
       ]
     }
   ],
   "areas": {
-    "but-first-planning": {
+    "planning": {
       "cue": "turn an idea into a spec, a backlog, and built issues",
       "how": "Three phases, each leaving files in a workspace: write and sharpen a spec, decompose it into a backlog, then build that backlog one issue at a time, test-first. The project's workspace is `.agents/plan/`, which `spec-init` scaffolds the first time; a feature or a long task gets its own, `.agents/plans/<name>/`, made when you ask for its spec.",
       "uses": [
@@ -84,7 +81,7 @@
         }
       ]
     },
-    "agentic-teamwork": {
+    "delivery": {
       "cue": "set up, check, or ship a repo the team's way",
       "how": "Most of it runs unasked: hooks judge commits and pushes against the team's git conventions. What a person starts by name is the setup, the audit, and the two ends of landing work.",
       "uses": [
@@ -107,43 +104,25 @@
         }
       ]
     },
-    "code-diet": {
-      "cue": "keep new code small, and cut what is not needed",
-      "how": "On any coding task the agent takes the simplest rung that works, checks what already exists before building, and marks what it defers as debt. A person asks for the review or the debt inventory.",
+    "code": {
+      "cue": "keep code small, and restructure what has grown messy",
+      "how": "On any coding task the agent takes the simplest rung that works, checks what already exists, and marks what it defers as debt; a repo that has already accreted is restructured in stages on a branch, each checked by its own tests and reverted on red.",
       "uses": [
         {
           "want": "hunt over-engineering in the working diff before a request",
-          "to": "review-diet"
+          "to": "review"
         },
         {
           "want": "check what already exists before building something",
-          "to": "reuse-first"
+          "to": "reuse"
         },
-        {
-          "want": "list every deferred shortcut and whether it still holds",
-          "to": "debt"
-        },
-        {
-          "want": "note what this work built that another project could use",
-          "to": "capture-reusable"
-        }
-      ]
-    },
-    "codebase-optimizer": {
-      "cue": "restructure a codebase that has grown messy",
-      "how": "It works in stages on a branch, each one checked by the repo's own tests and reverted when they go red: organize the tree, split the god-files, deepen shallow modules.",
-      "uses": [
         {
           "want": "the whole sweep, stage by stage",
-          "to": "optimize-codebase"
-        },
-        {
-          "want": "reorganize a sprawling file tree and nothing else",
-          "to": "codebase-organizer"
+          "to": "restructure"
         },
         {
           "want": "find shallow modules and leaky seams and nothing else",
-          "to": "improve-codebase-architecture"
+          "to": "deepen"
         }
       ]
     },
@@ -231,7 +210,7 @@
         }
       ]
     },
-    "write-like-me": {
+    "writing": {
       "cue": "write in your own voice, and catch AI tells",
       "how": "A calibrated profile of how the person writes, applied to prose a human will read, with hooks that learn from style feedback.",
       "uses": [
@@ -242,7 +221,7 @@
         },
         {
           "want": "draft something in their voice",
-          "to": "write-like-me"
+          "to": "writing"
         },
         {
           "want": "check a draft for AI-writing tells",
@@ -255,55 +234,26 @@
         }
       ]
     },
-    "workflow-studio": {
-      "cue": "build a Claude Code workflow, by canvas or by hand",
-      "how": "A node editor in the browser for dynamic workflows, and the rules for writing the same scripts and graphs by hand.",
-      "uses": [
-        {
-          "want": "open the visual editor",
-          "to": "workflow-studio"
-        },
-        {
-          "want": "write or change a workflow script or its graph directly",
-          "to": "author-workflow"
-        }
-      ]
-    },
-    "plugin-workbench": {
-      "cue": "make, score, or fix a plugin or its skills",
-      "how": "One rubric serves all of it: a new plugin is scaffolded against it, as a skill per job or as areas with routes and one skill to type; an existing one is scored into a scorecard with a verdict; and the fixes are applied in the order of the points each is worth.",
+    "harness": {
+      "cue": "make plugins, read what a session got, build workflows",
+      "how": "One rubric scores a plugin from its files and its fixes are applied by the points each is worth; a session transcript is read back for what reached the agent and what went wrong; a node editor and hand-writing rules cover Claude Code workflows.",
       "uses": [
         {
           "want": "make a new plugin, or wrap skills and scripts they already have",
-          "to": "create-plugin"
-        },
-        {
-          "want": "raise an existing plugin's score",
-          "to": "improve-plugin"
+          "to": "plugin-create"
         },
         {
           "want": "score a plugin and get a scorecard with a verdict",
-          "to": "evaluate-plugin",
+          "to": "plugin-evaluate",
           "starts": "person"
         },
-        {
-          "want": "reinstall a marketplace checkout from the working tree",
-          "to": "refresh-marketplace",
-          "starts": "person"
-        }
-      ]
-    },
-    "context-doctor": {
-      "cue": "see what a session's agent was actually given",
-      "how": "It reads a session's transcript back: each hook's output and who saw it, the skill listing, the rule files, the size of every request, and what each compaction kept or lost. Then it names what went wrong, with the fix for each.",
-      "uses": [
         {
           "want": "find out why a session ignored a rule or forgot its instructions",
           "to": "diagnose"
         },
         {
-          "want": "see what entered an agent's context, and from which area",
-          "to": "lens"
+          "want": "open the visual editor",
+          "to": "harness"
         }
       ]
     }

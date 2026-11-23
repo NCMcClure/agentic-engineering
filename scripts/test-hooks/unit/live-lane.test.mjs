@@ -519,7 +519,7 @@ test("the prompt table covers every route the tree refers to five times or more,
   for (const skill of MOST_REFERENCED) assert.ok(skills.has(skill), `no prompt for ${skill}`);
   const areas = [...new Set(TRIGGERS.filter((t) => t.skill !== "start-here").map((t) => t.plugin))].sort();
   assert.deepEqual(areas, fs.readdirSync(path.join(PLUGINS, MERGED, "skills")).filter((name) => name !== "start-here").sort(), "every area has a row");
-  assert.equal(areas.length, 13);
+  assert.equal(areas.length, 10);
   for (const area of areas) {
     assert.ok(TRIGGERS.some((t) => t.plugin === area && !MOST_REFERENCED.includes(t.skill)), `${area} has no prompt beyond the most-referenced`);
   }

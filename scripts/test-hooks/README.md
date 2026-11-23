@@ -29,7 +29,7 @@ delete the line.
 
 `unit/` holds the rest:
 
-- `areas.test.mjs` pins the plugin's skills: `start-here` and the thirteen
+- `areas.test.mjs` pins the plugin's skills: `start-here` and the ten
   areas, and that no other directory sits under `plugins/`.
 - `<area>-skills.test.mjs` pins one area's route list and what its routes say,
   through `area-routes.mjs`, which reads an area as a model does (its
@@ -54,7 +54,7 @@ Starts real headless Claude Code sessions with this checkout's plugin
 (`claude -p --plugin-dir plugins/agentic-engineering`, on haiku), one
 per fixture repo: a prompt, a forced `/compact`, then a prompt that starts
 three kinds of subagent, the plugin's own `agentic-engineering:vision-critic` among
-them. It reads each transcript back through the context-doctor area's lens and
+them. It reads each transcript back through the harness area's lens and
 prints, per area, what reached the model at the start, after the compaction,
 and in each subagent. The plugin speaks through one command for every area, so
 a row is an area's by the block of that command's output its heading names.
@@ -96,7 +96,9 @@ A row is keyed by its route's name, which is the name it had as a skill, so a
 baseline from before the plugins became areas still reads against a run after
 it. Two rows are in no such baseline: `lens`, which was plugin-workbench's
 `context-lens` before it left for the context-doctor area, and
-`create-plugin`, the row plugin-workbench got in its place.
+`plugin-create` (then `create-plugin`), the row plugin-workbench got in its
+place. All three areas are `harness` now, and a baseline recorded before that
+regroup names its rows by the old areas and routes.
 
 One session is one sample, so the skills part is recorded over three passes
 and a plain run is one. A prompt fails only when the baseline reached its route
@@ -125,7 +127,7 @@ for a reason that is not routing.
 - `live/live.mjs` - the lane; `session.mjs` its side effects, `measure.mjs` its
   arithmetic, `checks/` one file per check, `triggers.mjs` the prompts, and
   `reach.mjs` what counts as reaching a route. The transcript reader is
-  `plugins/agentic-engineering/skills/context-doctor/scripts/`.
+  `plugins/agentic-engineering/skills/harness/scripts/`.
 - `fixtures/live-lane/` - recorded transcripts the reach tests read, cut down
   to the fields the detector uses. They are recordings, and keep the names
   they were made with.

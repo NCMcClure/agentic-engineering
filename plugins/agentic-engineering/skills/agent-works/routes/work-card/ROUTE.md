@@ -43,8 +43,8 @@ reporting `blocked`.
 ## Step 4: Build test-first
 
 - Write the failing test, make it pass, commit at each green step with a subject that says what changed.
-  `/agentic-engineering:agentic-teamwork tdd` is that cadence; a plan card built with
-  but-first-planning follows `/agentic-engineering:but-first-planning build-tdd`.
+  `/agentic-engineering:delivery tdd` is that cadence; a plan card built with
+  planning follows `/agentic-engineering:planning build-tdd`.
 - A task judged by eye or ear (a `look`, `motion` or `sound` label): load
   `/agentic-engineering:perceptual-loop` before the first test.
 - A subagent you start takes the model your brief's Subagents section gives it: one tier below yours and never
@@ -70,7 +70,7 @@ git push -u origin <the card's branch>
 ```
 
 A chained command, another flag, or another refspec is not covered and asks the person. Open the pull or merge
-request (`gh pr create`, `glab mr create`, or `/agentic-engineering:agentic-teamwork ship`), then:
+request (`gh pr create`, `glab mr create`, or `/agentic-engineering:delivery ship`), then:
 
 ```
 node "W/scripts/aw.mjs" board move <id> review --mr <number>

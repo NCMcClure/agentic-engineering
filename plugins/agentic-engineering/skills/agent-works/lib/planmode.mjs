@@ -8,7 +8,7 @@
 // with nothing started is asked about once.
 //
 // This is the host's plan mode, a plan file the session writes before it may
-// change anything. It is not the spec and plan tree the but-first-planning
+// change anything. It is not the spec and plan tree the planning
 // area keeps in a repo: nothing here reads or writes that.
 //
 // The state an approval leaves is `{ v, planFile, at, units, waves }`. The

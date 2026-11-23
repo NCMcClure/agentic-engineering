@@ -162,7 +162,7 @@ project's own `guard.rules` always read them: a rule may be about `rm`.
 
 `default-branch-commit` and `force-push` are aids for an agent. The ordinary cadence (branch, commit, push, pull request, merge) is never
 asked of the owner by this guard: only the forced push is, because it destroys work. Branch protection, secrets and
-failing tests as a team policy belong to the agentic-teamwork area.
+failing tests as a team policy belong to the delivery area.
 
 See what the guard would say, without running anything and without logging
 (`G` below is `..` from the directory this file is in: the agent-works area):

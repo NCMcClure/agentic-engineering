@@ -15,7 +15,7 @@ does nothing without it. Every key of that file is documented in
 `W/references/guard-config.md`.
 
 **Boundary.** Protected branches, force pushes, secrets, junk files and failing tests as a *team* policy, in the
-terminal and in CI, belong to the agentic-teamwork area. This guard's own `default-branch-commit` (a
+terminal and in CI, belong to the delivery area. This guard's own `default-branch-commit` (a
 warning) and `force-push` (a question to the owner) are an aid for one agent; the ordinary cadence of branch,
 commit, pull request and merge is never held for approval. The two plugins are meant to run together.
 

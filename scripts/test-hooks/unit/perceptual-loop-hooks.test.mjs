@@ -65,7 +65,7 @@ test("critical.json: six lines for every agent in any opted-in repo, none waitin
   assert.ok(CRITICAL.lines.some((l) => l.text === TASTE), "the taste line is quoted elsewhere and stays word for word");
   assert.match(CRITICAL.lines[0].text, /starts with its doctrine, before the first change: \/agentic-engineering:perceptual-loop\.$/);
   assert.match(CRITICAL.lines[4].text, /\/agentic-engineering:agent-works resource-locks\.$/);
-  assert.match(CRITICAL.lines[5].text, /\/agentic-engineering:but-first-planning spec-edit\.$/);
+  assert.match(CRITICAL.lines[5].text, /\/agentic-engineering:planning spec-edit\.$/);
   // The cap is CRITICAL_CAPS in scripts/validate.mjs.
   const printed = "Critical, from perceptual-loop:".length + CRITICAL.lines.reduce((n, l) => n + l.text.length + 3, 0);
   assert.ok(printed <= 1100, `the block prints ${printed} characters`);

@@ -72,7 +72,7 @@ that says what it is owed for and what running it needs, and it closes only by b
 
 - **Sprints** time-box the work: while one is active, the board shows its cards and nothing else. **Epics** hold
   a goal larger than one session; an agent handed an epic slices it into cards instead of building it.
-- **Plan issues** written by but-first-planning (the project's under `.agents/plan/`, a named workspace's under
+- **Plan issues** written by planning (the project's under `.agents/plan/`, a named workspace's under
   `.agents/plans/<name>/`) show on the board as read-only cards.
 - **Remote sync** (`aw board remote on`, then `aw board remote sync`, or `/kanban sync on`) keeps cards in step
   with GitHub (`gh`) or GitLab (`glab`) issues: a card is an issue, its column a project-board status or a
@@ -104,7 +104,7 @@ or a compaction loses nothing.
    and tells the other children the base moved. What a child could not check becomes a gate.
 
 **A plan approved in plan mode.** In Claude Code the round can start from the built-in plan flow (the host's
-plan mode, not the plan tree but-first-planning keeps in a repository). While a session plans, a hook tells it
+plan mode, not the plan tree planning keeps in a repository). While a session plans, a hook tells it
 the format of an `## Orchestration` section, and leaving plan mode is refused for a plan without one: a table of
 units, each with what it runs as (`session`, a child session in its own worktree with its own pull or merge
 request; `subagent`, an Agent call inside this session; or `here`), the units it waits on, its files, and its
@@ -172,7 +172,7 @@ Without the file the guard does nothing.
 says what it would decide and how it read the command. Every key is documented in
 [`references/guard-config.md`](references/guard-config.md); patterns are JavaScript regular expressions.
 
-**Boundary with agentic-teamwork.** That plugin owns team version-control guardrails: protected branches, force
+**Boundary with delivery.** That plugin owns team version-control guardrails: protected branches, force
 pushes, secrets, junk files and failing tests, in Claude Code, the terminal and CI. This one owns agent-specific
 guards and everything about how agents share a codebase. The two are meant to run together; where both judge one
 command (a force push is asked about here and denied there), the stronger answer wins.

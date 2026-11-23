@@ -149,7 +149,56 @@ export const ENTRY_SKILL = "start-here";
  * whose plugin went by another: that name, and the area it is now. The
  * catalog lists none of them, so a file that still names one names nothing.
  */
-export const OLD_NAMES = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
+export const REGROUPED = {
+  // Areas retired when the thirteen were regrouped into areas named for a
+  // domain of work: each was a plugin of its own before that, and an area
+  // of this one after, under the name on the left.
+  "but-first-planning": "planning", "agentic-teamwork": "delivery", "write-like-me": "writing",
+  "code-diet": "code", "codebase-optimizer": "code",
+  "plugin-workbench": "harness", "context-doctor": "harness", "workflow-studio": "harness",
+};
+export const OLD_NAMES = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this", ...REGROUPED };
+
+/**
+ * The areas made in the regroup, which were never a plugin: `code:` is a
+ * CSS selector's word as often as it is anything, so none is read as an old
+ * plugin's name.
+ */
+export const NEVER_PLUGINS = new Set(Object.values(REGROUPED));
+
+/**
+ * The routes renamed when their area was: under each old name, a route's old
+ * name and the name it has in the area it moved to. A route missing here kept
+ * its name. An address still written with an old name is rewritten with this.
+ */
+export const OLD_ROUTES = {
+  "code-diet": { "reuse-first": "reuse", "review-diet": "review", "capture-reusable": "capture" },
+  "codebase-optimizer": { "optimize-codebase": "restructure", "codebase-organizer": "organize", "improve-codebase-architecture": "deepen" },
+  "plugin-workbench": { "improve-plugin": "plugin-improve", "create-plugin": "plugin-create", "evaluate-plugin": "plugin-evaluate", "refresh-marketplace": "marketplace-refresh" },
+  "workflow-studio": { "author-workflow": "workflow" },
+};
+
+/** Where an old name and one of its routes are now: `{ area, route }`, the route "" when none was given. Null for a name that is not an old one. */
+export function renamedRoute(old, route = "") {
+  const area = OLD_NAMES[old];
+  if (!area) return null;
+  return { area, route: route ? (OLD_ROUTES[old]?.[route] ?? route) : "" };
+}
+
+/** The old name a route of an area had, where it was renamed: `{ old, route }` with the area's own name for it now, or null. */
+export function oldRouteIn(area, route) {
+  for (const [old, routes] of Object.entries(OLD_ROUTES)) {
+    if (OLD_NAMES[old] === area && Object.hasOwn(routes, route)) return { old, route: routes[route] };
+  }
+  return null;
+}
+
+/**
+ * Whether a tracked file is history: a CHANGELOG.md, or what an area keeps of
+ * the plugins it was made from, `skills/<area>/history/<old-name>.md`. History
+ * keeps what it says.
+ */
+export const isHistory = (f) => f.split("/").pop() === "CHANGELOG.md" || /(?:^|\/)skills\/[^/]+\/history\/[^/]+\.md$/.test(f);
 
 /**
  * A name the one plugin itself went by before 2.0.0. It is the plugin renamed,
@@ -163,19 +212,19 @@ export const OLD_PLUGIN_NAMES = ["agentcraft"];
 // lib/), so the only pairs left are files a route copies into a user's repo,
 // where nothing can reach back into the plugin.
 export const HASH_PAIRS = [
-  { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/provider.mjs`] },
+  { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/provider.mjs`] },
 ];
 
 // The trees a route copies into a user's repo. A file there is another repo's
 // file once copied: what it names is in that repo, and a copy already out
 // there does not change when this one does.
 const TEMPLATE_TREES = [
-  `plugins/${AREA_PLUGIN}/skills/agentic-teamwork/templates/`,
+  `plugins/${AREA_PLUGIN}/skills/delivery/templates/`,
   `plugins/${AREA_PLUGIN}/skills/agent-works/assets/templates/`,
-  `plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/`,
   `plugins/${AREA_PLUGIN}/skills/docs-parity/routes/docs-init/assets/`,
   `plugins/${AREA_PLUGIN}/skills/system-map/routes/diagrams-init/assets/`,
-  `plugins/${AREA_PLUGIN}/skills/write-like-me/routes/calibrate/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/writing/routes/calibrate/assets/`,
   `plugins/${AREA_PLUGIN}/skills/picture-this/kit/`,
   `plugins/${AREA_PLUGIN}/skills/picture-this/blank/`,
 ];

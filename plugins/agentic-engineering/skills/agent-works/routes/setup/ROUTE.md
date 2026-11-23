@@ -43,7 +43,7 @@ Ask only what the plan and the tree did not answer, in one batch:
    - decision records under the user docs (`docs/adr`), a glossary at the root or under the docs: move with
      `git mv`, or leave for later;
    - an old `.agents/board`: move it (it keeps working until then);
-   - a `.plan/` workspace: but-first-planning moves it to `.agents/plan/` itself;
+   - a `.plan/` workspace: planning moves it to `.agents/plan/` itself;
    - a `.perceptual-loop/` folder: its applications become `resources` in the config;
    - a root `CLAUDE.md` with content of its own: move the content into `AGENTS.md`;
    - an `.agents/README.md` this plugin did not write: merge it into `AGENTS.md`, or delete it.

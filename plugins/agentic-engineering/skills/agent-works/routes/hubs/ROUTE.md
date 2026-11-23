@@ -11,7 +11,7 @@ A hub is a short `AGENTS.md` that lists a directory's direct children, one line 
 in `W/references/hubs.md`; read it before writing your first hub in a repository.
 
 Moving source files to make a directory hub-ready is a reorganisation. That, and deepening architecture, is the
-codebase-optimizer plugin's work; this route verifies and writes the hubs.
+code plugin's work; this route verifies and writes the hubs.
 
 ## Step 1: Verify
 

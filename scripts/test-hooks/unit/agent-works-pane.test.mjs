@@ -337,13 +337,13 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "priority", "high");
   await m.type(await draw(), "owner", "sam");
   await m.type(await draw(), "labels", "ui, pane");
-  await m.type(await draw(), "skill-type", "/agentic-engineering:code-diet");
+  await m.type(await draw(), "skill-type", "/agentic-engineering:code");
   await m.pick(await draw(), "skill-pick", AREA);
   await m.type(await draw(), "note", "The lanes draw; the cards do not yet.");
   let card = boardOf(r.dir).card("0001");
   assert.deepEqual(
     [card.title, card.kind, card.ref, card.needs, card.epic, card.sprint, card.priority, card.owner, card.labels, card.skills],
-    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["agentic-engineering:code-diet", AREA]],
+    ["Draw every lane", "task", "PR 9", "a wide terminal", "0002", "s1", "high", "sam", ["ui", "pane"], ["agentic-engineering:code", AREA]],
   );
   assert.match(card.body, /^- \S+: The lanes draw; the cards do not yet\.$/m);
   assert.match(cardText(r.kanban, "0001"), /^estimate: 3$/m, "the line the pane does not know is still there");
@@ -355,7 +355,7 @@ test("a card's fields are edited through the CLI, one change at a time, and a ke
   await m.pick(await draw(), "sprint", "none");
   await m.type(await draw(), "labels", "");
   card = boardOf(r.dir).card("0001");
-  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["agentic-engineering:code-diet"], "", "", []]);
+  assert.deepEqual([card.skills, card.epic, card.sprint, card.labels], [["agentic-engineering:code"], "", "", []]);
   assert.ok(writes(m).every((a) => a[0] === "edit" || a[0] === "note"), "every change was an edit or a note");
   assert.equal(writes(m).length, 17);
 });

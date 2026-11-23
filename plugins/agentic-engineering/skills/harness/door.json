@@ -1,0 +1,29 @@
+{
+  "lead": "Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, and writing or opening Claude Code workflows.",
+  "default": "diagnose",
+  "routes": {
+    "plugin-improve": {
+      "cue": "raise an existing plugin's score, fix scorecard findings"
+    },
+    "plugin-create": {
+      "cue": "make a new plugin, or wrap existing skills or scripts"
+    },
+    "plugin-evaluate": {
+      "cue": "score a plugin into a scorecard with a verdict",
+      "starts": "person"
+    },
+    "marketplace-refresh": {
+      "cue": "reinstall a marketplace from the working tree",
+      "starts": "person"
+    },
+    "diagnose": {
+      "cue": "what went wrong with a session's context, and the fix"
+    },
+    "lens": {
+      "cue": "what entered an agent's context, by area and hook"
+    },
+    "workflow": {
+      "cue": "write or edit a workflow script or its graph by hand"
+    }
+  }
+}

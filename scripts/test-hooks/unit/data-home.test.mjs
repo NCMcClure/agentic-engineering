@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { areaHome, formerHome, inherit, previousHome } from "../../../plugins/agentic-engineering/lib/data-home.mjs";
+import { FORMER_NAMES, areaHome, formerHome, inherit, previousHome, renamedHome } from "../../../plugins/agentic-engineering/lib/data-home.mjs";
 import { tempDir, write } from "./helpers.mjs";
 
 const MARKET = "agentic-engineering";
@@ -153,4 +153,60 @@ test("loading the module reads and writes nothing", () => {
   const top = source.split("\n").filter((line) => /^\S/.test(line) && !/^(\/\/|\/\*| \*|import |export (function|const)|const |function |\}|\))/.test(line));
   assert.deepEqual(top, []);
   assert.doesNotMatch(source, /process\.env\.(?!CLAUDE_PLUGIN_DATA)/);
+});
+
+// An area renamed when the areas were regrouped: writing was write-like-me,
+// and harness keeps what workflow-studio kept. Its new folder is filled once
+// from where its data was, and never over anything.
+test("a renamed area names the areas its data was kept under", () => {
+  assert.deepEqual(FORMER_NAMES, { writing: ["write-like-me"], harness: ["workflow-studio"] });
+  assert.equal(renamedHome("write-like-me", { CLAUDE_PLUGIN_DATA: "data" }), path.resolve("data", "write-like-me"));
+  for (const env of [{}, { CLAUDE_PLUGIN_DATA: "" }]) assert.equal(renamedHome("write-like-me", env), null);
+});
+
+test("a renamed area copies its old folder in this plugin's directory first, then the previous plugin's, then its own old plugin's", (t) => {
+  const all = machine(t);
+  write(all.home("write-like-me"), "observations.jsonl", "from this plugin, before the rename\n");
+  write(all.previous("write-like-me"), "observations.jsonl", "from the 1.x plugin\n");
+  write(all.former("write-like-me"), "observations.jsonl", "from the area's own plugin\n");
+  assert.deepEqual(inherit("writing", all.env), ["observations.jsonl"]);
+  assert.deepEqual(tree(all.home("writing")), { "observations.jsonl": "from this plugin, before the rename\n" });
+  assert.deepEqual(tree(all.home("write-like-me")), { "observations.jsonl": "from this plugin, before the rename\n" }, "a copy: the old folder is left as it was");
+
+  const previous = machine(t);
+  write(previous.previous("write-like-me"), "changelog.md", "# 1.x\n");
+  write(previous.former("write-like-me"), "changelog.md", "# own\n");
+  assert.deepEqual(inherit("writing", previous.env), ["changelog.md"]);
+  assert.deepEqual(tree(previous.home("writing")), { "changelog.md": "# 1.x\n" });
+
+  const own = machine(t);
+  write(own.former("workflow-studio"), "app/.install-stamp", "abc");
+  assert.deepEqual(inherit("harness", own.env), ["app"]);
+  assert.deepEqual(tree(own.home("harness")), { "app/.install-stamp": "abc" });
+});
+
+test("a renamed area copies once, never over its own folder, and never from its new name's old directories", (t) => {
+  const m = machine(t);
+  write(m.home("workflow-studio"), "app/.install-stamp", "old");
+  assert.deepEqual(inherit("harness", m.env), ["app"]);
+  write(m.home("harness"), "app/.install-stamp", "new");
+  write(m.home("workflow-studio"), "later.md", "later\n");
+  assert.deepEqual(inherit("harness", m.env), []);
+  assert.deepEqual(tree(m.home("harness")), { "app/.install-stamp": "new" });
+
+  // A plugin of its own named like the new area was never this area's.
+  const stranger = machine(t);
+  write(stranger.former("writing"), "observations.jsonl", "someone else's\n");
+  write(stranger.previous("writing"), "observations.jsonl", "someone else's\n");
+  assert.deepEqual(inherit("writing", stranger.env), []);
+  assert.equal(fs.existsSync(stranger.current), false);
+});
+
+test("the areas with a data folder copy their old data on first use", () => {
+  const source = (rel) => fs.readFileSync(new URL(`../../../plugins/agentic-engineering/${rel}`, import.meta.url), "utf8");
+  for (const [area, rel] of [["writing", "skills/writing/scripts/wlm/paths.mjs"], ["harness", "skills/harness/scripts/launch-studio.mjs"]]) {
+    const text = source(rel);
+    assert.match(text, /\binherit\(AREA\b/, `${rel} calls inherit`);
+    assert.match(text, new RegExp(`const AREA = "${area}"`), `${rel} keeps its data under ${area}`);
+  }
 });

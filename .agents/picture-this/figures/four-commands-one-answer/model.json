@@ -11,7 +11,7 @@
       "label": "One Bash call",
       "kind": "command",
       "note": "what the agent sends",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:332"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:332"
     },
     {
       "id": "segments",
@@ -35,7 +35,7 @@
       "kind": "repo",
       "note": "where the session sits",
       "hue": "blue",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:128"
     },
     {
       "id": "docs",
@@ -43,7 +43,7 @@
       "kind": "repo",
       "note": "no push grant",
       "hue": "green",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:128"
     },
     {
       "id": "site",
@@ -51,21 +51,21 @@
       "kind": "repo",
       "note": "main is protected",
       "hue": "violet",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:128"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:128"
     },
     {
       "id": "judge",
       "label": "Judge",
       "kind": "function",
       "note": "judgeCommit / judgePush",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:351"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:351"
     },
     {
       "id": "verdict",
       "label": "Verdict",
       "kind": "decision",
       "note": "deny beats ask beats allow",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:328"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:328"
     }
   ],
   "flows": [
@@ -75,7 +75,7 @@
       "to": "segments",
       "kind": "event",
       "label": "&&",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:335"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:335"
     },
     {
       "id": "track",
@@ -83,7 +83,7 @@
       "to": "folder",
       "kind": "query",
       "label": "cwd",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:335"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:335"
     },
     {
       "id": "to-app",
@@ -91,7 +91,7 @@
       "to": "app",
       "kind": "query",
       "label": "commit",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:339"
     },
     {
       "id": "to-docs",
@@ -99,7 +99,7 @@
       "to": "docs",
       "kind": "query",
       "label": "push",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:339"
     },
     {
       "id": "to-site",
@@ -107,7 +107,7 @@
       "to": "site",
       "kind": "query",
       "label": "push",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:339"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:339"
     },
     {
       "id": "rules-app",
@@ -115,7 +115,7 @@
       "to": "judge",
       "kind": "read",
       "label": "no objection",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:354"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:354"
     },
     {
       "id": "rules-docs",
@@ -123,7 +123,7 @@
       "to": "judge",
       "kind": "read",
       "label": "ask",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:356"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:356"
     },
     {
       "id": "rules-site",
@@ -131,7 +131,7 @@
       "to": "judge",
       "kind": "read",
       "label": "deny",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:356"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:356"
     },
     {
       "id": "decide",
@@ -139,7 +139,7 @@
       "to": "verdict",
       "kind": "write",
       "label": "strongest",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/hooks/git-guard.mjs:358"
+      "source": "plugins/agentic-engineering/skills/delivery/hooks/git-guard.mjs:358"
     }
   ],
   "beats": [

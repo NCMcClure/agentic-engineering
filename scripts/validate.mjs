@@ -15,7 +15,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
-import { AREA_PLUGIN, HASH_PAIRS, OLD_NAMES, OLD_PLUGIN_NAMES, addressFinder, fail, failures, gitLsFiles, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, sha256, skillBody, stringSet } from "./lib.mjs";
+import { AREA_PLUGIN, HASH_PAIRS, NEVER_PLUGINS, OLD_NAMES, OLD_PLUGIN_NAMES, addressFinder, fail, failures, gitLsFiles, isHistory, isRecording, isTemplateCopy, namedDirs, namedPaths, note, ok, oldRouteIn, outsideDirs, parseFrontmatter, parseHookCommand, pluginRootPaths, readJson, renamedRoute, sha256, skillBody, stringSet } from "./lib.mjs";
 
 const here = import.meta.dirname;
 const argv = process.argv.slice(2);
@@ -36,7 +36,7 @@ const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "
 // a model download, which no stdlib rewrite replaces; the third fronts a
 // MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
-  `plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/comments-server.py`,
+  `plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/comments-server.py`,
   `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/keypoints.py`,
   `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/semantic.py`,
 ]);
@@ -55,7 +55,7 @@ const EXIT_CALL = /^(?!\s*(?:\/\/|\/?\*)).*\bprocess\.exit\(/;
 // area's lines stay under its own cap, all of them together under the
 // combined target, and each session command's worst case under the host's
 // limit on a hook's output, past which the model reads a preview.
-const CRITICAL_CAPS = { "agentic-teamwork": 1500, "agent-works": 2100, "code-diet": 550, "docs-parity": 450, "but-first-planning": 750, "perceptual-loop": 1100, "system-map": 600 };
+const CRITICAL_CAPS = { "delivery": 1500, "agent-works": 2100, "code": 550, "docs-parity": 450, "planning": 750, "perceptual-loop": 1100, "system-map": 600 };
 const CRITICAL_TOTAL = 7500;
 const HOOK_OUTPUT_CAP = 10000;
 // What the lines command can print beside the lines: the once-per-clone
@@ -501,7 +501,7 @@ async function validate() {
     const before = failures();
     const install = oldNames.length ? new RegExp(`\\binstall\\b[^\\n]*?(?<![\\w-])(${oldNames.join("|")})@${catalog.name}(?![\\w-])`) : null;
     for (const f of install ? textFiles : []) {
-      if (path.basename(f) === "CHANGELOG.md" || isRecording(f) || isTemplateCopy(f)) continue;
+      if (isHistory(f) || isRecording(f) || isTemplateCopy(f)) continue;
       fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
         const hit = install.exec(line);
         if (hit) fail(`${f}:${i + 1}: tells its reader to install ${hit[1]}@${catalog.name}, which the catalog does not list; the plugin to install is ${ONE_PLUGIN}@${catalog.name}`, f);
@@ -542,12 +542,12 @@ async function validate() {
     }
     // An area was a plugin, and what named it then names nothing now: the old
     // name is read as a plugin's too, so an address left behind is found.
-    const owners = new Map([...targets].flatMap(([plugin, target]) => [...target.areas.keys()].filter((area) => area !== plugin).map((area) => [area, { owner: plugin, area }])));
-    for (const [old, area] of Object.entries(OLD_NAMES)) if (owners.has(area) && !targets.has(old)) owners.set(old, owners.get(area));
+    const owners = new Map([...targets].flatMap(([plugin, target]) => [...target.areas.keys()].filter((area) => area !== plugin && !NEVER_PLUGINS.has(area)).map((area) => [area, { owner: plugin, area }])));
+    for (const [old, area] of Object.entries(OLD_NAMES)) if (!targets.has(old) && targets.get(ONE_PLUGIN)?.areas.has(area)) owners.set(old, { owner: ONE_PLUGIN, area });
     const find = addressFinder([...new Set([...targets.keys(), ...owners.keys(), ...OLD_PLUGIN_NAMES])]);
     const counted = { skill: 0, agent: 0, server: 0, route: 0 };
     for (const f of textFiles) {
-      if (path.basename(f) === "CHANGELOG.md" || VENDORED.test(f)) continue;
+      if (isHistory(f) || VENDORED.test(f)) continue;
       fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
         for (const a of find(line)) {
           if (NOT_ADDRESSES.has(`${a.plugin}:${a.name}`)) continue;
@@ -561,20 +561,28 @@ async function validate() {
           const { owner, area } = owners.get(a.plugin) ?? {};
           if (owner) {
             if (isRecording(f)) continue;
-            const through = a.name === a.plugin, route = through ? a.route : a.name;
+            const through = a.name === a.plugin, given = through ? a.route : a.name;
+            // A name retired when the areas were regrouped took its routes along, some renamed.
+            const route = renamedRoute(a.plugin, given)?.route ?? given;
             // An agent and an MCP server are the one plugin's own now, named
             // with no area: `<plugin>:<name>`, which is not a route to pass.
             const own = targets.get(owner), shipped = !through && (own.agent.has(a.name) || own.server.has(a.name));
-            const known = shipped || (route ? own.areas.get(area).has(route) : through);
+            const known = shipped || (route ? own.areas.get(area)?.has(route) : through);
             const write = shipped ? `${a.slash ? "/" : ""}${owner}:${a.name}` : `/${owner}:${area}${route ? ` ${route}` : ""}`;
             if (!isTemplateCopy(f)) fail(`${f}:${i + 1}: ${a.text} names ${a.plugin} as a plugin, and it is ${area === a.plugin ? "an area" : `the ${area} area`} of ${owner}; write ${write}`, f);
-            else if (!known) fail(`${f}:${i + 1}: ${a.text} names nothing: ${route} is not a route of the ${area} area`, f);
+            else if (!known) fail(`${f}:${i + 1}: ${a.text} names nothing: ${given} is not a route of the ${area} area`, f);
             continue;
           }
           const target = targets.get(a.plugin);
           const kind = ["skill", "agent", "server"].find((k) => target[k].has(a.name));
           if (!kind) {
             if (isRecording(f) || isTemplateCopy(f)) continue;
+            // An area retired when the areas were regrouped: the area it went into, and the route by its name there.
+            const moved = renamedRoute(a.name, a.route);
+            if (moved && target.areas.has(moved.area)) {
+              fail(`${f}:${i + 1}: ${a.text}${a.route ? ` ${a.route}` : ""} names ${a.name}, an area of ${a.plugin} before it moved into ${moved.area}; write /${a.plugin}:${moved.area}${moved.route ? ` ${moved.route}` : ""}`, f);
+              continue;
+            }
             // A route is a document, so the plugin has no skill of its name.
             const within = [...target.areas].filter(([, documents]) => documents.has(a.name)).map(([area]) => area);
             if (within.length) fail(`${f}:${i + 1}: ${a.text} names a route of the ${within.join(" and the ")} area directly; write /${a.plugin}:${within[0]} ${a.name}`, f);
@@ -586,6 +594,7 @@ async function validate() {
           const routes = target.areas.get(a.name);
           if (!a.route || !routes) continue;
           if (routes.has(a.route)) counted.route++;
+          else if (oldRouteIn(a.name, a.route)) fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is the name the route had in ${oldRouteIn(a.name, a.route).old}; write ${a.text} ${oldRouteIn(a.name, a.route).route}`, f);
           else fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is not a route of the ${a.name} area; an area named alone is followed by punctuation or the end of its code span`, f);
         }
       });
@@ -594,7 +603,7 @@ async function validate() {
     // is no address `find` reads (it has no colon); it is held to the same rule.
     const deadTool = OLD_PLUGIN_NAMES.length ? new RegExp(`(?<![\\w-])mcp__(${OLD_PLUGIN_NAMES.join("|")})__(\\w+)`, "g") : null;
     for (const f of deadTool ? textFiles : []) {
-      if (path.basename(f) === "CHANGELOG.md" || VENDORED.test(f) || isRecording(f) || isTemplateCopy(f)) continue;
+      if (isHistory(f) || VENDORED.test(f) || isRecording(f) || isTemplateCopy(f)) continue;
       fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
         for (const m of line.matchAll(deadTool)) fail(`${f}:${i + 1}: ${m[0]} names ${m[1]}, the plugin's name before ${ONE_PLUGIN}; write mcp__${ONE_PLUGIN}__${m[2]}`, f);
       });
@@ -615,7 +624,7 @@ async function validate() {
     const holders = new Set(foundAreas.map((a) => a.plugin));
     for (const f of textFiles) {
       const [top, plugin, ...rest] = f.split("/");
-      if (top !== "plugins" || !holders.has(plugin) || !rest.length || !f.endsWith(".md") || path.basename(f) === "CHANGELOG.md" || isTemplateCopy(f) || VENDORED.test(f)) continue;
+      if (top !== "plugins" || !holders.has(plugin) || !rest.length || !f.endsWith(".md") || isHistory(f) || isTemplateCopy(f) || VENDORED.test(f)) continue;
       const dir = at("plugins", plugin);
       fs.readFileSync(at(f), "utf8").split("\n").forEach((line, i) => {
         for (const p of pluginRootPaths(line)) {

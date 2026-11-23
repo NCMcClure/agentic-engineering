@@ -64,7 +64,7 @@ test("every file the generator writes in this checkout is its output", () => {
 test("every area and every route is in the committed guide, and no plugin but the one", () => {
   const text = fs.readFileSync(path.join(REPO, GUIDE), "utf8");
   const found = areas(REPO);
-  assert.equal(found.length, 13);
+  assert.equal(found.length, 10);
   for (const { plugin, area } of found) {
     assert.ok(text.includes(`\n## ${area}\n`), area);
     for (const route of routeNames(REPO, plugin, area)) assert.ok(text.includes(`\`/${plugin}:${area} ${route}`), `${area} ${route}`);

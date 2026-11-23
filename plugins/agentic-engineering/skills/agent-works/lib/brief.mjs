@@ -39,7 +39,7 @@ function taskOf(card, planRef) {
   if (card.source === "plan") {
     // A named workspace's issue is built in that workspace: the route is told which.
     const name = planHome(card.plan)?.name;
-    const how = name ? `\`/agentic-engineering:but-first-planning build-tdd --plan ${name}\`` : "`/agentic-engineering:but-first-planning build-tdd`";
+    const how = name ? `\`/agentic-engineering:planning build-tdd --plan ${name}\`` : "`/agentic-engineering:planning build-tdd`";
     return `Plan issue ${card.plan} (${card.type ?? "AFK"}), at ${code(card.file)} in your worktree${planRef ? `, as ${planRef} has it` : ""}. `
       + `Build it with ${how}, which flips the issue to done through the plan's funnel in your last commit before the push, without \`--evidence\`. `
       + "The issue is quoted at the end of this brief.";
@@ -85,8 +85,24 @@ function syncOf(config) {
 // its arguments, and a route is a document, not a skill: nothing is at its
 // own address, so a brief never prints one.
 const PLUGIN = "agentic-engineering";
-const AREAS = ["agent-works", "agentic-teamwork", "but-first-planning", "code-diet", "codebase-optimizer", "context-doctor", "docs-parity",
-  "perceptual-loop", "picture-this", "plugin-workbench", "system-map", "workflow-studio", "write-like-me"];
+const AREAS = ["agent-works", "code", "delivery", "docs-parity", "harness", "perceptual-loop", "picture-this", "planning", "system-map", "writing"];
+// The areas retired when the thirteen were regrouped: the area each went
+// into, and the routes renamed on the way. A card written before keeps the
+// old name, and is briefed with the new one.
+const RENAMED = {
+  "but-first-planning": ["planning"], "agentic-teamwork": ["delivery"], "write-like-me": ["writing"],
+  "code-diet": ["code", { "reuse-first": "reuse", "review-diet": "review", "capture-reusable": "capture" }],
+  "codebase-optimizer": ["code", { "optimize-codebase": "restructure", "codebase-organizer": "organize", "improve-codebase-architecture": "deepen" }],
+  "plugin-workbench": ["harness", { "improve-plugin": "plugin-improve", "create-plugin": "plugin-create", "evaluate-plugin": "plugin-evaluate", "refresh-marketplace": "marketplace-refresh" }],
+  "context-doctor": ["harness"],
+  "workflow-studio": ["harness", { "author-workflow": "workflow" }],
+};
+/** An area and its arguments by today's names: a retired area becomes the one it went into, and its route, the first word, the route's name there. */
+function current(area, args) {
+  const [now, routes = {}] = RENAMED[area] ?? [area];
+  const [first = "", ...more] = args ? args.split(" ") : [];
+  return [now, [routes[first] ?? first, ...more].join(" ")];
+}
 
 /**
  * A card's skill as the address a child can load. Cards live outside git and
@@ -102,10 +118,10 @@ export function areaForm(skill) {
   const m = /^([a-z0-9-]+):([a-z0-9-]+)(?:\s+(.*))?$/s.exec(text);
   if (!m) return `/${text}`;
   const [, plugin, name, rest = ""] = m;
-  const to = (area, args) => `/${PLUGIN}:${area}${args ? ` ${args}` : ""}`;
+  const to = (area, args) => { const [now, said] = current(area, args); return `/${PLUGIN}:${now}${said ? ` ${said}` : ""}`; };
   // Today's form: the area, or a skill of the one plugin that is not an area.
   if (plugin === PLUGIN) return to(name, rest);
-  if (!AREAS.includes(plugin)) return `/${text}`;
+  if (!AREAS.includes(plugin) && !RENAMED[plugin]) return `/${text}`;
   return name === plugin ? to(plugin, rest) : to(plugin, [name, rest].filter(Boolean).join(" "));
 }
 

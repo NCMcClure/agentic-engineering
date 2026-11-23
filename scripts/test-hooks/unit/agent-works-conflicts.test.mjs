@@ -25,7 +25,7 @@ const held = (p) => Object.fromEntries(p.held.map((c) => [c.id, c.reasons.join("
 
 const REPO_CONFIG = conflicts({
   rederived: [
-    { path: "plugins/agentic-engineering/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", command: "node scripts/gen-guide.mjs --write" },
+    { path: "plugins/agentic-engineering/skills/delivery/routes/marketplace-guide/ROUTE.md", command: "node scripts/gen-guide.mjs --write" },
     { path: "diagrams/system-map.json", command: "node .agents/scripts/system-map.mjs --write" },
   ],
   merge: [".claude-plugin/marketplace.json", "plugins/AGENTS.md", "README.md"],
@@ -70,8 +70,8 @@ test("cards in flight hold their files and their slots", () => {
 
 test("a regenerated file is ignored and a merge file only warns", () => {
   const b = board([
-    card("0001", { files: ["plugins/agentic-engineering/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/a/lib/x.mjs"] }),
-    card("0002", { files: ["plugins/agentic-engineering/skills/agentic-teamwork/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/b/lib/y.mjs"] }),
+    card("0001", { files: ["plugins/agentic-engineering/skills/delivery/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/a/lib/x.mjs"] }),
+    card("0002", { files: ["plugins/agentic-engineering/skills/delivery/routes/marketplace-guide/ROUTE.md", "README.md", "plugins/b/lib/y.mjs"] }),
   ]);
   const p = propose(b, { config: REPO_CONFIG });
   assert.deepEqual(ran(p), ["0001", "0002"]);

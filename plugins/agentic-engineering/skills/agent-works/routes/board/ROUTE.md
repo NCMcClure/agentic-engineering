@@ -97,7 +97,7 @@ the time box the person works in.
 
 ## Plan issues
 
-Where a plan lives as issue files (but-first-planning writes them, under `.agents/plan/plan/` for the project's
+Where a plan lives as issue files (planning writes them, under `.agents/plan/plan/` for the project's
 plan and `.agents/plans/<name>/plan/` for a named workspace's), every issue is a card too. The id is its
 coordinates (`01-02-03`), said after the workspace's name where it has one (`billing.01-02-03`), so two plans
 never share an id. They are read from the base branch, never a working tree, and are read-only here: the plan's

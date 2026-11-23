@@ -87,11 +87,11 @@ holds that one entry, and an area cannot be typed. An agent reaches a route as
 
 ## Works with
 
-- **but-first-planning**: `build-tdd` updates docs in the same change for every `User-facing: yes` issue, and
+- **planning**: `build-tdd` updates docs in the same change for every `User-facing: yes` issue, and
   `build-user-docs` becomes the coherence pass over the whole set, both deferring to this contract.
 - **agent-works**: owed harness work and audit fixes go on its kanban as cards.
 - **perceptual-loop**: any capture harness can double as its render command, so its gates catch a docs picture
   that changed when nothing should have, and `calibrate-gate` measures whether two runs of a shot agree.
-- **write-like-me**: carries the prose voice when installed.
+- **writing**: carries the prose voice when installed.
 
 Each is optional; docs-parity runs alone.

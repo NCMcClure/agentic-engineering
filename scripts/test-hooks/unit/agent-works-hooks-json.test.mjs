@@ -124,9 +124,9 @@ test("agent-works critical.json: ten lines within the cap, the hub line only whe
     ["main", "any", null], ["main", "any", null], ["main", "full", null],
     ["all", "any", null], ["all", "any", null], ["all", "any", ".agents/agent-works.json"],
   ]);
-  assert.match(data.lines[4].text, /\/agentic-engineering:but-first-planning grill/);
+  assert.match(data.lines[4].text, /\/agentic-engineering:planning grill/);
   assert.match(data.lines[5].text, /\/agentic-engineering:perceptual-loop\.$/);
-  assert.match(data.lines[6].text, /\/agentic-engineering:agentic-teamwork ship; .* \/agentic-engineering:agentic-teamwork land\.$/);
+  assert.match(data.lines[6].text, /\/agentic-engineering:delivery ship; .* \/agentic-engineering:delivery land\.$/);
   assert.match(data.lines.at(-1).text, /^Hubs: a directory with an AGENTS\.md holds no source files, .* Run `aw hubs`/);
   // The cap is CRITICAL_CAPS in scripts/validate.mjs.
   const size = "Critical, from agent-works:".length + data.lines.reduce((n, l) => n + l.text.length + 3, 0);

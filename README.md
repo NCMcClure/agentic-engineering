@@ -13,9 +13,9 @@ what an agent ships is software you would have signed off on.
 **It scales.** [agent-works](#agent-works) runs many pieces of work in
 parallel without sessions stepping on each other or starving your machine of
 the compute a test-heavy build needs.
-[agentic-teamwork](#agentic-teamwork) holds every contributor's agents to the
+[delivery](#delivery) holds every contributor's agents to the
 same standards, so a team can grow and still move fast in one direction.
-[but-first-planning](#but-first-planning) settles what is being built before
+[planning](#planning) settles what is being built before
 anyone builds it.
 
 **You can still follow it.** People no longer read every line an agent
@@ -30,18 +30,15 @@ figure a stakeholder understands at a glance.
 **It is good, not only finished.** A great deal of what makes software usable
 is judged by eye or ear: an interface, a render, an animation, a sound.
 [perceptual-loop](#perceptual-loop) gives an agent a way to iterate on
-exactly that. [code-diet](#code-diet) and
-[codebase-optimizer](#codebase-optimizer) keep the code small and its
-structure sound as it grows.
+exactly that. [code](#code) keeps the code small and its structure sound as
+it grows.
 
 **It sounds like you, and it compounds.**
-[write-like-me](#write-like-me) runs through all of it: docs, specs, figures
-and copy come out in one voice, yours. [plugin-workbench](#plugin-workbench)
+[writing](#writing) runs through all of it: docs, specs, figures
+and copy come out in one voice, yours. [harness](#harness)
 turns something you worked out with an agent into a plugin held to a standard,
-so the next project starts ahead, and
-[context-doctor](#context-doctor) and [workflow-studio](#workflow-studio)
-show why a session went wrong and let you build the workflow that runs it
-right.
+so the next project starts ahead, shows why a session went wrong, and lets you
+build the workflow that runs it right.
 
 No single area is the point. Each closes one way a project built with agents
 goes wrong, and the sum is a project that reaches the goal you set for it.
@@ -98,10 +95,10 @@ ask for the work in words and the agent picks the area.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/routes-behind-names.dark.gif">
-  <img alt="How one plugin keeps 75 routes behind fourteen names. A session lists fourteen names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
+  <img alt="How one plugin keeps 75 routes behind eleven names. A session lists eleven names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
 </picture>
 
-<sub>Fourteen names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
+<sub>Eleven names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
 
 ### agent-works
 
@@ -132,7 +129,7 @@ the foundation the areas below lean on.
 
 <sub><code>aw doctor</code>, run on this repo.</sub>
 
-### but-first-planning
+### planning
 
 Code written before the spec is settled is a loan against your future self.
 A planning pipeline (spec → grill → architect → plan → publish) plus a build
@@ -141,28 +138,28 @@ the project, `.agents/plans/<name>/` for one feature or long task. An autopilot
 runs the whole graph hands-off. The backlog publishes
 to GitHub or GitLab, and one script owns every status change so the plan and
 the tracker cannot disagree quietly.
-[Read more →](plugins/agentic-engineering/skills/but-first-planning/README.md)
+[Read more →](plugins/agentic-engineering/skills/planning/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/but-first-planning/assets/figures/folders-climb.dark.gif">
-  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="plugins/agentic-engineering/skills/but-first-planning/assets/figures/folders-climb.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/planning/assets/figures/folders-climb.dark.gif">
+  <img alt="One command moves a status everywhere. A status is set in one place and derived everywhere else, so the plan, the ledger and the tracker cannot disagree." src="plugins/agentic-engineering/skills/planning/assets/figures/folders-climb.gif" width="720">
 </picture>
 
 <sub>A status is set in one place and derived everywhere else.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/but-first-planning/assets/screens/spec-site.dark.png">
-  <img alt="A page of the spec site: navigation, prose, a diagram and a callout." src="plugins/agentic-engineering/skills/but-first-planning/assets/screens/spec-site.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/planning/assets/screens/spec-site.dark.png">
+  <img alt="A page of the spec site: navigation, prose, a diagram and a callout." src="plugins/agentic-engineering/skills/planning/assets/screens/spec-site.light.png" width="720">
 </picture>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/but-first-planning/assets/screens/plan-view.dark.png">
-  <img alt="The plan view: epics and their issues as cards, each in its state." src="plugins/agentic-engineering/skills/but-first-planning/assets/screens/plan-view.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/planning/assets/screens/plan-view.dark.png">
+  <img alt="The plan view: epics and their issues as cards, each in its state." src="plugins/agentic-engineering/skills/planning/assets/screens/plan-view.light.png" width="720">
 </picture>
 
 <sub>The spec site and its plan view.</sub>
 
-### agentic-teamwork
+### delivery
 
 Mixed-skill teams shouldn't rely on discipline to keep prototypes off main.
 A repo opts in with one committed file, and from then on session hooks judge
@@ -172,16 +169,16 @@ A pre-commit hook covers the terminal and a CI gate backs both. Skills scaffold
 a repo, ship and land a change on GitHub or GitLab, and keep tests honest; a
 hard test gate is one opt-in away. Owns team version-control conventions; how
 agents share a codebase is agent-works' job. The two are meant to run together.
-[Read more →](plugins/agentic-engineering/skills/agentic-teamwork/README.md)
+[Read more →](plugins/agentic-engineering/skills/delivery/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/agentic-teamwork/assets/figures/four-commands-one-answer.dark.gif">
-  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="plugins/agentic-engineering/skills/agentic-teamwork/assets/figures/four-commands-one-answer.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/delivery/assets/figures/four-commands-one-answer.dark.gif">
+  <img alt="How the git guard judges one shell call. A harmless-looking command can't carry a forbidden one: each git call is judged where it really runs, and one deny stops the line." src="plugins/agentic-engineering/skills/delivery/assets/figures/four-commands-one-answer.gif" width="720">
 </picture>
 
 <sub>Each git call in a shell line is judged where it really runs, and one deny stops the line.</sub>
 
-### codebase-optimizer
+### code
 
 A staged, autonomous optimizer for whatever language your repo speaks
 (Python, JS/TS, Go, and Rust are detected out of the box). It organizes the
@@ -190,39 +187,39 @@ hubs an agent reads before descending), decomposes god-files, and deepens
 shallow architecture. Nothing moves until you have seen the plan, every
 change sits behind CI-faithful validation with revert-on-red, and nothing is
 ever pushed. It writes the hubs and checks that each one names its children.
-[Read more →](plugins/agentic-engineering/skills/codebase-optimizer/README.md)
+[Read more →](plugins/agentic-engineering/skills/code/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/codebase-optimizer/assets/figures/drifted-to-organized.dark.gif">
-  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="plugins/agentic-engineering/skills/codebase-optimizer/assets/figures/drifted-to-organized.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/code/assets/figures/drifted-to-organized.dark.gif">
+  <img alt="How a drifted repo becomes an organized one. Your repo is reorganized in stages you approved first, and a change that breaks something new is undone before the next one starts." src="plugins/agentic-engineering/skills/code/assets/figures/drifted-to-organized.gif" width="720">
 </picture>
 
 <sub>One small repo, stage by stage: the plan first, the tree tidied, a red change put back, the long file split.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/codebase-optimizer/assets/screens/report.dark.png">
-  <img alt="The architecture report: candidates for deepening, each with the files and the evidence." src="plugins/agentic-engineering/skills/codebase-optimizer/assets/screens/report.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/code/assets/screens/report.dark.png">
+  <img alt="The architecture report: candidates for deepening, each with the files and the evidence." src="plugins/agentic-engineering/skills/code/assets/screens/report.light.png" width="720">
 </picture>
 
 <sub>The architecture report, written about this repo's own tooling.</sub>
 
-### workflow-studio
+### harness
 
 Claude Code dynamic workflows are programs; you should be able to see them.
 An Unreal-Blueprint-style node canvas that compiles graphs to runnable
 `.claude/workflows/*.js` and round-trips them back, plus a route for
-hand-authoring without the GUI. [Read more →](plugins/agentic-engineering/skills/workflow-studio/README.md)
+hand-authoring without the GUI. [Read more →](plugins/agentic-engineering/skills/harness/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/workflow-studio/assets/figures/two-folders.dark.gif">
-  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="plugins/agentic-engineering/skills/workflow-studio/assets/figures/two-folders.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/figures/two-folders.dark.gif">
+  <img alt="How a graph on disk becomes a workflow Claude Code runs. The graph file is the one truth, so canvas and agent edits coexist, and nothing Claude Code runs changes until you publish." src="plugins/agentic-engineering/skills/harness/assets/figures/two-folders.gif" width="720">
 </picture>
 
 <sub>The graph file is the one truth, and nothing Claude Code runs changes until you publish.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/workflow-studio/assets/screens/canvas.dark.png">
-  <img alt="The workflow canvas: nodes wired together, one selected, its fields in the details panel." src="plugins/agentic-engineering/skills/workflow-studio/assets/screens/canvas.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/screens/canvas.dark.png">
+  <img alt="The workflow canvas: nodes wired together, one selected, its fields in the details panel." src="plugins/agentic-engineering/skills/harness/assets/screens/canvas.light.png" width="720">
 </picture>
 
 <sub>The canvas.</sub>
@@ -244,7 +241,7 @@ with light and dark stills for a plain README. It replaces
 
 <sub>The area's worked example, filmed by the area. Every other figure on this page was drawn with it, and so was the banner.</sub>
 
-### write-like-me
+### writing
 
 Everything an agent drafts for you ships in someone else's voice. A
 calibrated, tightly line-budgeted profile of how *you* write auto-loads into
@@ -252,62 +249,62 @@ every session, skills audit text for AI tells by hunting clusters of
 co-occurring patterns rather than lone buzzwords, and reflective hooks fold
 your style feedback back into the profile.
 Prose only: code and commit messages stay out of scope.
-[Read more →](plugins/agentic-engineering/skills/write-like-me/README.md)
+[Read more →](plugins/agentic-engineering/skills/writing/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/write-like-me/assets/figures/profile-page-revised.dark.gif">
-  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="plugins/agentic-engineering/skills/write-like-me/assets/figures/profile-page-revised.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/writing/assets/figures/profile-page-revised.dark.gif">
+  <img alt="How one remark becomes part of your profile. Say how you write once, and it becomes a line in the profile that every later session loads." src="plugins/agentic-engineering/skills/writing/assets/figures/profile-page-revised.gif" width="720">
 </picture>
 
 <sub>One remark about your style becomes a line in the profile every later session loads.</sub>
 
-### code-diet
+### code
 
 Every line an agent writes gets paid for more than once: at generation, at
-review, and in every future session that loads it as context. code-diet makes
+review, and in every future session that loads it as context. code makes
 the agent build at the lowest rung that works (a 7-rung ladder with hard
 safety carve-outs, kept in context as one line where the repo has opted in),
 checks what already exists before building, reviews diffs with script-located
 candidates and cuts applied behind validate-or-revert, and tracks every
 deliberate shortcut as a `debt:` marker with an expiry trigger. Evolved from
 the MIT-licensed ponytail plugin; borrowed stays labeled as borrowed.
-[Read more →](plugins/agentic-engineering/skills/code-diet/README.md)
+[Read more →](plugins/agentic-engineering/skills/code/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/code-diet/assets/figures/cut-by-cut.dark.gif">
-  <img alt="How review-diet lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="plugins/agentic-engineering/skills/code-diet/assets/figures/cut-by-cut.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/code/assets/figures/cut-by-cut.dark.gif">
+  <img alt="How review lands its cuts. A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for." src="plugins/agentic-engineering/skills/code/assets/figures/cut-by-cut.gif" width="720">
 </picture>
 
 <sub>A cut that turns a check red costs only itself, and the report counts the lines that landed.</sub>
 
-### plugin-workbench
+### harness
 
 A plugin's true cost is invisible until it's installed, and authoring a good
 one means guessing at standards nobody wrote down. This is both halves of
-that problem on one rubric: create-plugin interviews you, scaffolds the
+that problem on one rubric: plugin-create interviews you, scaffolds the
 layout (a skill per job, or areas with routes and one skill to type), and
-authors against the six evaluation dimensions; evaluate-plugin
+authors against the six evaluation dimensions; plugin-evaluate
 scores any path or git URL into an HTML scorecard with an adopt/rework
-verdict; improve-plugin applies the fixes ranked by how many points each one
-buys back; refresh-marketplace reinstalls a checkout's plugins so you can try
+verdict; plugin-improve applies the fixes ranked by how many points each one
+buys back; marketplace-refresh reinstalls a checkout's plugins so you can try
 them.
-[Read more →](plugins/agentic-engineering/skills/plugin-workbench/README.md)
+[Read more →](plugins/agentic-engineering/skills/harness/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/plugin-workbench/assets/figures/ledger-to-verdict.dark.gif">
-  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="plugins/agentic-engineering/skills/plugin-workbench/assets/figures/ledger-to-verdict.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/figures/ledger-to-verdict.dark.gif">
+  <img alt="How a plugin becomes one score. Every number on the scorecard is the script's: the model's only say is a 0-4 grade it has to back with a quote." src="plugins/agentic-engineering/skills/harness/assets/figures/ledger-to-verdict.gif" width="720">
 </picture>
 
 <sub>Every number on the scorecard is the script's.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/plugin-workbench/assets/screens/scorecard.dark.png">
-  <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/agentic-engineering/skills/plugin-workbench/assets/screens/scorecard.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/screens/scorecard.dark.png">
+  <img alt="A scorecard: six dimensions, a grade and a verdict." src="plugins/agentic-engineering/skills/harness/assets/screens/scorecard.light.png" width="720">
 </picture>
 
 <sub>A scorecard for picture-this.</sub>
 
-### context-doctor
+### harness
 
 A score says what a plugin should cost. This says what it did. Hooks are
 invisible from both ends: you never see a session-start briefing, and the
@@ -317,19 +314,19 @@ and the lens reads it back: each hook's output and who saw it, which skills
 kept their description in the listing, the size of every request, and what a
 compaction threw away. Then it names what went wrong, each finding with the
 fix: a hook over the host's cap, context a compaction did not bring back, a
-skill call the host refused. It used to live in plugin-workbench.
-[Read more →](plugins/agentic-engineering/skills/context-doctor/README.md)
+skill call the host refused. It used to be an area of its own, context-doctor.
+[Read more →](plugins/agentic-engineering/skills/harness/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/context-doctor/assets/figures/lost-at-compaction.dark.gif">
-  <img alt="How a rule lost at a compaction is found. A matcher that leaves out compact raises no error: the transcript is the one place the loss shows, and the finding names the fix." src="plugins/agentic-engineering/skills/context-doctor/assets/figures/lost-at-compaction.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/figures/lost-at-compaction.dark.gif">
+  <img alt="How a rule lost at a compaction is found. A matcher that leaves out compact raises no error: the transcript is the one place the loss shows, and the finding names the fix." src="plugins/agentic-engineering/skills/harness/assets/figures/lost-at-compaction.gif" width="720">
 </picture>
 
 <sub>Nothing fails when a rule is lost at a compaction. The transcript is where it shows.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/context-doctor/assets/screens/context-lens.dark.png">
-  <img alt="The context lens page: a session's findings, each with its fix, above the size of every request with the compaction marked." src="plugins/agentic-engineering/skills/context-doctor/assets/screens/context-lens.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/harness/assets/screens/context-lens.dark.png">
+  <img alt="The context lens page: a session's findings, each with its fix, above the size of every request with the compaction marked." src="plugins/agentic-engineering/skills/harness/assets/screens/context-lens.light.png" width="720">
 </picture>
 
 <sub>The lens reading a synthetic session.</sub>

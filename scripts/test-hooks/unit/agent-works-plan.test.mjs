@@ -16,8 +16,8 @@ import { SHADOW_FILE, isPlanSource, parseIssue, planCards, planHome, shadowFile 
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
 
 const AW = path.join(REPO, "plugins", "agentic-engineering", "skills", "agent-works", "scripts", "aw.mjs");
-const FUNNEL = path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning", "routes", "spec-init", "assets", "plan-status.mjs");
-const { scaffoldNamed } = await import(pathToFileURL(path.join(REPO, "plugins", "agentic-engineering", "skills", "but-first-planning", "routes", "spec-init", "scaffold.mjs")).href);
+const FUNNEL = path.join(REPO, "plugins", "agentic-engineering", "skills", "planning", "routes", "spec-init", "assets", "plan-status.mjs");
+const { scaffoldNamed } = await import(pathToFileURL(path.join(REPO, "plugins", "agentic-engineering", "skills", "planning", "routes", "spec-init", "scaffold.mjs")).href);
 const P = ".agents/plan/plan";
 const S1 = `${P}/01-foundations/01-skeleton`;
 const S2 = `${P}/01-foundations/02-polish`;
@@ -406,7 +406,7 @@ test("grant, claim, and done on a plan card: the funnel runs in the worktree, th
   assert.equal(granted.status, 0, granted.stderr);
   const brief = board(r.main, "brief", "01-01-01");
   assert.equal(brief.status, 0, brief.stderr);
-  assert.match(brief.stdout, /`\/agentic-engineering:but-first-planning build-tdd`/);
+  assert.match(brief.stdout, /`\/agentic-engineering:planning build-tdd`/);
   assert.match(brief.stdout, /- \[ \] Setup works/);
 
   const claimed = board(r.worktree, "claim", "01-01-01");

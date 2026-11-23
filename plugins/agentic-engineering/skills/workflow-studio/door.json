@@ -1,9 +1,0 @@
-{
-  "lead": "Use when the person wants to open the visual editor for Claude Code dynamic workflows, or to write or change a workflow script or its diagram.json graph by hand.",
-  "default": "author-workflow",
-  "routes": {
-    "author-workflow": {
-      "cue": "write or edit a workflow script or its graph by hand"
-    }
-  }
-}
