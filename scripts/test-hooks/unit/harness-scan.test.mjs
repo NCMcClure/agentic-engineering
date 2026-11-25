@@ -476,8 +476,8 @@ test("the plugin the workbench ships in passes the mechanical checks it applies 
   assert.equal(scan.mechanical_grades.CS7.grade, 4, "one SessionStart command tells the person Node is missing, and the rest are quiet");
   assert.deepEqual([scan.gates, scan.na], [[], { dimensions: [], checks: [] }]);
   // The three files that are not Node each say why in a debt line, which is what keeps MH5 whole.
-  assert.deepEqual(scan.components.non_node_scripts, ["skills/perceptual-loop/scripts/keypoints.py", "skills/perceptual-loop/scripts/semantic.py", "skills/planning/routes/spec-init/assets/comments-server.py"]);
-  assert.deepEqual([scan.components.shape, scan.components.areas, scan.components.skills], ["areas", 10, 11]);
+  assert.deepEqual(scan.components.non_node_scripts, ["skills/design/scripts/keypoints.py", "skills/design/scripts/semantic.py", "skills/planning/routes/spec-init/assets/comments-server.py"]);
+  assert.deepEqual([scan.components.shape, scan.components.areas, scan.components.skills], ["areas", 8, 9]);
   assert.ok(scan.components.routes >= 70, `${scan.components.routes} routes`);
   // An area is callable and a route is a document, so the plugin hides nothing a file could send an agent to call.
   assert.deepEqual(scan.hidden_mentions, []);

@@ -18,7 +18,7 @@
       "label": "agent-works",
       "kind": "area",
       "note": "a board, and a session per card",
-      "source": "plugins/agentic-engineering/skills/agent-works/door.json:2"
+      "source": "plugins/agentic-engineering/skills/agents/door.json:2"
     },
     {
       "id": "delivery",
@@ -39,14 +39,14 @@
       "label": "perceptual-loop",
       "kind": "area",
       "note": "shots for work judged by eye",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/door.json:2"
+      "source": "plugins/agentic-engineering/skills/design/door.json:2"
     },
     {
       "id": "docs-parity",
       "label": "docs-parity",
       "kind": "area",
       "note": "pages and shots, in the same change",
-      "source": "plugins/agentic-engineering/skills/docs-parity/door.json:2"
+      "source": "plugins/agentic-engineering/skills/docs/door.json:2"
     },
     {
       "id": "writing",
@@ -60,7 +60,7 @@
       "label": "system-map",
       "kind": "area",
       "note": "a map checked against the imports",
-      "source": "plugins/agentic-engineering/skills/system-map/door.json:2"
+      "source": "plugins/agentic-engineering/skills/docs/door.json:2"
     },
     {
       "id": "code",
@@ -85,7 +85,7 @@
       "to": "delivery",
       "kind": "event",
       "label": "tdd",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/work-card/ROUTE.md:46"
+      "source": "plugins/agentic-engineering/skills/agents/routes/work-card/ROUTE.md:46"
     },
     {
       "id": "ladder",
@@ -101,7 +101,7 @@
       "to": "perceptual-loop",
       "kind": "event",
       "label": "a look label",
-      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:9"
+      "source": "plugins/agentic-engineering/skills/agents/hooks/critical.json:9"
     },
     {
       "id": "locks",
@@ -109,7 +109,7 @@
       "to": "agent-works",
       "kind": "read",
       "label": "resource-locks",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/hooks/critical.json:8"
+      "source": "plugins/agentic-engineering/skills/design/hooks/critical.json:8"
     },
     {
       "id": "docs",
@@ -125,7 +125,7 @@
       "to": "writing",
       "kind": "event",
       "label": "prose",
-      "source": "plugins/agentic-engineering/skills/docs-parity/routes/docs-sync/ROUTE.md:47"
+      "source": "plugins/agentic-engineering/skills/docs/routes/sync/ROUTE.md:47"
     },
     {
       "id": "review",
@@ -133,7 +133,7 @@
       "to": "code",
       "kind": "query",
       "label": "review",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/review-card/ROUTE.md:38"
+      "source": "plugins/agentic-engineering/skills/agents/routes/review-card/ROUTE.md:38"
     },
     {
       "id": "land",
@@ -141,7 +141,7 @@
       "to": "delivery",
       "kind": "write",
       "label": "ship, land",
-      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:10"
+      "source": "plugins/agentic-engineering/skills/agents/hooks/critical.json:10"
     },
     {
       "id": "reorganise",
@@ -149,7 +149,7 @@
       "to": "code",
       "kind": "event",
       "label": "moving code",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/hubs/ROUTE.md:13"
+      "source": "plugins/agentic-engineering/skills/harness/routes/hubs/ROUTE.md:13"
     },
     {
       "id": "decisions",

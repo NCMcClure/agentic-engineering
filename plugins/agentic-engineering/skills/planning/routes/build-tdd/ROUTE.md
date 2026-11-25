@@ -70,7 +70,7 @@ named as next) is the test plan:
   vocabulary disagrees with the glossary is a rename waiting to happen.
 - A criterion about how something **looks or sounds** is not a unit assertion
   on bytes or a threshold picked by hand. Use
-  `/agentic-engineering:perceptual-loop` to prove the criterion on the few shots that
+  `/agentic-engineering:design` to prove the criterion on the few shots that
   show it; where the project cannot render a shot on command, capture the
   surface, look at the capture, and say that a person still has to judge it.
 
@@ -130,7 +130,7 @@ Every acceptance criterion maps to a named passing test; the issue's
 testing-checkpoint command exits 0; the tests that cover the change were run
 and named; the hubs your change touched are current; an issue whose
 `**User-facing**` line says `yes` changed its end-user pages and retook its
-screenshots in this same change (`/agentic-engineering:docs-parity docs-sync` if docs-parity is
+screenshots in this same change (`/agentic-engineering:docs sync` if docs-parity is
 installed, by hand per the spec's `user-docs-plan.md` otherwise), or the
 commit says `Docs: none, <why>`; status was flipped through the funnel
 without `--evidence`; and control is back with `build-next-issue`.

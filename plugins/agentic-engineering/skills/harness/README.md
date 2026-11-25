@@ -232,6 +232,13 @@ that one entry, and an area cannot be typed. An agent reaches a route as
 | `diagnose` | the agent, or you by asking (`[session id or transcript path] [--json]`) | Finds what went wrong with a session's context: each finding with its level, whose it is, where, and the fix. |
 | `lens` | the agent, or you by asking (`[report\|serve] [session id or transcript path]`) | Reads a session transcript back: what entered the context, when, from which area and hook, and what survived a compaction. |
 | `workflow` | the agent | Hand-author or edit workflows and `diagram.json` graphs: no GUI, just the protocol docs. |
+| `memory`, `decisions` | the agent | Read project memory, record a lesson or a status; a decision record, a new term, a contract page. |
+| `hubs`, `guard`, `doctor` | the agent | An `AGENTS.md` hub per directory; a refusal from the guard, or a mistake that must not recur; agent files that bloat or repeat, or a machine that lacks a tool. |
+| `setup` | you, by asking | Set a repository up for agent work, adopt the agent files it has, or install the `aw` launcher. |
+
+The last six came from agent-works with a repo's agent-facing setup. They run
+on the `aw` command line, which stays in the agents area with its references
+and templates, and each names that area's folder as the one it works from.
 
 ## Running the scripts yourself
 
@@ -261,4 +268,4 @@ manual, by-hand merge in whichever direction is wanted, never a blind re-copy.
 
 ## History
 
-This area joins three plugins and areas that once stood alone. The changelogs of the two that had one are kept as they were: [plugin-workbench](history/plugin-workbench.md) and [workflow-studio](history/workflow-studio.md).
+This area joins three plugins and areas that once stood alone, and the setup half of agent-works, whose changelog is kept with the agents area. The changelogs of the two here that had one are kept as they were: [plugin-workbench](history/plugin-workbench.md) and [workflow-studio](history/workflow-studio.md).

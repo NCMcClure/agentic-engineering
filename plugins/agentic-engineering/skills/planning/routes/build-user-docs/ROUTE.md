@@ -20,7 +20,7 @@ code instead of being one rushed pass at the end.
 
 Most docs land earlier than this: `build-tdd` updates the pages and
 screenshots of a `User-facing: yes` issue in the same change (through
-`/agentic-engineering:docs-parity docs-sync`).
+`/agentic-engineering:docs sync`).
 This route is the **coherence pass** over the whole set after a sprint
 verifies: it reads the managed pages as one document and fills what the
 per-issue passes could not see (a quickstart that now spans three features, a
@@ -131,11 +131,11 @@ Apply the ownership and coherence rules from [DOCS-STATE.md](DOCS-STATE.md):
 - Screenshots come from the project's capture harness, never by hand: retake
   the groups whose surfaces this sprint changed and look at every image written.
   No harness yet and the screenshots posture is not `none`: say so in the
-  report (`/agentic-engineering:docs-parity docs-shots` builds one).
+  report (`/agentic-engineering:docs shots` builds one).
 - Where the repo carries `.agents/docs-parity.json`,
   finish with its checker over the sprint, `docs-check.mjs --changed
   <sprint base>..HEAD --stale`, and fix or report every finding.
-  `/agentic-engineering:docs-parity docs-sync` runs it; a repo that copied the checker for CI has
+  `/agentic-engineering:docs sync` runs it; a repo that copied the checker for CI has
   it at `.agents/scripts/docs-check.mjs`. Otherwise skip this step and say in
   the report that no checker ran.
 

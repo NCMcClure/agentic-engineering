@@ -51,16 +51,19 @@ export function area(name) {
  * What every area's routes are held to, whatever the area: one test each,
  * named for the area. The gate already resolves each path a route writes
  * under a directory it named, and fails a route that writes the root
- * variable; these are the checks it does not make.
+ * variable; these are the checks it does not make. An area made of several
+ * holds each kind of route to its own words: `only` names the routes a call
+ * covers, and the door is checked by the call that leaves `door` on.
  */
-export function routeBasics(test, a, { when = /^(Use (when|for|before|to|after|at|on)|Run to) /, cap = 400, heading = false } = {}) {
-  test(`${a.name} routes: the door lists exactly the routes the area ships, and its default is one of them`, () => {
+export function routeBasics(test, a, { when = /^(Use (when|for|before|to|after|at|on)|Run to) /, cap = 400, heading = false, only = null, door = true } = {}) {
+  if (door) test(`${a.name} routes: the door lists exactly the routes the area ships, and its default is one of them`, () => {
     assert.deepEqual(Object.keys(a.door.routes).sort(), a.routes.map((r) => r.name));
     if (a.door.default) assert.ok(a.door.routes[a.door.default], `default ${a.door.default}`);
     assert.equal(a.skill.fields.name, a.name);
     assert.equal(a.skill.fields["user-invocable"], "false", "an area is the model's to call; a person comes in through the entry skill");
   });
-  for (const r of a.routes) {
+  if (only) for (const name of only) assert.ok(a.route(name), `${a.name} has no route ${name}`);
+  for (const r of a.routes.filter((route) => !only || only.includes(route.name))) {
     test(`${a.name} routes: ${r.name} has a matching name, a route's keys only, and a description that says when`, () => {
       assert.equal(r.fields.name, r.name);
       for (const key of Object.keys(r.fields)) assert.ok(ROUTE_KEYS.includes(key), `frontmatter key "${key}"`);

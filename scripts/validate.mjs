@@ -37,8 +37,8 @@ const SKILL_KEYS = new Set(["name", "description", "disable-model-invocation", "
 // MkDocs site, which is Python already wherever it runs.
 const NON_NODE_ALLOWLIST = new Set([
   `plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/comments-server.py`,
-  `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/keypoints.py`,
-  `plugins/${AREA_PLUGIN}/skills/perceptual-loop/scripts/semantic.py`,
+  `plugins/${AREA_PLUGIN}/skills/design/scripts/keypoints.py`,
+  `plugins/${AREA_PLUGIN}/skills/design/scripts/semantic.py`,
 ]);
 const NON_NODE_EXT = /\.(py|sh|bash|zsh|ps1|rb|pl)$/;
 // A vendored app tree carries its toolchain's own files; path rules skip it.
@@ -55,7 +55,7 @@ const EXIT_CALL = /^(?!\s*(?:\/\/|\/?\*)).*\bprocess\.exit\(/;
 // area's lines stay under its own cap, all of them together under the
 // combined target, and each session command's worst case under the host's
 // limit on a hook's output, past which the model reads a preview.
-const CRITICAL_CAPS = { "delivery": 1500, "agent-works": 2100, "code": 550, "docs-parity": 450, "planning": 750, "perceptual-loop": 1100, "system-map": 600 };
+const CRITICAL_CAPS = { "delivery": 1500, "agents": 1850, "harness": 250, "code": 550, "docs": 1050, "planning": 750, "design": 1100 };
 const CRITICAL_TOTAL = 7500;
 const HOOK_OUTPUT_CAP = 10000;
 // What the lines command can print beside the lines: the once-per-clone
@@ -82,7 +82,7 @@ const CUE_CAP = 60;
 const NOT_ADDRESSES = new Set(["agent-works:plugins"]);
 // The area that is a Claude Code mod: the handlers that answer its tools, and
 // the pattern the card sync reads a tool's name with.
-const MOD = { handlers: `plugins/${AREA_PLUGIN}/skills/agent-works/hooks/kanban/register.mjs`, observer: `plugins/${AREA_PLUGIN}/skills/agent-works/lib/sync.mjs` };
+const MOD = { handlers: `plugins/${AREA_PLUGIN}/skills/agents/hooks/kanban/register.mjs`, observer: `plugins/${AREA_PLUGIN}/skills/agents/lib/sync.mjs` };
 
 const isDir = (p) => { try { return fs.statSync(p).isDirectory(); } catch { return false; } };
 const exists = (p) => fs.existsSync(p);
@@ -558,12 +558,12 @@ async function validate() {
             if (!isRecording(f) && !isTemplateCopy(f)) fail(`${f}:${i + 1}: ${a.text} names ${a.plugin}, the plugin's name before ${ONE_PLUGIN}; write ${a.text.replace(a.plugin, ONE_PLUGIN)}${a.route ? ` ${a.route}` : ""}`, f);
             continue;
           }
-          const { owner, area } = owners.get(a.plugin) ?? {};
+          const { owner, area: most } = owners.get(a.plugin) ?? {};
           if (owner) {
             if (isRecording(f)) continue;
             const through = a.name === a.plugin, given = through ? a.route : a.name;
-            // A name retired when the areas were regrouped took its routes along, some renamed.
-            const route = renamedRoute(a.plugin, given)?.route ?? given;
+            // A name retired when the areas were regrouped took its routes along, some renamed, a few to another area.
+            const moved = renamedRoute(a.plugin, given), route = moved?.route ?? given, area = moved?.area ?? most;
             // An agent and an MCP server are the one plugin's own now, named
             // with no area: `<plugin>:<name>`, which is not a route to pass.
             const own = targets.get(owner), shipped = !through && (own.agent.has(a.name) || own.server.has(a.name));
@@ -594,7 +594,11 @@ async function validate() {
           const routes = target.areas.get(a.name);
           if (!a.route || !routes) continue;
           if (routes.has(a.route)) counted.route++;
-          else if (oldRouteIn(a.name, a.route)) fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is the name the route had in ${oldRouteIn(a.name, a.route).old}; write ${a.text} ${oldRouteIn(a.name, a.route).route}`, f);
+          else if (oldRouteIn(a.name, a.route)) {
+            const was = oldRouteIn(a.name, a.route), write = `${a.slash ? "/" : ""}${a.plugin}:${was.area} ${was.route}`;
+            if (was.area !== a.name) fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} went from ${was.old} to the ${was.area} area; write ${write}`, f);
+            else fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is the name the route had in ${was.old}; write ${write}`, f);
+          }
           else fail(`${f}:${i + 1}: ${a.text} ${a.route}: ${a.route} is not a route of the ${a.name} area; an area named alone is followed by punctuation or the end of its code span`, f);
         }
       });
@@ -784,7 +788,7 @@ async function validate() {
   // and no agent plumbing. The root README is the marketplace's front page,
   // with a figure for every area, and is held to the voice rules alone.
   try {
-    const checker = at("plugins", AREA_PLUGIN, "skills", "docs-parity", "scripts", "readme-check.mjs");
+    const checker = at("plugins", AREA_PLUGIN, "skills", "docs", "scripts", "readme-check.mjs");
     const { checkReadme } = await import(pathToFileURL(checker).href);
     // The root README is named for the marketplace, which the catalog states: a checkout's folder can be called anything.
     const landing = [

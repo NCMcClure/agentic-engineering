@@ -156,10 +156,10 @@ test("loading the module reads and writes nothing", () => {
 });
 
 // An area renamed when the areas were regrouped: writing was write-like-me,
-// and harness keeps what workflow-studio kept. Its new folder is filled once
+// harness keeps what workflow-studio kept, and docs what picture-this kept. Its new folder is filled once
 // from where its data was, and never over anything.
 test("a renamed area names the areas its data was kept under", () => {
-  assert.deepEqual(FORMER_NAMES, { writing: ["write-like-me"], harness: ["workflow-studio"] });
+  assert.deepEqual(FORMER_NAMES, { writing: ["write-like-me"], harness: ["workflow-studio"], docs: ["picture-this"] });
   assert.equal(renamedHome("write-like-me", { CLAUDE_PLUGIN_DATA: "data" }), path.resolve("data", "write-like-me"));
   for (const env of [{}, { CLAUDE_PLUGIN_DATA: "" }]) assert.equal(renamedHome("write-like-me", env), null);
 });
@@ -204,9 +204,18 @@ test("a renamed area copies once, never over its own folder, and never from its 
 
 test("the areas with a data folder copy their old data on first use", () => {
   const source = (rel) => fs.readFileSync(new URL(`../../../plugins/agentic-engineering/${rel}`, import.meta.url), "utf8");
-  for (const [area, rel] of [["writing", "skills/writing/scripts/wlm/paths.mjs"], ["harness", "skills/harness/scripts/launch-studio.mjs"]]) {
+  for (const [area, rel] of [["writing", "skills/writing/scripts/wlm/paths.mjs"], ["harness", "skills/harness/scripts/launch-studio.mjs"], ["docs", "skills/docs/scripts/lib/home.mjs"]]) {
     const text = source(rel);
     assert.match(text, /\binherit\(AREA\b/, `${rel} calls inherit`);
     assert.match(text, new RegExp(`const AREA = "${area}"`), `${rel} keeps its data under ${area}`);
   }
+});
+
+test("docs copies the figure studio picture-this kept, once, and pt finds it there", async (t) => {
+  const m = machine(t);
+  write(m.home("picture-this"), "studio/.install-stamp", "abc");
+  const { dataHome } = await import("../../../plugins/agentic-engineering/skills/docs/scripts/lib/home.mjs");
+  assert.equal(dataHome(m.env), m.home("docs"));
+  assert.deepEqual(tree(m.home("docs")), { "studio/.install-stamp": "abc" });
+  assert.deepEqual(tree(m.home("picture-this")), { "studio/.install-stamp": "abc" }, "a copy: the old folder is left as it was");
 });

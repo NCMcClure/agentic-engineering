@@ -45,7 +45,7 @@ import path from "node:path";
 export const MARKETPLACE = "agentic-engineering";
 export const PLUGIN = "agentic-engineering";
 // The areas that keep critical lines, in the order their blocks print.
-export const AREAS = ["delivery", "agent-works", "code", "docs-parity", "planning", "perceptual-loop", "system-map"];
+export const AREAS = ["delivery", "agents", "harness", "code", "docs", "planning", "design"];
 // Agents that must not get the lines: read-only searchers and planners that
 // never act on them, host helpers, and an unanchored judge that must never
 // see what the builder meant.
@@ -75,7 +75,7 @@ export const MIGRATE_MS = 3000;
 // What each part of the briefing command may print, in characters. A host
 // shows the model only a preview of a hook's output past 10,000, so each part
 // is cut to its allowance and the gate holds their sum under that.
-export const BRIEFING_CHARS = { "delivery": 1400, "agent-works": 900, "docs-parity": 300, "planning": 500, "perceptual-loop": 1400, "system-map": 400 };
+export const BRIEFING_CHARS = { "delivery": 1400, "agents": 900, "docs": 700, "planning": 500, "design": 1400 };
 // Every area's report of what its migration moved, together: one report may
 // take all of it, since two layouts rarely move in one session.
 export const MIGRATION_CHARS = 4200;
@@ -178,7 +178,7 @@ export function criticalBlocks(state, areas = readAreas()) {
 
 // ---- the route index -----------------------------------------------------
 // Where the skill listing does not fit its budget (a 200k context window),
-// the host lists this plugin's skills by name alone: eleven names, and no
+// the host lists this plugin's skills by name alone: nine names, and no
 // route among them, since a route is a document and never listed. So the
 // lines command says which routes each area has, and how one is taken. Read
 // from each area's door.json as it runs, so it cannot drift from the areas.

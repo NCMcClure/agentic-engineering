@@ -5,14 +5,17 @@
 // or a grader is sent looking for a section that is not there; the context
 // routes, which read a transcript and change nothing; and the workflow route,
 // beside the area's own page that opens the studio, whose launch command is
-// checked word by word since the agent runs it exactly as written.
+// checked word by word since the agent runs it exactly as written. A fourth
+// kind came from agent-works: the routes for a repo's agent-facing setup,
+// which run on the agents area's `aw` command line.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import { pluginRootPaths, walk } from "../../lib.mjs";
 import { runScan, runScore } from "../../../plugins/agentic-engineering/skills/harness/core/scripts/plugin-scan.mjs";
-import { AGENTCRAFT, area, routeBasics } from "./area-routes.mjs";
+import { AGENTCRAFT, area, code, routeBasics } from "./area-routes.mjs";
 import { REPO, runNode } from "./helpers.mjs";
 
 const AREA = area("harness");
@@ -22,14 +25,18 @@ const ROUTES = AREA.routes.map((r) => r.name).filter((name) => /^(plugin|marketp
 const text = (...rel) => fs.readFileSync(path.join(PLUGIN, ...rel), "utf8");
 const shipped = walk(PLUGIN).map((f) => f.split(path.sep).join("/"));
 
-test("harness routes: the area ships its seven, in three kinds, and a bare call diagnoses", () => {
-  assert.deepEqual(AREA.routes.map((r) => r.name), ["diagnose", "lens", "marketplace-refresh", "plugin-create", "plugin-evaluate", "plugin-improve", "workflow"]);
-  assert.deepEqual(Object.keys(AREA.door.routes), ["plugin-improve", "plugin-create", "plugin-evaluate", "marketplace-refresh", "diagnose", "lens", "workflow"]);
+// The routes that came from agent-works, for a repo's agent-facing setup.
+const SETUP = ["decisions", "doctor", "guard", "hubs", "memory", "setup"];
+
+test("harness routes: the area ships its thirteen, in four kinds, and a bare call diagnoses", () => {
+  assert.deepEqual(AREA.routes.map((r) => r.name), ["decisions", "diagnose", "doctor", "guard", "hubs", "lens", "marketplace-refresh", "memory", "plugin-create", "plugin-evaluate", "plugin-improve", "setup", "workflow"]);
+  assert.deepEqual(Object.keys(AREA.door.routes), ["plugin-improve", "plugin-create", "plugin-evaluate", "marketplace-refresh", "diagnose", "lens", "workflow", "memory", "decisions", "hubs", "guard", "doctor", "setup"]);
   assert.equal(AREA.door.default, "diagnose", "the question that brings someone here is what went wrong, and the lens is what answers how");
-  assert.equal(fs.existsSync(path.join(AREA.dir, "hooks")), false);
+  assert.deepEqual(fs.readdirSync(path.join(AREA.dir, "hooks")), ["critical.json"], "the hubs line, and no hook of its own");
 });
 
-routeBasics(test, AREA, { when: /\bUse\s+when\b/, cap: 1024 });
+routeBasics(test, AREA, { when: /\bUse\s+when\b/, cap: 1024, only: AREA.routes.map((r) => r.name).filter((name) => !SETUP.includes(name)) });
+routeBasics(test, AREA, { cap: 300, heading: true, only: SETUP, door: false });
 
 for (const route of AREA.routes.filter((r) => ROUTES.includes(r.name))) {
   const md = route.text;
@@ -47,8 +54,8 @@ for (const route of AREA.routes.filter((r) => ROUTES.includes(r.name))) {
   });
 }
 
-test("harness routes: only the two hand-run routes are the person's to start", () => {
-  assert.deepEqual(AREA.routes.map((r) => r.name).filter((name) => AREA.starts(name) === "person"), ["marketplace-refresh", "plugin-evaluate"]);
+test("harness routes: only the three hand-run routes are the person's to start", () => {
+  assert.deepEqual(AREA.routes.map((r) => r.name).filter((name) => AREA.starts(name) === "person"), ["marketplace-refresh", "plugin-evaluate", "setup"]);
 });
 
 test("harness routes: every route that calls Workflow() points at the subagent fallback, and the fallback is there to read", () => {
@@ -213,7 +220,7 @@ test("harness routes: each context route sends the other's question to the other
   assert.match(AREA.route("lens").body, /\/agentic-engineering:harness diagnose/);
   assert.match(AREA.route("diagnose").body, /\/agentic-engineering:harness lens/);
   // The boundary with the doctor that reads a repo's files, not a session.
-  assert.match(AREA.route("diagnose").body, /\/agentic-engineering:agent-works doctor/);
+  assert.match(AREA.route("diagnose").body, /\/agentic-engineering:harness doctor/);
 });
 
 test("harness: the area's own text says a fix is made only when asked, and never by a script", () => {
@@ -262,5 +269,38 @@ test("harness routes: the area ships no shell script outside the bundled app, an
   assert.deepEqual(files.filter((f) => /\.(py|pyc|sh|bash)$/.test(f)), []);
   for (const file of files.filter((f) => f.endsWith(".md") && !f.startsWith("history/"))) {
     assert.doesNotMatch(fs.readFileSync(path.join(AREA.dir, file), "utf8"), /launch-studio\.sh|\bbash "|\bpython3?\b/, file);
+  }
+});
+
+// ---- the setup routes: a repo's agent-facing setup, on the agents area's aw ----
+
+const AGENTS = area("agents");
+// How a route calls the command line: by a path under the agents area, which it names as W.
+const CALL = 'node "W/scripts/aw.mjs"';
+const { MODULES } = await import(pathToFileURL(path.join(AGENTS.dir, "scripts", "aw.mjs")).href);
+const COMMANDS = new Set(MODULES.flatMap((m) => m.commands));
+/** Each `aw <command>` a piece of code runs, whichever way `aw` is spelled. */
+const calls = (body) => [...body.matchAll(/(?:^|[\s(|;&])(?:aw|node "W\/scripts\/aw\.mjs")\s+([a-z][a-z-]*)/gm)].map((m) => m[1]);
+
+for (const name of SETUP) {
+  const route = AREA.route(name);
+  test(`harness routes: ${name} names the agents area as W, and every aw command it runs is one the dispatcher knows`, () => {
+    assert.match(route.body, /^`W` below is `\.\.\/\.\.\/\.\.\/agents` from the directory this file is in/m);
+    const found = code(route.body).flatMap(calls);
+    for (const command of found) assert.ok(COMMANDS.has(command), `aw ${command}`);
+    if (found.length) assert.ok(route.body.includes(CALL), `names aw and never says how to call it: ${CALL}`);
+    assert.doesNotMatch(route.text, /core\/references|\bcli\/|\.py\b|python|kanban-cards|\u2014/, name);
+  });
+}
+
+test("harness routes: a setup route that hands on to another names it through the area that has it now", () => {
+  for (const name of SETUP) {
+    for (const m of AREA.route(name).text.matchAll(/\/agentic-engineering:([a-z-]+) ([a-z-]+)/g)) {
+      assert.ok(area(m[1]).route(m[2]), `${name}: ${m[0]}`);
+    }
+  }
+  for (const { name, text } of [...AREA.routes, ...AGENTS.routes]) {
+    if (name === "setup") continue;
+    for (const m of text.matchAll(/[^.\n]*\/agentic-engineering:harness setup[^\n]*/g)) assert.match(m[0], /ask (the person|them)/, `${name}: ${m[0]}`);
   }
 });

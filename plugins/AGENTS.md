@@ -37,10 +37,12 @@ cached copies, so `../` paths out of it break.
 
 Each is `agentic-engineering/skills/<name>/`.
 
-- `agent-works` - one home per kind of agent-facing fact under `.agents/`, a
-  kanban board that runs a goal as child sessions, a guard, and machine-wide
-  locks and leases through the `aw` CLI. Descend to change a check, the card
-  format, the board pane, or what a session is told.
+- `agents` - a kanban board the person and the agents share, a goal run from
+  it as subagents or child sessions in their own worktrees, machine-wide
+  locks and leases, and the `aw` CLI with every agent-works hook, lib, and
+  reference behind it (harness's setup routes run on the same CLI). Descend
+  to change a check, the card format, the board pane, or what a session is
+  told.
 - `delivery` - team git conventions: hooks that judge a commit, a
   push and a stop, a scaffold, and routes to ship, land and test. Descend to
   change a rule, the scaffold a repo gets, or how a change request is landed.
@@ -51,27 +53,26 @@ Each is `agentic-engineering/skills/<name>/`.
   delete the rest behind validate-or-revert, and track debt; and reorganize a
   drifted repo in stages, each validated and reverted on red. Descend to
   change the ladder line, a scan, a stage, or the recon a stage reasons from.
-- `docs-parity` - user docs that move in the same change as the code, one
-  checker for missing, stale and broken pages, and a README check. Descend to
-  change the writer contract, the capture harness, or a checker.
-- `perceptual-loop` - checks for work judged by eye or ear: reproducible
-  shots, metrics, sheets, a blind critic, and a review queue for the person.
+- `docs` - user docs that move in the same change as the code, one checker
+  for missing, stale and broken pages, and a README check (`references/`,
+  `scripts/docs-check.mjs`, `scripts/readme-check.mjs`); a system map
+  extracted from `@system` annotations and checked against the import graph,
+  with the Miro board loop that draws it (`scripts/system-map.mjs`, the
+  `miro` route's generators, lint, live check, pull); and animated figures:
+  a kit of shapes copied into the repo (`kit/`, `blank/`), studies
+  (`studies/`), a studio that renders drafts and stills (`app/`), and the
+  `pt` CLI (`scripts/pt.mjs`). Descend to change the writer contract, a
+  checker, what the map checks, how a board is built, the kit, or the studio.
+- `design` - checks for work judged by eye or ear: reproducible shots,
+  metrics, sheets, a blind critic, and a review queue for the person.
   Descend to change what a number means or how the gate decides.
-- `picture-this` - a description or a codebase feature drawn as an animated
-  figure designed from the subject: a kit of shapes copied into the repo,
-  studies to learn from, a studio that renders drafts and stills, and the
-  `pt` CLI. Descend to change the kit, the studio, a study, the lens method,
-  or the house style.
 - `harness` - what shapes what an agent knows and may do: make, score and
   fix plugins against one rubric (`core/`); read a session's transcript for
   what entered the agent's context, from which area, and what a compaction
-  dropped (`scripts/`); and a node-canvas editor for Claude Code workflows
+  dropped (`scripts/`); a node-canvas editor for Claude Code workflows
   (`app/`, launched by `scripts/launch-studio.mjs`), plus a hand-authoring
-  route. Descend to change a grade, a finding or threshold, the app, or a
-  route.
-- `system-map` - a system map extracted from `@system` annotations, committed
-  as a file and checked against the import graph, with a whole-repo sweep; and
-  the Miro board loop that draws it (generators, lint, live check, pull).
-  Descend to change what the map checks or how a board is built.
+  route; and a repo's agent-facing setup (hubs, memory, decisions, the
+  guard, the doctor), whose routes run on the `aw` CLI in `agents/`.
+  Descend to change a grade, a finding or threshold, the app, or a route.
 - `writing` - a calibrated voice profile, AI-tell auditing, and hooks
   that learn from style feedback. Descend to change the profile or the hooks.

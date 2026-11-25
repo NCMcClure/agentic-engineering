@@ -39,7 +39,7 @@ export const WINDOWS = { default: {}, "200k": { CLAUDE_CODE_DISABLE_1M_CONTEXT: 
 //   --tools              the built-in tools, by name; every other one is gone
 //   --strict-mcp-config  with no --mcp-config: no MCP server loads, neither the
 //                        login's connectors nor a plugin's own
-//   --disallowedTools    the plugin's mod (the agent-works area's board) registers
+//   --disallowedTools    the plugin's mod (the agents area's board) registers
 //                        its tools without an MCP config, so they are denied
 //                        by name (NO_MCP)
 // checks/triggers.mjs fails a session whose transcript shows it was offered

@@ -11,7 +11,7 @@
       "label": "Generator",
       "kind": "module",
       "note": "says what is on the frame",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/project.mjs:52",
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/project.mjs:52",
       "hue": "blue"
     },
     {
@@ -19,7 +19,7 @@
       "label": "Layout file",
       "kind": "store",
       "note": "miro/<frame>.layout.json",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/miro.mjs:19",
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/miro.mjs:19",
       "hue": "violet"
     },
     {
@@ -27,28 +27,28 @@
       "label": "Build",
       "kind": "script",
       "note": "build.mjs",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/build.mjs:76"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/build.mjs:76"
     },
     {
       "id": "board",
       "label": "Miro board",
       "kind": "board",
       "note": "where people look, and drag",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/ROUTE.md:41"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/ROUTE.md:41"
     },
     {
       "id": "dump",
       "label": "Board dump",
       "kind": "script",
       "note": "runs in the board's tab",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/assets/board-dump.js:8"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/assets/board-dump.js:8"
     },
     {
       "id": "lint",
       "label": "Legibility lint",
       "kind": "check",
       "note": "25 checks of how Miro draws",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/lint.mjs:295"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/lint.mjs:295"
     }
   ],
   "flows": [
@@ -58,7 +58,7 @@
       "to": "build",
       "kind": "read",
       "label": "scene",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/project.mjs:52"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/project.mjs:52"
     },
     {
       "id": "place",
@@ -66,7 +66,7 @@
       "to": "build",
       "kind": "read",
       "label": "x, y, size",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/build.mjs:76"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/build.mjs:76"
     },
     {
       "id": "predict",
@@ -74,7 +74,7 @@
       "to": "lint",
       "kind": "query",
       "label": "predicted",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/build.mjs:98"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/build.mjs:98"
     },
     {
       "id": "publish",
@@ -82,7 +82,7 @@
       "to": "board",
       "kind": "write",
       "label": "update.svg",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/build.mjs:130"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/build.mjs:130"
     },
     {
       "id": "drawn",
@@ -90,7 +90,7 @@
       "to": "dump",
       "kind": "read",
       "label": "routes, captions",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/assets/board-dump.js:8"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/assets/board-dump.js:8"
     },
     {
       "id": "relint",
@@ -98,7 +98,7 @@
       "to": "lint",
       "kind": "query",
       "label": "live-dump.json",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/live.mjs:33"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/live.mjs:33"
     },
     {
       "id": "pull",
@@ -106,7 +106,7 @@
       "to": "layout",
       "kind": "write",
       "label": "layout",
-      "source": "plugins/agentic-engineering/skills/system-map/routes/miro-board/scripts/pull.mjs:105"
+      "source": "plugins/agentic-engineering/skills/docs/routes/miro/scripts/pull.mjs:105"
     }
   ],
   "quantities": [

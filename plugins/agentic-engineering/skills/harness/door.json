@@ -1,5 +1,5 @@
 {
-  "lead": "Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, and writing or opening Claude Code workflows.",
+  "lead": "Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor.",
   "default": "diagnose",
   "routes": {
     "plugin-improve": {
@@ -24,6 +24,25 @@
     },
     "workflow": {
       "cue": "write or edit a workflow script or its graph by hand"
+    },
+    "memory": {
+      "cue": "read project memory, record a lesson, update status"
+    },
+    "decisions": {
+      "cue": "a hard-to-reverse choice, a new term, a contract page"
+    },
+    "hubs": {
+      "cue": "a directory added or moved, an AGENTS.md hub finding"
+    },
+    "guard": {
+      "cue": "the guard refused or warned, or a mistake must not recur"
+    },
+    "doctor": {
+      "cue": "agent files bloated or repeated, or the machine lacks a tool"
+    },
+    "setup": {
+      "cue": "set a repository up for agent work, install the launcher",
+      "starts": "person"
     }
   }
 }

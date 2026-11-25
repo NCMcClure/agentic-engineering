@@ -34,7 +34,7 @@ const PREVIOUS_PLUGIN = "agentcraft";
  * the area, or the areas, it was made from. Only an area with a data folder
  * is here; one that merged several keeps the folder of the one that had data.
  */
-export const FORMER_NAMES = { writing: ["write-like-me"], harness: ["workflow-studio"] };
+export const FORMER_NAMES = { writing: ["write-like-me"], harness: ["workflow-studio"], docs: ["picture-this"] };
 
 /** The area's folder in the plugin's data directory. Throws when the host set no data directory. */
 export function areaHome(area, env = process.env) {

@@ -5,25 +5,17 @@
       "header": "Plan & run",
       "areas": [
         "planning",
-        "agent-works",
+        "agents",
         "delivery",
         "code"
       ]
     },
     {
-      "title": "Document and draw the code",
-      "header": "Docs & maps",
+      "title": "Document, judge, and write",
+      "header": "Docs & look",
       "areas": [
-        "docs-parity",
-        "system-map",
-        "picture-this"
-      ]
-    },
-    {
-      "title": "Judge the result, and write",
-      "header": "Judge, write",
-      "areas": [
-        "perceptual-loop",
+        "docs",
+        "design",
         "writing"
       ]
     },
@@ -58,9 +50,9 @@
         }
       ]
     },
-    "agent-works": {
+    "agents": {
       "cue": "run several tasks at once, each in its own session",
-      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, has a subagent build each card in its own worktree (or a child session, when you ask for sessions), and reviews what comes back. It also keeps a repo's agent-facing files in one place under `.agents/`.",
+      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, has a subagent build each card in its own worktree (or a child session, when you ask for sessions), and reviews what comes back.",
       "uses": [
         {
           "want": "build a goal bigger than one change, or resume a round",
@@ -71,13 +63,8 @@
           "to": "board"
         },
         {
-          "want": "set a repository up for agent work",
-          "to": "setup",
-          "starts": "person"
-        },
-        {
-          "want": "find out why agent files have bloated, or what the machine lacks",
-          "to": "doctor"
+          "want": "hold a port, a simulator, or a GPU only one session may use",
+          "to": "locks"
         }
       ]
     },
@@ -126,74 +113,35 @@
         }
       ]
     },
-    "docs-parity": {
-      "cue": "keep user docs level with the code",
-      "how": "Pages, screenshots, and the nav move in the same change as the code they describe; a Stop check and CI say when they did not.",
+    "docs": {
+      "cue": "keep docs, diagrams, and figures level with the code",
+      "how": "Pages, screenshots, the README, and a system map drawn on Miro move in the same change as the code they describe, with a Stop check and CI to say when they did not; a figure of how something works is drawn from a model of it and captured for a README.",
       "uses": [
         {
           "want": "bring the docs level with a change before it is committed",
-          "to": "docs-sync"
-        },
-        {
-          "want": "find out whether the whole docs set is current",
-          "to": "docs-audit"
+          "to": "sync"
         },
         {
           "want": "cut a README down to what a newcomer needs",
           "to": "readme"
         },
         {
-          "want": "adopt the docs checks in a repo",
-          "to": "docs-init",
-          "starts": "person"
-        }
-      ]
-    },
-    "system-map": {
-      "cue": "keep a diagram of the system that the code checks",
-      "how": "`@system` annotations in the code become a committed map that is checked against the imports and drawn as a frame on a Miro board, with a lint before publishing and a live check after.",
-      "uses": [
-        {
-          "want": "give a repo a system map generated from its code",
-          "to": "diagrams-init",
-          "starts": "person"
+          "want": "bring the system map and its board level with a code change",
+          "to": "map-sync"
         },
-        {
-          "want": "bring the map and its board level with a code change",
-          "to": "diagrams-sync"
-        },
-        {
-          "want": "draw or update a diagram on Miro",
-          "to": "miro-board"
-        },
-        {
-          "want": "set up the browser the live Miro check drives",
-          "to": "browser-setup",
-          "starts": "person"
-        }
-      ]
-    },
-    "picture-this": {
-      "cue": "draw how something works as an animated figure",
-      "how": "From a description or a feature in a codebase it finds the lens, models the subject, drafts three views, refines one, and delivers a React component plus stills for a README.",
-      "uses": [
         {
           "want": "turn a system, a mechanism, or an idea into a figure",
-          "to": "visualize"
-        },
-        {
-          "want": "retake a figure's stills, strip, or GIF for a README",
-          "to": "export-stills"
+          "to": "figure"
         }
       ]
     },
-    "perceptual-loop": {
+    "design": {
       "cue": "check work judged by eye or ear",
       "how": "The session writes down what will prove a change, renders a few reproducible shots before and after, gates the numbers against the last accepted run, and looks at the picture before calling it done. Questions of taste wait for the person on one review page.",
       "uses": [
         {
           "want": "start any change to how something looks, moves, or sounds",
-          "to": "perceptual-loop"
+          "to": "design"
         },
         {
           "want": "set a project up so it can render a shot on command",
@@ -202,11 +150,11 @@
         },
         {
           "want": "check an animation, a transition, or a clip",
-          "to": "check-motion"
+          "to": "motion"
         },
         {
           "want": "check a sound, or a sound against its picture",
-          "to": "check-audio"
+          "to": "audio"
         }
       ]
     },

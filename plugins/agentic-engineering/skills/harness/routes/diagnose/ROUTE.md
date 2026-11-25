@@ -21,7 +21,7 @@ and this reads it for the faults that have a known cause.
   it.
 - **Not this route:** the agent files in a repo (a stale hub, a missing
   marker, a hook that is not installed). That is on disk, and
-  `/agentic-engineering:agent-works doctor` checks and repairs it.
+  `/agentic-engineering:harness doctor` checks and repairs it.
 - **Not this route:** what a plugin should cost, from its files.
   `/agentic-engineering:harness plugin-evaluate` scores that.
 

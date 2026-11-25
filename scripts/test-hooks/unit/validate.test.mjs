@@ -56,18 +56,18 @@ test("this checkout passes", (t) => {
   const result = validate(tree(t));
   assert.equal(result.status, 0, result.stdout);
   assert.match(result.stdout, /^validate: all green$/m);
-  assert.match(result.stdout, /^ok: 10 areas: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
+  assert.match(result.stdout, /^ok: 8 areas: current, within the caps, user-invocable: false and callable, every route a ROUTE\.md in its table, no SKILL\.md below$/m);
   assert.match(result.stdout, /^ok: 1 plugin directory: /m);
   assert.match(result.stdout, new RegExp(`^ok: no install line names an area or a plugin's old name: the one to install is ${ONE}@agentic-engineering$`, "m"));
-  assert.match(result.stdout, /^ok: the entry skill offers 10 areas/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 8 areas/m);
 });
 
 test("a new area that meets every rule passes", (t) => {
   const result = validate(tree(t, withArea()));
   assert.equal(result.status, 0, result.stdout);
-  assert.match(result.stdout, /^ok: 11 areas: /m);
+  assert.match(result.stdout, /^ok: 9 areas: /m);
   assert.match(result.stdout, /^ok: \d+ addresses resolve \(.*\), [1-9]\d* of them on through an area to its route$/m);
-  assert.match(result.stdout, /^ok: the entry skill offers 11 areas/m);
+  assert.match(result.stdout, /^ok: the entry skill offers 9 areas/m);
 });
 
 test("a catalog entry with a version key fails", (t) => {
@@ -288,26 +288,26 @@ test("the areas' critical lines pass within their caps, and the gate prints the 
 });
 
 test("lines over an area's cap, or with a bad audience, mode or when, or the wrong area name, fail", (t) => {
-  const data = { area: "docs", lines: [line("x".repeat(600)), line("Wrong audience.", { for: "everyone" }), line("Wrong mode.", { mode: "sometimes" }), line("Wrong gate.", { when: ["docs", 7] })] };
-  const result = gate(tree(t, { write: lines("docs-parity", data) }));
+  const data = { area: "doc", lines: [line("x".repeat(1100)), line("Wrong audience.", { for: "everyone" }), line("Wrong mode.", { mode: "sometimes" }), line("Wrong gate.", { when: ["docs", 7] })] };
+  const result = gate(tree(t, { write: lines("docs", data) }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}critical lines are \\d+ characters, over the 450 cap`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong audience\\." needs for: main or all`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong mode\\." needs mode: full, portable, any`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Wrong gate\\." needs when: a repo path, or a list of them`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}area is "docs", expected docs-parity`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}critical lines are \\d+ characters, over the 1050 cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}"Wrong audience\\." needs for: main or all`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}"Wrong mode\\." needs mode: full, portable, any`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}"Wrong gate\\." needs when: a repo path, or a list of them`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}area is "doc", expected docs`, "m"));
 });
 
 test("every area is present, so a chains block and a line that names a partner both fail", (t) => {
-  const data = { lines: [line("Shots go through the loop.", { partner: "perceptual-loop" })], chains: [line("Docs change with the code.", { partner: "agent-works" })] };
-  const result = gate(tree(t, { write: lines("docs-parity", data) }));
+  const data = { lines: [line("Shots go through the loop.", { partner: "design" })], chains: [line("Docs change with the code.", { partner: "agents" })] };
+  const result = gate(tree(t, { write: lines("docs", data) }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}it carries a chains block; a line that waited on another plugin is a line of its own now, behind its own when`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("docs-parity")}"Shots go through the loop\\." names a partner; every area is present`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}it carries a chains block; a line that waited on another plugin is a line of its own now, behind its own when`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("docs")}"Shots go through the loop\\." names a partner; every area is present`, "m"));
 });
 
 test("lines past the total, or a command that could print past what a host shows in full, fail", (t) => {
-  const big = Object.assign({}, ...["agent-works", "delivery", "perceptual-loop"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
+  const big = Object.assign({}, ...["agents", "delivery", "design"].map((name) => lines(name, { lines: [line("x".repeat(2600))] })));
   let result = gate(tree(t, { write: big }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, /^FAIL: critical lines and the route index total \d+ characters, over the 7500 target/m);
@@ -332,12 +332,12 @@ test("the route index counts toward the lines' total, and a helper that prints n
 });
 
 test("AREAS in the helper and the caps in the gate name the same areas, each with its lines", (t) => {
-  let result = gate(tree(t, { text: { [HELPER]: (s) => s.replace('"perceptual-loop", "system-map"];', '"perceptual-loop", "tidy"];') } }));
+  let result = gate(tree(t, { text: { [HELPER]: (s) => s.replace('"planning", "design"];', '"planning", "tidy"];') } }));
   assert.equal(result.status, 1);
-  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS does not list system-map, which CRITICAL_CAPS in scripts/validate\\.mjs gives a cap`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS does not list design, which CRITICAL_CAPS in scripts/validate\\.mjs gives a cap`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists tidy, which has no cap in CRITICAL_CAPS in scripts/validate\\.mjs`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists tidy, which has no plugins/${ONE}/skills/tidy/hooks/critical\\.json`, "m"));
-  assert.match(result.stdout, new RegExp(`^${where("system-map")}system-map is not in AREAS in ${HELPER}, so its lines never print`, "m"));
+  assert.match(result.stdout, new RegExp(`^${where("design")}design is not in AREAS in ${HELPER}, so its lines never print`, "m"));
 
   result = gate(tree(t, { remove: [AREA("code", "hooks/critical.json")] }));
   assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: AREAS lists code, which has no plugins/${ONE}/skills/code/hooks/critical\\.json`, "m"));
@@ -350,13 +350,13 @@ test("a second copy of the helper, an area's own session hook, and a briefing wi
       [AREA("code", "hooks/session-start.mjs")]: "process.exitCode = 0;\n",
       [AREA("code", "hooks/briefing.mjs")]: "export const briefing = () => \"\";\n",
     },
-    remove: [AREA("system-map", "hooks/briefing.mjs")],
+    remove: [AREA("docs", "hooks/briefing.mjs")],
   }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/critical-context\\.mjs")} is a second copy of the session helper; the one copy is ${HELPER}`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/session-start\\.mjs")}: an area has no session hook of its own`, "m"));
   assert.match(result.stdout, new RegExp(`^FAIL: ${AREA("code", "hooks/briefing\\.mjs")} has no allowance in BRIEFING_CHARS in ${HELPER}, so the briefing command never loads it`, "m"));
-  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: BRIEFING_CHARS gives system-map an allowance, and plugins/${ONE}/skills/system-map/hooks/briefing\\.mjs is not there`, "m"));
+  assert.match(result.stdout, new RegExp(`^FAIL: ${HELPER}: BRIEFING_CHARS gives docs an allowance, and plugins/${ONE}/skills/docs/hooks/briefing\\.mjs is not there`, "m"));
 });
 
 test("a hook map that runs the lines other than once per event, or the briefing other than once at session start, fails", (t) => {
@@ -495,10 +495,10 @@ const GONE = [ONE, "nobody"].join(":"), WAS = [OLD, "critic"].join(":");
 const FORMER = ["agent", "craft"].join("");
 const FORMER_PAGE = [
   `Install it: \`/plugin install ${FORMER}@agentic-engineering\`.`,
-  `Or call /${FORMER}:agent-works orchestrate.`,
+  `Or call /${FORMER}:agents orchestrate.`,
   `Or ${FORMER}:vision-critic.`,
   `Or \`${["mcp", FORMER, "move_task"].join("__")}\`.`,
-  `Or \`/${ONE}:agent-works orchestrate\`, which is current.`,
+  `Or \`/${ONE}:agents orchestrate\`, which is current.`,
 ].join("\n");
 const cleanups = [];
 after(() => { for (const fn of cleanups) fn(); });
@@ -525,7 +525,7 @@ const broken = () => (brokenOnce ??= (() => {
     text: {
       "README.md": (s) => `${s}\nTo sweep, run \`/plugin install ${OLD}@agentic-engineering\`. To go back, \`/plugin uninstall ${OLD}@agentic-engineering\`.\n`,
       [`${HOME}/hooks/critical-context.mjs`]: (s) => s.replace(/(export const DENYLIST = new Set\(\[[^\]]*)\]/, (whole, head) => `${head}, "${GONE}", "${WAS}"]`),
-      [`${HOME}/skills/agent-works/hooks/kanban/register.mjs`]: (s) => s.replaceAll(`mcp__${ONE}__`, "mcp__kanban__"),
+      [`${HOME}/skills/agents/hooks/kanban/register.mjs`]: (s) => s.replaceAll(`mcp__${ONE}__`, "mcp__kanban__"),
     },
   }));
   runNode("scripts/gen-guide.mjs", ["--root", dir, "--write"]);
@@ -572,7 +572,7 @@ test("an address resolves to what the plugin ships: an old plugin name, a route 
   const found = findings("docs/moved.md").map((l) => l.slice(0, l.lastIndexOf(" (")));
   assert.deepEqual(found, [
     `FAIL: docs/moved.md:1: /${OLD}:sweep names tidy as a plugin, and it is an area of ${ONE}; write /${ONE}:tidy sweep`,
-    `FAIL: docs/moved.md:2: /${RENAMED}:sweep names ${RENAMED} as a plugin, and it is the system-map area of ${ONE}; write /${ONE}:system-map sweep`,
+    `FAIL: docs/moved.md:2: /${RENAMED}:sweep names ${RENAMED} as a plugin, and it is the docs area of ${ONE}; write /${ONE}:docs sweep`,
     `FAIL: docs/moved.md:3: /${ONE}:brush names a route of the tidy area directly; write /${ONE}:tidy brush`,
     `FAIL: docs/moved.md:4: /${ONE}:tidy mop: mop is not a route of the tidy area; an area named alone is followed by punctuation or the end of its code span`,
     `FAIL: docs/moved.md:5: /${ONE}:nothing is not a skill, agent, or MCP server of ${ONE}`,
@@ -584,7 +584,7 @@ test("the plugin's name before 2.0.0 is no install line, no address, and no MCP 
   const found = findings("docs/renamed.md").map((l) => l.slice(0, l.lastIndexOf(" (")));
   assert.deepEqual(found, [
     `FAIL: docs/renamed.md:1: tells its reader to install ${FORMER}@agentic-engineering, which the catalog does not list; the plugin to install is ${ONE}@agentic-engineering`,
-    `FAIL: docs/renamed.md:2: /${FORMER}:agent-works names ${FORMER}, the plugin's name before ${ONE}; write /${ONE}:agent-works orchestrate`,
+    `FAIL: docs/renamed.md:2: /${FORMER}:agents names ${FORMER}, the plugin's name before ${ONE}; write /${ONE}:agents orchestrate`,
     `FAIL: docs/renamed.md:3: ${FORMER}:vision-critic names ${FORMER}, the plugin's name before ${ONE}; write ${ONE}:vision-critic`,
     `FAIL: docs/renamed.md:4: mcp__${FORMER}__move_task names ${FORMER}, the plugin's name before ${ONE}; write mcp__${ONE}__move_task`,
   ]);
@@ -609,7 +609,7 @@ test("a route names its directories from its own file and writes neither variabl
 test("a DENYLIST entry names an agent the plugin ships, and the mod's tools carry the plugin's prefix", () => {
   assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${GONE}" matches no agent: ${HOME}/agents/nobody\\.md is not there`, "m"));
   assert.match(broken(), new RegExp(`^FAIL: DENYLIST entry "${WAS}" names an agent by the plugin it was in; tidy is an area of ${ONE}, so the host names it ${ONE}:critic`, "m"));
-  assert.match(broken(), new RegExp(`^FAIL: ${HOME}/skills/agent-works/hooks/kanban/register\\.mjs answers mcp__kanban__\\w+; the mod's tools are mcp__${ONE}__<tool>`, "m"));
+  assert.match(broken(), new RegExp(`^FAIL: ${HOME}/skills/agents/hooks/kanban/register\\.mjs answers mcp__kanban__\\w+; the mod's tools are mcp__${ONE}__<tool>`, "m"));
 });
 
 // The plugin's README is held to the README check the plugin ships; the root
@@ -675,4 +675,37 @@ test("an area or a route retired in the regroup fails with the address it is now
 test("an old area name is no install line either", (t) => {
   const result = gate(tree(t, { write: { "docs/install.md": `Install it: \`/plugin install ${DIET}@agentic-engineering\`.\n` } }));
   assert.match(result.stdout, new RegExp(`^FAIL: docs/install\\.md:1: tells its reader to install ${DIET}@agentic-engineering, which the catalog does not list; the plugin to install is ${ONE}@agentic-engineering`, "m"));
+});
+
+// The second half of the regroup: docs-parity, system-map and picture-this
+// went into docs, perceptual-loop became design, and agent-works split, the
+// routes that run work going to agents and a repo's setup to harness. Each
+// retired name is built from its parts here too.
+const PARITY = ["docs", "parity"].join("-"), WORKS = ["agent", "works"].join("-"), LOOP = ["perceptual", "loop"].join("-"), PICTURE = ["picture", "this"].join("-");
+const SECOND_PAGE = [
+  `Run /${ONE}:${PARITY} ${["docs", "sync"].join("-")}.`,
+  `Or /${WORKS}:${["resource", "locks"].join("-")}.`,
+  `Or /${ONE}:${WORKS} hubs.`,
+  `Or \`/${ONE}:agents hubs\`.`,
+  `Or \`/${ONE}:design ${["check", "motion"].join("-")}\`.`,
+  `Or \`/${ONE}:docs ${["diagrams", "sync"].join("-")}\`.`,
+  `Or /${PICTURE}:visualize.`,
+  `Or /${ONE}:${LOOP}.`,
+  `This works: \`/${ONE}:harness hubs\`, /${ONE}:agents locks, and /${ONE}:docs map-sync.`,
+].join("\n");
+
+test("an area that merged or split in the second half fails with the address it is now, a moved route by the area that has it", (t) => {
+  const result = gate(tree(t, { write: { "docs/second.md": `${SECOND_PAGE}\n` } }));
+  assert.equal(result.status, 1);
+  const found = result.stdout.split("\n").filter((l) => l.startsWith("FAIL: docs/second.md")).map((l) => l.slice(0, l.lastIndexOf(" (")));
+  assert.deepEqual(found, [
+    `FAIL: docs/second.md:1: /${ONE}:${PARITY} ${["docs", "sync"].join("-")} names ${PARITY}, an area of ${ONE} before it moved into docs; write /${ONE}:docs sync`,
+    `FAIL: docs/second.md:2: /${WORKS}:${["resource", "locks"].join("-")} names ${WORKS} as a plugin, and it is the agents area of ${ONE}; write /${ONE}:agents locks`,
+    `FAIL: docs/second.md:3: /${ONE}:${WORKS} hubs names ${WORKS}, an area of ${ONE} before it moved into harness; write /${ONE}:harness hubs`,
+    `FAIL: docs/second.md:4: /${ONE}:agents hubs: hubs went from ${WORKS} to the harness area; write /${ONE}:harness hubs`,
+    `FAIL: docs/second.md:5: /${ONE}:design ${["check", "motion"].join("-")}: ${["check", "motion"].join("-")} is the name the route had in ${LOOP}; write /${ONE}:design motion`,
+    `FAIL: docs/second.md:6: /${ONE}:docs ${["diagrams", "sync"].join("-")}: ${["diagrams", "sync"].join("-")} is the name the route had in ${["system", "map"].join("-")}; write /${ONE}:docs map-sync`,
+    `FAIL: docs/second.md:7: /${PICTURE}:visualize names ${PICTURE} as a plugin, and it is the docs area of ${ONE}; write /${ONE}:docs figure`,
+    `FAIL: docs/second.md:8: /${ONE}:${LOOP} names ${LOOP}, an area of ${ONE} before it moved into design; write /${ONE}:design`,
+  ]);
 });

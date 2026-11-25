@@ -95,10 +95,10 @@ ask for the work in words and the agent picks the area.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/routes-behind-names.dark.gif">
-  <img alt="How one plugin keeps 75 routes behind eleven names. A session lists eleven names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
+  <img alt="How one plugin keeps 75 routes behind nine names. A session lists nine names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
 </picture>
 
-<sub>Eleven names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
+<sub>Nine names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
 
 ### agent-works
 
@@ -113,18 +113,18 @@ subagent builds each card unless you ask for sessions. A
 guard stops the mistakes agents repeat, and locks, leases, notes and learnings
 let sessions across projects share one machine. Node 22, nothing else. It is
 the foundation the areas below lean on.
-[Read more →](plugins/agentic-engineering/skills/agent-works/README.md)
+[Read more →](plugins/agentic-engineering/skills/agents/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/agent-works/assets/figures/one-window.dark.gif">
-  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="plugins/agentic-engineering/skills/agent-works/assets/figures/one-window.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/agents/assets/figures/one-window.dark.gif">
+  <img alt="How one context window carries a whole round. A window that delegates holds hand-offs and one-line reports, not the work, so a 500K threshold is room for a whole round." src="plugins/agentic-engineering/skills/agents/assets/figures/one-window.gif" width="720">
 </picture>
 
 <sub>One orchestrator window carries a whole round: it holds hand-offs and one-line reports, not the work.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/agent-works/assets/screens/doctor.dark.png">
-  <img alt="The aw doctor report for this repo: every check, its severity and what to do about it." src="plugins/agentic-engineering/skills/agent-works/assets/screens/doctor.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/agents/assets/screens/doctor.dark.png">
+  <img alt="The aw doctor report for this repo: every check, its severity and what to do about it." src="plugins/agentic-engineering/skills/agents/assets/screens/doctor.light.png" width="720">
 </picture>
 
 <sub><code>aw doctor</code>, run on this repo.</sub>
@@ -232,7 +232,7 @@ codebase, and get three rough animated drafts to choose from, each a
 different picture designed from that subject and not from a template. The one you pick becomes a React component that embeds in MDX,
 with light and dark stills for a plain README. It replaces
 `animated-storytelling`.
-[Read more →](plugins/agentic-engineering/skills/picture-this/README.md)
+[Read more →](plugins/agentic-engineering/skills/docs/README.md)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/iso-flow.dark.gif">
@@ -340,32 +340,32 @@ sheets the agent opens with its own vision, and one review page that batches
 the taste questions for you. One Node CLI does the measuring, a hook keeps
 runs small, and a blind critic judges a picture without being told what it was
 meant to be. It measures looks and does not coordinate agents: locks, leases
-and machine load are agent-works' job. [Read more →](plugins/agentic-engineering/skills/perceptual-loop/README.md)
+and machine load are agent-works' job. [Read more →](plugins/agentic-engineering/skills/design/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/toward-a-reference.dark.gif">
-  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/toward-a-reference.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/design/assets/figures/toward-a-reference.dark.gif">
+  <img alt="Closing in on a reference picture. A model can look at a picture but cannot measure it, so pl hands it the numbers and a map of where to look next." src="plugins/agentic-engineering/skills/design/assets/figures/toward-a-reference.gif" width="720">
 </picture>
 
 <sub>A still against its reference: where they differ, drawn as a map, and the marked place enlarged and scored by itself.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/motion-between-frames.dark.gif">
-  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/motion-between-frames.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/design/assets/figures/motion-between-frames.dark.gif">
+  <img alt="Motion, measured between the frames. An agent that only ever sees stills can find a stutter, name the frame and the spot, fix it, and show the motion is even again." src="plugins/agentic-engineering/skills/design/assets/figures/motion-between-frames.gif" width="720">
 </picture>
 
 <sub>Motion: the frame whose step stands out, the frames round it, and which way things moved between them.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/sound-you-can-see.dark.gif">
-  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="plugins/agentic-engineering/skills/perceptual-loop/assets/figures/sound-you-can-see.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/design/assets/figures/sound-you-can-see.dark.gif">
+  <img alt="A sound an agent can see. An agent with no ears can still see what is wrong with a sound, and when, then check its own fix." src="plugins/agentic-engineering/skills/design/assets/figures/sound-you-can-see.gif" width="720">
 </picture>
 
 <sub>Sound: a click the agent cannot hear, standing as a tall line in the picture and named by its time.</sub>
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/perceptual-loop/assets/screens/review.dark.png">
-  <img alt="The review page: the taste questions batched for a person, each with its pictures." src="plugins/agentic-engineering/skills/perceptual-loop/assets/screens/review.light.png" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/design/assets/screens/review.dark.png">
+  <img alt="The review page: the taste questions batched for a person, each with its pictures." src="plugins/agentic-engineering/skills/design/assets/screens/review.light.png" width="720">
 </picture>
 
 <sub>The review page.</sub>
@@ -380,11 +380,11 @@ deterministically, for web, desktop, CLI, Unreal, Qt or mobile. One checker
 maps code to pages and finds missing, stale and broken docs, telling the
 agent in session and failing in CI, for a site, a `docs/` folder, a wiki or a
 README. A README check keeps the front page written for people.
-[Read more →](plugins/agentic-engineering/skills/docs-parity/README.md)
+[Read more →](plugins/agentic-engineering/skills/docs/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/docs-parity/assets/figures/docs-move-with-code.dark.gif">
-  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="plugins/agentic-engineering/skills/docs-parity/assets/figures/docs-move-with-code.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/docs/assets/figures/docs-move-with-code.dark.gif">
+  <img alt="How the docs move when the code does. When the code changes, the page and the screenshot change with it, and if they do not, the agent is told before the turn ends." src="plugins/agentic-engineering/skills/docs/assets/figures/docs-move-with-code.gif" width="720">
 </picture>
 
 <sub>The code changes, so the page is rewritten and the screenshot retaken, in the same change.</sub>
@@ -403,11 +403,11 @@ it, or any other frame, on a board through a lint that refuses overlaps and
 crossed connectors, a live check of what Miro actually drew, and a pull that
 keeps layout changes made on the board. It holds no credentials: publishing
 goes through the Miro MCP you connect.
-[Read more →](plugins/agentic-engineering/skills/system-map/README.md)
+[Read more →](plugins/agentic-engineering/skills/docs/README.md)
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/system-map/assets/figures/map-true-to-code.dark.gif">
-  <img alt="How a system map stays true to the code. The diagram is drawn from lines in the code, so a call it does not show fails a check instead of waiting to mislead someone." src="plugins/agentic-engineering/skills/system-map/assets/figures/map-true-to-code.gif" width="720">
+  <source media="(prefers-color-scheme: dark)" srcset="plugins/agentic-engineering/skills/docs/assets/figures/map-true-to-code.dark.gif">
+  <img alt="How a system map stays true to the code. The diagram is drawn from lines in the code, so a call it does not show fails a check instead of waiting to mislead someone." src="plugins/agentic-engineering/skills/docs/assets/figures/map-true-to-code.gif" width="720">
 </picture>
 
 <sub>A comment line draws a box or an arrow. An import nobody declared fails the check until the map is brought level.</sub>

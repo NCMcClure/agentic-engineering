@@ -1,7 +1,0 @@
-{
-  "area": "docs-parity",
-  "lines": [
-    {"for":"all","mode":"any","when":".agents/docs-parity.json","text":"User docs move in the same change as their code: update the pages, retake the shots it made wrong with the capture harness (never by hand), and put `Docs: <pages>` or `Docs: none, <why>` in the commit or PR (/agentic-engineering:docs-parity docs-sync). Writer contract: .agents/docs-contract.md."},
-    {"for":"main","mode":"any","when":".agents/docs-parity.json","text":"A README is written or cut down with /agentic-engineering:docs-parity readme, which holds its length and order."}
-  ]
-}

@@ -11,14 +11,14 @@
       "label": "chime.wav",
       "kind": "sound",
       "note": "the agent made it, unheard",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/lib/wav.mjs:98"
+      "source": "plugins/agentic-engineering/skills/design/scripts/lib/wav.mjs:98"
     },
     {
       "id": "picture",
       "label": "Spectrogram",
       "kind": "picture",
       "note": "time across, pitch up",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/audio.mjs:419"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/audio.mjs:419"
     },
     {
       "id": "click",
@@ -26,14 +26,14 @@
       "kind": "fault",
       "note": "every pitch at once, at 0.38 s",
       "parent": "picture",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/routes/check-audio/ROUTE.md:51"
+      "source": "plugins/agentic-engineering/skills/design/routes/audio/ROUTE.md:51"
     },
     {
       "id": "numbers",
       "label": "Numbers",
       "kind": "readout",
       "note": "loudness, clipping, onsets",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/audio.mjs:251"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/audio.mjs:251"
     },
     {
       "id": "edit",
@@ -41,7 +41,7 @@
       "kind": "action",
       "note": "crossfade 10 ms at 0.38 s",
       "born": "fix",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/hooks/critical.json:6"
+      "source": "plugins/agentic-engineering/skills/design/hooks/critical.json:6"
     }
   ],
   "flows": [
@@ -51,7 +51,7 @@
       "to": "picture",
       "kind": "write",
       "label": "audio spectrogram",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/audio.mjs:447"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/audio.mjs:447"
     },
     {
       "id": "measure",
@@ -59,7 +59,7 @@
       "to": "numbers",
       "kind": "query",
       "label": "audio onsets",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/audio.mjs:254"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/audio.mjs:254"
     },
     {
       "id": "locate",
@@ -67,7 +67,7 @@
       "to": "edit",
       "kind": "event",
       "label": "extra 0.3803",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/scripts/commands/audio.mjs:269"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/audio.mjs:269"
     },
     {
       "id": "apply",
@@ -75,7 +75,7 @@
       "to": "sound",
       "kind": "write",
       "label": "crossfade",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/hooks/critical.json:6"
+      "source": "plugins/agentic-engineering/skills/design/hooks/critical.json:6"
     }
   ],
   "data": {

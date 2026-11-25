@@ -6,51 +6,43 @@ Install it with `/plugin install agentic-engineering@agentic-engineering` after 
 
 ## agentic-engineering
 
-A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentic-engineering:start-here and is asked what they want; an agent calls one of ten areas by name (agent-works, code, delivery, docs-parity, harness, perceptual-loop, picture-this, planning, system-map, writing); and each area routes to its own procedures, read as documents that cost nothing until one is taken.
+A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentic-engineering:start-here and is asked what they want; an agent calls one of eight areas by name (agents, code, delivery, design, docs, harness, planning, writing); and each area routes to its own procedures, read as documents that cost nothing until one is taken.
 
 Version 2.0.0. [README](../plugins/agentic-engineering/README.md), [changelog](../plugins/agentic-engineering/CHANGELOG.md).
 
 | Area | Routes | For |
 |---|---|---|
-| [agent-works](#agent-works) | 14 | Use to run several tasks in parallel from a kanban board, by subagents or by child sessions when asked, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold. |
+| [agents](#agents) | 8 | Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold. |
 | [code](#code) | 8 | Use on any coding task to build at the simplest rung that holds, reuse before building, cut over-engineering and track debt, and to restructure a repo that has already accreted: a sprawling tree, god-files, shallow coupled modules. |
 | [delivery](#delivery) | 6 | Use for the team's git conventions: setting a repo up or auditing it, writing tests across the lanes, and taking finished work to an open pull or merge request and then to merged. |
-| [docs-parity](#docs-parity) | 5 | Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code. |
-| [harness](#harness) | 7 | Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, and writing or opening Claude Code workflows. |
-| [perceptual-loop](#perceptual-loop) | 8 | Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound. |
-| [picture-this](#picture-this) | 2 | Use when asked to visualize, diagram, illustrate, or animate how a system, a feature, a mechanism, or an idea works, or when a README needs a picture of a figure that already exists. |
+| [design](#design) | 8 | Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. |
+| [docs](#docs) | 11 | Use whenever a change touches what a user, integrator, or operator sees, for any README being written or cut down, when a module or a call between modules is added in a repo that keeps a system map, and to draw a system, a feature, or an idea as an animated figure or a Miro frame: the docs, the map, and the pictures move in the same change as the code. |
+| [harness](#harness) | 13 | Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. |
 | [planning](#planning) | 18 | Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. |
-| [system-map](#system-map) | 4 | Use when a module or a call between modules is added in a repo that keeps a system map, when a checker reports the map stale, and for any diagram, flow, or architecture frame drawn on Miro from code. |
 | [writing](#writing) | 3 | Use every time you are about to write or rewrite prose a human will read (emails, docs, READMEs, reports, posts, summaries, chat replies), and whenever the person says draft, write up, humanize, de-AI, make it sound like me, or says text sounds like AI: writes in their own voice, free of AI tells. |
 
 ## start-here
 
-Use when a person asks what the agentic-engineering plugin offers, which of its areas does a job, or how to begin with it. An agent with a task calls the area whose name fits (agent-works, code, delivery, docs-parity, harness, perceptual-loop, picture-this, planning, system-map, writing) and does not come here first; ordinary work no area covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the route that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and route that fit.
+Use when a person asks what the agentic-engineering plugin offers, which of its areas does a job, or how to begin with it. An agent with a task calls the area whose name fits (agents, code, delivery, design, docs, harness, planning, writing) and does not come here first; ordinary work no area covers needs no skill, this one included. With a person it asks which areas they want, explains each, and hands off to the route that does the work. With the task as its argument, or with nobody to ask, it asks nothing and names the area and route that fit.
 
 The one skill a person types: `/agentic-engineering:start-here [the task, in a sentence]`.
 
-## agent-works
+## agents
 
-Use to run several tasks in parallel from a kanban board, by subagents or by child sessions when asked, and to keep a repo's agent-facing facts in one home each: putting work on the board, starting, working, or reviewing a card, memory and decisions, AGENTS.md hubs, the guard, and locking a port or another resource one session can hold.
+Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold.
 
-[README](../plugins/agentic-engineering/skills/agent-works/README.md).
+[README](../plugins/agentic-engineering/skills/agents/README.md), [agent-works history](../plugins/agentic-engineering/skills/agents/history/agent-works.md).
 
 | An agent's address | Started | When |
 |---|---|---|
-| `/agentic-engineering:agent-works orchestrate [the goal, or nothing to resume]` | by the agent | Use when the person wants several tasks built, a backlog or a sprint worked, work run in parallel, briefs written for a round of agents, or a round resumed after a restart or a compaction: this session becomes the orchestrator. |
-| `/agentic-engineering:agent-works board [status\|ready\|add\|move\|owe\|settle ...]` | by the agent | Use for anything on the kanban board: out-of-scope work to put on it instead of doing it now, what is ready or in progress, moving or planning a card, owing a check this session cannot run, settling one with evidence. |
-| `/agentic-engineering:agent-works dispatch <card id> [--serial]` | by the agent | Use when a card on the board should start: the person approved a parallel set, the orchestrator picked the next ready card, or the kanban pane asked to start one. |
-| `/agentic-engineering:agent-works work-card <card id>` | by the agent | Use when this session was started to work one card from the board, by a brief or by a work-card command naming the card. |
-| `/agentic-engineering:agent-works review-card <card id>` | by the agent | Use when a child session reports its card in review, by its CARD line, a note from its session, or a board wait waking: check the diff against the done criteria, send findings back, land it on green, close the card. |
-| `/agentic-engineering:agent-works sync-cards [in-flight\|backlog\|suggested] [card ids]` | by the agent | Use when the board may have drifted from the work: a request merged or closed under a card in flight, backlog cards already started or landed, suggestions piling up, the briefing says cards have not changed for a day, or the person asks to sync or groom the board. |
-| `/agentic-engineering:agent-works resource-locks [run\|acquire\|release\|status] <resource> ...` | by the agent | Use before starting anything only one session on this machine can use at a time: a dev-server port, a simulator, a GPU, a shared database, a timing-sensitive test run. |
-| `/agentic-engineering:agent-works coordinate` | by the agent | Use before a heavy job, a timing run or shared use of a GPU on a machine agents share, and to leave a note, claim a shared counter or record a lesson for other sessions. |
-| `/agentic-engineering:agent-works memory` | by the agent | Use to read project memory before a task, record a lesson, or update status. |
-| `/agentic-engineering:agent-works decisions` | by the agent | Use for a hard-to-reverse choice, a new project term, or an agent contract page. |
-| `/agentic-engineering:agent-works hubs` | by the agent | Use when adding, moving, renaming or removing a directory, when aw hubs reports a finding, or when a tree needs a new AGENTS.md hub. |
-| `/agentic-engineering:agent-works guard` | by the agent | Use when the agent guard refuses, questions or warns about a command or an edit, or a mistake must not happen again. |
-| `/agentic-engineering:agent-works doctor` | by the agent | Use when AGENTS.md, memory or status bloats, rules repeat, ./docs holds agent files, or a command fails because the machine lacks Node, git or the forge's command line. |
-| `/agentic-engineering:agent-works setup` | when you ask for it | Run to set a repository up for agent work, adopt the agent files it already has, or install the aw launcher. A person starts it. |
+| `/agentic-engineering:agents orchestrate [the goal, or nothing to resume]` | by the agent | Use when the person wants several tasks built, a backlog or a sprint worked, work run in parallel, briefs written for a round of agents, or a round resumed after a restart or a compaction: this session becomes the orchestrator. |
+| `/agentic-engineering:agents board [status\|ready\|add\|move\|owe\|settle ...]` | by the agent | Use for anything on the kanban board: out-of-scope work to put on it instead of doing it now, what is ready or in progress, moving or planning a card, owing a check this session cannot run, settling one with evidence. |
+| `/agentic-engineering:agents dispatch <card id> [--serial]` | by the agent | Use when a card on the board should start: the person approved a parallel set, the orchestrator picked the next ready card, or the kanban pane asked to start one. |
+| `/agentic-engineering:agents work-card <card id>` | by the agent | Use when this session was started to work one card from the board, by a brief or by a work-card command naming the card. |
+| `/agentic-engineering:agents review-card <card id>` | by the agent | Use when a child session reports its card in review, by its CARD line, a note from its session, or a board wait waking: check the diff against the done criteria, send findings back, land it on green, close the card. |
+| `/agentic-engineering:agents sync-cards [in-flight\|backlog\|suggested] [card ids]` | by the agent | Use when the board may have drifted from the work: a request merged or closed under a card in flight, backlog cards already started or landed, suggestions piling up, the briefing says cards have not changed for a day, or the person asks to sync or groom the board. |
+| `/agentic-engineering:agents locks [run\|acquire\|release\|status] <resource> ...` | by the agent | Use before starting anything only one session on this machine can use at a time: a dev-server port, a simulator, a GPU, a shared database, a timing-sensitive test run. |
+| `/agentic-engineering:agents coordinate` | by the agent | Use before a heavy job, a timing run or shared use of a GPU on a machine agents share, and to leave a note, claim a shared counter or record a lesson for other sessions. |
 
 ## code
 
@@ -84,23 +76,46 @@ Use for the team's git conventions: setting a repo up or auditing it, writing te
 | `/agentic-engineering:delivery bootstrap` | when you ask for it | Put a new or not-yet-set-up repo on the team conventions before any code is written in it: three questions, one local run, and the rules, lanes and checks are live for everything written after. Use when the session briefing says the repo is not on the team conventions yet, or when starting a project in an empty folder. Nothing is created on a forge and nothing is pushed. For the full set of options use init-project; to check a repo already set up use audit-project. |
 | `/agentic-engineering:delivery init-project [--upgrade] [--name <n>] [--template library\|node-service] [--forge github\|gitlab\|none] [--strict] [--dry-run]` | when you ask for it | Put a repo on the team conventions: scaffold a new one from a template, or run --upgrade to put the marker, the hub, the CI gate, the permission rules and the pre-commit hook around a repo that already exists, or to bring an earlier scaffold forward. Use when starting a new repo, when the session briefing or audit-project says to run the upgrade, or to turn on the strict test gate with --strict. Local only: it creates nothing on a forge and pushes nothing. To check a repo that is already set up use audit-project. |
 
-## docs-parity
+## design
 
-Use whenever a change touches something a user, integrator, or operator sees or depends on, when asked whether the docs are current, and for any README being written, reviewed, or shortened: pages, screenshots, the nav, and the README move in the same change as the code.
+Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner.
 
-[README](../plugins/agentic-engineering/skills/docs-parity/README.md).
+[README](../plugins/agentic-engineering/skills/design/README.md), [perceptual-loop history](../plugins/agentic-engineering/skills/design/history/perceptual-loop.md).
 
 | An agent's address | Started | When |
 |---|---|---|
-| `/agentic-engineering:docs-parity docs-sync` | by the agent | Bring the user docs level with a code change before it is committed: map the diff to the pages and screenshots it affects, rewrite those pages, retake the affected capture groups, run the checker, and write the Docs: line. Use after (or while) changing a user-visible surface, when the Stop hook or CI reports PARITY_MISSING or SHOT_STALE, or when the user says "update the docs for this", "sync the docs", or "retake the screenshots". |
-| `/agentic-engineering:docs-parity docs-audit [root or page glob to limit the audit]` | by the agent | Audit the whole user-docs set against the product: the checker's tree and stale modes plus a read of every page against the code, reported as findings with fixes. Report only; edits nothing. Use before a release, after a large change to a user-visible surface, or when the user asks whether the docs are current; to fix what it finds use docs-sync. |
-| `/agentic-engineering:docs-parity docs-shots` | by the agent | Build, extend, or repair the project's documentation screenshot harness so every docs image is captured deterministically from the built product, never by hand: light and dark pairs, a fictional cast, pinned clock and seeds, cropped not scaled. Use when a page needs a new screenshot, a shot is stale or flaky, a project has no capture harness yet, or the user asks to "add a screenshot", "retake the screenshots", or "set up screenshot capture" for a web app, desktop app, CLI, game engine (Unreal), notebook, or mobile app. |
-| `/agentic-engineering:docs-parity readme` | by the agent | Rewrite a README so it tells a person what the project is, why to use it, and how, in at most 800 words and standard-readme's section order, and move everything else to its proper home (CONTRIBUTING.md, docs/, AGENTS.md, CHANGELOG.md). Use when readme-check.mjs, the Stop hook, or CI reports a readme-* finding or warning, when a README is over the limit, and when writing or reviewing a README. |
-| `/agentic-engineering:docs-parity docs-init [target: site \| docs-folder \| wiki \| readme] [audiences]` | when you ask for it | Adopt docs-parity in a repo: detect the stack and the docs target, then write .agents/docs-parity.json (with a first code-to-docs surface map) and the writer contract .agents/docs-contract.md. Use when a repo with user docs should get the docs rule in every session, the Stop check, and the checker in CI. |
+| `/agentic-engineering:design define-success <task in a sentence>` | by the agent | Use before changing how something looks, moves, or sounds, or when a brief only says make it look right. Writes the success file naming what will prove the change. |
+| `/agentic-engineering:design iterate <shot> [<shot> <shot>] \| --group <g> --match <glob>` | by the agent | Use for every change and check on a picture or render, and when tempted to run the whole suite: a few proving shots, before and after, the gate. |
+| `/agentic-engineering:design judge` | by the agent | Use when a difference in a picture needs a verdict, a finished look change needs a blind second look, or taste questions wait for the owner: one review page. |
+| `/agentic-engineering:design probe` | by the agent | Use when a colour, brightness, shape, or timing differs from the reference and the cause is unknown, or before implementing a rule guessed from pictures. |
+| `/agentic-engineering:design calibrate` | by the agent | Use when a perceptual gate fails on something untouched, numbers wobble between identical runs, or a baseline is about to be accepted. Measures noise into tolerances. |
+| `/agentic-engineering:design motion` | by the agent | Use for animation, transitions, smoothness, latency, or any clip, where a still cannot show it. Measures over time: jumps, flicker, judder, flow direction, clip against clip, contact sheets. |
+| `/agentic-engineering:design audio` | by the agent | Use when a task produces or changes sound, or sound must stay in sync with a picture. Measures loudness, silence and clipping, pitch, onsets, lag, spectra, and draws spectrograms. |
+| `/agentic-engineering:design shot-harness [what the project renders, and what the reference is]` | when you ask for it | Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it. |
+
+## docs
+
+Use whenever a change touches what a user, integrator, or operator sees, for any README being written or cut down, when a module or a call between modules is added in a repo that keeps a system map, and to draw a system, a feature, or an idea as an animated figure or a Miro frame: the docs, the map, and the pictures move in the same change as the code.
+
+[README](../plugins/agentic-engineering/skills/docs/README.md), [docs-parity history](../plugins/agentic-engineering/skills/docs/history/docs-parity.md), [picture-this history](../plugins/agentic-engineering/skills/docs/history/picture-this.md), [system-map history](../plugins/agentic-engineering/skills/docs/history/system-map.md).
+
+| An agent's address | Started | When |
+|---|---|---|
+| `/agentic-engineering:docs sync` | by the agent | Bring the user docs level with a code change before it is committed: map the diff to the pages and screenshots it affects, rewrite those pages, retake the affected capture groups, run the checker, and write the Docs: line. Use after (or while) changing a user-visible surface, when the Stop hook or CI reports PARITY_MISSING or SHOT_STALE, or when the user says "update the docs for this", "sync the docs", or "retake the screenshots". |
+| `/agentic-engineering:docs audit [root or page glob to limit the audit]` | by the agent | Audit the whole user-docs set against the product: the checker's tree and stale modes plus a read of every page against the code, reported as findings with fixes. Report only; edits nothing. Use before a release, after a large change to a user-visible surface, or when the user asks whether the docs are current; to fix what it finds use sync. |
+| `/agentic-engineering:docs shots` | by the agent | Build, extend, or repair the project's documentation screenshot harness so every docs image is captured deterministically from the built product, never by hand: light and dark pairs, a fictional cast, pinned clock and seeds, cropped not scaled. Use when a page needs a new screenshot, a shot is stale or flaky, a project has no capture harness yet, or the user asks to "add a screenshot", "retake the screenshots", or "set up screenshot capture" for a web app, desktop app, CLI, game engine (Unreal), notebook, or mobile app. |
+| `/agentic-engineering:docs readme` | by the agent | Rewrite a README so it tells a person what the project is, why to use it, and how, in at most 800 words and standard-readme's section order, and move everything else to its proper home (CONTRIBUTING.md, docs/, AGENTS.md, CHANGELOG.md). Use when readme-check.mjs, the Stop hook, or CI reports a readme-* finding or warning, when a README is over the limit, and when writing or reviewing a README. |
+| `/agentic-engineering:docs init [target: site \| docs-folder \| wiki \| readme] [audiences]` | when you ask for it | Adopt docs-parity in a repo: detect the stack and the docs target, then write .agents/docs-parity.json (with a first code-to-docs surface map) and the writer contract .agents/docs-contract.md. Use when a repo with user docs should get the docs rule in every session, the Stop check, and the checker in CI. |
+| `/agentic-engineering:docs map-sync` | by the agent | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
+| `/agentic-engineering:docs miro` | by the agent | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |
+| `/agentic-engineering:docs map-init [board name or URL]` | when you ask for it | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
+| `/agentic-engineering:docs browser-setup` | when you ask for it | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro route's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
+| `/agentic-engineering:docs figure [what to visualize: a description, or a path or feature in this repo]` | by the agent | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
+| `/agentic-engineering:docs stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
 
 ## harness
 
-Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, and writing or opening Claude Code workflows.
+Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor.
 
 [README](../plugins/agentic-engineering/skills/harness/README.md), [plugin-workbench history](../plugins/agentic-engineering/skills/harness/history/plugin-workbench.md), [workflow-studio history](../plugins/agentic-engineering/skills/harness/history/workflow-studio.md).
 
@@ -113,34 +128,12 @@ Use for everything that shapes what an agent knows and may do: making, scoring, 
 | `/agentic-engineering:harness diagnose [session id or transcript path] [--json]` | by the agent | Find what went wrong with a session's context and name the fix: a hook over the host's cap, start context a compaction did not bring back, a skill call the host refused, output that reached only the person, text injected twice or on every turn, skills listed by name only, a searcher subagent that was given the build rules. Use when a session ignored a rule, forgot its instructions after a compaction, stopped at a skill, or ran short of room, and after changing a hook, a critical line, or a skill description. |
 | `/agentic-engineering:harness lens [report\|serve] [session id or transcript path]` | by the agent | Show what entered an agent's context window, when, and from which plugin, read from the Claude Code session transcript: each hook's output by event and who saw it (the model, the person, or nobody), the CLAUDE.md and .agents rule imports, the skill listing per plugin, the API's own token count per request, and what each compaction kept or lost. Use when checking that a plugin's hooks inject what they should, sizing a briefing, checking what survives compaction, or when the person asks what the agent actually saw. |
 | `/agentic-engineering:harness workflow` | by the agent | Author, edit, or reason about Claude Code dynamic workflows (.claude/workflows/*.js) and their diagram.json graphs by hand. Use when writing or modifying a workflow script or graph directly, mapping existing JS to a graph, or answering workflow-diagram protocol questions — no GUI needed. |
-
-## perceptual-loop
-
-Use at the start of work judged by eye or ear: a render, an image, an animation, or a sound.
-
-[README](../plugins/agentic-engineering/skills/perceptual-loop/README.md).
-
-| An agent's address | Started | When |
-|---|---|---|
-| `/agentic-engineering:perceptual-loop define-success <task in a sentence>` | by the agent | Use before changing how something looks, moves, or sounds, or when a brief only says make it look right. Writes the success file naming what will prove the change. |
-| `/agentic-engineering:perceptual-loop iterate-shots <shot> [<shot> <shot>] \| --group <g> --match <glob>` | by the agent | Use for every change and check on a picture or render, and when tempted to run the whole suite: a few proving shots, before and after, the gate. |
-| `/agentic-engineering:perceptual-loop judge-and-queue` | by the agent | Use when a difference in a picture needs a verdict, a finished look change needs a blind second look, or taste questions wait for the owner: one review page. |
-| `/agentic-engineering:perceptual-loop probe-the-source` | by the agent | Use when a colour, brightness, shape, or timing differs from the reference and the cause is unknown, or before implementing a rule guessed from pictures. |
-| `/agentic-engineering:perceptual-loop calibrate-gate` | by the agent | Use when a perceptual gate fails on something untouched, numbers wobble between identical runs, or a baseline is about to be accepted. Measures noise into tolerances. |
-| `/agentic-engineering:perceptual-loop check-motion` | by the agent | Use for animation, transitions, smoothness, latency, or any clip, where a still cannot show it. Measures over time: jumps, flicker, judder, flow direction, clip against clip, contact sheets. |
-| `/agentic-engineering:perceptual-loop check-audio` | by the agent | Use when a task produces or changes sound, or sound must stay in sync with a picture. Measures loudness, silence and clipping, pitch, onsets, lag, spectra, and draws spectrograms. |
-| `/agentic-engineering:perceptual-loop shot-harness [what the project renders, and what the reference is]` | when you ask for it | Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it. |
-
-## picture-this
-
-Use when asked to visualize, diagram, illustrate, or animate how a system, a feature, a mechanism, or an idea works, or when a README needs a picture of a figure that already exists.
-
-[README](../plugins/agentic-engineering/skills/picture-this/README.md).
-
-| An agent's address | Started | When |
-|---|---|---|
-| `/agentic-engineering:picture-this visualize [what to visualize: a description, or a path or feature in this repo]` | by the agent | Turn a description, or a feature in a codebase, into a minimalist animated figure of how something works, whatever it is: a system, a device, a protocol, an algorithm, a process. Find the lens, model the subject, draft three views designed from it, refine one, and deliver a React component for MDX plus README stills. Use when asked to visualize, diagram, illustrate or animate how a system, feature, architecture, mechanism or idea works, or to explain one to a non-technical audience. |
-| `/agentic-engineering:picture-this export-stills <figure> [--strip] [--gif] [--beat <id>]` | by the agent | Capture a picture-this figure for a README: light and dark PNG stills of its hero frame, a beat strip of every step in one row, or a looping GIF, each with the snippet that shows it. Use when a figure changed and its images need refreshing, or when a README or a plain Markdown page needs a picture, a step-by-step strip or an animation of a figure that already exists. |
+| `/agentic-engineering:harness memory` | by the agent | Use to read project memory before a task, record a lesson, or update status. |
+| `/agentic-engineering:harness decisions` | by the agent | Use for a hard-to-reverse choice, a new project term, or an agent contract page. |
+| `/agentic-engineering:harness hubs` | by the agent | Use when adding, moving, renaming or removing a directory, when aw hubs reports a finding, or when a tree needs a new AGENTS.md hub. |
+| `/agentic-engineering:harness guard` | by the agent | Use when the agent guard refuses, questions or warns about a command or an edit, or a mistake must not happen again. |
+| `/agentic-engineering:harness doctor` | by the agent | Use when AGENTS.md, memory or status bloats, rules repeat, ./docs holds agent files, or a command fails because the machine lacks Node, git or the forge's command line. |
+| `/agentic-engineering:harness setup` | when you ask for it | Run to set a repository up for agent work, adopt the agent files it already has, or install the aw launcher. A person starts it. |
 
 ## planning
 
@@ -168,19 +161,6 @@ Use to pin down a vague request by interview, and to take a project, a feature, 
 | `/agentic-engineering:planning build-rubber-duck` | by the agent | A thinking partner for a stuck problem: one question at a time, grounded in the code and the spec, changing no file. Use when a bug, an approach, or a confusing piece of code needs talking through. |
 | `/agentic-engineering:planning build-user-docs` | by the agent | Coherence pass over the product's end-user docs (README, `docs/`) for verified sprint work, every command grounded by running it; not the spec site. Use after a sprint verifies, or when asked to document what was built. |
 | `/agentic-engineering:planning autopilot` | when you ask for it | Runs the whole pipeline hands-off (spec, grill, architect, plan, publish, build, docs) under one up-front contract with one consolidated human gate. Run when the user wants a well-specified project built end to end unwatched. |
-
-## system-map
-
-Use when a module or a call between modules is added in a repo that keeps a system map, when a checker reports the map stale, and for any diagram, flow, or architecture frame drawn on Miro from code.
-
-[README](../plugins/agentic-engineering/skills/system-map/README.md).
-
-| An agent's address | Started | When |
-|---|---|---|
-| `/agentic-engineering:system-map diagrams-sync` | by the agent | Bring the system map and its Miro board level with a code change: fix the @system annotations, regenerate diagrams/system-map.json, and republish the board. Use when adding a module or a call between modules in a repo that carries .agents/system-map.json, when the Stop hook, the checker or CI reports MAP_STALE, MAP_MISSING, UNDECLARED_IMPORT, UNDECLARED_RUN, or BOARD_BEHIND, or when the user says "update the diagram", "sync the board", or "redraw the system map". Also the whole-repo sweep, which assesses every module's annotations against its code: use it when asked to re-annotate the codebase or audit the map. |
-| `/agentic-engineering:system-map miro-board` | by the agent | Draw a Miro board from code and keep it legible, with a lint before publishing and a live check after. Use when drawing or updating a diagram, flow, or architecture frame on Miro. Also use when a project has a miro.config.mjs, when a board has overlapping cards, crossed or diagonal connectors, or text that does not fit, or when layout changes made in Miro need to reach the repo. |
-| `/agentic-engineering:system-map diagrams-init [board name or URL]` | when you ask for it | Set a repo up with a system map generated from its code: propose @system annotations from the import graph, write .agents/system-map.json and the committed diagrams/system-map.json, record the Miro board, publish the first frame, and on request copy the checker in for CI. Use when a repo should get a diagram that is extracted from its code and checked against it, once per repo. |
-| `/agentic-engineering:system-map browser-setup` | when you ask for it | Set up the browser the live Miro check drives (chrome-devtools MCP plus Google Chrome, signed in to Miro) in Claude Code, the Claude Desktop Code tab, or Cowork. Use when the miro-board route's live check has no evaluate_script or list_pages tool, when the system-map session note says the check cannot run on this machine, when the Miro tab cannot be found or reached, or to repair the browser for Miro. |
 
 ## writing
 

@@ -107,7 +107,7 @@ and PR. When a rule changes, change the check in the same commit.
   none.
 - The lines command also prints the route index in the main session: each
   area's routes by name, read from its `door.json` as the hook runs, and how
-  a route is taken. At a 200k window the listing shows eleven names and no
+  a route is taken. At a 200k window the listing shows nine names and no
   route, so this is the only place a route's own name ("ship") is seen. It
   counts toward the 7,500.
 - An area's briefing is `skills/<area>/hooks/briefing.mjs`, within its
@@ -179,7 +179,7 @@ and PR. When a rule changes, change the check in the same commit.
   the problem, then the mechanism. Specifics over adjectives, no hype words,
   no em-dashes, no emoji.
 - Validate holds the plugin's README to the README check the plugin ships
-  (`skills/docs-parity/scripts/readme-check.mjs`): at most 800 words, a title
+  (`skills/docs/scripts/readme-check.mjs`): at most 800 words, a title
   that is the name, a one-line description, a why, standard-readme's section
   order (Install, Usage, the plugin's own sections, Contributing), and no
   agent plumbing (`.agents`, `AGENTS.md`, `CLAUDE.md`, `.claude`).

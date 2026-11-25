@@ -1,0 +1,42 @@
+{
+  "lead": "Use whenever a change touches what a user, integrator, or operator sees, for any README being written or cut down, when a module or a call between modules is added in a repo that keeps a system map, and to draw a system, a feature, or an idea as an animated figure or a Miro frame: the docs, the map, and the pictures move in the same change as the code.",
+  "default": "sync",
+  "routes": {
+    "sync": {
+      "cue": "bring user docs level with a diff before it is committed"
+    },
+    "audit": {
+      "cue": "are the user docs current: report only"
+    },
+    "shots": {
+      "cue": "the docs screenshot harness: add, retake, repair a shot"
+    },
+    "readme": {
+      "cue": "write or cut down a README"
+    },
+    "init": {
+      "cue": "adopt the user-docs checks in a repo",
+      "starts": "person"
+    },
+    "map-sync": {
+      "cue": "a code change moved the system map or its board"
+    },
+    "miro": {
+      "cue": "draw or update a frame, fix overlaps, pull layout back"
+    },
+    "map-init": {
+      "cue": "give a repo a system map generated from its code",
+      "starts": "person"
+    },
+    "browser-setup": {
+      "cue": "the live check has no browser tools or cannot reach Miro",
+      "starts": "person"
+    },
+    "figure": {
+      "cue": "a description or a feature into an animated figure"
+    },
+    "stills": {
+      "cue": "a figure's stills, beat strip, or GIF for a README"
+    }
+  }
+}

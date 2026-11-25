@@ -34,7 +34,7 @@
 // called, and the route's document read); one more session works inside a
 // route, compacts, and carries on. The first trigger session read at each
 // window also gives the plugin's share of the skill listing there (reach.mjs
-// listingSizes): its eleven entries, how many kept a description, and
+// listingSizes): its nine entries, how many kept a description, and
 // their characters.
 // One session is one sample, so a baseline is three passes over the prompts
 // and a plain run is one, and the check compares "reached in every baseline

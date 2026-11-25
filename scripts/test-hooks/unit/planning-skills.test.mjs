@@ -17,7 +17,7 @@ const EXPECTED = [
 // Started by a person: a one-time setup, a local server, and the two runs big enough to be a decision.
 const BY_HAND = ["autopilot", "build-audit", "spec-init", "spec-open"];
 // Routes of other areas a file may point at, and only as something the repo may not have adopted.
-const ELSEWHERE = ["delivery tdd", "delivery init-project", "code ladder", "docs-parity docs-sync", "docs-parity docs-shots", "docs-parity docs-init"];
+const ELSEWHERE = ["delivery tdd", "delivery init-project", "code ladder", "docs sync", "docs shots", "docs init"];
 const DESCRIPTION_MAX = 300;
 // What the same eighteen-route table may cost in total.
 const LISTING_MAX = 3200;

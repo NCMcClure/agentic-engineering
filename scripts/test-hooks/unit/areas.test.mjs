@@ -1,5 +1,5 @@
 // The one plugin's skills, as a host lists them: the entry skill a person
-// types, and the ten areas a model calls. An eleventh area, or a skill
+// types, and the eight areas a model calls. A ninth area, or a skill
 // that is neither, changes what every session's listing costs and what a
 // person can type, so the set is pinned here and each area's suite pins its
 // own routes.
@@ -12,12 +12,12 @@ import { AGENTCRAFT, area } from "./area-routes.mjs";
 import { REPO } from "./helpers.mjs";
 
 const AREAS = [
-  "agent-works", "code", "delivery", "docs-parity", "harness", "perceptual-loop", "picture-this", "planning", "system-map", "writing",
+  "agents", "code", "delivery", "design", "docs", "harness", "planning", "writing",
 ];
 const SKILLS = path.join(AGENTCRAFT, "skills");
 const dirs = (dir) => fs.readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name).sort();
 
-test("agentic-engineering: its only skills are start-here and the ten areas", () => {
+test("agentic-engineering: its only skills are start-here and the eight areas", () => {
   assert.equal(path.basename(AGENTCRAFT), AREA_PLUGIN);
   assert.deepEqual(dirs(SKILLS), [...AREAS, ENTRY_SKILL].sort());
   for (const name of AREAS) assert.ok(fs.existsSync(path.join(SKILLS, name, "routes")), `${name} holds routes/, which is what makes a skill an area`);
@@ -62,6 +62,6 @@ test("the routes-behind-names figure draws each area's routes to the count its d
   const total = Object.values(doors).reduce((n, c) => n + c, 0);
   for (const text of [model.title, model.claim, model.beats[0].plain]) assert.ok(text.includes(`${total} routes`), `"${text}" should say ${total} routes`);
   const readme = fs.readFileSync(path.join(REPO, "README.md"), "utf8");
-  assert.ok(readme.includes(`keeps ${total} routes behind eleven names`), "the README's alt text for the figure");
-  assert.equal(AREAS.length + 1, 11, "eleven names: the entry skill and the areas");
+  assert.ok(readme.includes(`keeps ${total} routes behind nine names`), "the README's alt text for the figure");
+  assert.equal(AREAS.length + 1, 9, "nine names: the entry skill and the areas");
 });

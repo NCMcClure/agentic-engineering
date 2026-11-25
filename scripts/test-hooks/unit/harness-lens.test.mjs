@@ -373,22 +373,22 @@ function areasDir(t) {
     Stop: [{ hooks: [{ type: "command", command: inArea("delivery", "stop-gate.mjs") }, { type: "command", command: inArea("docs-parity", "stop-check.mjs") }] }],
     PreToolUse: [{ matcher: "Bash", hooks: [{ type: "command", command: fromSkill }] }],
   }));
-  for (const area of ["delivery", "docs-parity"]) write(dir, `${root}/skills/${area}/routes/go/ROUTE.md`, "---\nname: go\n---\n");
+  for (const area of ["delivery", "docs"]) write(dir, `${root}/skills/${area}/routes/go/ROUTE.md`, "---\nname: go\n---\n");
   write(dir, `${root}/skills/start-here/SKILL.md`, "---\nname: start-here\n---\n");
   return dir;
 }
 
 test("a hook that runs from an area is attributed to the plugin and the area, and any other hook to the plugin alone", (t) => {
   const sources = loadSources({ claudeDir: areasDir(t) });
-  assert.deepEqual([...sources.areas.get("agentic-engineering")].sort(), ["delivery", "docs-parity"]);
+  assert.deepEqual([...sources.areas.get("agentic-engineering")].sort(), ["delivery", "docs"]);
   const stop = attributeHook(sources, { event: "Stop", command: inArea("delivery", "stop-gate.mjs") });
   assert.deepEqual([stop.plugin, stop.area], ["agentic-engineering", "delivery"]);
   // The plugin's own session hook, by its status message, and a hook run from a skill that is not an area.
   assert.deepEqual(attributeHook(sources, { event: "SessionStart", command: "Reading what applies here" }), { plugin: "agentic-engineering", candidates: ["agentic-engineering"] });
   assert.deepEqual(attributeHook(sources, { event: "PreToolUse", command: fromSkill }), { plugin: "agentic-engineering", candidates: ["agentic-engineering"] });
   // A failure names the area by the cache path in its message.
-  const failed = attributeHook(sources, { event: "Stop", command: "", text: "Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/0.9.0/skills/docs-parity/hooks/stop-check.mjs'" });
-  assert.deepEqual([failed.plugin, failed.area, failed.version], ["agentic-engineering", "docs-parity", "0.9.0"]);
+  const failed = attributeHook(sources, { event: "Stop", command: "", text: "Cannot find module '/opt/x/.claude/plugins/cache/agentic-engineering/agentic-engineering/0.9.0/skills/docs/hooks/stop-check.mjs'" });
+  assert.deepEqual([failed.plugin, failed.area, failed.version], ["agentic-engineering", "docs", "0.9.0"]);
   // A plugin with no areas reads as it always did.
   assert.equal("area" in attributeHook(sources, { event: "SessionStart", command: "Reading the board" }), false);
   assert.equal(sources.areas.has("agent-works"), false);
@@ -400,15 +400,15 @@ test("a listing entry that names an area is that area's, and the skill a person 
     "- agentic-engineering:start-here: Use when a person asks what is here.",
     "- agentic-engineering:delivery: Use for the team's git conventions.",
     "  Routes are its arguments, not skills: ship (open the request).",
-    "- agentic-engineering:docs-parity",
+    "- agentic-engineering:docs",
     `- ${old("agent-works", "board")}: Use for the board.`,
   ];
   const parts = splitListing(lines.join("\n"), sources);
   assert.deepEqual(parts.map((p) => [p.plugin, p.area ?? null, p.count, p.bare]),
-    [["agentic-engineering", null, 1, 0], ["agentic-engineering", "delivery", 1, 0], ["agentic-engineering", "docs-parity", 1, 1], ["agent-works", null, 1, 0]]);
+    [["agentic-engineering", null, 1, 0], ["agentic-engineering", "delivery", 1, 0], ["agentic-engineering", "docs", 1, 1], ["agent-works", null, 1, 0]]);
   // Each entry as listed: what it cost runs to the end of its description, and one cut to a name says so.
   assert.deepEqual(parts[1].entries, [{ name: "agentic-engineering:delivery", chars: lines[1].length + 1 + lines[2].length, bare: false }]);
-  assert.deepEqual(parts[2].entries, [{ name: "agentic-engineering:docs-parity", chars: lines[3].length, bare: true }]);
+  assert.deepEqual(parts[2].entries, [{ name: "agentic-engineering:docs", chars: lines[3].length, bare: true }]);
   // Without the sources the groups are the plugins.
   assert.deepEqual(splitListing(lines.join("\n")).map((p) => [p.plugin, p.count, "area" in p]), [["agentic-engineering", 3, false], ["agent-works", 1, false]]);
 });
@@ -452,13 +452,13 @@ test("the session records each call on the Skill tool and each read of a skill's
     toolUse("t2", "Skill", { skill: old("delivery", "tdd") }), toolResult("t2"),
     toolUse("t3", "Read", { file_path: "/srv/plugins/agentic-engineering/skills/delivery/routes/ship/ROUTE.md" }), toolResult("t3"),
     toolUse("t4", "Read", { file_path: "/srv/demo/README.md" }), toolResult("t4"),
-    toolUse("t5", "Read", { file_path: "/srv/plugins/agentic-engineering/skills/agent-works/SKILL.md" }),
+    toolUse("t5", "Read", { file_path: "/srv/plugins/agentic-engineering/skills/agents/SKILL.md" }),
   ].map((e) => ({ cwd: "/srv/demo", sessionId: "calls", ...e }));
   const session = buildSession(entries);
   // A call the host refused is a call that did not go through, kept with what the host said in its place.
   assert.deepEqual(session.skillCalls, [{ skill: old("delivery", "bootstrap"), segment: 0, turn: 1, ok: false, error: "This skill can only be started by the user." }, { skill: old("delivery", "tdd"), segment: 0, turn: 1, ok: true }]);
   // A README is not a skill's instructions; a read the transcript holds no result for is neither way.
-  assert.deepEqual(session.reads.map((r) => [r.file.split("/").slice(-3).join("/"), r.ok]), [["routes/ship/ROUTE.md", true], ["skills/agent-works/SKILL.md", null]]);
+  assert.deepEqual(session.reads.map((r) => [r.file.split("/").slice(-3).join("/"), r.ok]), [["routes/ship/ROUTE.md", true], ["skills/agents/SKILL.md", null]]);
 });
 
 test("a session of plugins with no areas reads as it did before areas: no area, no blocks, the listing split by plugin", (t) => {
