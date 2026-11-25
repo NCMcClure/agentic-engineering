@@ -1,5 +1,5 @@
 "use client";
-// cut-by-cut: review-diet --apply as a grid of turns. One column per confirmed
+// cut-by-cut: review --apply as a grid of turns. One column per confirmed
 // cut, in order; rows are how far a cut got: the branch (landed), the working
 // tree (tried, alone), the checks' verdict on that cut, and the one repair.
 // Waiting cuts are stacked at the left; the report at the right counts only

@@ -2,7 +2,7 @@
 // SessionStart (startup, resume, clear, compact) and SubagentStart: the
 // critical lines, in one voice. The shared line once, then a block for each
 // area with a line that applies here, then, in the main session, each area's
-// routes by name (at a 200k window the listing shows fourteen names and no
+// routes by name (at a 200k window the listing shows nine names and no
 // route), then, where nothing settles the repo, the once-per-clone question.
 // A subagent gets the lines marked for all agents; a denied agent type gets
 // nothing.

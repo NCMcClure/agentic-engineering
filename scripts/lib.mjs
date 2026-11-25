@@ -149,7 +149,81 @@ export const ENTRY_SKILL = "start-here";
  * whose plugin went by another: that name, and the area it is now. The
  * catalog lists none of them, so a file that still names one names nothing.
  */
-export const OLD_NAMES = { "marvelous-miro": "system-map", "animated-storytelling": "picture-this" };
+export const REGROUPED = {
+  // Areas retired when the thirteen were regrouped into areas named for a
+  // domain of work: each was a plugin of its own before that, and an area
+  // of this one after, under the name on the left.
+  "but-first-planning": "planning", "agentic-teamwork": "delivery", "write-like-me": "writing",
+  "code-diet": "code", "codebase-optimizer": "code",
+  "plugin-workbench": "harness", "context-doctor": "harness", "workflow-studio": "harness",
+  "docs-parity": "docs", "system-map": "docs", "picture-this": "docs",
+  "perceptual-loop": "design", "agent-works": "agents",
+};
+export const OLD_NAMES = { ...REGROUPED, "marvelous-miro": "docs", "animated-storytelling": "docs" };
+
+/**
+ * The areas made in the regroup, which were never a plugin: `code:` is a
+ * CSS selector's word as often as it is anything, so none is read as an old
+ * plugin's name.
+ */
+export const NEVER_PLUGINS = new Set(Object.values(REGROUPED));
+
+/**
+ * The routes renamed when their area was: under each old name, a route's old
+ * name and the name it has in the area it moved to. A route missing here kept
+ * its name. An address still written with an old name is rewritten with this.
+ */
+export const OLD_ROUTES = {
+  "code-diet": { "reuse-first": "reuse", "review-diet": "review", "capture-reusable": "capture" },
+  "codebase-optimizer": { "optimize-codebase": "restructure", "codebase-organizer": "organize", "improve-codebase-architecture": "deepen" },
+  "plugin-workbench": { "improve-plugin": "plugin-improve", "create-plugin": "plugin-create", "evaluate-plugin": "plugin-evaluate", "refresh-marketplace": "marketplace-refresh" },
+  "workflow-studio": { "author-workflow": "workflow" },
+  "docs-parity": { "docs-sync": "sync", "docs-audit": "audit", "docs-shots": "shots", "docs-init": "init" },
+  "system-map": { "diagrams-sync": "map-sync", "diagrams-init": "map-init", "miro-board": "miro" },
+  "marvelous-miro": { "diagrams-sync": "map-sync", "diagrams-init": "map-init", "miro-board": "miro" },
+  "picture-this": { visualize: "figure", "export-stills": "stills" },
+  "animated-storytelling": { visualize: "figure", "export-stills": "stills" },
+  "perceptual-loop": { "iterate-shots": "iterate", "judge-and-queue": "judge", "probe-the-source": "probe", "calibrate-gate": "calibrate", "check-motion": "motion", "check-audio": "audio" },
+  "agent-works": { "resource-locks": "locks" },
+};
+
+/**
+ * The routes that went to another area than the rest of their old one's:
+ * agent-works split, the routes that run work going to agents and the ones
+ * that shape a repo's agent-facing setup to harness.
+ */
+export const OLD_ROUTE_AREAS = {
+  "agent-works": { hubs: "harness", guard: "harness", doctor: "harness", setup: "harness", memory: "harness", decisions: "harness" },
+};
+
+/** Where an old name and one of its routes are now: `{ area, route }`, the route "" when none was given. Null for a name that is not an old one. */
+export function renamedRoute(old, route = "") {
+  const area = OLD_NAMES[old];
+  if (!area) return null;
+  if (!route) return { area, route: "" };
+  return { area: OLD_ROUTE_AREAS[old]?.[route] ?? area, route: OLD_ROUTES[old]?.[route] ?? route };
+}
+
+/**
+ * A route written under an area by the name it had there before the regroup,
+ * or under the area most of its old one went into when it went elsewhere:
+ * `{ old, area, route }`, where it is now. Null for anything else.
+ */
+export function oldRouteIn(area, route) {
+  for (const [old, now] of Object.entries(OLD_NAMES)) {
+    if (now !== area) continue;
+    const routes = OLD_ROUTES[old] ?? {}, areas = OLD_ROUTE_AREAS[old] ?? {};
+    if (Object.hasOwn(routes, route) || Object.hasOwn(areas, route)) return { old, area: areas[route] ?? area, route: routes[route] ?? route };
+  }
+  return null;
+}
+
+/**
+ * Whether a tracked file is history: a CHANGELOG.md, or what an area keeps of
+ * the plugins it was made from, `skills/<area>/history/<old-name>.md`. History
+ * keeps what it says.
+ */
+export const isHistory = (f) => f.split("/").pop() === "CHANGELOG.md" || /(?:^|\/)skills\/[^/]+\/history\/[^/]+\.md$/.test(f);
 
 /**
  * A name the one plugin itself went by before 2.0.0. It is the plugin renamed,
@@ -163,21 +237,21 @@ export const OLD_PLUGIN_NAMES = ["agentcraft"];
 // lib/), so the only pairs left are files a route copies into a user's repo,
 // where nothing can reach back into the plugin.
 export const HASH_PAIRS = [
-  { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/provider.mjs`] },
+  { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/provider.mjs`] },
 ];
 
 // The trees a route copies into a user's repo. A file there is another repo's
 // file once copied: what it names is in that repo, and a copy already out
 // there does not change when this one does.
 const TEMPLATE_TREES = [
-  `plugins/${AREA_PLUGIN}/skills/agentic-teamwork/templates/`,
-  `plugins/${AREA_PLUGIN}/skills/agent-works/assets/templates/`,
-  `plugins/${AREA_PLUGIN}/skills/but-first-planning/routes/spec-init/assets/`,
-  `plugins/${AREA_PLUGIN}/skills/docs-parity/routes/docs-init/assets/`,
-  `plugins/${AREA_PLUGIN}/skills/system-map/routes/diagrams-init/assets/`,
-  `plugins/${AREA_PLUGIN}/skills/write-like-me/routes/calibrate/assets/`,
-  `plugins/${AREA_PLUGIN}/skills/picture-this/kit/`,
-  `plugins/${AREA_PLUGIN}/skills/picture-this/blank/`,
+  `plugins/${AREA_PLUGIN}/skills/delivery/templates/`,
+  `plugins/${AREA_PLUGIN}/skills/agents/assets/templates/`,
+  `plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/docs/routes/init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/docs/routes/map-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/writing/routes/calibrate/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/docs/kit/`,
+  `plugins/${AREA_PLUGIN}/skills/docs/blank/`,
 ];
 
 /** Whether a tracked file is a template copy: under one of those trees, or the canonical file of a pair whose copy is. */
@@ -191,7 +265,7 @@ export const isTemplateCopy = (f) =>
 // made, and the card fixtures. None is a way to reach a skill, and a plugin
 // that becomes an area later does not rewrite what was recorded before it.
 export const isRecording = (f) =>
-  f === "scripts/test-hooks/live/baseline.json" || f.startsWith("scripts/test-hooks/fixtures/live-lane/") || f.startsWith("scripts/test-hooks/cases/agent-works/cards/");
+  f === "scripts/test-hooks/live/baseline.json" || f.startsWith("scripts/test-hooks/fixtures/live-lane/") || f.startsWith("scripts/test-hooks/cases/agents/cards/");
 
 /**
  * The string literals of `<name> = new Set([...])` in a module's source, in

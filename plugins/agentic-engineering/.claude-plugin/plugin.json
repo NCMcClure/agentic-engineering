@@ -3,7 +3,7 @@
   "name": "agentic-engineering",
   "displayName": "agentic-engineering",
   "version": "2.0.0",
-  "description": "A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentic-engineering:start-here and is asked what they want; an agent calls one of thirteen areas by name (agent-works, agentic-teamwork, but-first-planning, code-diet, codebase-optimizer, context-doctor, docs-parity, perceptual-loop, picture-this, plugin-workbench, system-map, workflow-studio, write-like-me); and each area routes to its own procedures, read as documents that cost nothing until one is taken.",
+  "description": "A dozen plugins list about eighty skills, and a job does not say which one it needs, so this is one plugin: a person types /agentic-engineering:start-here and is asked what they want; an agent calls one of eight areas by name (agents, code, delivery, design, docs, harness, planning, writing); and each area routes to its own procedures, read as documents that cost nothing until one is taken.",
   "author": {
     "name": "Nicholas McClure",
     "email": "contact@protospatial.com"

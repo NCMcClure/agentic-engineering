@@ -1,6 +1,6 @@
 ---
 name: vision-critic
-description: "Unanchored judge of pictures: sees only neutral pictures and neutral questions, never the builder's intent. Dispatched by judge-and-queue and its critique workflow."
+description: "Unanchored judge of pictures: sees only neutral pictures and neutral questions, never the builder's intent. Dispatched by judge and its critique workflow."
 tools: Read, Glob, Bash
 ---
 

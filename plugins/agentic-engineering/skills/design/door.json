@@ -1,0 +1,31 @@
+{
+  "lead": "Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner.",
+  "default": "define-success",
+  "routes": {
+    "define-success": {
+      "cue": "about to start, or nothing says what will prove it"
+    },
+    "iterate": {
+      "cue": "a change is being made and checked: a few proving shots"
+    },
+    "judge": {
+      "cue": "a difference needs a verdict, or taste waits for the owner"
+    },
+    "probe": {
+      "cue": "a colour, shape, or timing differs and the cause is unknown"
+    },
+    "calibrate": {
+      "cue": "a gate fails on something untouched, or numbers wobble"
+    },
+    "motion": {
+      "cue": "what a still cannot show: animation, smoothness, a clip"
+    },
+    "audio": {
+      "cue": "sound is produced or changed, or must stay in sync"
+    },
+    "shot-harness": {
+      "cue": "no .agents/perceptual/ folder, or no shot renders on command",
+      "starts": "person"
+    }
+  }
+}

@@ -197,8 +197,8 @@ export function makeFixture(root, kind) {
 
 /** The areas that owe a fixture of this kind their context: those whose marker it carries, and those that speak wherever a repo has opted in. */
 export function adopted(kind) {
-  if (["adopted", "standard", "strict"].includes(kind)) return ["agent-works", "agentic-teamwork", "but-first-planning", "code-diet", "docs-parity", "perceptual-loop"];
-  if (kind === "teamwork-only" || kind === "portable") return ["agentic-teamwork", "but-first-planning", "code-diet", "perceptual-loop"];
+  if (["adopted", "standard", "strict"].includes(kind)) return ["agents", "harness", "delivery", "planning", "code", "docs", "design"];
+  if (kind === "teamwork-only" || kind === "portable") return ["delivery", "planning", "code", "design"];
   return [];
 }
 

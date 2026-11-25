@@ -1,0 +1,30 @@
+{
+  "lead": "Use on any coding task to build at the simplest rung that holds, reuse before building, cut over-engineering and track debt, and to restructure a repo that has already accreted: a sprawling tree, god-files, shallow coupled modules.",
+  "default": "ladder",
+  "routes": {
+    "ladder": {
+      "cue": "any coding task: the simplest rung that holds"
+    },
+    "reuse": {
+      "cue": "before building: what this repo and others already have"
+    },
+    "review": {
+      "cue": "hunt over-engineering in the diff, cut behind a check"
+    },
+    "debt": {
+      "cue": "inventory the debt: markers, and whether each still holds"
+    },
+    "capture": {
+      "cue": "wrapping up: what another project could use"
+    },
+    "restructure": {
+      "cue": "the whole sweep: organize, split god-files, deepen"
+    },
+    "organize": {
+      "cue": "the file tree alone: a bloated root, AGENTS.md hubs"
+    },
+    "deepen": {
+      "cue": "the seams alone: shallow modules, leaky interfaces"
+    }
+  }
+}

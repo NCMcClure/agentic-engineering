@@ -3,7 +3,7 @@
   "title": "Agentic Engineering",
   "mechanism": "One builder makes three kinds of thing, and the banner names them one at a time.",
   "lens": "cases",
-  "claim": "One Claude Code plugin of thirteen areas, each a fix for a problem that keeps turning up when engineering with agents.",
+  "claim": "One Claude Code plugin of eight areas, each a fix for a problem that keeps turning up when engineering with agents.",
   "entities": [
     { "id": "nick", "label": "nick mcclure", "kind": "client", "note": "xr technical designer" },
     { "id": "superpowers", "label": "superpowers.", "kind": "service" },

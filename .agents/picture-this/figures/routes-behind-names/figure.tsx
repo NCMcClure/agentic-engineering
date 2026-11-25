@@ -1,5 +1,5 @@
 "use client";
-// names-and-routes: the plugin as a table. Inside the frame, the fourteen
+// names-and-routes: the plugin as a table. Inside the frame, the nine
 // names a session lists; outside it, one tile per route, to the real counts.
 // A person's typed line reaches start-here, which hands off to one area; an
 // agent's call reaches the same row. The row opens into its named routes,
@@ -80,7 +80,7 @@ function Scene() {
 
   return (
     <g opacity={f.present}>
-      {/* What a session lists: fourteen names. */}
+      {/* What a session lists: nine names. */}
       <text className="pt-label" x={DOOR.x} y={28}>agentic-engineering lists</text>
       <text className="pt-tag" x={DOOR.x + 126} y={28}>14 names</text>
       <rect className="pt-panel" x={DOOR.x} y={DOOR.y} width={DOOR.width} height={DOOR.height} rx={6}
@@ -99,7 +99,7 @@ function Scene() {
           );
         })}
       </Panel>
-      <text className="pt-tag" x={LIST.x} y={listBottom + 18}>13 areas: an agent calls one by name.</text>
+      <text className="pt-tag" x={LIST.x} y={listBottom + 18}>{AREAS.length} areas: an agent calls one by name.</text>
       <text className="pt-tag" x={LIST.x} y={listBottom + 31}>Typed by a person, the host refuses it.</text>
 
       {/* What is on disk: one tile per route, never listed. */}

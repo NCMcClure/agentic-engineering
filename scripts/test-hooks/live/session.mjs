@@ -14,9 +14,9 @@ export { REPO, makeFixture };
 // The one plugin, loaded from the checkout.
 export const PLUGIN = AREA_PLUGIN;
 const PLUGIN_DIR = path.join(REPO, "plugins", PLUGIN);
-// The lens is the one the context-doctor area ships, so the lane reads
+// The lens is the one the harness area ships, so the lane reads
 // transcripts exactly as a person asking for the route does.
-const LENS = path.join(PLUGIN_DIR, "skills", "context-doctor", "scripts", "context-lens.mjs");
+const LENS = path.join(PLUGIN_DIR, "skills", "harness", "scripts", "context-lens.mjs");
 export const MARKETPLACE = "agentic-engineering";
 
 export const MODEL = "haiku";
@@ -39,7 +39,7 @@ export const WINDOWS = { default: {}, "200k": { CLAUDE_CODE_DISABLE_1M_CONTEXT: 
 //   --tools              the built-in tools, by name; every other one is gone
 //   --strict-mcp-config  with no --mcp-config: no MCP server loads, neither the
 //                        login's connectors nor a plugin's own
-//   --disallowedTools    the plugin's mod (the agent-works area's board) registers
+//   --disallowedTools    the plugin's mod (the agents area's board) registers
 //                        its tools without an MCP config, so they are denied
 //                        by name (NO_MCP)
 // checks/triggers.mjs fails a session whose transcript shows it was offered

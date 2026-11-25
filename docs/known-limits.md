@@ -33,7 +33,7 @@ was run, so "typed by a person" below means a prompt that opens with a slash.
 The scratch plugin `agentcraft` held `bin/probe`, an area `skills/area/`
 (`user-invocable: false`, with `routes/go/ROUTE.md`), a plain skill
 `skills/start/`, a `SessionStart` hook that writes down its environment, and
-the `userConfig` key agent-works declares, `syncIntervalSeconds`. Where a
+the `userConfig` key the agents area declares, `syncIntervalSeconds`. Where a
 finding below quotes an address in it, the area is written `<area>`, its route
 `<route>`, and the plain skill `<entry>`, so nothing here reads as an address
 in the real plugin.
@@ -158,7 +158,7 @@ model; the background auto-update pass; a `renames` entry; and how a mod reads
 
 ## Host behaviors the plan gate leans on
 
-The agent-works area holds a session to a plan approved in Claude Code's plan
+The agents area holds a session to a plan approved in Claude Code's plan
 mode, and that reads what the host hands a hook while a session plans. The
 hooks reference states little of it. Each behavior below was run on 2026-11-19
 on Claude Code 2.1.326, in a scratch repo, on Haiku under a real login, with a
@@ -168,11 +168,11 @@ runs used the protocol the desktop app drives a session with
 (`--input-format stream-json --output-format stream-json --permission-prompt-tool stdio`),
 and a driver answered the approval prompt. The payloads are kept, with their
 paths replaced, in
-`scripts/test-hooks/cases/agent-works/plan-mode/payloads.json`, and the unit
+`scripts/test-hooks/cases/agents/plan-mode/payloads.json`, and the unit
 suites of the two plan hooks are built from them.
 
 Plan mode here is the host's: a plan file the session writes and the person
-approves. It is not the spec and plan tree the but-first-planning area keeps
+approves. It is not the spec and plan tree the planning area keeps
 under `.agents/plan/`, which no finding below touches.
 
 8. **`permission_mode` is `plan` on UserPromptSubmit, PreToolUse, PostToolUse,

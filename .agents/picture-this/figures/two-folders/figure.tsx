@@ -186,7 +186,7 @@ function Scene() {
       <Named entity="server" box={SERVER} />
       <Panel box={AGENT} lit={f.lit("agent")} />
       <Named entity="agent" box={AGENT} />
-      <text className="pt-tag" x={AGENT.x + 22} y={AGENT.y + 58}>using /author-workflow</text>
+      <text className="pt-tag" x={AGENT.x + 22} y={AGENT.y + 58}>using /workflow</text>
       <Panel box={CANVAS} lit={f.lit("canvas")} />
       <Named entity="canvas" box={CANVAS} />
       <path className="pt-rule" d={`M ${CANVAS.x} ${CANVAS.y + 46} L ${CANVAS.x + CANVAS.width} ${CANVAS.y + 46}`} />

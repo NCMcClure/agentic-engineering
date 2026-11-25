@@ -1,0 +1,9 @@
+{
+  "area": "docs",
+  "lines": [
+    {"for":"all","mode":"any","when":".agents/docs-parity.json","text":"User docs move in the same change as their code: update the pages, retake the shots it made wrong with the capture harness (never by hand), and put `Docs: <pages>` or `Docs: none, <why>` in the commit or PR (/agentic-engineering:docs sync). Writer contract: .agents/docs-contract.md."},
+    {"for":"main","mode":"any","when":".agents/docs-parity.json","text":"A README is written or cut down with /agentic-engineering:docs readme, which holds its length and order."},
+    {"for":"all","mode":"any","when":".agents/system-map.json","text":"A new module gets its `@system node` line and a new call between modules its `@system calls` line in the same commit, then /agentic-engineering:docs map-sync regenerates the map (system-map.mjs --write); an import that needs no edge takes a `Diagram: none, <why>` line."},
+    {"for":"all","mode":"any","when":["miro.config.mjs","diagrams/miro.config.mjs",".agents/system-map.json"],"text":"A Miro board drawn from code is linted before it is published and checked live after (/agentic-engineering:docs miro); layout moved on the board is pulled back, content changes in code."}
+  ]
+}

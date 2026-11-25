@@ -1,0 +1,30 @@
+{
+  "lead": "Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold.",
+  "default": "board",
+  "routes": {
+    "orchestrate": {
+      "cue": "run several tasks or a sprint in parallel, resume a round"
+    },
+    "board": {
+      "cue": "file out-of-scope work, read or move cards, owe a check"
+    },
+    "dispatch": {
+      "cue": "start an approved card: a subagent, or a session if asked"
+    },
+    "work-card": {
+      "cue": "this session was started to build one card"
+    },
+    "review-card": {
+      "cue": "a child reports its card in review: check, land, close"
+    },
+    "sync-cards": {
+      "cue": "the board drifted from the work"
+    },
+    "locks": {
+      "cue": "a port, simulator, GPU, or database one session may hold"
+    },
+    "coordinate": {
+      "cue": "a heavy job or timing run on a machine agents share"
+    }
+  }
+}

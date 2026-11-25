@@ -1,16 +1,16 @@
 {
   "schema": 1,
-  "title": "How one plugin keeps 75 routes behind fourteen names",
+  "title": "How one plugin keeps 75 routes behind nine names",
   "mechanism": "A person types start-here and an agent calls an area by name; either way the area reads one route document by path, and the other 74 stay unread.",
   "lens": "path",
-  "claim": "A session lists fourteen names, not 75 routes: a route is a document that takes no room in the context window until an area reads it.",
+  "claim": "A session lists nine names, not 75 routes: a route is a document that takes no room in the context window until an area reads it.",
   "implication": "One thing to remember: /agentic-engineering:start-here. Or ask in plain words, and the agent picks the area.",
   "entities": [
     {
       "id": "listing",
       "label": "Skill listing",
       "kind": "list",
-      "note": "fourteen names, and no route",
+      "note": "nine names, and no route",
       "source": "plugins/agentic-engineering/hooks/critical-context.mjs:181"
     },
     {
@@ -43,11 +43,11 @@
     },
     {
       "id": "area",
-      "label": "agentic-teamwork",
+      "label": "delivery",
       "kind": "skill",
       "note": "an area: user-invocable: false",
-      "repeat": 13,
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/SKILL.md:4"
+      "repeat": 8,
+      "source": "plugins/agentic-engineering/skills/delivery/SKILL.md:4"
     },
     {
       "id": "route",
@@ -55,7 +55,7 @@
       "kind": "document",
       "note": "a route: read by path",
       "parent": "area",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/routes/ship/ROUTE.md:2"
+      "source": "plugins/agentic-engineering/skills/delivery/routes/ship/ROUTE.md:2"
     }
   ],
   "flows": [
@@ -88,7 +88,7 @@
       "from": "agent",
       "to": "area",
       "kind": "event",
-      "label": "agentic-engineering:agentic-teamwork ship",
+      "label": "agentic-engineering:delivery ship",
       "source": "plugins/agentic-engineering/hooks/critical-context.mjs:185"
     },
     {
@@ -97,15 +97,15 @@
       "to": "route",
       "kind": "read",
       "label": "read by path",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/SKILL.md:24"
+      "source": "plugins/agentic-engineering/skills/delivery/SKILL.md:24"
     }
   ],
   "beats": [
     {
       "id": "listed",
-      "title": "Fourteen names",
-      "plain": "The agentic-engineering plugin lists fourteen skills by name: start-here and thirteen areas. Its 75 routes are not on the list.",
-      "technical": "At a 200k window the host lists a plugin's skills by name alone: agentic-engineering:start-here and thirteen areas. No route is a skill.",
+      "title": "Nine names",
+      "plain": "The agentic-engineering plugin lists nine skills by name: start-here and eight areas. Its 75 routes are not on the list.",
+      "technical": "At a 200k window the host lists a plugin's skills by name alone: agentic-engineering:start-here and eight areas. No route is a skill.",
       "focus": [
         "listing"
       ],
@@ -130,7 +130,7 @@
       "id": "handoff",
       "title": "It hands off once",
       "plain": "start-here names the area and route that fit, then calls the area, once. Calling an area loads its short table of routes.",
-      "technical": "It invokes agentic-engineering:agentic-teamwork with the Skill tool, ship as the first word. The area's SKILL.md loads: 4,898 characters.",
+      "technical": "It invokes agentic-engineering:delivery with the Skill tool, ship as the first word. The area's SKILL.md loads: 4,898 characters.",
       "focus": [
         "start",
         "area"
@@ -158,7 +158,7 @@
       "id": "called",
       "title": "An agent calls the area",
       "plain": "An agent that knows its area goes straight to it. It calls the area by name, with the route as the first word.",
-      "technical": "Skill(agentic-engineering:agentic-teamwork, \"ship\"): the same call start-here makes. No route is a skill, so none is called by name.",
+      "technical": "Skill(agentic-engineering:delivery, \"ship\"): the same call start-here makes. No route is a skill, so none is called by name.",
       "focus": [
         "agent",
         "area"
@@ -206,92 +206,57 @@
   "data": {
     "areas": [
       {
-        "id": "agent-works",
-        "label": "agent-works",
+        "id": "agents",
+        "label": "agents",
         "of": "area",
-        "routes": 14,
-        "chars": 78707
+        "routes": 8,
+        "chars": 48395
       },
       {
-        "id": "agentic-teamwork",
-        "label": "agentic-teamwork",
+        "id": "code",
+        "label": "code",
+        "of": "area",
+        "routes": 8,
+        "chars": 50024
+      },
+      {
+        "id": "delivery",
+        "label": "delivery",
         "of": "area",
         "routes": 6,
         "chars": 28746
       },
       {
-        "id": "but-first-planning",
-        "label": "but-first-planning",
-        "of": "area",
-        "routes": 18,
-        "chars": 147207
-      },
-      {
-        "id": "code-diet",
-        "label": "code-diet",
-        "of": "area",
-        "routes": 5,
-        "chars": 19192
-      },
-      {
-        "id": "codebase-optimizer",
-        "label": "codebase-optimizer",
-        "of": "area",
-        "routes": 3,
-        "chars": 30832
-      },
-      {
-        "id": "context-doctor",
-        "label": "context-doctor",
-        "of": "area",
-        "routes": 2,
-        "chars": 12349
-      },
-      {
-        "id": "docs-parity",
-        "label": "docs-parity",
-        "of": "area",
-        "routes": 5,
-        "chars": 20700
-      },
-      {
-        "id": "perceptual-loop",
-        "label": "perceptual-loop",
+        "id": "design",
+        "label": "design",
         "of": "area",
         "routes": 8,
         "chars": 47366
       },
       {
-        "id": "picture-this",
-        "label": "picture-this",
+        "id": "docs",
+        "label": "docs",
         "of": "area",
-        "routes": 2,
-        "chars": 16167
+        "routes": 11,
+        "chars": 61613
       },
       {
-        "id": "plugin-workbench",
-        "label": "plugin-workbench",
+        "id": "harness",
+        "label": "harness",
         "of": "area",
-        "routes": 4,
-        "chars": 28648
+        "routes": 13,
+        "chars": 73432
       },
       {
-        "id": "system-map",
-        "label": "system-map",
+        "id": "planning",
+        "label": "planning",
         "of": "area",
-        "routes": 4,
-        "chars": 24746
+        "routes": 18,
+        "chars": 147207
       },
       {
-        "id": "workflow-studio",
-        "label": "workflow-studio",
-        "of": "area",
-        "routes": 1,
-        "chars": 2123
-      },
-      {
-        "id": "write-like-me",
-        "label": "write-like-me",
+        "id": "writing",
+        "label": "writing",
         "of": "area",
         "routes": 3,
         "chars": 7742
@@ -352,7 +317,7 @@
       },
       {
         "id": "skill",
-        "label": "agentic-teamwork/SKILL.md",
+        "label": "delivery/SKILL.md",
         "of": "area",
         "at": "called",
         "chars": 4898

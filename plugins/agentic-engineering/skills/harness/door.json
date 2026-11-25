@@ -1,0 +1,48 @@
+{
+  "lead": "Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor.",
+  "default": "diagnose",
+  "routes": {
+    "plugin-improve": {
+      "cue": "raise an existing plugin's score, fix scorecard findings"
+    },
+    "plugin-create": {
+      "cue": "make a new plugin, or wrap existing skills or scripts"
+    },
+    "plugin-evaluate": {
+      "cue": "score a plugin into a scorecard with a verdict",
+      "starts": "person"
+    },
+    "marketplace-refresh": {
+      "cue": "reinstall a marketplace from the working tree",
+      "starts": "person"
+    },
+    "diagnose": {
+      "cue": "what went wrong with a session's context, and the fix"
+    },
+    "lens": {
+      "cue": "what entered an agent's context, by area and hook"
+    },
+    "workflow": {
+      "cue": "write or edit a workflow script or its graph by hand"
+    },
+    "memory": {
+      "cue": "read project memory, record a lesson, update status"
+    },
+    "decisions": {
+      "cue": "a hard-to-reverse choice, a new term, a contract page"
+    },
+    "hubs": {
+      "cue": "a directory added or moved, an AGENTS.md hub finding"
+    },
+    "guard": {
+      "cue": "the guard refused or warned, or a mistake must not recur"
+    },
+    "doctor": {
+      "cue": "agent files bloated or repeated, or the machine lacks a tool"
+    },
+    "setup": {
+      "cue": "set a repository up for agent work, install the launcher",
+      "starts": "person"
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "title": "How review-diet lands its cuts",
+  "title": "How review lands its cuts",
   "mechanism": "Each confirmed cut goes into the tree alone, is checked, and is committed on green or put back on red, one after another.",
   "lens": "time",
   "claim": "A red cut costs only itself, and the savings reported are the lines that landed, never the lines hoped for.",
@@ -12,21 +12,21 @@
       "kind": "queue",
       "note": "judged, waiting their turn",
       "repeat": 3,
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:30"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:30"
     },
     {
       "id": "tree",
       "label": "Working tree",
       "kind": "store",
       "note": "holds one cut at a time",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:375"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:375"
     },
     {
       "id": "checks",
       "label": "Repo's own checks",
       "kind": "service",
       "note": "only the ones green before",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:83"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:83"
     },
     {
       "id": "repair",
@@ -34,21 +34,21 @@
       "kind": "worker",
       "note": "one surgical fix",
       "born": "red",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:140"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:140"
     },
     {
       "id": "branch",
       "label": "Branch",
       "kind": "store",
       "note": "one commit per cut",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:354"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:354"
     },
     {
       "id": "report",
       "label": "Report",
       "kind": "ledger",
       "note": "realized beside predicted",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:403"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:403"
     }
   ],
   "flows": [
@@ -58,7 +58,7 @@
       "to": "report",
       "kind": "read",
       "label": "base",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:358"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:358"
     },
     {
       "id": "take",
@@ -66,7 +66,7 @@
       "to": "tree",
       "kind": "write",
       "label": "one cut",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:124"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:124"
     },
     {
       "id": "check",
@@ -74,7 +74,7 @@
       "to": "checks",
       "kind": "read",
       "label": "check",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:382"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:382"
     },
     {
       "id": "commit",
@@ -82,7 +82,7 @@
       "to": "branch",
       "kind": "write",
       "label": "commit",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:110"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:110"
     },
     {
       "id": "tail",
@@ -90,7 +90,7 @@
       "to": "repair",
       "kind": "event",
       "label": "tail",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:141"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:141"
     },
     {
       "id": "fix",
@@ -98,7 +98,7 @@
       "to": "tree",
       "kind": "write",
       "label": "fix",
-      "source": "plugins/agentic-engineering/skills/code-diet/routes/review-diet/workflows/review.js:142"
+      "source": "plugins/agentic-engineering/skills/code/routes/review/workflows/review.js:142"
     },
     {
       "id": "putback",
@@ -106,7 +106,7 @@
       "to": "tree",
       "kind": "write",
       "label": "put back",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:395"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:395"
     },
     {
       "id": "tally",
@@ -114,7 +114,7 @@
       "to": "report",
       "kind": "read",
       "label": "net",
-      "source": "plugins/agentic-engineering/skills/code-diet/scripts/review-scan.mjs:402"
+      "source": "plugins/agentic-engineering/skills/code/scripts/review-scan.mjs:402"
     }
   ],
   "quantities": [
@@ -205,7 +205,7 @@
       "id": "land",
       "title": "Green lands",
       "plain": "The checks pass, so the cut becomes its own commit, and twelve lines are really gone.",
-      "technical": "green:true, so git add those files only and commit \"code-diet: yagni ... (<file>)\".",
+      "technical": "green:true, so git add those files only and commit \"code: yagni ... (<file>)\".",
       "focus": [
         "tree",
         "branch"

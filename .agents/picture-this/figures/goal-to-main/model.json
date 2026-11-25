@@ -7,93 +7,93 @@
   "implication": "Nobody has to remember the next step: the area before it names it.",
   "entities": [
     {
-      "id": "but-first-planning",
-      "label": "but-first-planning",
+      "id": "planning",
+      "label": "planning",
       "kind": "area",
       "note": "grills the goal, writes the plan",
-      "source": "plugins/agentic-engineering/skills/but-first-planning/door.json:2"
+      "source": "plugins/agentic-engineering/skills/planning/door.json:2"
     },
     {
       "id": "agent-works",
       "label": "agent-works",
       "kind": "area",
       "note": "a board, and a session per card",
-      "source": "plugins/agentic-engineering/skills/agent-works/door.json:2"
+      "source": "plugins/agentic-engineering/skills/agents/door.json:2"
     },
     {
-      "id": "agentic-teamwork",
-      "label": "agentic-teamwork",
+      "id": "delivery",
+      "label": "delivery",
       "kind": "area",
       "note": "tests first, then ship and land",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/door.json:2"
+      "source": "plugins/agentic-engineering/skills/delivery/door.json:2"
     },
     {
-      "id": "code-diet",
-      "label": "code-diet",
+      "id": "code",
+      "label": "code",
       "kind": "area",
       "note": "the least code that passes",
-      "source": "plugins/agentic-engineering/skills/code-diet/door.json:2"
+      "source": "plugins/agentic-engineering/skills/code/door.json:2"
     },
     {
       "id": "perceptual-loop",
       "label": "perceptual-loop",
       "kind": "area",
       "note": "shots for work judged by eye",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/door.json:2"
+      "source": "plugins/agentic-engineering/skills/design/door.json:2"
     },
     {
       "id": "docs-parity",
       "label": "docs-parity",
       "kind": "area",
       "note": "pages and shots, in the same change",
-      "source": "plugins/agentic-engineering/skills/docs-parity/door.json:2"
+      "source": "plugins/agentic-engineering/skills/docs/door.json:2"
     },
     {
-      "id": "write-like-me",
-      "label": "write-like-me",
+      "id": "writing",
+      "label": "writing",
       "kind": "area",
       "note": "the prose, in your voice",
-      "source": "plugins/agentic-engineering/skills/write-like-me/door.json:2"
+      "source": "plugins/agentic-engineering/skills/writing/door.json:2"
     },
     {
       "id": "system-map",
       "label": "system-map",
       "kind": "area",
       "note": "a map checked against the imports",
-      "source": "plugins/agentic-engineering/skills/system-map/door.json:2"
+      "source": "plugins/agentic-engineering/skills/docs/door.json:2"
     },
     {
-      "id": "codebase-optimizer",
-      "label": "codebase-optimizer",
+      "id": "code",
+      "label": "code",
       "kind": "area",
       "note": "reorganizes in stages, on green",
-      "source": "plugins/agentic-engineering/skills/codebase-optimizer/door.json:2"
+      "source": "plugins/agentic-engineering/skills/code/door.json:2"
     }
   ],
   "flows": [
     {
       "id": "cards",
-      "from": "but-first-planning",
+      "from": "planning",
       "to": "agent-works",
       "kind": "event",
       "label": "issues as cards",
-      "source": "plugins/agentic-engineering/skills/but-first-planning/hooks/critical.json:6"
+      "source": "plugins/agentic-engineering/skills/planning/hooks/critical.json:6"
     },
     {
       "id": "tdd",
       "from": "agent-works",
-      "to": "agentic-teamwork",
+      "to": "delivery",
       "kind": "event",
       "label": "tdd",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/work-card/ROUTE.md:46"
+      "source": "plugins/agentic-engineering/skills/agents/routes/work-card/ROUTE.md:46"
     },
     {
       "id": "ladder",
-      "from": "agentic-teamwork",
-      "to": "code-diet",
+      "from": "delivery",
+      "to": "code",
       "kind": "event",
       "label": "ladder",
-      "source": "plugins/agentic-engineering/skills/agentic-teamwork/routes/tdd/ROUTE.md:18"
+      "source": "plugins/agentic-engineering/skills/delivery/routes/tdd/ROUTE.md:18"
     },
     {
       "id": "look",
@@ -101,7 +101,7 @@
       "to": "perceptual-loop",
       "kind": "event",
       "label": "a look label",
-      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:9"
+      "source": "plugins/agentic-engineering/skills/agents/hooks/critical.json:9"
     },
     {
       "id": "locks",
@@ -109,62 +109,62 @@
       "to": "agent-works",
       "kind": "read",
       "label": "resource-locks",
-      "source": "plugins/agentic-engineering/skills/perceptual-loop/hooks/critical.json:8"
+      "source": "plugins/agentic-engineering/skills/design/hooks/critical.json:8"
     },
     {
       "id": "docs",
-      "from": "but-first-planning",
+      "from": "planning",
       "to": "docs-parity",
       "kind": "event",
       "label": "docs-sync",
-      "source": "plugins/agentic-engineering/skills/but-first-planning/routes/build-tdd/ROUTE.md:126"
+      "source": "plugins/agentic-engineering/skills/planning/routes/build-tdd/ROUTE.md:126"
     },
     {
       "id": "voice",
       "from": "docs-parity",
-      "to": "write-like-me",
+      "to": "writing",
       "kind": "event",
       "label": "prose",
-      "source": "plugins/agentic-engineering/skills/docs-parity/routes/docs-sync/ROUTE.md:47"
+      "source": "plugins/agentic-engineering/skills/docs/routes/sync/ROUTE.md:47"
     },
     {
       "id": "review",
       "from": "agent-works",
-      "to": "code-diet",
+      "to": "code",
       "kind": "query",
-      "label": "review-diet",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/review-card/ROUTE.md:38"
+      "label": "review",
+      "source": "plugins/agentic-engineering/skills/agents/routes/review-card/ROUTE.md:38"
     },
     {
       "id": "land",
       "from": "agent-works",
-      "to": "agentic-teamwork",
+      "to": "delivery",
       "kind": "write",
       "label": "ship, land",
-      "source": "plugins/agentic-engineering/skills/agent-works/hooks/critical.json:10"
+      "source": "plugins/agentic-engineering/skills/agents/hooks/critical.json:10"
     },
     {
       "id": "reorganise",
       "from": "agent-works",
-      "to": "codebase-optimizer",
+      "to": "code",
       "kind": "event",
       "label": "moving code",
-      "source": "plugins/agentic-engineering/skills/agent-works/routes/hubs/ROUTE.md:13"
+      "source": "plugins/agentic-engineering/skills/harness/routes/hubs/ROUTE.md:13"
     },
     {
       "id": "decisions",
-      "from": "codebase-optimizer",
+      "from": "code",
       "to": "agent-works",
       "kind": "write",
       "label": "decisions",
-      "source": "plugins/agentic-engineering/skills/codebase-optimizer/routes/improve-codebase-architecture/ROUTE.md:40"
+      "source": "plugins/agentic-engineering/skills/code/routes/deepen/ROUTE.md:40"
     }
   ],
   "data": {
     "work": [
       {
         "id": "goal",
-        "of": "but-first-planning",
+        "of": "planning",
         "at": "grill",
         "label": "goal"
       },
@@ -176,7 +176,7 @@
       },
       {
         "id": "branch",
-        "of": "agentic-teamwork",
+        "of": "delivery",
         "at": "build",
         "label": "feat/export-format"
       },
@@ -194,13 +194,13 @@
       },
       {
         "id": "request",
-        "of": "agentic-teamwork",
+        "of": "delivery",
         "at": "land",
         "label": "merge request"
       },
       {
         "id": "tree",
-        "of": "codebase-optimizer",
+        "of": "code",
         "at": "keep",
         "label": "main"
       }
@@ -208,7 +208,7 @@
     "change": [
       {
         "id": "issue",
-        "of": "but-first-planning",
+        "of": "planning",
         "at": "grill",
         "label": "issue 01-02-03",
         "text": "Export offers a Spreadsheet format"
@@ -222,14 +222,14 @@
       },
       {
         "id": "test",
-        "of": "agentic-teamwork",
+        "of": "delivery",
         "at": "build",
         "label": "test",
         "text": "test/export.test.mjs: red, then green"
       },
       {
         "id": "code",
-        "of": "code-diet",
+        "of": "code",
         "at": "build",
         "label": "code",
         "text": "src/export/sheet.mjs: the least that passes"
@@ -250,7 +250,7 @@
       },
       {
         "id": "voice",
-        "of": "write-like-me",
+        "of": "writing",
         "at": "same-change",
         "label": "prose",
         "text": "in your voice"
@@ -264,7 +264,7 @@
       },
       {
         "id": "merge",
-        "of": "agentic-teamwork",
+        "of": "delivery",
         "at": "land",
         "label": "merge",
         "text": "checks green, the head that was reviewed"
@@ -277,18 +277,18 @@
         "does": "draws figures like this one"
       },
       {
-        "id": "plugin-workbench",
-        "label": "plugin-workbench",
+        "id": "harness",
+        "label": "harness",
         "does": "makes and scores plugins"
       },
       {
-        "id": "context-doctor",
-        "label": "context-doctor",
+        "id": "harness",
+        "label": "harness",
         "does": "reads back what a session was given"
       },
       {
-        "id": "workflow-studio",
-        "label": "workflow-studio",
+        "id": "harness",
+        "label": "harness",
         "does": "builds Claude Code workflows"
       }
     ]
@@ -298,9 +298,9 @@
       "id": "grill",
       "title": "A goal, questioned",
       "plain": "A goal too big for one change is questioned one answer at a time, then written down as a spec and a plan of issues.",
-      "technical": "but-first-planning grill, spec-write and plan-decompose leave the spec and its issues under .agents/plan/.",
+      "technical": "planning grill, spec-write and plan-decompose leave the spec and its issues under .agents/plan/.",
       "focus": [
-        "but-first-planning"
+        "planning"
       ],
       "flows": [],
       "ms": 3000
@@ -311,7 +311,7 @@
       "plain": "Each issue goes on the board as a card. A card you approve starts a session of its own, in its own worktree.",
       "technical": "agent-works orchestrate shows the plan's issues as cards; aw board grant records the yes, and dispatch starts card-<id> in a worktree.",
       "focus": [
-        "but-first-planning",
+        "planning",
         "agent-works"
       ],
       "flows": [
@@ -323,11 +323,11 @@
       "id": "build",
       "title": "Test first, least code",
       "plain": "Each session writes a failing test first, then the least code that makes it pass.",
-      "technical": "work-card follows agentic-teamwork tdd: red, green, refactor. Its green step is code-diet ladder, the first rung that holds.",
+      "technical": "work-card follows delivery tdd: red, green, refactor. Its green step is code ladder, the first rung that holds.",
       "focus": [
         "agent-works",
-        "agentic-teamwork",
-        "code-diet"
+        "delivery",
+        "code"
       ],
       "flows": [
         "tdd",
@@ -354,10 +354,10 @@
       "id": "same-change",
       "title": "Docs in the same change",
       "plain": "The page, its screenshot and the map line go into the same change as the code, and the prose is in your voice.",
-      "technical": "build-tdd calls docs-parity docs-sync, which writes prose through write-like-me; system-map's Stop check asks for the @system line in this change.",
+      "technical": "build-tdd calls docs-parity docs-sync, which writes prose through writing; system-map's Stop check asks for the @system line in this change.",
       "focus": [
         "docs-parity",
-        "write-like-me",
+        "writing",
         "system-map"
       ],
       "flows": [
@@ -370,11 +370,11 @@
       "id": "land",
       "title": "Reviewed, then landed",
       "plain": "The session opens a merge request. The orchestrator reads the diff, hunts what is not needed, and merges on green.",
-      "technical": "The child ships with agentic-teamwork ship; review-card runs code-diet review-diet, then agentic-teamwork land merges the head it reviewed.",
+      "technical": "The child ships with delivery ship; review-card runs code review, then delivery land merges the head it reviewed.",
       "focus": [
         "agent-works",
-        "agentic-teamwork",
-        "code-diet"
+        "delivery",
+        "code"
       ],
       "flows": [
         "review",
@@ -386,10 +386,10 @@
       "id": "keep",
       "title": "Kept in shape",
       "plain": "When the tree has drifted, it is reorganized in stages on main. Each stage runs the repo's own tests and is reverted on red.",
-      "technical": "agent-works hubs leaves moving code to codebase-optimizer, which records each seam decision through agent-works decisions.",
+      "technical": "agent-works hubs leaves moving code to code, which records each seam decision through agent-works decisions.",
       "focus": [
         "agent-works",
-        "codebase-optimizer"
+        "code"
       ],
       "flows": [
         "reorganise",

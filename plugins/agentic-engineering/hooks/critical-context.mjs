@@ -45,7 +45,7 @@ import path from "node:path";
 export const MARKETPLACE = "agentic-engineering";
 export const PLUGIN = "agentic-engineering";
 // The areas that keep critical lines, in the order their blocks print.
-export const AREAS = ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "system-map"];
+export const AREAS = ["delivery", "agents", "harness", "code", "docs", "planning", "design"];
 // Agents that must not get the lines: read-only searchers and planners that
 // never act on them, host helpers, and an unanchored judge that must never
 // see what the builder meant.
@@ -75,7 +75,7 @@ export const MIGRATE_MS = 3000;
 // What each part of the briefing command may print, in characters. A host
 // shows the model only a preview of a hook's output past 10,000, so each part
 // is cut to its allowance and the gate holds their sum under that.
-export const BRIEFING_CHARS = { "agentic-teamwork": 1400, "agent-works": 900, "docs-parity": 300, "but-first-planning": 500, "perceptual-loop": 1400, "system-map": 400 };
+export const BRIEFING_CHARS = { "delivery": 1400, "agents": 900, "docs": 700, "planning": 500, "design": 1400 };
 // Every area's report of what its migration moved, together: one report may
 // take all of it, since two layouts rarely move in one session.
 export const MIGRATION_CHARS = 4200;
@@ -145,7 +145,7 @@ export function questionFor(state) {
   const kind = repoKind(state.root);
   if (!kind) return "";
   return [
-    `Before other work, ask the person once whether to use the ${PLUGIN} plugin in this repo: the team conventions (on their yes, /${PLUGIN}:agentic-teamwork bootstrap), or the plugin only (its portable discipline, none of the repo conventions), or no (the plugin stays silent here).`,
+    `Before other work, ask the person once whether to use the ${PLUGIN} plugin in this repo: the team conventions (on their yes, /${PLUGIN}:delivery bootstrap), or the plugin only (its portable discipline, none of the repo conventions), or no (the plugin stays silent here).`,
     `Record the answer with git config --local ${CONFIG_KEY} "<team|on|off> <who> <iso date>" (who: git config user.name) and never ask again in this clone; the plugin's lines arrive from the next session.`,
     kind === "empty" ? "This folder is not a git repo yet, so the answer keeps only after git init." : "",
   ].filter(Boolean).join(" ");
@@ -178,11 +178,11 @@ export function criticalBlocks(state, areas = readAreas()) {
 
 // ---- the route index -----------------------------------------------------
 // Where the skill listing does not fit its budget (a 200k context window),
-// the host lists this plugin's skills by name alone: fourteen names, and no
+// the host lists this plugin's skills by name alone: nine names, and no
 // route among them, since a route is a document and never listed. So the
 // lines command says which routes each area has, and how one is taken. Read
 // from each area's door.json as it runs, so it cannot drift from the areas.
-export const ROUTES_HEAD = `Routes, by area. An area is a skill: call it with the Skill tool and the route as the first word of its arguments (${PLUGIN}:agentic-teamwork with ship). A route is no skill of its own.`;
+export const ROUTES_HEAD = `Routes, by area. An area is a skill: call it with the Skill tool and the route as the first word of its arguments (${PLUGIN}:delivery with ship). A route is no skill of its own.`;
 const skillsDir = () => path.join(import.meta.dirname, "..", "skills");
 
 /** Each area and its routes, in name order: `{ area, routes }`, for every skill directory with a door.json. */
