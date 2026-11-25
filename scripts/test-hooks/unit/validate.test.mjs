@@ -402,14 +402,14 @@ test("an area the entry skill never asks about fails, and so does one it asks ab
 });
 
 test("the entry skill's data is held to what a question can offer", (t) => {
-  // Five areas in one group is five options, and the last group carries "Learn more" as well.
-  const wide = validate(tree(t, entryData((d) => ({ ...d, groups: [{ ...d.groups[0], areas: [...d.groups[0].areas, d.groups[1].areas[0]] }, { ...d.groups[1], areas: d.groups[1].areas.slice(1) }, ...d.groups.slice(2)] }))));
-  assert.match(wide.stdout, /^FAIL: .*"Plan and run work" offers 5 options; a question takes two to four/m);
+  // Two groups folded into one is five areas, so five options, and the last group carries "Learn more" as well.
+  const wide = validate(tree(t, entryData((d) => ({ ...d, groups: [{ ...d.groups[0], areas: [...d.groups[0].areas, ...d.groups[1].areas] }, ...d.groups.slice(2)] }))));
+  assert.match(wide.stdout, /^FAIL: .*"Plan it, run it, land it" offers 5 options; a question takes two to four/m);
   const long = validate(tree(t, entryData(area("code", (a) => ({ ...a, cue: "x".repeat(61), uses: [...a.uses, { want: "a fifth thing", to: "ladder" }] })))));
   assert.match(long.stdout, /^FAIL: .*code needs a cue of 1 to 60 characters/m);
   assert.match(long.stdout, /^FAIL: .*code has 5 uses; a question takes one to four/m);
   const label = validate(tree(t, entryData((d) => ({ ...d, groups: d.groups.map((g, i) => (i ? g : { ...g, header: "A label far too long" })) }))));
-  assert.match(label.stdout, /^FAIL: .*"Plan and run work" needs a header of 1 to 12 characters/m);
+  assert.match(label.stdout, /^FAIL: .*"Plan it, run it, land it" needs a header of 1 to 12 characters/m);
 });
 
 test("a use of the entry skill names a route that is there, and says so when only a person can start it", (t) => {

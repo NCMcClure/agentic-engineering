@@ -1,21 +1,27 @@
 {
   "groups": [
     {
-      "title": "Plan and run work",
-      "header": "Plan & run",
+      "title": "Plan it, run it, land it",
+      "header": "Build",
       "areas": [
         "planning",
         "agents",
-        "delivery",
-        "code"
+        "delivery"
       ]
     },
     {
-      "title": "Document, judge, and write",
-      "header": "Docs & look",
+      "title": "Keep the code and the look sound",
+      "header": "Quality",
+      "areas": [
+        "code",
+        "design"
+      ]
+    },
+    {
+      "title": "Document it and write it",
+      "header": "Explain",
       "areas": [
         "docs",
-        "design",
         "writing"
       ]
     },
