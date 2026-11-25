@@ -60,7 +60,7 @@ how its routes work.
 | [agents](skills/agents/README.md) | run several tasks at once from a kanban board, and hold what only one session may use |
 | [code](skills/code/README.md) | keep new code at the simplest rung that holds, cut what is not needed, and restructure a codebase that has grown messy, in stages behind its own tests |
 | [delivery](skills/delivery/README.md) | set a repo up on the team's git conventions, test across its lanes, ship a pull or merge request, and land it |
-| [design](skills/design/README.md) | check work judged by eye or ear with shots, gates, and a look at the picture |
+| [design](skills/design/README.md) | check work judged by eye or ear with shots and gates, and hold a front end to your design system |
 | [docs](skills/docs/README.md) | keep user docs, the README, and a system map level with the code, and draw how something works as an animated figure |
 | [harness](skills/harness/README.md) | make, score, and fix a plugin, read a session's transcript for what went wrong, build a Claude Code workflow, and keep a repo's agent-facing setup in one home each |
 | [planning](skills/planning/README.md) | turn an idea into a spec, a backlog, and issues built test-first |

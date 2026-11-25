@@ -18,11 +18,20 @@
 // the harness instead of building one, and whatever in config.json still
 // waits for an edit.
 //
+// And a design system, main session only: where the repo looks like a web
+// front end (a components.json, or a package.json that depends on a web
+// framework), has no .agents/design.json, and the person has declared a
+// system in their profile, one sentence: ask them whether to adopt it. No
+// profile, or a `git config --local agentic-engineering.design off` in the
+// clone, and it says nothing.
+//
 // Fail open, always exit 0. A session must never be blocked by this hook.
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import { OLD_DIR_NAME, allShots, loadConfig, oldPathKeys } from "../scripts/lib/project.mjs";
 import { shellOnly } from "../scripts/lib/render.mjs";
+import { PIN, dataDir, isWebFrontEnd, readProfile } from "../scripts/lib/system.mjs";
 
 const NEW_DIR = ".agents/perceptual";
 const CONFIG = `${NEW_DIR}/config.json`;
@@ -83,12 +92,26 @@ function migrate({ root, move }) {
 
 // ---- briefing ------------------------------------------------------------
 
+// The clone's answer to "put this repo on your design system?", where the person said no.
+export const DECLINE_KEY = "agentic-engineering.design";
+const declined = (root) => { try { return /^off\b/.test(execFileSync("git", ["-C", root, "config", "--local", DECLINE_KEY], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim()); } catch { return false; } };
+
+/** One sentence where a web front end is not on the person's design system, or "". */
+export function systemNudge(root, env = process.env) {
+  if (!root || fs.existsSync(path.join(root, PIN)) || !isWebFrontEnd(root)) return "";
+  const profile = readProfile(dataDir({ env }));
+  if (!profile || declined(root)) return "";
+  const name = profile.manifest?.name ?? profile.source;
+  return `This repo looks like a web front end and is not on the person's design system (${name}). Ask them once whether to adopt it: on a yes, /agentic-engineering:design adopt; on a no, git config --local ${DECLINE_KEY} off.`;
+}
+
 function briefing(payload, state) {
   const root = state.root;
   if (!root) return "";
+  const nudge = systemNudge(root);
   const moved = fs.existsSync(path.join(root, CONFIG));
   const unmoved = !moved && fs.existsSync(path.join(root, OLD_DIR_NAME, "config.json"));
-  if (!moved && !unmoved) return "";
+  if (!moved && !unmoved) return nudge;
   const dir = moved ? NEW_DIR : OLD_DIR_NAME;
   const lines = [];
   let shots = 0;
@@ -97,7 +120,8 @@ function briefing(payload, state) {
   lines.push(`This repo has a perceptual harness in ${dir}/: ${shots} shot(s)${groups.length ? `, groups ${groups.slice(0, 6).join(", ")}` : ""}. Iterate on it with /agentic-engineering:design iterate instead of rendering by hand.`);
   if (unmoved) lines.push(`Its state is still in ${OLD_DIR_NAME}/ and is read from there: move that folder to ${NEW_DIR}/, merging by hand what is already there.`);
   else if (!justMoved) lines.push(...configEdits(readJson(path.join(root, CONFIG)), CONFIG));
-  return lines.join(" ");
+  // First, so a long note about the harness is what the allowance cuts, not this.
+  return [nudge, ...lines].filter(Boolean).join(" ");
 }
 
 export { briefing, migrate };

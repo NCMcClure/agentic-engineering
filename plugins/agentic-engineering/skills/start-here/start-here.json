@@ -142,8 +142,8 @@
       ]
     },
     "design": {
-      "cue": "check work judged by eye or ear",
-      "how": "The session writes down what will prove a change, renders a few reproducible shots before and after, gates the numbers against the last accepted run, and looks at the picture before calling it done. Questions of taste wait for the person on one review page.",
+      "cue": "check work judged by eye or ear, or by a design system",
+      "how": "The session writes down what will prove a change, renders a few reproducible shots before and after, gates the numbers against the last accepted run, and looks at the picture before calling it done. Questions of taste wait for the person on one review page. For a web front end, it holds every repo to the one design system you already have: you name it once, each repo pins it, and a check fails on anything off-system.",
       "uses": [
         {
           "want": "start any change to how something looks, moves, or sounds",
@@ -159,8 +159,9 @@
           "to": "motion"
         },
         {
-          "want": "check a sound, or a sound against its picture",
-          "to": "audio"
+          "want": "hold your front ends to the design system you already use",
+          "to": "system",
+          "starts": "person"
         }
       ]
     },

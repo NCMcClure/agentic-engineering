@@ -46,8 +46,8 @@ function firstLayout(dir, config = OLD_CONFIG) {
 }
 
 /** Run the hook as a host does; returns the context the model reads, the line the person reads, and the raw result. */
-function session(dir, payload = {}) {
-  const r = runNode(HOOK, ["design"], { cwd: dir, env: { CLAUDE_PROJECT_DIR: dir, PL_DIR: "", PERCEPTUAL_LOOP_DIR: "", PL_SHOTS_DIR: "" },
+function session(dir, payload = {}, env = {}) {
+  const r = runNode(HOOK, ["design"], { cwd: dir, env: { CLAUDE_PROJECT_DIR: dir, PL_DIR: "", PERCEPTUAL_LOOP_DIR: "", PL_SHOTS_DIR: "", CLAUDE_PLUGIN_DATA: "", ...env },
     input: JSON.stringify({ hook_event_name: "SessionStart", source: "startup", cwd: dir, ...payload }) });
   assert.equal(r.status, 0, r.stderr);
   assert.equal(r.stderr, "");
@@ -57,11 +57,12 @@ function session(dir, payload = {}) {
 
 // ---- the lines -------------------------------------------------------------------------------
 
-test("critical.json: six lines for every agent in any opted-in repo, none waiting on another plugin, under the cap", () => {
+test("critical.json: seven lines for every agent in any opted-in repo, none waiting on another plugin, under the cap", () => {
   assert.equal(CRITICAL.area, "design");
   assert.equal("chains" in CRITICAL, false);
-  // The line about a ruling with reach stands behind the plan it would be recorded in.
-  assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [...Array.from({ length: 5 }, () => ["all", "any", undefined]), ["all", "any", PLAN]]);
+  // The line about a ruling with reach stands behind the plan it would be recorded in, and the design system's behind the pin.
+  assert.deepEqual(CRITICAL.lines.map((l) => [l.for, l.mode, l.when]), [...Array.from({ length: 5 }, () => ["all", "any", undefined]), ["all", "any", PLAN], ["all", "any", ".agents/design.json"]]);
+  assert.match(CRITICAL.lines[6].text, /reads \.agents\/rules\/design\.md first, .* \/agentic-engineering:design check before done\.$/);
   assert.ok(CRITICAL.lines.some((l) => l.text === TASTE), "the taste line is quoted elsewhere and stays word for word");
   assert.match(CRITICAL.lines[0].text, /starts with its doctrine, before the first change: \/agentic-engineering:design\.$/);
   assert.match(CRITICAL.lines[4].text, /\/agentic-engineering:agents locks\.$/);
@@ -97,6 +98,48 @@ test("where the person answered off, the hook says nothing and moves nothing it 
   assert.equal(session(dir).stdout, "");
   assert.equal(session(dir, { hook_event_name: "SubagentStart", agent_type: "general-purpose" }).stdout, "");
   assert.equal(fs.existsSync(path.join(dir, ".agents")), false);
+});
+
+// ---- the design system ---------------------------------------------------------------------
+
+/** A data directory whose profile names house-ui, as the system route leaves it. */
+function profiled() {
+  const data = tempDir("pl-data-");
+  write(data, "design/profile.json", json({ source: "house/ui", ref: "v0.2.0", manifest: { name: "house-ui" } }));
+  return data;
+}
+
+test("a web front end that is not on the person's design system hears it once, and nothing where any condition fails", () => {
+  const data = profiled();
+  const NUDGE = /This repo looks like a web front end and is not on the person's design system \(house-ui\)\. Ask them once whether to adopt it: on a yes, \/agentic-engineering:design adopt; on a no, git config --local agentic-engineering\.design off\./;
+  const app = repo("on");
+  write(app, "package.json", json({ dependencies: { react: "19.0.0" } }));
+  const heard = session(app, {}, { CLAUDE_PLUGIN_DATA: data }).context;
+  assert.match(heard, NUDGE);
+  assert.equal(heard.match(NUDGE).length, 1);
+
+  const shadcn = repo("on");
+  write(shadcn, "components.json", "{}\n");
+  assert.match(session(shadcn, {}, { CLAUDE_PLUGIN_DATA: data }).context, NUDGE, "a components.json is a front end");
+
+  assert.doesNotMatch(session(app, {}, { CLAUDE_PLUGIN_DATA: tempDir("pl-data-") }).context, /design system/, "no profile, nothing said");
+  const api = repo("on");
+  write(api, "package.json", json({ dependencies: { express: "4" } }));
+  assert.doesNotMatch(session(api, {}, { CLAUDE_PLUGIN_DATA: data }).context, /design system/, "not a front end");
+  assert.doesNotMatch(session(app, { hook_event_name: "SubagentStart", agent_type: "general-purpose" }, { CLAUDE_PLUGIN_DATA: data }).context, /design system/, "a subagent gets no briefing");
+
+  execFileSync("git", ["-C", app, "config", "--local", "agentic-engineering.design", "off"]);
+  assert.doesNotMatch(session(app, {}, { CLAUDE_PLUGIN_DATA: data }).context, /design system/, "the person said no in this clone");
+});
+
+test("a repo on a design system is opted in by its pin, hears the design line, and is not asked to adopt", () => {
+  const dir = repo();
+  write(dir, "package.json", json({ dependencies: { react: "19.0.0" } }));
+  write(dir, ".agents/design.json", json({ schema: 1, system: "house-ui", version: "0.2.0" }));
+  const { context } = session(dir, {}, { CLAUDE_PLUGIN_DATA: profiled() });
+  assert.ok(context.includes(`- ${CRITICAL.lines[6].text}`), "the pin is a marker, and the line stands behind it");
+  assert.ok(context.includes(TASTE), "the pin alone turns the portable lines on");
+  assert.doesNotMatch(context, /not on the person's design system/);
 });
 
 // ---- the move --------------------------------------------------------------------------------
@@ -202,7 +245,7 @@ test("the plugin's hook map runs the guard on both shells, and the area has no s
 
 test("every route names no script that is gone, and reaches the one CLI through the plugin root by the area's path", () => {
   const routes = fs.readdirSync(path.join(PLUGIN, "routes")).sort();
-  assert.deepEqual(routes, ["audio", "calibrate", "define-success", "iterate", "judge", "motion", "probe", "shot-harness"]);
+  assert.deepEqual(routes, ["adopt", "audio", "calibrate", "check", "define-success", "iterate", "judge", "motion", "probe", "shot-harness", "system"]);
   for (const name of routes) {
     const text = fs.readFileSync(path.join(PLUGIN, "routes", name, "ROUTE.md"), "utf8");
     assert.match(text, new RegExp(`^name: ${name}$`, "m"), name);

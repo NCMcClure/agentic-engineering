@@ -238,6 +238,7 @@ export const OLD_PLUGIN_NAMES = ["agentcraft"];
 // where nothing can reach back into the plugin.
 export const HASH_PAIRS = [
   { canonical: `plugins/${AREA_PLUGIN}/lib/provider.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/provider.mjs`] },
+  { canonical: `plugins/${AREA_PLUGIN}/lib/design-check.mjs`, copies: [`plugins/${AREA_PLUGIN}/skills/design/routes/adopt/assets/design-check.mjs`] },
 ];
 
 // The trees a route copies into a user's repo. A file there is another repo's
@@ -247,6 +248,7 @@ const TEMPLATE_TREES = [
   `plugins/${AREA_PLUGIN}/skills/delivery/templates/`,
   `plugins/${AREA_PLUGIN}/skills/agents/assets/templates/`,
   `plugins/${AREA_PLUGIN}/skills/planning/routes/spec-init/assets/`,
+  `plugins/${AREA_PLUGIN}/skills/design/routes/adopt/assets/`,
   `plugins/${AREA_PLUGIN}/skills/docs/routes/init/assets/`,
   `plugins/${AREA_PLUGIN}/skills/docs/routes/map-init/assets/`,
   `plugins/${AREA_PLUGIN}/skills/writing/routes/calibrate/assets/`,

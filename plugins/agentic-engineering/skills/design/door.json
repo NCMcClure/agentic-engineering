@@ -1,5 +1,5 @@
 {
-  "lead": "Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner.",
+  "lead": "Use for work judged by eye or ear (a render, an image, an animation, a sound), and for a web front end held to the person's design system. Look work: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. A front end: one system for every repo, a pin, and a check that fails on anything off-system.",
   "default": "define-success",
   "routes": {
     "define-success": {
@@ -26,6 +26,16 @@
     "shot-harness": {
       "cue": "no .agents/perceptual/ folder, or no shot renders on command",
       "starts": "person"
+    },
+    "system": {
+      "cue": "declare or see the one design system your front ends use",
+      "starts": "person"
+    },
+    "adopt": {
+      "cue": "a web front end is not yet on the design system"
+    },
+    "check": {
+      "cue": "front-end work in a pinned repo, or the design check fails"
     }
   }
 }

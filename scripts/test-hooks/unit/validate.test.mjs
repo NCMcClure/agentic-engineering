@@ -265,7 +265,7 @@ test("a shared file with no suite of its own fails, and so do the folders that h
 
 test("the copy a route puts in a user's repo is held equal to the one in lib/", (t) => {
   const copy = AREA("planning", "routes/spec-init/assets/provider.mjs");
-  assert.match(gate(tree(t)).stdout, /^ok: duplicated files hash-equal \(1 copy\/copies present\)$/m);
+  assert.match(gate(tree(t)).stdout, /^ok: duplicated files hash-equal \(2 copy\/copies present\)$/m);
   const result = gate(tree(t, { text: { [copy]: (s) => `${s}// edited here\n` } }));
   assert.equal(result.status, 1);
   assert.match(result.stdout, new RegExp(`^FAIL: ${copy} has drifted from ${LIB}/provider\\.mjs`, "m"));

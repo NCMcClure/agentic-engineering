@@ -15,7 +15,7 @@ Version 2.0.0. [README](../plugins/agentic-engineering/README.md), [changelog](.
 | [agents](#agents) | 8 | Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold. |
 | [code](#code) | 8 | Use on any coding task to build at the simplest rung that holds, reuse before building, cut over-engineering and track debt, and to restructure a repo that has already accreted: a sprawling tree, god-files, shallow coupled modules. |
 | [delivery](#delivery) | 6 | Use for the team's git conventions: setting a repo up or auditing it, writing tests across the lanes, and taking finished work to an open pull or merge request and then to merged. |
-| [design](#design) | 8 | Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. |
+| [design](#design) | 11 | Use for work judged by eye or ear (a render, an image, an animation, a sound), and for a web front end held to the person's design system. Look work: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. A front end: one system for every repo, a pin, and a check that fails on anything off-system. |
 | [docs](#docs) | 11 | Use whenever a change touches what a user, integrator, or operator sees, for any README being written or cut down, when a module or a call between modules is added in a repo that keeps a system map, and to draw a system, a feature, or an idea as an animated figure or a Miro frame: the docs, the map, and the pictures move in the same change as the code. |
 | [harness](#harness) | 13 | Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. |
 | [planning](#planning) | 18 | Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. |
@@ -78,7 +78,7 @@ Use for the team's git conventions: setting a repo up or auditing it, writing te
 
 ## design
 
-Use for work judged by eye or ear (a render, an image, an animation, a sound) and for a front end held to a design system: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner.
+Use for work judged by eye or ear (a render, an image, an animation, a sound), and for a web front end held to the person's design system. Look work: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. A front end: one system for every repo, a pin, and a check that fails on anything off-system.
 
 [README](../plugins/agentic-engineering/skills/design/README.md), [perceptual-loop history](../plugins/agentic-engineering/skills/design/history/perceptual-loop.md).
 
@@ -92,6 +92,9 @@ Use for work judged by eye or ear (a render, an image, an animation, a sound) an
 | `/agentic-engineering:design motion` | by the agent | Use for animation, transitions, smoothness, latency, or any clip, where a still cannot show it. Measures over time: jumps, flicker, judder, flow direction, clip against clip, contact sheets. |
 | `/agentic-engineering:design audio` | by the agent | Use when a task produces or changes sound, or sound must stay in sync with a picture. Measures loudness, silence and clipping, pitch, onsets, lag, spectra, and draws spectrograms. |
 | `/agentic-engineering:design shot-harness [what the project renders, and what the reference is]` | when you ask for it | Use to set a project up for perceptual checks: the state folder, the render commands, shots, helper passes, groups, and the render budget. The person starts it. |
+| `/agentic-engineering:design system [<local folder or owner/repo> [--ref <tag>]]` | when you ask for it | Use when the person wants to declare, change, or see the one design system all their front ends follow: where it lives, at which tag, and what it bans. Reads the system's design-system.json, or interviews for one when the system ships none. |
+| `/agentic-engineering:design adopt [--upgrade]` | by the agent | Use to put a repo's web front end on the person's design system: install the kit at the pinned tag, wire its entry CSS and root setup, commit a pin and the rules, and add the check. With --upgrade, moves an adopted repo to a new tag. |
+| `/agentic-engineering:design check [paths...]` | by the agent | Use before calling front-end work done in a repo with .agents/design.json, and when its design check fails: read each finding, fix it with the system's own tokens and components, install a missing component from the system, and allow an exception only on the person's yes. |
 
 ## docs
 
