@@ -198,7 +198,7 @@
       "id": "rewrite",
       "title": "The page is rewritten",
       "plain": "The agent rewrites the sentence in the screen's own words. The check now only notes that the screenshot is the old one.",
-      "technical": "docs-sync step 2 rewrites the passage to .agents/docs-contract.md. docs-check now reports SHOTS_UNCHANGED, info only, exit 0.",
+      "technical": "docs sync step 2 rewrites the passage to .agents/docs-contract.md. docs-check now reports SHOTS_UNCHANGED, info only, exit 0.",
       "focus": [
         "page",
         "check"

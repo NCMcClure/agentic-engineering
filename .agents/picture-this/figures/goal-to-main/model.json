@@ -15,7 +15,7 @@
     },
     {
       "id": "agent-works",
-      "label": "agent-works",
+      "label": "agents",
       "kind": "area",
       "note": "a board, and a session per card",
       "source": "plugins/agentic-engineering/skills/agents/door.json:2"
@@ -36,14 +36,14 @@
     },
     {
       "id": "perceptual-loop",
-      "label": "perceptual-loop",
+      "label": "design",
       "kind": "area",
       "note": "shots for work judged by eye",
       "source": "plugins/agentic-engineering/skills/design/door.json:2"
     },
     {
       "id": "docs-parity",
-      "label": "docs-parity",
+      "label": "docs: pages",
       "kind": "area",
       "note": "pages and shots, in the same change",
       "source": "plugins/agentic-engineering/skills/docs/door.json:2"
@@ -57,7 +57,7 @@
     },
     {
       "id": "system-map",
-      "label": "system-map",
+      "label": "docs: map",
       "kind": "area",
       "note": "a map checked against the imports",
       "source": "plugins/agentic-engineering/skills/docs/door.json:2"
@@ -108,7 +108,7 @@
       "from": "perceptual-loop",
       "to": "agent-works",
       "kind": "read",
-      "label": "resource-locks",
+      "label": "locks",
       "source": "plugins/agentic-engineering/skills/design/hooks/critical.json:8"
     },
     {
@@ -116,7 +116,7 @@
       "from": "planning",
       "to": "docs-parity",
       "kind": "event",
-      "label": "docs-sync",
+      "label": "sync",
       "source": "plugins/agentic-engineering/skills/planning/routes/build-tdd/ROUTE.md:126"
     },
     {
@@ -272,22 +272,22 @@
     ],
     "beside": [
       {
-        "id": "picture-this",
-        "label": "picture-this",
+        "id": "figure",
+        "label": "docs",
         "does": "draws figures like this one"
       },
       {
-        "id": "harness",
-        "label": "harness",
-        "does": "makes and scores plugins"
-      },
-      {
-        "id": "harness",
+        "id": "lens",
         "label": "harness",
         "does": "reads back what a session was given"
       },
       {
-        "id": "harness",
+        "id": "plugins",
+        "label": "harness",
+        "does": "makes and scores plugins"
+      },
+      {
+        "id": "workflows",
         "label": "harness",
         "does": "builds Claude Code workflows"
       }
@@ -309,7 +309,7 @@
       "id": "cards",
       "title": "One card, one session",
       "plain": "Each issue goes on the board as a card. A card you approve starts a session of its own, in its own worktree.",
-      "technical": "agent-works orchestrate shows the plan's issues as cards; aw board grant records the yes, and dispatch starts card-<id> in a worktree.",
+      "technical": "agents orchestrate shows the plan's issues as cards; aw board grant records the yes, and dispatch starts card-<id> in a worktree.",
       "focus": [
         "planning",
         "agent-works"
@@ -339,7 +339,7 @@
       "id": "look",
       "title": "Judged by eye",
       "plain": "A card judged by eye is proved on a few shots, and waits its turn for the one renderer the sessions share.",
-      "technical": "A card labelled look starts its child in perceptual-loop iterate-shots; the render runs under agent-works resource-locks.",
+      "technical": "A card labelled look starts its child in design iterate; the render runs under agents locks.",
       "focus": [
         "agent-works",
         "perceptual-loop"
@@ -354,7 +354,7 @@
       "id": "same-change",
       "title": "Docs in the same change",
       "plain": "The page, its screenshot and the map line go into the same change as the code, and the prose is in your voice.",
-      "technical": "build-tdd calls docs-parity docs-sync, which writes prose through writing; system-map's Stop check asks for the @system line in this change.",
+      "technical": "build-tdd calls docs sync, which writes prose through writing; the docs area's map check asks for the @system line in this change.",
       "focus": [
         "docs-parity",
         "writing",
@@ -386,7 +386,7 @@
       "id": "keep",
       "title": "Kept in shape",
       "plain": "When the tree has drifted, it is reorganized in stages on main. Each stage runs the repo's own tests and is reverted on red.",
-      "technical": "agent-works hubs leaves moving code to code, which records each seam decision through agent-works decisions.",
+      "technical": "harness hubs leaves moving code to code, which records each seam decision through harness decisions.",
       "focus": [
         "agent-works",
         "code"

@@ -159,7 +159,7 @@
     {
       "id": "trace",
       "title": "Measure across time",
-      "plain": "perceptual-loop tracks the ball through every frame and plots each step it took. One stands out: frame 13.",
+      "plain": "pl tracks the ball through every frame and plots each step it took. One stands out: frame 13.",
       "technical": "pl sweep --track: the step into frame 13 is 2.00 x the median, past 1.75 x, so a dropped frame. Judder 0.195 fails --max-judder 0.05.",
       "focus": ["clip", "trace", "numbers"],
       "flows": ["track", "flagged"],

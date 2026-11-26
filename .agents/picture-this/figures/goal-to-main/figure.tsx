@@ -8,6 +8,7 @@
 // and is where code works. Every hand-off drawn is a flow in
 // the model, with the path:line that names it.
 import type { Model, Row } from "../kit/model";
+import { entity } from "../kit/model";
 import { Stage, useFigure } from "../kit/stage";
 import type { StageProps } from "../kit/stage";
 import { Elbow } from "../kit/flat/connect";
@@ -181,7 +182,7 @@ function Scene() {
           );
         })}
       </Panel>
-      <text className="pt-label" x={BOARD.x} y={BOARD.y + BOARD.height + 18} style={tone(lit["agent-works"], hot["agent-works"])}>agent-works</text>
+      <text className="pt-label" x={BOARD.x} y={BOARD.y + BOARD.height + 18} style={tone(lit["agent-works"], hot["agent-works"])}>agents</text>
 
       {/* A card starts its session: not a branch, so dashed */}
       <Elbow from={[BOARD.x + BOARD.width + 3, ROWS[0]]} to={[START[0], LANE[0] - 2]} first="h" via={START[0]} radius={6} dashed quiet progress={started} accent={on("cards") * 0.9} />
@@ -208,7 +209,7 @@ function Scene() {
       {waits > 0 ? (
         <g opacity={r(waits)}>
           <path className="pt-guide" d={`M ${COMMITS[2].x} ${LANE[0] + 8} L ${COMMITS[2].x} ${LANE[1] - 7}`} />
-          <text className="pt-tag" x={COMMITS[2].x + 9} y={LANE[1] - 14}>resource-locks: one renderer, one turn</text>
+          <text className="pt-tag" x={COMMITS[2].x + 9} y={LANE[1] - 14}>locks: one renderer, one turn</text>
         </g>
       ) : null}
 
@@ -230,7 +231,7 @@ function Scene() {
         return (
           <g key={one.area}>
             {here > 0 ? <path d={`M ${one.x} ${LANE[0] - 8} L ${one.x} ${nameY(i) + 5}`} opacity={r(here)} style={{ fill: "none", stroke: h > 0 ? mix("var(--pt-accent)", "var(--pt-ink-3)", h) : "var(--pt-ink-3)", strokeWidth: 1 }} /> : null}
-            <text className="pt-label" x={one.x + 6} y={nameY(i) + 3.6} style={tone(lit[one.area], hot[one.area])}>{one.area}</text>
+            <text className="pt-label" x={one.x + 6} y={nameY(i) + 3.6} style={tone(lit[one.area], hot[one.area])}>{entity(model, one.area).label}</text>
             {here > 0 ? <text className="pt-tag" x={one.x + 6} y={LANE[0] - 9} opacity={r(here)} style={h > 0.5 && index !== at("land") ? HOT : INK}>{one.holds}</text> : null}
             <Commit at={[one.x, LANE[0]]} here={here} accent={index === at("land") ? 0 : h} />
           </g>

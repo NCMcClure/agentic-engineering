@@ -245,7 +245,7 @@ function Scene() {
 
       {/* What the checker says of the change */}
       <text className="pt-tag" x={CODE.x} y={STRIP_Y} style={ran ? INK : QUIET}>docs-check --changed HEAD</text>
-      <text className="pt-tag" x={CODE.x + 172} y={STRIP_Y} style={ran ? undefined : QUIET}>run by the Stop hook as the turn ends, and by docs-sync</text>
+      <text className="pt-tag" x={CODE.x + 172} y={STRIP_Y} style={ran ? undefined : QUIET}>run by the Stop hook as the turn ends, and by docs sync</text>
       {verdict ? (
         <g opacity={r(saidIn)}>
           {verdict.code ? (

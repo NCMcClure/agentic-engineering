@@ -12,12 +12,12 @@ Version 2.0.0. [README](../plugins/agentic-engineering/README.md), [changelog](.
 
 | Area | Routes | For |
 |---|---|---|
-| [agents](#agents) | 8 | Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold. |
+| [agents](#agents) | 8 | Use when this session was started to build a single card, and to run work in parallel from a kanban board that the person and the agents share: putting work on it, a goal or a sprint built by subagents (or child sessions when asked), starting or reviewing a card, and locking a port or another resource one session can hold. |
 | [code](#code) | 8 | Use on any coding task to build at the simplest rung that holds, reuse before building, cut over-engineering and track debt, and to restructure a repo that has already accreted: a sprawling tree, god-files, shallow coupled modules. |
 | [delivery](#delivery) | 6 | Use for the team's git conventions: setting a repo up or auditing it, writing tests across the lanes, and taking finished work to an open pull or merge request and then to merged. |
 | [design](#design) | 11 | Use for work judged by eye or ear (a render, an image, an animation, a sound), and for a web front end held to the person's design system. Look work: what will prove it is said before the first change, each change is checked by measured shots, defects are fixed, and taste is left to the owner. A front end: one system for every repo, a pin, and a check that fails on anything off-system. |
 | [docs](#docs) | 11 | Use whenever a change touches what a user, integrator, or operator sees, for any README being written or cut down, when a module or a call between modules is added in a repo that keeps a system map, and to draw a system, a feature, or an idea as an animated figure or a Miro frame: the docs, the map, and the pictures move in the same change as the code. |
-| [harness](#harness) | 13 | Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. |
+| [harness](#harness) | 13 | Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room; to make, score, or fix a plugin; to write or open a Claude Code workflow; and for a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. It is everything that shapes what an agent knows and may do. |
 | [planning](#planning) | 18 | Use to pin down a vague request by interview, and to take a project, a feature, or a long task from spec to published plan to test-first build: write or change the spec, break it into issues, build the next one, audit a sprint. |
 | [writing](#writing) | 3 | Use every time you are about to write or rewrite prose a human will read (emails, docs, READMEs, reports, posts, summaries, chat replies), and whenever the person says draft, write up, humanize, de-AI, make it sound like me, or says text sounds like AI: writes in their own voice, free of AI tells. |
 
@@ -29,7 +29,7 @@ The one skill a person types: `/agentic-engineering:start-here [the task, in a s
 
 ## agents
 
-Use to run work in parallel from a kanban board the person and the agents share: putting work on the board, a goal or a sprint built by subagents (or child sessions when asked), starting, working, or reviewing a card, and locking a port or another resource one session can hold.
+Use when this session was started to build a single card, and to run work in parallel from a kanban board that the person and the agents share: putting work on it, a goal or a sprint built by subagents (or child sessions when asked), starting or reviewing a card, and locking a port or another resource one session can hold.
 
 [README](../plugins/agentic-engineering/skills/agents/README.md), [agent-works history](../plugins/agentic-engineering/skills/agents/history/agent-works.md).
 
@@ -118,7 +118,7 @@ Use whenever a change touches what a user, integrator, or operator sees, for any
 
 ## harness
 
-Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor.
+Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room; to make, score, or fix a plugin; to write or open a Claude Code workflow; and for a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. It is everything that shapes what an agent knows and may do.
 
 [README](../plugins/agentic-engineering/skills/harness/README.md), [plugin-workbench history](../plugins/agentic-engineering/skills/harness/history/plugin-workbench.md), [workflow-studio history](../plugins/agentic-engineering/skills/harness/history/workflow-studio.md).
 
