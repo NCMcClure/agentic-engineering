@@ -1,7 +1,9 @@
 # design
 
-This area was perceptual-loop, an area and before that a plugin of its own; its
-changelog is kept as it was in [history/perceptual-loop.md](history/perceptual-loop.md).
+Two halves: work judged by eye or ear, which is most of this page, and a web front end held to the design
+system you already have, under [A design system](#a-design-system). The first half was perceptual-loop, an
+area and before that a plugin of its own; its changelog is kept as it was in
+[history/perceptual-loop.md](history/perceptual-loop.md).
 
 An agent can't iterate on what it can't measure. Ask one to "make it look right" and it either stops at the
 first plausible picture or asks you after every change, and nothing catches the shot it broke three steps ago.
@@ -112,6 +114,33 @@ The render command a project configures is started as a program with its argumen
 shell. A string is split into words as a shell would split them; a pipeline or a redirection goes in a script,
 or in `config.json` as an array that names the shell (`["bash", "-c", "..."]`).
 
+## A design system
+
+An agent asked for a new screen writes `rounded-xl` and `#ff6600` because nothing in the repo says not to,
+and every repo drifts from the system a little differently. So you pick one design system for all your
+projects, every repo with a web front end adopts it, and a check fails on anything off-system. Any system
+works that describes itself in a `design-system.json` at its root: how to install it, its entry CSS and root
+setup, its token files, its rules and component catalog, what is banned (raw colours, class families given as
+patterns), and the name of the allow file. A system that ships none is described once, by interview.
+
+- **`system`** (you start it) records which system and which tag in your profile, on your machine and never
+  in a repo. A GitHub source is read through your own `gh` login, so a private system works.
+- **`adopt`** installs the kit at that tag (asking first), wires the entry CSS in order and the root setup,
+  and commits a pin, `.agents/design.json`, with the system's rules copied to `.agents/rules/design.md`
+  and the checker to `.agents/scripts/design-check.mjs`. It adds a `design:check` script, and a lane where
+  the repo keeps `.agents/manifest.json`. `--upgrade` moves the pin to a new tag.
+- **`check`** runs the checker and fixes each finding with the system's own tokens and components. A missing
+  component is installed from the system, a new look is a variant in the system, and an exception goes in the
+  allow file with a reason, on your yes. An allow entry that matches nothing is reported, so the list cannot
+  rot.
+
+The checker is one Node file with no dependencies: a repo runs it in CI with no plugin and no network. It
+reads text, not syntax: class strings from `class` and `className`, the arguments of `cn`, `clsx`, `cva` and
+their kin, and `@apply`. A class assembled at run time from pieces is missed. In a repo with the pin, the
+session is told to read the rules first and run the check before calling front-end work done; in a front end
+that is not on your system, it is told to ask you once whether to adopt it. It does not build a design
+system, handle a native front end, or judge how a page looks: that is the first half of this page.
+
 ## Install
 
 ```text
@@ -156,6 +185,9 @@ holds that one entry, and an area cannot be typed. An agent reaches a route as
 | `judge` | A difference needs a verdict, a finished change needs a blind second look, or taste questions wait for you |
 | `motion` | Anything a still cannot show: an animation, a transition, smoothness, latency, a clip against a clip |
 | `audio` | A task produces or changes sound, or sound must stay in sync with a picture |
+| `system` (you start it) | Declaring, changing, or seeing the design system all your front ends follow |
+| `adopt` | A web front end is not yet on your design system, or its pin should move to a new tag |
+| `check` | Front-end work in a repo with `.agents/design.json` is about to be called done, or its check fails |
 
 Plus the **vision-critic** agent (`agentic-engineering:vision-critic`: it sees only pictures and neutral questions,
 never the builder's intent) and the **perceptual-critique** workflow (a blind critic per comparison, a skeptic

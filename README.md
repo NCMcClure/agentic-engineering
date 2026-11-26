@@ -26,7 +26,8 @@ and how it works, and so do the people using it.
 
 **It is good, not only finished.** A great deal of what makes software usable
 is judged by eye or ear: an interface, a render, an animation, a sound.
-[design](#design) gives an agent a way to iterate on exactly that.
+[design](#design) gives an agent a way to iterate on exactly that, and holds
+every front end to the design system you already have.
 [code](#code) keeps the code small and its structure sound as it grows.
 
 **It sounds like you, and it compounds.** [writing](#writing) runs through
@@ -95,10 +96,10 @@ ask for the work in words and the agent picks the area.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/assets/routes-behind-names.dark.gif">
-  <img alt="How one plugin keeps 75 routes behind nine names. A session lists nine names, not 75 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
+  <img alt="How one plugin keeps 78 routes behind nine names. A session lists nine names, not 78 routes: a route is a document that takes no room in the context window until an area reads it." src="docs/assets/routes-behind-names.gif" width="720">
 </picture>
 
-<sub>Nine names are listed. The 75 routes behind them stay on disk until an area reads one.</sub>
+<sub>Nine names are listed. The 78 routes behind them stay on disk until an area reads one.</sub>
 
 ### planning
 
@@ -219,6 +220,14 @@ sheets the agent opens with its own vision, and one review page that batches
 the taste questions for you. One Node CLI does the measuring, a hook keeps
 runs small, and a blind critic judges a picture without being told what it was
 meant to be. Defects are the agent's to fix; taste is yours to decide.
+
+A front end has one more way to go wrong: it drifts from the design system,
+one hand-set corner and one raw colour at a time. You name your system once,
+by a folder or a GitHub repo and a tag, and each repo with a web front end
+adopts it: the kit installed at that tag, a committed pin, the system's rules
+copied beside it, and a one-file checker that fails on a raw colour or a
+banned class. Fixes come from the system's own tokens and components, and an
+exception needs a reason and your yes.
 [Read more →](plugins/agentic-engineering/skills/design/README.md)
 
 <picture>

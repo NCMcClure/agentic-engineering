@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "title": "How one plugin keeps 75 routes behind nine names",
-  "mechanism": "A person types start-here and an agent calls an area by name; either way the area reads one route document by path, and the other 74 stay unread.",
+  "title": "How one plugin keeps 78 routes behind nine names",
+  "mechanism": "A person types start-here and an agent calls an area by name; either way the area reads one route document by path, and the other 77 stay unread.",
   "lens": "path",
-  "claim": "A session lists nine names, not 75 routes: a route is a document that takes no room in the context window until an area reads it.",
+  "claim": "A session lists nine names, not 78 routes: a route is a document that takes no room in the context window until an area reads it.",
   "implication": "One thing to remember: /agentic-engineering:start-here. Or ask in plain words, and the agent picks the area.",
   "entities": [
     {
@@ -104,7 +104,7 @@
     {
       "id": "listed",
       "title": "Nine names",
-      "plain": "The agentic-engineering plugin lists nine skills by name: start-here and eight areas. Its 75 routes are not on the list.",
+      "plain": "The agentic-engineering plugin lists nine skills by name: start-here and eight areas. Its 78 routes are not on the list.",
       "technical": "At a 200k window the host lists a plugin's skills by name alone: agentic-engineering:start-here and eight areas. No route is a skill.",
       "focus": [
         "listing"
@@ -171,7 +171,7 @@
     {
       "id": "read",
       "title": "The area reads one route",
-      "plain": "The area is short. It reads one document by path, routes/ship/ROUTE.md, and the other 74 routes stay on disk.",
+      "plain": "The area is short. It reads one document by path, routes/ship/ROUTE.md, and the other 77 routes stay on disk.",
       "technical": "SKILL.md: the first word is the route, read that route's ROUTE.md and follow it. 5,177 of the routes' 464,525 characters load.",
       "focus": [
         "area",
@@ -196,7 +196,7 @@
       "label": "Routes read",
       "of": "route",
       "unit": "routes",
-      "max": 75,
+      "max": 78,
       "start": 0,
       "values": {
         "read": 1
@@ -230,8 +230,8 @@
         "id": "design",
         "label": "design",
         "of": "area",
-        "routes": 8,
-        "chars": 47366
+        "routes": 11,
+        "chars": 58127
       },
       {
         "id": "docs",
