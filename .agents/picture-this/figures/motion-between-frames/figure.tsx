@@ -220,7 +220,7 @@ function Scene() {
         .map(([id, y]) => <Elbow key={id} from={[SCREEN.x + SCREEN.width, 82]} to={[PLOT.x, y]} via={203} quiet {...wire(id)} />)}
 
       {/* What pl draws for the model: the trace */}
-      <text className="pt-label" x={PLOT.x} y={22}>What perceptual-loop draws</text>
+      <text className="pt-label" x={PLOT.x} y={22}>What pl draws</text>
       <text className="pt-label" x={NUM.x} y={22}>The numbers</text>
       <Place box={PLOT} here={plotHere * leaving} />
       {BURST.xs.map((x, i) => <Place key={`b${i}`} box={{ x, y: BURST.y, width: BURST.width, height: BURST.height }} here={burstHere * leaving} />)}

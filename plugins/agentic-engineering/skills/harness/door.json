@@ -1,5 +1,5 @@
 {
-  "lead": "Use for everything that shapes what an agent knows and may do: making, scoring, and fixing plugins, reading a session's transcript for what reached its context, writing or opening Claude Code workflows, and a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor.",
+  "lead": "Use when a session ignored a rule, lost its instructions after a compaction, stopped at a skill, or ran short of room; to make, score, or fix a plugin; to write or open a Claude Code workflow; and for a repo's agent-facing setup: its hubs, memory, decisions, guard, and doctor. It is everything that shapes what an agent knows and may do.",
   "default": "diagnose",
   "routes": {
     "plugin-improve": {
