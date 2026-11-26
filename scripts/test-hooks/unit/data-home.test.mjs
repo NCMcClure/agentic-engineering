@@ -1,19 +1,21 @@
-// plugins/agentcraft/lib/data-home.mjs: where an area keeps what outlives an
+// plugins/agentic-engineering/lib/data-home.mjs: where an area keeps what outlives an
 // update, and the one-time copy of what it kept as a plugin of its own. Every
 // directory here is a throwaway: the person's own data is never read.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { test } from "node:test";
-import { areaHome, formerHome, inherit } from "../../../plugins/agentcraft/lib/data-home.mjs";
+import { FORMER_NAMES, areaHome, formerHome, inherit, previousHome, renamedHome } from "../../../plugins/agentic-engineering/lib/data-home.mjs";
 import { tempDir, write } from "./helpers.mjs";
 
 const MARKET = "agentic-engineering";
+// The plugin's name before 2.0.0, whose data directory is carried over.
+const PREVIOUS = "agent" + "craft";
 /** A `plugins/data` folder as the host lays one out: this plugin's directory, and where an area's own one was. */
 function machine(t, market = MARKET) {
   const data = path.join(tempDir(t, "data-home-"), "plugins", "data");
-  const current = path.join(data, `agentcraft-${market}`);
-  return { data, current, env: { CLAUDE_PLUGIN_DATA: current }, former: (area) => path.join(data, `${area}-${market}`), home: (area) => path.join(current, area) };
+  const current = path.join(data, `agentic-engineering-${market}`);
+  return { data, current, env: { CLAUDE_PLUGIN_DATA: current }, former: (area) => path.join(data, `${area}-${market}`), previous: (area) => path.join(data, `${PREVIOUS}-${market}`, area), home: (area) => path.join(current, area) };
 }
 /** Every file under `dir`, with forward slashes, and what it holds. */
 const tree = (dir) => Object.fromEntries((fs.existsSync(dir) ? fs.readdirSync(dir, { recursive: true }) : []).map(String)
@@ -38,9 +40,51 @@ test("the directory an area had as a plugin of its own is beside this plugin's, 
   // A trailing separator is the same directory.
   assert.equal(formerHome("write-like-me", { CLAUDE_PLUGIN_DATA: m.current + path.sep }), path.join(m.data, `write-like-me-${MARKET}`));
   // A data directory that is not named for this plugin (a test's, a person's override) says nothing about a marketplace.
-  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentcraft"), path.join(m.data, `write-like-me-${MARKET}`), "", undefined]) {
+  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentic-engineering"), path.join(m.data, `write-like-me-${MARKET}`), "", undefined]) {
     assert.equal(formerHome("write-like-me", { CLAUDE_PLUGIN_DATA: data }), null, String(data));
   }
+});
+
+test("the directory the plugin had under its previous name holds the area's folder, in the same marketplace", (t) => {
+  const m = machine(t);
+  assert.equal(previousHome("write-like-me", m.env), path.join(m.data, `${PREVIOUS}-${MARKET}`, "write-like-me"));
+  const fork = machine(t, "a-fork");
+  assert.equal(previousHome("picture-this", fork.env), path.join(fork.data, `${PREVIOUS}-a-fork`, "picture-this"));
+  for (const data of [path.join(m.data, "somewhere"), path.join(m.data, "agentic-engineering"), "", undefined]) {
+    assert.equal(previousHome("write-like-me", { CLAUDE_PLUGIN_DATA: data }), null, String(data));
+  }
+});
+
+test("data the 1.x plugin wrote is copied into the area's home once, and never over anything", (t) => {
+  const m = machine(t);
+  const from = m.previous("write-like-me");
+  write(from, "observations.jsonl", '{"label": "tone"}\n');
+  write(from, "samples/emails/one.md", "a sample\n");
+  write(m.previous("picture-this"), "kit/package.json", "{}\n");
+  const before = tree(from);
+  assert.deepEqual(inherit("write-like-me", m.env), ["observations.jsonl", "samples"]);
+  assert.deepEqual(tree(m.home("write-like-me")), before);
+  assert.deepEqual(tree(from), before, "a copy: nothing is moved");
+  assert.deepEqual(fs.readdirSync(m.current), ["write-like-me"], "and no other area's folder is made");
+  // A second run, with the old plugin still writing, copies nothing and overwrites nothing.
+  write(m.home("write-like-me"), "observations.jsonl", "kept\n");
+  write(from, "later.md", "later\n");
+  assert.deepEqual(inherit("write-like-me", m.env), []);
+  assert.equal(fs.readFileSync(path.join(m.home("write-like-me"), "observations.jsonl"), "utf8"), "kept\n");
+  assert.equal(fs.existsSync(path.join(m.home("write-like-me"), "later.md")), false);
+});
+
+test("the previous plugin's data wins over an area's own old directory, and either is used alone", (t) => {
+  const both = machine(t);
+  write(both.previous("write-like-me"), "observations.jsonl", "from the 1.x plugin\n");
+  write(both.former("write-like-me"), "observations.jsonl", "from the area's own plugin\n");
+  assert.deepEqual(inherit("write-like-me", both.env), ["observations.jsonl"]);
+  assert.deepEqual(tree(both.home("write-like-me")), { "observations.jsonl": "from the 1.x plugin\n" });
+
+  const alone = machine(t);
+  fs.mkdirSync(alone.previous("write-like-me"), { recursive: true });
+  write(alone.former("write-like-me"), "changelog.md", "# Changelog\n");
+  assert.deepEqual(inherit("write-like-me", alone.env), ["changelog.md"], "an empty previous folder falls through to the area's own");
 });
 
 test("what an area kept as a plugin of its own is copied into its home, and the old directory is left as it was", (t) => {
@@ -104,9 +148,74 @@ test("with nothing to copy it does nothing, and makes no folder", (t) => {
 });
 
 test("loading the module reads and writes nothing", () => {
-  const source = fs.readFileSync(new URL("../../../plugins/agentcraft/lib/data-home.mjs", import.meta.url), "utf8");
+  const source = fs.readFileSync(new URL("../../../plugins/agentic-engineering/lib/data-home.mjs", import.meta.url), "utf8");
   // Nothing at the top level but imports, constants and functions: no call to fs outside a function body.
   const top = source.split("\n").filter((line) => /^\S/.test(line) && !/^(\/\/|\/\*| \*|import |export (function|const)|const |function |\}|\))/.test(line));
   assert.deepEqual(top, []);
   assert.doesNotMatch(source, /process\.env\.(?!CLAUDE_PLUGIN_DATA)/);
+});
+
+// An area renamed when the areas were regrouped: writing was write-like-me,
+// harness keeps what workflow-studio kept, and docs what picture-this kept. Its new folder is filled once
+// from where its data was, and never over anything.
+test("a renamed area names the areas its data was kept under", () => {
+  assert.deepEqual(FORMER_NAMES, { writing: ["write-like-me"], harness: ["workflow-studio"], docs: ["picture-this"] });
+  assert.equal(renamedHome("write-like-me", { CLAUDE_PLUGIN_DATA: "data" }), path.resolve("data", "write-like-me"));
+  for (const env of [{}, { CLAUDE_PLUGIN_DATA: "" }]) assert.equal(renamedHome("write-like-me", env), null);
+});
+
+test("a renamed area copies its old folder in this plugin's directory first, then the previous plugin's, then its own old plugin's", (t) => {
+  const all = machine(t);
+  write(all.home("write-like-me"), "observations.jsonl", "from this plugin, before the rename\n");
+  write(all.previous("write-like-me"), "observations.jsonl", "from the 1.x plugin\n");
+  write(all.former("write-like-me"), "observations.jsonl", "from the area's own plugin\n");
+  assert.deepEqual(inherit("writing", all.env), ["observations.jsonl"]);
+  assert.deepEqual(tree(all.home("writing")), { "observations.jsonl": "from this plugin, before the rename\n" });
+  assert.deepEqual(tree(all.home("write-like-me")), { "observations.jsonl": "from this plugin, before the rename\n" }, "a copy: the old folder is left as it was");
+
+  const previous = machine(t);
+  write(previous.previous("write-like-me"), "changelog.md", "# 1.x\n");
+  write(previous.former("write-like-me"), "changelog.md", "# own\n");
+  assert.deepEqual(inherit("writing", previous.env), ["changelog.md"]);
+  assert.deepEqual(tree(previous.home("writing")), { "changelog.md": "# 1.x\n" });
+
+  const own = machine(t);
+  write(own.former("workflow-studio"), "app/.install-stamp", "abc");
+  assert.deepEqual(inherit("harness", own.env), ["app"]);
+  assert.deepEqual(tree(own.home("harness")), { "app/.install-stamp": "abc" });
+});
+
+test("a renamed area copies once, never over its own folder, and never from its new name's old directories", (t) => {
+  const m = machine(t);
+  write(m.home("workflow-studio"), "app/.install-stamp", "old");
+  assert.deepEqual(inherit("harness", m.env), ["app"]);
+  write(m.home("harness"), "app/.install-stamp", "new");
+  write(m.home("workflow-studio"), "later.md", "later\n");
+  assert.deepEqual(inherit("harness", m.env), []);
+  assert.deepEqual(tree(m.home("harness")), { "app/.install-stamp": "new" });
+
+  // A plugin of its own named like the new area was never this area's.
+  const stranger = machine(t);
+  write(stranger.former("writing"), "observations.jsonl", "someone else's\n");
+  write(stranger.previous("writing"), "observations.jsonl", "someone else's\n");
+  assert.deepEqual(inherit("writing", stranger.env), []);
+  assert.equal(fs.existsSync(stranger.current), false);
+});
+
+test("the areas with a data folder copy their old data on first use", () => {
+  const source = (rel) => fs.readFileSync(new URL(`../../../plugins/agentic-engineering/${rel}`, import.meta.url), "utf8");
+  for (const [area, rel] of [["writing", "skills/writing/scripts/wlm/paths.mjs"], ["harness", "skills/harness/scripts/launch-studio.mjs"], ["docs", "skills/docs/scripts/lib/home.mjs"]]) {
+    const text = source(rel);
+    assert.match(text, /\binherit\(AREA\b/, `${rel} calls inherit`);
+    assert.match(text, new RegExp(`const AREA = "${area}"`), `${rel} keeps its data under ${area}`);
+  }
+});
+
+test("docs copies the figure studio picture-this kept, once, and pt finds it there", async (t) => {
+  const m = machine(t);
+  write(m.home("picture-this"), "studio/.install-stamp", "abc");
+  const { dataHome } = await import("../../../plugins/agentic-engineering/skills/docs/scripts/lib/home.mjs");
+  assert.equal(dataHome(m.env), m.home("docs"));
+  assert.deepEqual(tree(m.home("docs")), { "studio/.install-stamp": "abc" });
+  assert.deepEqual(tree(m.home("picture-this")), { "studio/.install-stamp": "abc" }, "a copy: the old folder is left as it was");
 });

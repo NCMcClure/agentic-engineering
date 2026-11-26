@@ -11,28 +11,28 @@
       "label": "You",
       "kind": "client",
       "note": "\"too formal\"",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/prompt-submit.mjs:12"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/prompt-submit.mjs:12"
     },
     {
       "id": "listener",
       "label": "Prompt hook",
       "kind": "service",
       "note": "spots style feedback",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/feedback.mjs:58"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/feedback.mjs:58"
     },
     {
       "id": "ledger",
       "label": "observations.jsonl",
       "kind": "queue",
       "note": "remarks waiting",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/observations.mjs:8"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/observations.mjs:8"
     },
     {
       "id": "stop",
       "label": "Stop hook",
       "kind": "service",
       "note": "once a session, hourly at most",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/stop.mjs:27"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/stop.mjs:27"
     },
     {
       "id": "helper",
@@ -40,21 +40,21 @@
       "kind": "worker",
       "note": "has the whole conversation",
       "born": "fork",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/refine-profile.md:3"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/refine-profile.md:3"
     },
     {
       "id": "profile",
       "label": "Profile",
       "kind": "store",
       "note": "loads into every session",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/paths.mjs:24"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/paths.mjs:24"
     },
     {
       "id": "changelog",
       "label": "changelog.md",
       "kind": "store",
       "note": "old and new, dated",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/paths.mjs:28"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/paths.mjs:28"
     },
     {
       "id": "later",
@@ -62,7 +62,7 @@
       "kind": "client",
       "note": "starts with the new line",
       "born": "load",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/paths.mjs:9"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/paths.mjs:9"
     }
   ],
   "flows": [
@@ -72,7 +72,7 @@
       "to": "listener",
       "kind": "event",
       "label": "too formal",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/prompt-submit.mjs:15"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/prompt-submit.mjs:15"
     },
     {
       "id": "record",
@@ -80,7 +80,7 @@
       "to": "ledger",
       "kind": "write",
       "label": "append",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/prompt-submit.mjs:20"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/prompt-submit.mjs:20"
     },
     {
       "id": "check",
@@ -88,7 +88,7 @@
       "to": "stop",
       "kind": "read",
       "label": "pending",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/stop.mjs:34"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/stop.mjs:34"
     },
     {
       "id": "spawn",
@@ -96,7 +96,7 @@
       "to": "helper",
       "kind": "event",
       "label": "fork",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/stop.mjs:57"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/stop.mjs:57"
     },
     {
       "id": "revise",
@@ -104,7 +104,7 @@
       "to": "profile",
       "kind": "write",
       "label": "one line",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/refine-profile.md:24"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/refine-profile.md:24"
     },
     {
       "id": "log",
@@ -112,7 +112,7 @@
       "to": "changelog",
       "kind": "write",
       "label": "old → new",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/refine-profile.md:45"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/refine-profile.md:45"
     },
     {
       "id": "clear",
@@ -120,7 +120,7 @@
       "to": "ledger",
       "kind": "write",
       "label": "delete",
-      "source": "plugins/agentcraft/skills/write-like-me/hooks/refine-profile.md:53"
+      "source": "plugins/agentic-engineering/skills/writing/hooks/refine-profile.md:53"
     },
     {
       "id": "load",
@@ -128,7 +128,7 @@
       "to": "later",
       "kind": "read",
       "label": "loads at start",
-      "source": "plugins/agentcraft/skills/write-like-me/scripts/wlm/paths.mjs:9"
+      "source": "plugins/agentic-engineering/skills/writing/scripts/wlm/paths.mjs:9"
     }
   ],
   "quantities": [
@@ -229,7 +229,7 @@
       "id": "clear",
       "title": "Folded in",
       "plain": "The helper deletes the remark it used and reports the change to you. Nothing asks first; review can undo it.",
-      "technical": "The subagent deletes observations.jsonl; its final message, quoting old and new, is the closing summary. /agentcraft:write-like-me review reverts.",
+      "technical": "The subagent deletes observations.jsonl; its final message, quoting old and new, is the closing summary. /agentic-engineering:writing review reverts.",
       "focus": [
         "ledger"
       ],

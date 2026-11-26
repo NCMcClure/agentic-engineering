@@ -1,0 +1,7 @@
+/* house-ui colour tokens: the only file where a raw colour may be written. */
+:root {
+  --house-ink: #1d2433;
+  --house-paper: #fbfaf7;
+  --house-accent: oklch(0.62 0.17 255);
+  --house-radius: 6px;
+}

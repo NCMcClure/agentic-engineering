@@ -154,7 +154,7 @@ function Scene() {
       </Panel>
 
       {/* The picture pl draws: time across, frequency up, a cell's weight its level */}
-      <text className="pt-label" x={PLOT.x} y={HEAD_Y}>What perceptual-loop draws</text>
+      <text className="pt-label" x={PLOT.x} y={HEAD_Y}>What pl draws</text>
       <text className="pt-tag" x={PLOT.x} y={SUB_Y}>pl audio spectrogram chime.wav</text>
       {[100, 1000, 10000].map((hz) => (
         <g key={hz}>

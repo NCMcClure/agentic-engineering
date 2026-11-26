@@ -5,7 +5,7 @@
 // and the shot are behind until the sentence is rewritten and the picture
 // retaken. Under them, what docs-check says of the change at each step. The
 // file contents and every line of the checker's output come from a scratch
-// repo with exactly this surface, run through plugins/agentcraft/skills/docs-parity.
+// repo with exactly this surface, run through plugins/agentic-engineering/skills/docs.
 import { useId } from "react";
 import type { Model, Row } from "../kit/model";
 import { Stage, useFigure } from "../kit/stage";
@@ -245,7 +245,7 @@ function Scene() {
 
       {/* What the checker says of the change */}
       <text className="pt-tag" x={CODE.x} y={STRIP_Y} style={ran ? INK : QUIET}>docs-check --changed HEAD</text>
-      <text className="pt-tag" x={CODE.x + 172} y={STRIP_Y} style={ran ? undefined : QUIET}>run by the Stop hook as the turn ends, and by docs-sync</text>
+      <text className="pt-tag" x={CODE.x + 172} y={STRIP_Y} style={ran ? undefined : QUIET}>run by the Stop hook as the turn ends, and by docs sync</text>
       {verdict ? (
         <g opacity={r(saidIn)}>
           {verdict.code ? (

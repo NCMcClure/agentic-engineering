@@ -1,4 +1,4 @@
-// plugins/agentcraft/hooks/critical-context.mjs and the two session commands
+// plugins/agentic-engineering/hooks/critical-context.mjs and the two session commands
 // built on it, run the way the plugin runs them: a throwaway plugin directory
 // with the real helper, session-start.mjs and briefing.mjs in hooks/, and an
 // area folder per name in AREAS holding lines and a briefing this suite wrote.
@@ -9,7 +9,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { after, test } from "node:test";
 import { REPO, runNode, tempDir, tempRepo, write } from "./helpers.mjs";
-import * as helper from "../../../plugins/agentcraft/hooks/critical-context.mjs";
+import * as helper from "../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 
 const {
   AREAS, BRIEFING_CHARS, CATALOG_CHARS, CONFIG_KEY, DENYLIST, MARKERS, MARKETPLACE, MIGRATION_CHARS, OLD_MANIFESTS, OLD_MARKERS, PLUGIN, SHARED_LINE,
@@ -42,11 +42,11 @@ const partOf = (a) => `const AREA = ${JSON.stringify(a)};
 const says = {
   short: (state) => \`\${AREA} briefing in \${state.mode} mode.\`,
   long: () => \`\${AREA} \${"b".repeat(6000)}\`,
-  throws: () => { if (AREA === "agent-works") throw new Error("no board"); return \`\${AREA} still speaks.\`; },
+  throws: () => { if (AREA === "agents") throw new Error("no board"); return \`\${AREA} still speaks.\`; },
 };
 const moves = {
-  move: AREA === "perceptual-loop" ? ({ move, write }) => { move(".old/config.json", ".agents/perceptual/config.json"); write(".agents/perceptual/opt-in.json", "{}\\n", { mode: 0o755 }); return "Strict mode stays on."; } : undefined,
-  throw: AREA === "perceptual-loop" ? () => { throw new Error("disk says no"); } : undefined,
+  move: AREA === "design" ? ({ move, write }) => { move(".old/config.json", ".agents/perceptual/config.json"); write(".agents/perceptual/opt-in.json", "{}\\n", { mode: 0o755 }); return "Strict mode stays on."; } : undefined,
+  throw: AREA === "design" ? () => { throw new Error("disk says no"); } : undefined,
   wordy: ({ write }) => { write(\`.moved/\${AREA}\`, "x\\n"); return "n".repeat(3000); },
 };
 export const briefing = (payload, state) => says[process.env.FIXTURE_BRIEFING]?.(state) ?? "";
@@ -106,7 +106,7 @@ const briefing = (t, dir, options) => hook(t, "briefing.mjs", dir, options);
 // ---- what the helper is ---------------------------------------------------
 
 test("one helper: the areas in the order they print, and nothing left of the several-plugin kernel", () => {
-  assert.deepEqual(AREAS, ["agentic-teamwork", "agent-works", "code-diet", "docs-parity", "but-first-planning", "perceptual-loop", "system-map"]);
+  assert.deepEqual(AREAS, ["delivery", "agents", "harness", "code", "docs", "planning", "design"]);
   for (const gone of ["ORDER", "isAsker", "enabledPlugins", "catalogNews"]) assert.ok(!(gone in helper), `${gone} is still exported`);
   for (const a of BRIEFED) assert.ok(AREAS.includes(a), `${a} has a briefing allowance and is no area`);
   assert.equal(CONFIG_KEY, `${MARKETPLACE}.plugins`, "an answer recorded before the plugins became areas is still read");
@@ -188,37 +188,37 @@ test("off prints nothing from either command", (t) => {
 
 test("a line behind a when prints where the repo has any path it names", (t) => {
   const dir = repo(t, "manifest");
-  assert.ok(!lines(t, dir).of("but-first-planning").includes(LINE.planned("but-first-planning")));
+  assert.ok(!lines(t, dir).of("planning").includes(LINE.planned("planning")));
   write(dir, ".agents/plan/README.md", "plan\n");
-  assert.ok(lines(t, dir).of("but-first-planning").includes(LINE.planned("but-first-planning")));
+  assert.ok(lines(t, dir).of("planning").includes(LINE.planned("planning")));
   const old = repo(t, "manifest");
   write(old, ".plan/old-script.py", "# the older layout\n");
-  assert.ok(lines(t, old).of("perceptual-loop").includes(LINE.planned("perceptual-loop")), "the first path of a list counts too");
+  assert.ok(lines(t, old).of("design").includes(LINE.planned("design")), "the first path of a list counts too");
 });
 
 test("every area is present, so a chains block is never read and a line waits on nothing but its when", (t) => {
-  const from = plugin(t, { data: (a) => ({ area: a, lines: [{ for: "main", mode: "any", text: LINE.main(a) }], chains: [{ partner: "agent-works", for: "main", mode: "any", text: `${a} waits on agent-works` }] }) });
+  const from = plugin(t, { data: (a) => ({ area: a, lines: [{ for: "main", mode: "any", text: LINE.main(a) }], chains: [{ partner: "agents", for: "main", mode: "any", text: `${a} waits on agents` }] }) });
   const out = lines(t, repo(t, "manifest"), { from });
   assert.ok(!/waits on/.test(out.context), out.context);
   for (const a of AREAS) assert.deepEqual(out.of(a), [LINE.main(a)]);
 });
 
 test("an area whose lines are missing or do not parse costs only its own block", (t) => {
-  const from = plugin(t, { data: (a) => (a === "code-diet" ? null : a === "docs-parity" ? "{ not json" : { area: a, lines: linesOf(a) }) });
+  const from = plugin(t, { data: (a) => (a === "code" ? null : a === "docs" ? "{ not json" : { area: a, lines: linesOf(a) }) });
   const out = lines(t, repo(t, "manifest"), { from });
-  assert.deepEqual(out.areas, AREAS.filter((a) => a !== "code-diet" && a !== "docs-parity"));
+  assert.deepEqual(out.areas, AREAS.filter((a) => a !== "code" && a !== "docs"));
 });
 
 test("criticalBlocks: the shared line stands alone where no area has a line, and nothing prints in mode none", () => {
   const state = { mode: "full", subagent: false, denied: false, root: null };
-  assert.deepEqual(criticalBlocks(state, [{ area: "code-diet", data: { lines: [] } }, { area: "system-map", data: null }]), [SHARED_LINE]);
-  assert.deepEqual(criticalBlocks({ ...state, mode: "none" }, [{ area: "code-diet", data: { lines: linesOf("code-diet") } }]), []);
-  assert.deepEqual(criticalBlocks({ ...state, subagent: true, denied: true }, [{ area: "code-diet", data: { lines: linesOf("code-diet") } }]), []);
+  assert.deepEqual(criticalBlocks(state, [{ area: "code", data: { lines: [] } }, { area: "docs", data: null }]), [SHARED_LINE]);
+  assert.deepEqual(criticalBlocks({ ...state, mode: "none" }, [{ area: "code", data: { lines: linesOf("code") } }]), []);
+  assert.deepEqual(criticalBlocks({ ...state, subagent: true, denied: true }, [{ area: "code", data: { lines: linesOf("code") } }]), []);
 });
 
 test("the work tree of the payload's cwd is judged, not the project dir", (t) => {
   const project = repo(t, "off"), worktree = repo(t, "manifest");
-  assert.ok(lines(t, worktree, { env: { CLAUDE_PROJECT_DIR: project } }).of("code-diet").includes(LINE.full("code-diet")));
+  assert.ok(lines(t, worktree, { env: { CLAUDE_PROJECT_DIR: project } }).of("code").includes(LINE.full("code")));
   assert.equal(lines(t, project, { env: { CLAUDE_PROJECT_DIR: worktree } }).raw, "");
   assert.equal(answer({ cwd: worktree }, { CLAUDE_PROJECT_DIR: project }).mode, "full");
 });
@@ -231,7 +231,7 @@ test("an unanswered repo: one question with three answers, the team conventions 
   for (const kind of ["plain", "remote"]) {
     const out = lines(t, repo(t, kind));
     assert.match(out.context, QUESTION);
-    assert.ok(out.context.includes(`the team conventions (on their yes, /${PLUGIN}:agentic-teamwork bootstrap)`), out.context);
+    assert.ok(out.context.includes(`the team conventions (on their yes, /${PLUGIN}:delivery bootstrap)`), out.context);
     assert.match(out.context, /the plugin only/);
     assert.ok(out.context.includes(`git config --local ${CONFIG_KEY} "<team|on|off> <who> <iso date>"`), out.context);
     assert.match(out.context, /never ask again/);
@@ -324,10 +324,10 @@ test("clip leaves a text that fits alone and marks one it cut", () => {
 
 test("an area's briefing that throws, or does not load, costs only its own part", (t) => {
   const thrown = briefing(t, repo(t, "on"), { env: { FIXTURE_BRIEFING: "throws" } });
-  assert.deepEqual(thrown.blocks, BRIEFED.filter((a) => a !== "agent-works").map((a) => `${a} still speaks.`));
-  const from = plugin(t, { part: (a) => (a === "agent-works" ? "export const briefing = (" : a === "system-map" ? null : partOf(a)) });
+  assert.deepEqual(thrown.blocks, BRIEFED.filter((a) => a !== "agents").map((a) => `${a} still speaks.`));
+  const from = plugin(t, { part: (a) => (a === "agents" ? "export const briefing = (" : a === "planning" ? null : partOf(a)) });
   const broken = briefing(t, repo(t, "on"), { from, env: { FIXTURE_BRIEFING: "short" } });
-  assert.deepEqual(broken.blocks, BRIEFED.filter((a) => a !== "agent-works" && a !== "system-map").map((a) => `${a} briefing in portable mode.`));
+  assert.deepEqual(broken.blocks, BRIEFED.filter((a) => a !== "agents" && a !== "planning").map((a) => `${a} briefing in portable mode.`));
 });
 
 // ---- migration --------------------------------------------------------------
@@ -349,13 +349,13 @@ test("a migration runs first, in a repo nobody has answered for, tells the model
   write(dir, ".old/config.json", '{"strict":true}\n');
   const env = { FIXTURE_MIGRATE: "move", FIXTURE_BRIEFING: "short" };
   const first = briefing(t, dir, { env });
-  assert.match(first.blocks[0], /^perceptual-loop moved this repo to its current layout: \.old\/config\.json -> \.agents\/perceptual\/config\.json; wrote \.agents\/perceptual\/opt-in\.json\./);
+  assert.match(first.blocks[0], /^design moved this repo to its current layout: \.old\/config\.json -> \.agents\/perceptual\/config\.json; wrote \.agents\/perceptual\/opt-in\.json\./);
   assert.match(first.blocks[0], /Strict mode stays on\./);
-  assert.equal(first.message, "perceptual-loop moved 2 path(s) to its current layout.");
+  assert.equal(first.message, "design moved 2 path(s) to its current layout.");
   assert.deepEqual(first.blocks.slice(1), BRIEFED.map((a) => `${a} briefing in portable mode.`), "the marker it created turns the mode on in the same run");
   assert.equal(fs.readFileSync(path.join(dir, ".agents/perceptual/config.json"), "utf8"), '{"strict":true}\n');
   if (process.platform !== "win32") assert.equal(fs.statSync(path.join(dir, ".agents/perceptual/opt-in.json")).mode & 0o111, 0o111, "a write can make a file executable");
-  assert.ok(lines(t, dir).of("perceptual-loop").includes(LINE.portable("perceptual-loop")), "and the lines command reads the new marker");
+  assert.ok(lines(t, dir).of("design").includes(LINE.portable("design")), "and the lines command reads the new marker");
 
   const second = briefing(t, dir, { env });
   assert.deepEqual(second.blocks, BRIEFED.map((a) => `${a} briefing in portable mode.`));
@@ -377,7 +377,7 @@ test("a migration never overwrites: where both layouts exist the old one is left
 
 test("a migration that throws says so, and the briefing still goes out", (t) => {
   const out = briefing(t, repo(t, "on"), { env: { FIXTURE_MIGRATE: "throw", FIXTURE_BRIEFING: "short" } });
-  assert.match(out.blocks[0], /perceptual-loop could not finish moving to its current layout \(disk says no\)/);
+  assert.match(out.blocks[0], /design could not finish moving to its current layout \(disk says no\)/);
   assert.match(out.message, /could not finish a layout move/);
   assert.deepEqual(out.blocks.slice(1), BRIEFED.map((a) => `${a} briefing in portable mode.`));
 });
@@ -391,7 +391,7 @@ test("the lines command moves nothing: a migration is the briefing command's", (
 
 // ---- the catalog ------------------------------------------------------------
 
-function catalogHome(t, { source = { source: "github", repo: "someone/catalog" }, plugins = [[PLUGIN, "2.0.0", "1.9.0"], ["agent-works", "5.0.0", "4.2.0"], ["code-diet", "1.0.0", "1.0.0"]] } = {}) {
+function catalogHome(t, { source = { source: "github", repo: "someone/catalog" }, plugins = [[PLUGIN, "2.0.0", "1.9.0"], ["agent-works", "5.0.0", "4.2.0"], ["code", "1.0.0", "1.0.0"]] } = {}) {
   const config = tempDir(t, "helper-catalog-home-");
   const clone = tempDir(t, "helper-catalog-");
   write(clone, ".claude-plugin/marketplace.json", JSON.stringify({ name: MARKETPLACE, plugins: plugins.map(([name]) => ({ name, source: `./plugins/${name}`, description: `${name}.` })) }));
@@ -408,7 +408,7 @@ test("the briefing names what is installed behind the catalog: this plugin, and 
   assert.equal(out.blocks.length, 1);
   assert.ok(out.blocks[0].startsWith(`Behind the ${MARKETPLACE} catalog: ${PLUGIN} 1.9.0 (catalog 2.0.0), agent-works 4.2.0 (catalog 5.0.0).`), out.context);
   assert.ok(out.blocks[0].includes(`claude plugin update <name>@${MARKETPLACE}`));
-  assert.ok(!/code-diet/.test(out.context), "a plugin level with the catalog is not named");
+  assert.ok(!/code/.test(out.context), "a plugin level with the catalog is not named");
   assert.match(briefing(t, dir, { config }).context, /Behind the/, "every session, until it is updated");
   assert.equal(lines(t, dir, { config }).context.includes("catalog"), false, "the lines command carries no notice");
   assert.equal(briefing(t, dir, { config, event: "SubagentStart", agentType: "general-purpose" }).raw, "");
@@ -447,25 +447,25 @@ test("a plugin with no area folders at all prints the shared line alone, and no 
 });
 
 // The route index: at a 200k window the host lists the plugin's skills by
-// name alone, fourteen names and no route, so the lines command names each
+// name alone, nine names and no route, so the lines command names each
 // area's routes itself. It is read from the areas' own door.json files.
 test("the route index names every area's routes, from each door.json, and says how a route is taken", () => {
   const areas = helper.readRoutes(path.join(REPO, "plugins", PLUGIN, "skills"));
-  assert.equal(areas.length, 13, "every area, whether or not it keeps critical lines");
+  assert.equal(areas.length, 8, "every area, whether or not it keeps critical lines");
   assert.ok(!areas.some((a) => a.area === "start-here"), "the entry skill has no routes");
   const index = helper.routeIndex({ mode: "full", subagent: false }, areas);
   const [head, ...rows] = index.split("\n");
   assert.equal(head, helper.ROUTES_HEAD);
   assert.match(head, /call it with the Skill tool and the route as the first word of its arguments/);
-  assert.equal(rows.length, 13);
+  assert.equal(rows.length, 8);
   for (const { area, routes } of areas) {
     const door = JSON.parse(fs.readFileSync(path.join(REPO, "plugins", PLUGIN, "skills", area, "door.json"), "utf8"));
     assert.deepEqual(routes, Object.keys(door.routes), area);
     assert.ok(rows.includes(`- ${area}: ${routes.join(", ")}`), area);
   }
   // The two the first run on the one-plugin tree lost at 200k, where only names show.
-  assert.match(index, /^- agentic-teamwork: .*\bship\b/m);
-  assert.match(index, /^- system-map: .*\bmiro-board\b/m);
+  assert.match(index, /^- delivery: .*\bship\b/m);
+  assert.match(index, /^- docs: .*\bmiro\b/m);
 });
 
 test("the route index is the main session's, where the plugin speaks: not a subagent's, and not a repo nobody answered for", () => {
@@ -491,7 +491,7 @@ test("the lines command prints the route index after the areas' blocks in the ma
   const at = main.blocks.findIndex((b) => b.startsWith(helper.ROUTES_HEAD));
   assert.ok(at > 0, main.context.slice(0, 300));
   assert.ok(main.blocks.slice(at + 1).every((b) => !b.startsWith("Critical, from ")), "after the last area's block");
-  assert.equal(main.blocks[at].split("\n").length, 14, "the heading and a row per area");
+  assert.equal(main.blocks[at].split("\n").length, 9, "the heading and a row per area");
   assert.ok(!lines(t, dir, { from, event: "SubagentStart", agentType: "general-purpose" }).context.includes(helper.ROUTES_HEAD));
   assert.ok(!lines(t, dir).context.includes(helper.ROUTES_HEAD), "a plugin with no area data prints no index");
 });

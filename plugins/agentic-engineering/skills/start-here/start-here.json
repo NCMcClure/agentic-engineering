@@ -1,0 +1,216 @@
+{
+  "groups": [
+    {
+      "title": "Plan it, run it, land it",
+      "header": "Build",
+      "areas": [
+        "planning",
+        "agents",
+        "delivery"
+      ]
+    },
+    {
+      "title": "Keep the code and the look sound",
+      "header": "Quality",
+      "areas": [
+        "code",
+        "design"
+      ]
+    },
+    {
+      "title": "Document it and write it",
+      "header": "Explain",
+      "areas": [
+        "docs",
+        "writing"
+      ]
+    },
+    {
+      "title": "Shape what agents know and may do",
+      "header": "Harness",
+      "areas": [
+        "harness"
+      ]
+    }
+  ],
+  "areas": {
+    "planning": {
+      "cue": "turn an idea into a spec, a backlog, and built issues",
+      "how": "Three phases, each leaving files in a workspace: write and sharpen a spec, decompose it into a backlog, then build that backlog one issue at a time, test-first. The project's workspace is `.agents/plan/`, which `spec-init` scaffolds the first time; a feature or a long task gets its own, `.agents/plans/<name>/`, made when you ask for its spec.",
+      "uses": [
+        {
+          "want": "be questioned on a goal until nothing about it is left unsaid",
+          "to": "grill"
+        },
+        {
+          "want": "write or extend the spec for a project or a feature",
+          "to": "spec-write"
+        },
+        {
+          "want": "break a finished spec into epics, sprints, and issues",
+          "to": "plan-decompose"
+        },
+        {
+          "want": "find the next unblocked issue of the plan",
+          "to": "build-next-issue"
+        }
+      ]
+    },
+    "agents": {
+      "cue": "run several tasks at once, each in its own session",
+      "how": "The session becomes the orchestrator: it turns a goal into cards on a kanban board, asks before starting anything, has a subagent build each card in its own worktree (or a child session, when you ask for sessions), and reviews what comes back.",
+      "uses": [
+        {
+          "want": "build a goal bigger than one change, or resume a round",
+          "to": "orchestrate"
+        },
+        {
+          "want": "see what is on the board, add to it, or move a card",
+          "to": "board"
+        },
+        {
+          "want": "hold a port, a simulator, or a GPU only one session may use",
+          "to": "locks"
+        }
+      ]
+    },
+    "delivery": {
+      "cue": "set up, check, or ship a repo the team's way",
+      "how": "Most of it runs unasked: hooks judge commits and pushes against the team's git conventions. What a person starts by name is the setup, the audit, and the two ends of landing work.",
+      "uses": [
+        {
+          "want": "put a new repo on the team conventions before any code is written",
+          "to": "bootstrap",
+          "starts": "person"
+        },
+        {
+          "want": "check the repo against the conventions and repair what drifted",
+          "to": "audit-project"
+        },
+        {
+          "want": "commit the work in hand and open its pull or merge request",
+          "to": "ship"
+        },
+        {
+          "want": "merge a reviewed request once its checks are green",
+          "to": "land"
+        }
+      ]
+    },
+    "code": {
+      "cue": "keep code small, and restructure what has grown messy",
+      "how": "On any coding task the agent takes the simplest rung that works, checks what already exists, and marks what it defers as debt; a repo that has already accreted is restructured in stages on a branch, each checked by its own tests and reverted on red.",
+      "uses": [
+        {
+          "want": "hunt over-engineering in the working diff before a request",
+          "to": "review"
+        },
+        {
+          "want": "check what already exists before building something",
+          "to": "reuse"
+        },
+        {
+          "want": "the whole sweep, stage by stage",
+          "to": "restructure"
+        },
+        {
+          "want": "find shallow modules and leaky seams and nothing else",
+          "to": "deepen"
+        }
+      ]
+    },
+    "docs": {
+      "cue": "keep docs, diagrams, and figures level with the code",
+      "how": "Pages, screenshots, the README, and a system map drawn on Miro move in the same change as the code they describe, with a Stop check and CI to say when they did not; a figure of how something works is drawn from a model of it and captured for a README.",
+      "uses": [
+        {
+          "want": "bring the docs level with a change before it is committed",
+          "to": "sync"
+        },
+        {
+          "want": "cut a README down to what a newcomer needs",
+          "to": "readme"
+        },
+        {
+          "want": "bring the system map and its board level with a code change",
+          "to": "map-sync"
+        },
+        {
+          "want": "turn a system, a mechanism, or an idea into a figure",
+          "to": "figure"
+        }
+      ]
+    },
+    "design": {
+      "cue": "check work judged by eye or ear, or by a design system",
+      "how": "The session writes down what will prove a change, renders a few reproducible shots before and after, gates the numbers against the last accepted run, and looks at the picture before calling it done. Questions of taste wait for the person on one review page. For a web front end, it holds every repo to the one design system you already have: you name it once, each repo pins it, and a check fails on anything off-system.",
+      "uses": [
+        {
+          "want": "start any change to how something looks, moves, or sounds",
+          "to": "design"
+        },
+        {
+          "want": "set a project up so it can render a shot on command",
+          "to": "shot-harness",
+          "starts": "person"
+        },
+        {
+          "want": "check an animation, a transition, or a clip",
+          "to": "motion"
+        },
+        {
+          "want": "hold your front ends to the design system you already use",
+          "to": "system",
+          "starts": "person"
+        }
+      ]
+    },
+    "writing": {
+      "cue": "write in your own voice, and catch AI tells",
+      "how": "A calibrated profile of how the person writes, applied to prose a human will read, with hooks that learn from style feedback.",
+      "uses": [
+        {
+          "want": "build or rebuild the voice profile",
+          "to": "calibrate",
+          "starts": "person"
+        },
+        {
+          "want": "draft something in their voice",
+          "to": "writing"
+        },
+        {
+          "want": "check a draft for AI-writing tells",
+          "to": "audit"
+        },
+        {
+          "want": "see or undo what the learning loop changed",
+          "to": "review",
+          "starts": "person"
+        }
+      ]
+    },
+    "harness": {
+      "cue": "make plugins, read what a session got, build workflows",
+      "how": "One rubric scores a plugin from its files and its fixes are applied by the points each is worth; a session transcript is read back for what reached the agent and what went wrong; a node editor and hand-writing rules cover Claude Code workflows.",
+      "uses": [
+        {
+          "want": "make a new plugin, or wrap skills and scripts they already have",
+          "to": "plugin-create"
+        },
+        {
+          "want": "score a plugin and get a scorecard with a verdict",
+          "to": "plugin-evaluate",
+          "starts": "person"
+        },
+        {
+          "want": "find out why a session ignored a rule or forgot its instructions",
+          "to": "diagnose"
+        },
+        {
+          "want": "open the visual editor",
+          "to": "harness"
+        }
+      ]
+    }
+  }
+}

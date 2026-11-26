@@ -6,10 +6,11 @@ true of a build, not forever.
 
 ## Host behaviors the one-plugin cutover leans on
 
-The twelve plugins became areas of one plugin, `agentcraft`. For a time each
-old name stayed in the catalog as a stub, a manifest that depended on
-`agentcraft` and shipped nothing else; the stubs are gone now, and the catalog
-lists the one plugin. The move leaned on host behaviors nobody here had run.
+The twelve plugins became areas of one plugin, then named `agentcraft` and
+renamed `agentic-engineering` in 2.0.0. For a time each old name stayed in the
+catalog as a stub, a manifest that depended on `agentcraft` and shipped nothing
+else; the stubs are gone now, and the catalog lists the one plugin. The runs
+below keep the name the plugin had when they were made. The move leaned on host behaviors nobody here had run.
 Each was run on 2026-11-15 on Claude Code 2.1.325, in a throwaway marketplace
 against scratch config, never a person's own. Findings 5 to 7 say what the
 host does with a stub and with a plugin the catalog drops, which is what an
@@ -32,7 +33,7 @@ was run, so "typed by a person" below means a prompt that opens with a slash.
 The scratch plugin `agentcraft` held `bin/probe`, an area `skills/area/`
 (`user-invocable: false`, with `routes/go/ROUTE.md`), a plain skill
 `skills/start/`, a `SessionStart` hook that writes down its environment, and
-the `userConfig` key agent-works declares, `syncIntervalSeconds`. Where a
+the `userConfig` key the agents area declares, `syncIntervalSeconds`. Where a
 finding below quotes an address in it, the area is written `<area>`, its route
 `<route>`, and the plain skill `<entry>`, so nothing here reads as an address
 in the real plugin.
@@ -144,13 +145,20 @@ in the real plugin.
    Builds before 2.1.321 were not run here; measured elsewhere, the
    dependency arrives a session late on them.
 
+A plugin may carry its marketplace's name. On build 2.1.330, in an empty
+config directory, `claude plugin marketplace add <checkout>` and then `claude
+plugin install agentic-engineering@agentic-engineering` both succeeded, and
+`claude plugin list` showed the plugin enabled at its version. Not run there:
+a session, so its skill names and its data directory
+(`agentic-engineering-agentic-engineering` by finding 6) were not seen.
+
 Not tested: an interactive session's slash menu; a signed-in account; a real
 model; the background auto-update pass; a `renames` entry; and how a mod reads
 `userConfig`.
 
 ## Host behaviors the plan gate leans on
 
-The agent-works area holds a session to a plan approved in Claude Code's plan
+The agents area holds a session to a plan approved in Claude Code's plan
 mode, and that reads what the host hands a hook while a session plans. The
 hooks reference states little of it. Each behavior below was run on 2026-11-19
 on Claude Code 2.1.326, in a scratch repo, on Haiku under a real login, with a
@@ -160,11 +168,11 @@ runs used the protocol the desktop app drives a session with
 (`--input-format stream-json --output-format stream-json --permission-prompt-tool stdio`),
 and a driver answered the approval prompt. The payloads are kept, with their
 paths replaced, in
-`scripts/test-hooks/cases/agent-works/plan-mode/payloads.json`, and the unit
+`scripts/test-hooks/cases/agents/plan-mode/payloads.json`, and the unit
 suites of the two plan hooks are built from them.
 
 Plan mode here is the host's: a plan file the session writes and the person
-approves. It is not the spec and plan tree the but-first-planning area keeps
+approves. It is not the spec and plan tree the planning area keeps
 under `.agents/plan/`, which no finding below touches.
 
 8. **`permission_mode` is `plan` on UserPromptSubmit, PreToolUse, PostToolUse,

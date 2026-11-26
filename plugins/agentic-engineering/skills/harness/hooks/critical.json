@@ -1,0 +1,6 @@
+{
+  "area": "harness",
+  "lines": [
+    {"for":"all","mode":"any","when":".agents/agent-works.json","text":"Hubs: a directory with an AGENTS.md holds no source files, every non-leaf code directory has one naming each child, and it changes with them. Run `aw hubs` (/agentic-engineering:harness hubs) before committing."}
+  ]
+}

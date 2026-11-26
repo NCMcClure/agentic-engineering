@@ -1,0 +1,8 @@
+.promo-banner {
+  background: rgb(255 102 0 / 0.9);
+  border-color: hsl(var(--house-ink));
+}
+
+.promo-title {
+  @apply rounded-md font-semibold;
+}

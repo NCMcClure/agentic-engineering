@@ -1,0 +1,14 @@
+{
+  "area": "agents",
+  "lines": [
+    {"for":"main","mode":"any","text":"A goal bigger than one pull or merge request goes to /agentic-engineering:agents orchestrate: a subagent builds each piece in its own worktree, never one session. A child session costs the person approvals and cleanup: start one only when asked."},
+    {"for":"main","mode":"any","text":"The board is the record, memory loses to it: after a restart or compaction, resume from `aw board status` with /agentic-engineering:agents orchestrate."},
+    {"for":"main","mode":"any","text":"Nothing starts without the person's yes, recorded with `aw board grant`, and nothing merges without a review; a child's \"passed\" is a claim until you read the diff and re-run what the risk needs."},
+    {"for":"main","mode":"any","text":"Never poll a child or schedule wake-ups: it wakes you when its turn ends."},
+    {"for":"main","mode":"any","text":"A vague goal is grilled with /agentic-engineering:planning grill before it goes on the board."},
+    {"for":"main","mode":"any","text":"A card judged by eye or ear gets `--labels look` (or motion, sound), so its child starts with the doctrine: /agentic-engineering:design."},
+    {"for":"main","mode":"full","text":"A child ships with /agentic-engineering:delivery ship; you land each request on green with /agentic-engineering:delivery land."},
+    {"for":"all","mode":"any","text":"Work noticed outside the task goes on the board (`aw board add --suggest`), and a check you cannot run is owed (`aw board owe`), never claimed: /agentic-engineering:agents board."},
+    {"for":"all","mode":"any","text":"Anything one session at a time can use (a dev-server port, a simulator, a GPU, a database) runs under /agentic-engineering:agents locks."}
+  ]
+}

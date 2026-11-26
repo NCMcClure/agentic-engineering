@@ -4,7 +4,7 @@
 // thing that can ask. Where a marker or an answer settles it, `off` included,
 // it never appears, and a subagent is never asked. Matched by its fixed
 // opening.
-import { PLUGIN } from "../../../../plugins/agentcraft/hooks/critical-context.mjs";
+import { PLUGIN } from "../../../../plugins/agentic-engineering/hooks/critical-context.mjs";
 
 const QUESTION = `whether to use the ${PLUGIN} plugin`;
 const ASKED = { bare: 1, outside: 1, unplugged: 0, portable: 0, standard: 0, adopted: 0, "teamwork-only": 0 };

@@ -1,6 +1,6 @@
 # agentic-engineering: a Claude Code plugin marketplace
 
-One plugin, `agentcraft`. Each of its thirteen areas is a fix for a problem
+One plugin, `agentic-engineering`. Each of its eight areas is a fix for a problem
 that keeps turning up when engineering with agents, and `start-here` is the
 one skill a person types to find the right one. The catalog lists that one
 plugin and nothing else. Nothing here runs in production; it runs in the agents, so a mistake ships to every
@@ -21,16 +21,16 @@ enforces.
   and the model it draws) and the picture-this kit beside them. Their stills
   go into the area they illustrate; the plugin ships no source. A model's
   sources name its area's files, and `pt still <figure> --gif --dark --out
-  plugins/agentcraft/skills/<area>/assets/figures` retakes what that area's
+  plugins/agentic-engineering/skills/<area>/assets/figures` retakes what that area's
   README shows.
-- `.claude-plugin/marketplace.json` - the catalog: one entry, `agentcraft`.
+- `.claude-plugin/marketplace.json` - the catalog: one entry, `agentic-engineering`.
   Never a `version` key.
-- `plugins/` - `agentcraft/`, the one plugin, and nothing beside it. Its
+- `plugins/` - `agentic-engineering/`, the one plugin, and nothing beside it. Its
   `AGENTS.md` says what each area is for. Descend to change what an agent
   does.
 - `scripts/` - repo tooling, never shipped: `validate.mjs` (the structural
   gate), `gen-guide.mjs` (what `npm run guide` writes), `install.mjs` and
-  `refresh.mjs` (the local dev loop; they install `agentcraft`), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its README
+  `refresh.mjs` (the local dev loop; they install `agentic-engineering`), `lib.mjs`, and `test-hooks/` (the unit and live lanes; its README
   has the detail).
 - `docs/assets/` - the pictures only the root README shows: two figures of
   the plugin as a whole (`goal-to-main`, how a goal moves through the areas,

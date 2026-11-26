@@ -2,12 +2,13 @@
 // worktree-branches: a round of work as the repo's own graph. The plan's
 // issues become the board's cards, each card starts a branch off main, and
 // the followed branch carries one commit per thing an area asked for. The
-// areas' names step down over the commits they asked for; agentic-teamwork's
+// areas' names step down over the commits they asked for; delivery's
 // line runs on to the merge, because it opens the branch with a test and
 // closes it with ship and land. main runs along the bottom, takes the merge,
-// and is where codebase-optimizer works. Every hand-off drawn is a flow in
+// and is where code works. Every hand-off drawn is a flow in
 // the model, with the path:line that names it.
 import type { Model, Row } from "../kit/model";
+import { entity } from "../kit/model";
 import { Stage, useFigure } from "../kit/stage";
 import type { StageProps } from "../kit/stage";
 import { Elbow } from "../kit/flat/connect";
@@ -37,18 +38,18 @@ const STUB = 358; // how far the followed branch has got when its session starts
 // The followed branch's commits: what each holds, the area that asked for it,
 // and the stretch of its beat the story's dot takes to reach it.
 const COMMITS: { x: number; area: string; holds: string; beat: string; t: [number, number] }[] = [
-  { x: 382, area: "agentic-teamwork", holds: "test", beat: "build", t: [0.04, 0.2] },
-  { x: 426, area: "code-diet", holds: "code", beat: "build", t: [0.27, 0.43] },
+  { x: 382, area: "delivery", holds: "test", beat: "build", t: [0.04, 0.2] },
+  { x: 426, area: "code", holds: "code", beat: "build", t: [0.27, 0.43] },
   { x: 470, area: "perceptual-loop", holds: "shots", beat: "look", t: [0.06, 0.3] },
   { x: 514, area: "docs-parity", holds: "page", beat: "same-change", t: [0.04, 0.15] },
-  { x: 558, area: "write-like-me", holds: "prose", beat: "same-change", t: [0.2, 0.3] },
+  { x: 558, area: "writing", holds: "prose", beat: "same-change", t: [0.2, 0.3] },
   { x: 602, area: "system-map", holds: "@system", beat: "same-change", t: [0.35, 0.45] },
 ];
 const STAIR_TOP = 62, STAIR = 20;
 const nameY = (i: number) => STAIR_TOP + i * STAIR;
 const REQUEST: P2 = [664, LANE[0]]; // the merge request: opened, not a commit
-const STAGES = [716, 736]; // codebase-optimizer's commits on main
-// agentic-teamwork's line, from the end of its name to the merge it lands.
+const STAGES = [716, 736]; // code's commits on main
+// delivery's line, from the end of its name to the merge it lands.
 const NAME_END = COMMITS[0].x + 6 + 124;
 const RAIL = `M ${NAME_END} ${nameY(0)} L ${MERGE[0] - 8} ${nameY(0)} Q ${MERGE[0]} ${nameY(0)} ${MERGE[0]} ${nameY(0) + 8} L ${MERGE[0]} ${LANE[0] - 9}`;
 const RAIL_LENGTH = MERGE[0] - 8 - NAME_END + 12.6 + (LANE[0] - 9 - nameY(0) - 8);
@@ -115,18 +116,18 @@ function Scene() {
     : [along, MAIN_Y];
 
   const hot: Record<string, number> = {
-    "but-first-planning": on("grill"),
+    "planning": on("grill"),
     "agent-works": on("cards"),
-    "agentic-teamwork": Math.max(onBranch && current === 0 ? on("build") : 0, on("land")),
-    "code-diet": onBranch && current === 1 ? on("build") : 0,
+    "delivery": Math.max(onBranch && current === 0 ? on("build") : 0, on("land")),
+    "code": onBranch && current === 1 ? on("build") : 0,
     "perceptual-loop": onBranch && current === 2 ? on("look") : 0,
     "docs-parity": onBranch && current === 3 ? on("same-change") : 0,
-    "write-like-me": onBranch && current === 4 ? on("same-change") : 0,
+    "writing": onBranch && current === 4 ? on("same-change") : 0,
     "system-map": onBranch && current === 5 ? on("same-change") : 0,
-    "codebase-optimizer": on("keep"),
+    "code": on("keep"),
   };
   const lit: Record<string, number> = {
-    "but-first-planning": specIn, "agent-works": cardIn(0), "codebase-optimizer": span(k, 0.1, 0.2),
+    "planning": specIn, "agent-works": cardIn(0), "code": span(k, 0.1, 0.2),
     ...Object.fromEntries(COMMITS.map((one, i) => [one.area, made(i)])),
   };
   if (resting) for (const key of Object.keys(lit)) lit[key] = 1;
@@ -147,7 +148,7 @@ function Scene() {
       <text className="pt-tag" x={GOAL[0] + 11} y={GOAL[1] + 3.5} style={INK}>a goal bigger than one change</text>
       <Elbow from={[GOAL[0], GOAL[1] + 8]} to={[GOAL[0], PLAN.y - 1]} first="v" quiet accent={on("grill") * 0.9} />
 
-      {/* The plan: but-first-planning */}
+      {/* The plan: planning */}
       <Panel box={PLAN} accent={on("grill")}>
         <text className="pt-tag" x={PLAN.x + 10} y={PLAN.y + 15} style={INK}>.agents/plan/</text>
         <line className="pt-rule" x1={PLAN.x} x2={PLAN.x + PLAN.width} y1={PLAN.y + 22} y2={PLAN.y + 22} />
@@ -156,7 +157,7 @@ function Scene() {
           <text key={id} className="pt-tag" x={PLAN.x + 10} y={ROWS[i] + 3.5} opacity={r(issueIn(i))} style={INK}>{`issue ${id}`}</text>
         ))}
       </Panel>
-      <text className="pt-label" x={PLAN.x} y={PLAN.y + PLAN.height + 18} style={tone(lit["but-first-planning"], hot["but-first-planning"])}>but-first-planning</text>
+      <text className="pt-label" x={PLAN.x} y={PLAN.y + PLAN.height + 18} style={tone(lit["planning"], hot["planning"])}>planning</text>
 
       {/* An issue becomes a card */}
       {ROWS.map((y, i) => (
@@ -181,7 +182,7 @@ function Scene() {
           );
         })}
       </Panel>
-      <text className="pt-label" x={BOARD.x} y={BOARD.y + BOARD.height + 18} style={tone(lit["agent-works"], hot["agent-works"])}>agent-works</text>
+      <text className="pt-label" x={BOARD.x} y={BOARD.y + BOARD.height + 18} style={tone(lit["agent-works"], hot["agent-works"])}>agents</text>
 
       {/* A card starts its session: not a branch, so dashed */}
       <Elbow from={[BOARD.x + BOARD.width + 3, ROWS[0]]} to={[START[0], LANE[0] - 2]} first="h" via={START[0]} radius={6} dashed quiet progress={started} accent={on("cards") * 0.9} />
@@ -208,7 +209,7 @@ function Scene() {
       {waits > 0 ? (
         <g opacity={r(waits)}>
           <path className="pt-guide" d={`M ${COMMITS[2].x} ${LANE[0] + 8} L ${COMMITS[2].x} ${LANE[1] - 7}`} />
-          <text className="pt-tag" x={COMMITS[2].x + 9} y={LANE[1] - 14}>resource-locks: one renderer, one turn</text>
+          <text className="pt-tag" x={COMMITS[2].x + 9} y={LANE[1] - 14}>locks: one renderer, one turn</text>
         </g>
       ) : null}
 
@@ -220,7 +221,7 @@ function Scene() {
       ) : null}
       {grown >= 1 ? <text className="pt-tag" x={START[0] + 10} y={LANE[0] + 17} style={INK}>{ISSUES[0]}</text> : null}
 
-      {/* agentic-teamwork's line runs on: the branch it opened with a test, it ships and lands */}
+      {/* delivery's line runs on: the branch it opened with a test, it ships and lands */}
       {railIn > 0 ? <path d={RAIL} pathLength={1} strokeDasharray={`${r(railIn)} 1`} style={{ fill: "none", stroke: on("land") > 0 ? mix("var(--pt-accent)", "var(--pt-ink-3)", on("land")) : "var(--pt-ink-3)", strokeWidth: 1 }} /> : null}
 
       {/* Each commit: what it holds, and the area that asked for it */}
@@ -230,7 +231,7 @@ function Scene() {
         return (
           <g key={one.area}>
             {here > 0 ? <path d={`M ${one.x} ${LANE[0] - 8} L ${one.x} ${nameY(i) + 5}`} opacity={r(here)} style={{ fill: "none", stroke: h > 0 ? mix("var(--pt-accent)", "var(--pt-ink-3)", h) : "var(--pt-ink-3)", strokeWidth: 1 }} /> : null}
-            <text className="pt-label" x={one.x + 6} y={nameY(i) + 3.6} style={tone(lit[one.area], hot[one.area])}>{one.area}</text>
+            <text className="pt-label" x={one.x + 6} y={nameY(i) + 3.6} style={tone(lit[one.area], hot[one.area])}>{entity(model, one.area).label}</text>
             {here > 0 ? <text className="pt-tag" x={one.x + 6} y={LANE[0] - 9} opacity={r(here)} style={h > 0.5 && index !== at("land") ? HOT : INK}>{one.holds}</text> : null}
             <Commit at={[one.x, LANE[0]]} here={here} accent={index === at("land") ? 0 : h} />
           </g>
@@ -240,13 +241,13 @@ function Scene() {
       {/* The merge request, the review, and the merge */}
       {d > 0.12 && !merged ? <Commit at={REQUEST} ring here={span(d, 0.12, 0.16)} /> : null}
       {d > 0.12 ? <text className="pt-tag" x={REQUEST[0]} y={LANE[0] + 17} textAnchor="middle" opacity={r(span(d, 0.12, 0.18))} style={INK}>ship</text> : null}
-      {d > 0.16 ? <text className="pt-tag" x={MERGE[0] - 9} y={r((LANE[0] + MAIN_Y) / 2 + 3.5)} textAnchor="end" opacity={r(span(d, 0.16, 0.24))} style={INK}>review-diet</text> : null}
+      {d > 0.16 ? <text className="pt-tag" x={MERGE[0] - 9} y={r((LANE[0] + MAIN_Y) / 2 + 3.5)} textAnchor="end" opacity={r(span(d, 0.16, 0.24))} style={INK}>review</text> : null}
       {merged ? <text className="pt-tag" x={MERGE[0] - 9} y={MAIN_Y - 10} textAnchor="end" style={on("land") > 0.5 ? HOT : INK}>land</text> : null}
       {merged ? <Commit at={[MERGE[0], MAIN_Y]} /> : null}
 
-      {/* codebase-optimizer: stages on main, each behind the repo's own tests */}
+      {/* code: stages on main, each behind the repo's own tests */}
       {STAGES.map((x, i) => <Commit key={x} at={[x, MAIN_Y]} here={ease.out(span(k, 0.2 + i * 0.18, 0.26 + i * 0.18))} />)}
-      <text className="pt-label" x={MAIN_END - 4} y={MAIN_Y + 18} textAnchor="end" style={tone(lit["codebase-optimizer"], hot["codebase-optimizer"])}>codebase-optimizer</text>
+      <text className="pt-label" x={MAIN_END - 4} y={MAIN_Y + 18} textAnchor="end" style={tone(lit["code"], hot["code"])}>code</text>
       <text className="pt-tag" x={MAIN_END - 4} y={MAIN_Y + 32} textAnchor="end" opacity={r(resting ? 1 : span(k, 0.2, 0.3))}>in stages, tests green after each</text>
 
       {/* The story's dot */}

@@ -1,5 +1,5 @@
 "use client";
-// names-and-routes: the plugin as a table. Inside the frame, the fourteen
+// names-and-routes: the plugin as a table. Inside the frame, the nine
 // names a session lists; outside it, one tile per route, to the real counts.
 // A person's typed line reaches start-here, which hands off to one area; an
 // agent's call reaches the same row. The row opens into its named routes,
@@ -17,7 +17,7 @@ import data from "./model.json";
 
 const model = data as Model;
 const r3 = (v: number) => Math.round(v * 1000) / 1000;
-const VIEW = { x: 0, y: 0, width: 760, height: 434 };
+const VIEW = { x: 0, y: 0, width: 818, height: 336 };
 
 // ── The model, read once ────────────────────────────────────────────────────
 const AREAS = rows(model, "areas");
@@ -31,12 +31,12 @@ const [PREFIX, ROUTE_WORD] = (flow(model, "call").label ?? "").split(" ");
 
 // ── The page ────────────────────────────────────────────────────────────────
 const FS = 10, CW = FS * 0.6; // code type: mono, so a character is 0.6 of its size
-const LIST_X = 236, LIST_W = 140; // the areas' frame
-const DOOR: Box = { x: 186, y: 44, width: LIST_X + LIST_W - 186, height: 24 }; // start-here sticks out to the left
+const LIST_X = 294, LIST_W = 140; // the areas' frame
+const DOOR: Box = { x: 244, y: 44, width: LIST_X + LIST_W - 244, height: 24 }; // start-here sticks out to the left
 const Y0 = DOOR.y + DOOR.height / 2;
 const PITCH = 22, FIRST = Y0 + 32, OPEN = 24; // an opened row gains a second line
-const TILES_X = 392, TILE = { w: 12, h: 15, pitch: 19, ear: 4 };
-const DROP_X = 208; // where the hand-off comes down, left of the areas' frame
+const TILES_X = 450, TILE = { w: 12, h: 15, pitch: 19, ear: 4 };
+const DROP_X = 266; // where the hand-off comes down, left of the areas' frame
 const rowY = (i: number, open: number) => FIRST + i * PITCH + (i > AI ? open * OPEN : 0);
 const Y2 = rowY(AI, 0);
 
@@ -46,9 +46,9 @@ const chipW = (r: Row) => String(r.label).length * CW + CHIP_PAD * 2;
 const CHIP_X: number[] = [];
 ROUTES.reduce((x, r) => { CHIP_X.push(x); return x + chipW(r) + CHIP_GAP; }, TILES_X);
 
-const PROMPT: Box = { x: 14, y: Y0 - 11, width: 146, height: 22 };
-const CALL: Box = { x: 14, y: Y2 - 16, width: 176, height: 32 };
-const INDEX: Box = { x: 14, y: 176, width: 112, height: 13 * 5 + 11 };
+const PROMPT: Box = { x: 14, y: Y0 - 11, width: 204, height: 22 };
+const CALL: Box = { x: 14, y: Y2 - 16, width: 204, height: 32 };
+const INDEX: Box = { x: 14, y: Y2 + 66, width: 112, height: AREAS.length * 5 + 14 };
 /** A page with its corner folded: a document. `ear` 0 is a plain box. */
 const page = (x: number, y: number, w: number, h: number, ear: number) => `M ${r3(x)} ${r3(y)} H ${r3(x + w - ear)} L ${r3(x + w)} ${r3(y + ear)} V ${r3(y + h)} H ${r3(x)} Z`;
 
@@ -80,9 +80,9 @@ function Scene() {
 
   return (
     <g opacity={f.present}>
-      {/* What a session lists: fourteen names. */}
-      <text className="pt-label" x={DOOR.x} y={28}>agentcraft lists</text>
-      <text className="pt-tag" x={DOOR.x + 126} y={28}>14 names</text>
+      {/* What a session lists: nine names. */}
+      <text className="pt-label" x={DOOR.x} y={28}>The plugin lists</text>
+      <text className="pt-tag" x={DOOR.x + 126} y={28}>{AREAS.length + 1} names</text>
       <rect className="pt-panel" x={DOOR.x} y={DOOR.y} width={DOOR.width} height={DOOR.height} rx={6}
         style={{ stroke: mix("var(--pt-accent)", mix("var(--pt-line)", "var(--pt-line-2)", f.on("listed")), f.on("listed", "typed", "handoff")), fill: mix("var(--pt-accent-soft)", "var(--pt-top)", f.on("typed", "handoff")) }} />
       <text className="pt-tag" x={DOOR.x + 10} y={Y0 + 3.5} style={{ ...code, fill: "var(--pt-ink)", fontWeight: 700, ["--pt-halo" as string]: "transparent" }}>start-here</text>
@@ -99,7 +99,7 @@ function Scene() {
           );
         })}
       </Panel>
-      <text className="pt-tag" x={LIST.x} y={listBottom + 18}>13 areas: an agent calls one by name.</text>
+      <text className="pt-tag" x={LIST.x} y={listBottom + 18}>{AREAS.length} areas: an agent calls one by name.</text>
       <text className="pt-tag" x={LIST.x} y={listBottom + 31}>Typed by a person, the host refuses it.</text>
 
       {/* What is on disk: one tile per route, never listed. */}

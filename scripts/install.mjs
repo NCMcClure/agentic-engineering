@@ -15,7 +15,7 @@
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { OLD_NAMES, readJson, writeJson } from "./lib.mjs";
+import { OLD_NAMES, OLD_PLUGIN_NAMES, readJson, writeJson } from "./lib.mjs";
 
 const REPO = path.resolve(import.meta.dirname, "..");
 const CONFIG = process.env.CLAUDE_CONFIG_DIR || path.join(os.homedir(), ".claude");
@@ -33,7 +33,7 @@ const UNINSTALL = flag("--uninstall");
 // An external entry has no tree here to copy, so only the ./plugins/ entries
 // install from a checkout. Each area of a plugin here was a plugin of its own
 // once, under the area's name or one of OLD_NAMES, and the catalog lists none
-// of them now. So the installer never installs one, and it retires what an
+// of them now; the plugin itself went by one of OLD_PLUGIN_NAMES before 2.0.0. So the installer never installs one, and it retires what an
 // earlier run left under such a name: that copy is the old plugin whole, and
 // beside the new one every hook would run twice.
 const all = CATALOG.plugins.filter((p) => typeof p.source === "string").map((p) => p.name);
@@ -41,7 +41,7 @@ const areasOf = (plugin) => {
   const skills = path.join(REPO, "plugins", plugin, "skills");
   return fs.existsSync(skills) ? fs.readdirSync(skills).filter((name) => fs.existsSync(path.join(skills, name, "routes"))) : [];
 };
-const old = [...new Set([...all.flatMap(areasOf), ...Object.keys(OLD_NAMES)])].filter((p) => !all.includes(p));
+const old = [...new Set([...all.flatMap(areasOf), ...Object.keys(OLD_NAMES), ...OLD_PLUGIN_NAMES])].filter((p) => !all.includes(p));
 const wanted = value("--plugins")?.split(",").map((s) => s.trim()).filter(Boolean) ?? all;
 const unknown = wanted.filter((p) => !all.includes(p));
 if (unknown.length) {

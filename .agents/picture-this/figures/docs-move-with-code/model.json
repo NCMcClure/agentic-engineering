@@ -11,7 +11,7 @@
       "label": "Surface: export",
       "kind": "map",
       "note": "one feature a reader meets",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:466"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:466"
     },
     {
       "id": "code",
@@ -19,7 +19,7 @@
       "kind": "source",
       "note": "src/export/menu.tsx",
       "parent": "surface",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:469"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:469"
     },
     {
       "id": "page",
@@ -27,7 +27,7 @@
       "kind": "page",
       "note": "docs/exporting.md",
       "parent": "surface",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:471"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:471"
     },
     {
       "id": "shot",
@@ -35,21 +35,21 @@
       "kind": "image",
       "note": "docs/images/export/menu.png",
       "parent": "surface",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:472"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:472"
     },
     {
       "id": "check",
       "label": "docs-check",
       "kind": "script",
       "note": "the Stop hook runs it",
-      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:50"
+      "source": "plugins/agentic-engineering/skills/docs/hooks/stop-check.mjs:50"
     },
     {
       "id": "agent",
       "label": "Agent",
       "kind": "agent",
       "note": "told before the turn ends",
-      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:112"
+      "source": "plugins/agentic-engineering/skills/docs/hooks/stop-check.mjs:112"
     }
   ],
   "flows": [
@@ -59,7 +59,7 @@
       "to": "page",
       "kind": "query",
       "label": "page changed?",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:471"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:471"
     },
     {
       "id": "left-shot",
@@ -67,7 +67,7 @@
       "to": "shot",
       "kind": "query",
       "label": "shot changed?",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:472"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:472"
     },
     {
       "id": "tell",
@@ -75,7 +75,7 @@
       "to": "agent",
       "kind": "event",
       "label": "PARITY_MISSING",
-      "source": "plugins/agentcraft/skills/docs-parity/hooks/stop-check.mjs:112"
+      "source": "plugins/agentic-engineering/skills/docs/hooks/stop-check.mjs:112"
     },
     {
       "id": "rewrite",
@@ -83,7 +83,7 @@
       "to": "page",
       "kind": "write",
       "label": "rewrite",
-      "source": "plugins/agentcraft/skills/docs-parity/routes/docs-sync/ROUTE.md:36"
+      "source": "plugins/agentic-engineering/skills/docs/routes/sync/ROUTE.md:36"
     },
     {
       "id": "remind",
@@ -91,7 +91,7 @@
       "to": "shot",
       "kind": "event",
       "label": "SHOTS_UNCHANGED",
-      "source": "plugins/agentcraft/skills/docs-parity/scripts/docs-check.mjs:479"
+      "source": "plugins/agentic-engineering/skills/docs/scripts/docs-check.mjs:479"
     },
     {
       "id": "retake",
@@ -99,7 +99,7 @@
       "to": "shot",
       "kind": "write",
       "label": "retake",
-      "source": "plugins/agentcraft/skills/docs-parity/routes/docs-sync/ROUTE.md:51"
+      "source": "plugins/agentic-engineering/skills/docs/routes/sync/ROUTE.md:51"
     }
   ],
   "data": {
@@ -198,7 +198,7 @@
       "id": "rewrite",
       "title": "The page is rewritten",
       "plain": "The agent rewrites the sentence in the screen's own words. The check now only notes that the screenshot is the old one.",
-      "technical": "docs-sync step 2 rewrites the passage to .agents/docs-contract.md. docs-check now reports SHOTS_UNCHANGED, info only, exit 0.",
+      "technical": "docs sync step 2 rewrites the passage to .agents/docs-contract.md. docs-check now reports SHOTS_UNCHANGED, info only, exit 0.",
       "focus": [
         "page",
         "check"

@@ -1,7 +1,0 @@
-{
-  "script": "stop-check.mjs",
-  "event": "Stop",
-  "fixture": "standard",
-  "stdin": { "hook_event_name": "Stop", "session_id": "sm-stop-1", "cwd": "{{REPO}}", "stop_hook_active": false },
-  "expect": { "exit": 0, "stdoutEmpty": true }
-}

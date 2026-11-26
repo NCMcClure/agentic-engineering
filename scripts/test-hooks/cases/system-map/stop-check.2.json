@@ -1,6 +1,0 @@
-{
-  "script": "stop-check.mjs",
-  "event": "Stop",
-  "stdin": "",
-  "expect": { "exit": 0, "stdoutEmpty": true }
-}

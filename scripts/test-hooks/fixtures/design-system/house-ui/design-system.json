@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "name": "house-ui",
+  "version": "0.2.0",
+  "install": {
+    "kit": "npx house-ui@{ref} init --yes",
+    "item": "npx house-ui@{ref} add {item}",
+    "pin": "Record the tag in .agents/design.json; the kit writes nothing else that names it."
+  },
+  "entry": {
+    "css": ["./styles/house-tokens.css", "./styles/house-base.css"],
+    "root": ["Wrap the app's root element in <HouseProvider>.", "Load the Inter font before the first paint."]
+  },
+  "tokens": ["styles/tokens.css"],
+  "rules": "docs/RULES.md",
+  "catalog": "docs/CATALOG.md",
+  "banned": {
+    "values": ["color"],
+    "classes": [
+      { "name": "radius", "pattern": "^rounded(-.+)?$" },
+      { "name": "shadow", "pattern": "^shadow(-.+)?$" }
+    ]
+  },
+  "allow": "design-allow.json"
+}

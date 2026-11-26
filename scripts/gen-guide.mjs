@@ -38,7 +38,7 @@ export function guide(root) {
   const own = areas(root).map(({ area }) => {
     let lead = "";
     try { lead = readArea(root, AREA_PLUGIN, area).lead; } catch { /* the gate says what is wrong with the data */ }
-    return { area, lead, routes: routesOf(root, AREA_PLUGIN, area), readme: fs.existsSync(path.join(dir, "skills", area, "README.md")) };
+    return { area, lead, routes: routesOf(root, AREA_PLUGIN, area), readme: fs.existsSync(path.join(dir, "skills", area, "README.md")), history: historyOf(dir, area) };
   });
   const start = fs.existsSync(path.join(root, ENTRY_FILE)) ? parseFrontmatter(fs.readFileSync(path.join(root, ENTRY_FILE), "utf8")) ?? {} : null;
   const out = [
@@ -61,13 +61,20 @@ export function guide(root) {
   if (start) out.push("", `## ${ENTRY}`, "", cell(start.description), "", `The one skill a person types: \`/${AREA_PLUGIN}:${ENTRY}${start["argument-hint"] ? ` ${cell(start["argument-hint"])}` : ""}\`.`);
   for (const a of own) {
     out.push("", `## ${a.area}`, "", cell(a.lead));
-    if (a.readme) out.push("", `[README](../plugins/${AREA_PLUGIN}/skills/${a.area}/README.md), [changelog](../plugins/${AREA_PLUGIN}/skills/${a.area}/CHANGELOG.md).`);
+    // An area has no changelog of its own: it keeps the history of each plugin it was made from.
+    const links = [...(a.readme ? [`[README](../plugins/${AREA_PLUGIN}/skills/${a.area}/README.md)`] : []), ...a.history.map((h) => `[${h} history](../plugins/${AREA_PLUGIN}/skills/${a.area}/history/${h}.md)`)];
+    if (links.length) out.push("", `${links.join(", ")}.`);
     if (!a.routes.length) continue;
     // A route by the address that reaches it: the area, then the route as its first argument.
     out.push("", "| An agent's address | Started | When |", "|---|---|---|");
     for (const r of a.routes) out.push(`| \`/${AREA_PLUGIN}:${a.area} ${r.name}${r.hint ? ` ${cell(r.hint)}` : ""}\` | ${r.person ? "when you ask for it" : "by the agent"} | ${cell(r.description)} |`);
   }
   return `${out.join("\n")}\n`;
+}
+
+/** The plugins an area was made from that left a history, by name: `skills/<area>/history/<name>.md`. */
+function historyOf(pluginDir, area) {
+  try { return fs.readdirSync(path.join(pluginDir, "skills", area, "history")).filter((n) => n.endsWith(".md")).map((n) => n.slice(0, -3)).sort(); } catch { return []; }
 }
 
 // ---- an area's routes ----------------------------------------------------

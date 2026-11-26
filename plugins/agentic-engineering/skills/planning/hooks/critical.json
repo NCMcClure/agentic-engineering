@@ -1,0 +1,8 @@
+{
+  "area": "planning",
+  "lines": [
+    {"for":"main","mode":"any","text":"Anything not fully specified gets /agentic-engineering:planning grill (one question at a time, each with a recommendation) before it is planned or handed to an unwatched session."},
+    {"for":"all","mode":"any","when":[".agents/plan",".agents/plans",".plan/plan/plan-status.py",".plan/plan/verify-plan-tree.py",".plan/spec/scripts/verify-spec-tree.py"],"text":"A plan lives in .agents/plan/, or in .agents/plans/<name>/ for one feature or task: a spec decision changes through /agentic-engineering:planning spec-edit, and an issue is built from its acceptance criteria as failing tests first (/agentic-engineering:planning build-tdd)."},
+    {"for":"main","mode":"any","when":[".agents/plan",".agents/plans",".plan/plan/plan-status.py",".plan/plan/verify-plan-tree.py",".plan/spec/scripts/verify-spec-tree.py"],"text":"A published plan is worked through /agentic-engineering:agents orchestrate: its issues are cards on the board."}
+  ]
+}

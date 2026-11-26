@@ -11,21 +11,21 @@
       "label": "Reference",
       "kind": "picture",
       "note": "the picture to match",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:72"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/compare.mjs:72"
     },
     {
       "id": "render",
       "label": "Agent's render",
       "kind": "picture",
       "note": "the candidate, one shot",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/iterate.mjs:98"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/iterate.mjs:98"
     },
     {
       "id": "heat",
       "label": "Where they differ",
       "kind": "map",
       "note": "colour difference, place by place",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/sheets.mjs:156"
+      "source": "plugins/agentic-engineering/skills/design/scripts/lib/sheets.mjs:156"
     },
     {
       "id": "crop",
@@ -33,14 +33,14 @@
       "kind": "picture",
       "note": "the same box of both pictures",
       "born": "crop",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sheet.mjs:97"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/sheet.mjs:97"
     },
     {
       "id": "whole",
       "label": "Whole frame",
       "kind": "readout",
       "note": "three numbers for the frame",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:102"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/compare.mjs:102"
     },
     {
       "id": "inside",
@@ -48,7 +48,7 @@
       "kind": "readout",
       "note": "the same three, for the box alone",
       "born": "numbers",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/metrics.mjs:254"
+      "source": "plugins/agentic-engineering/skills/design/scripts/lib/metrics.mjs:254"
     }
   ],
   "flows": [
@@ -58,7 +58,7 @@
       "to": "heat",
       "kind": "read",
       "label": "reference.png",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:72"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/compare.mjs:72"
     },
     {
       "id": "compare",
@@ -66,7 +66,7 @@
       "to": "heat",
       "kind": "event",
       "label": "candidate.png",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:82"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/compare.mjs:82"
     },
     {
       "id": "zoom",
@@ -74,7 +74,7 @@
       "to": "crop",
       "kind": "query",
       "label": "--box",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/sheet.mjs:105"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/sheet.mjs:105"
     },
     {
       "id": "score",
@@ -82,7 +82,7 @@
       "to": "whole",
       "kind": "event",
       "label": "mean",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/lib/metrics.mjs:183"
+      "source": "plugins/agentic-engineering/skills/design/scripts/lib/metrics.mjs:183"
     },
     {
       "id": "region",
@@ -90,7 +90,7 @@
       "to": "inside",
       "kind": "event",
       "label": "the box alone",
-      "source": "plugins/agentcraft/skills/perceptual-loop/scripts/commands/compare.mjs:95"
+      "source": "plugins/agentic-engineering/skills/design/scripts/commands/compare.mjs:95"
     },
     {
       "id": "fix",
@@ -98,7 +98,7 @@
       "to": "render",
       "kind": "write",
       "label": "fix",
-      "source": "plugins/agentcraft/skills/perceptual-loop/routes/iterate-shots/ROUTE.md:23"
+      "source": "plugins/agentic-engineering/skills/design/routes/iterate/ROUTE.md:23"
     }
   ],
   "data": {

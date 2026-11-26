@@ -17,7 +17,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { REPO } from "../fixtures.mjs";
 
-const PLUGIN = path.join(REPO, "plugins", "agentcraft");
+const PLUGIN = path.join(REPO, "plugins", "agentic-engineering");
 const load = (...rel) => import(pathToFileURL(path.join(PLUGIN, ...rel)).href);
 const { BRIEFING_CHARS, answer, clip, criticalLines, migrated, migrationReport, questionFor, readAreas, renderCritical, run } = await load("hooks", "critical-context.mjs");
 const area = process.argv[2];
